@@ -61,13 +61,14 @@ export function MinutesChart({ days, goal }: { days: { day: string; minutes: num
 }
 
 /** Today's goal as a ring around the minutes studied. */
-export function GoalRing({ minutes, target }: { minutes: number; target: number }) {
+export function GoalRing({ minutes, target, score }: { minutes: number; target: number; score?: { passed: boolean } }) {
   const pct = Math.min(1, minutes / Math.max(1, target));
   const r = 42;
   const c = 2 * Math.PI * r;
-  const done = minutes >= target;
+  const done = score ? score.passed : minutes >= target;
+  const label = score ? `Score ${minutes}%` : `${minutes} of ${target} minutes studied today${done ? ", goal reached" : ""}`;
   return (
-    <div className="relative size-28 shrink-0" role="img" aria-label={`${minutes} of ${target} minutes studied today${done ? ", goal reached" : ""}`}>
+    <div className="relative size-28 shrink-0" role="img" aria-label={label}>
       <svg viewBox="0 0 100 100" className="size-full -rotate-90">
         <circle cx="50" cy="50" r={r} fill="none" stroke="var(--surface-2)" strokeWidth="9" />
         <circle
@@ -85,8 +86,11 @@ export function GoalRing({ minutes, target }: { minutes: number; target: number 
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-2xl font-semibold tabular-nums">{minutes}</span>
-        <span className="text-xs text-muted">of {target} min</span>
+        <span className="text-2xl font-semibold tabular-nums">
+          {minutes}
+          {score && <span className="text-base">%</span>}
+        </span>
+        <span className="text-xs text-muted">{score ? "score" : `of ${target} min`}</span>
       </div>
     </div>
   );

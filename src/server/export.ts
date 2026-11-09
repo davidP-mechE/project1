@@ -1,4 +1,5 @@
 import "server-only";
+import { existsSync, readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import path from "node:path";
 import initSqlJs, { type SqlJsStatic } from "sql.js";
@@ -58,8 +59,17 @@ export async function getCourseExport(userId: string, courseId: string): Promise
 }
 
 let sql: Promise<SqlJsStatic> | null = null;
-/** The SQLite engine (WebAssembly) used to build Anki decks. Loaded once. */
+/**
+ * The SQLite engine (WebAssembly) used to build Anki decks. Loaded once.
+ * The .wasm file is read with fs from a literal path (not imported), so the
+ * bundler leaves it alone and deployment file tracing still includes it.
+ */
 export function sqlJs(): Promise<SqlJsStatic> {
-  sql ??= initSqlJs({ locateFile: (file) => path.join(path.dirname(createRequire(import.meta.url).resolve("sql.js")), file) });
+  sql ??= (async () => {
+    let file = path.join(process.cwd(), "node_modules/sql.js/dist/sql-wasm.wasm");
+    if (!existsSync(file)) file = path.join(path.dirname(createRequire(import.meta.url).resolve("sql.js")), "sql-wasm.wasm");
+    const wasm = readFileSync(file);
+    return initSqlJs({ wasmBinary: wasm.buffer.slice(wasm.byteOffset, wasm.byteOffset + wasm.byteLength) as ArrayBuffer });
+  })();
   return sql;
 }

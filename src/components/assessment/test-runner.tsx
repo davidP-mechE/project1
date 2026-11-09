@@ -177,7 +177,7 @@ function Results({ result, bookId, title, backHref, onRetake }: { result: TestRe
   return (
     <div className="flex flex-col gap-6">
       <div className="pop-in flex flex-col items-center gap-4 rounded-2xl border border-border bg-surface p-6 text-center sm:flex-row sm:text-left">
-        <GoalRing minutes={pct} target={100} />
+        <GoalRing minutes={pct} target={100} score={{ passed: pct >= 80 }} />
         <div className="flex-1">
           <p className="text-sm text-muted">{title}</p>
           <h2 className="text-2xl font-semibold">

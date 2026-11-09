@@ -1,6 +1,6 @@
 # Textbook → Course: Implementation Plan
 
-Status: **approved; Phases 1–8 built** (see README for what's done and how it works).
+Status: **approved; Phases 1–9 built** (see README for what's done and how it works).
 
 Working name: **Coursebook** (rename any time; it only appears in the UI title and README).
 
