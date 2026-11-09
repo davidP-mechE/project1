@@ -228,7 +228,7 @@ function OutlinePreview({ outline, courseId }: { outline: Awaited<ReturnType<typ
 
       <ol className="mt-5 flex flex-col gap-4">
         {outline.units.map((u) => (
-          <li key={u.id} className={u.lessons.every((l) => l.skip) ? "opacity-70" : undefined}>
+          <li key={u.id} className={u.lessons.every((l) => l.skip) ? "text-muted" : undefined}>
             <div className="flex flex-wrap items-baseline gap-2">
               <h3 className="font-semibold">
               <Link href={`/courses/${courseId}/units/${u.id}`} className="hover:underline">

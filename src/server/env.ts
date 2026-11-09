@@ -54,6 +54,11 @@ const schema = z.object({
   // Where the worker keeps the downloaded embedding model (~34 MB). Default: ~/.cache/coursebook/models
   // (outside the project folder, or the dev server's file watcher keeps reloading the page).
   EMBEDDINGS_CACHE_DIR: z.string().optional(),
+  // Shown on the Terms, Privacy and Copyright pages.
+  LEGAL_NAME: z.string().default("the operator of this Coursebook site"),
+  CONTACT_EMAIL: z.string().optional(),
+  COPYRIGHT_AGENT: z.string().optional(), // name and postal address of your designated copyright agent ("\n" for new lines)
+  LEGAL_UPDATED: z.string().default("November 9, 2026"),
   // Development only: write placeholder "demo" lessons without calling Claude (free).
   FAKE_CLAUDE: z.stringbool().default(false),
 });
@@ -73,7 +78,10 @@ export const env = parsed.data;
 
 export const googleAuthEnabled = Boolean(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET);
 
-if (env.FAKE_CLAUDE && env.NODE_ENV === "production") {
+// Demo mode is refused in production, except for the end-to-end tests, which
+// run a production build on localhost (playwright.config.ts sets E2E_TEST).
+const localE2e = process.env.E2E_TEST === "true" && ["localhost", "127.0.0.1"].includes(new URL(env.APP_URL).hostname);
+if (env.FAKE_CLAUDE && env.NODE_ENV === "production" && !localE2e) {
   throw new Error("FAKE_CLAUDE must not be enabled in production.");
 }
 

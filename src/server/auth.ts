@@ -74,6 +74,8 @@ export const auth = betterAuth({
 
   rateLimit: {
     enabled: env.NODE_ENV === "production",
+    // In the database, so the limits hold across several server instances.
+    storage: "database",
     window: 60,
     max: 100,
     customRules: {

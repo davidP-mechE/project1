@@ -5,6 +5,9 @@ import { NotFoundError } from "@/server/courses";
 import { getCourseExport, sqlJs } from "@/server/export";
 import { jsonError } from "@/server/http";
 import { getSession } from "@/server/session";
+import { track } from "@/server/analytics";
+import { limitOrResponse } from "@/server/rate-limit";
+import { RATE_RULES } from "@/lib/usage/rate-limit";
 
 /**
  * Downloads: ?format=md | cards.csv | questions.csv | apkg
@@ -13,6 +16,8 @@ import { getSession } from "@/server/session";
 export async function GET(request: Request, ctx: RouteContext<"/api/courses/[courseId]/export">) {
   const session = await getSession();
   if (!session) return jsonError("Please log in.", 401);
+  const limited = await limitOrResponse(RATE_RULES.export, session.user.id);
+  if (limited) return limited;
   const { courseId } = await ctx.params;
   const url = new URL(request.url);
   const format = url.searchParams.get("format") ?? "md";
@@ -33,6 +38,7 @@ export async function GET(request: Request, ctx: RouteContext<"/api/courses/[cou
       },
     });
   const now = new Date();
+  if (["md", "cards.csv", "questions.csv", "apkg"].includes(format)) await track("export_downloaded", session.user.id, { format });
   switch (format) {
     case "md":
       return file(courseToMarkdown(course, { answers: url.searchParams.get("answers") !== "0", flashcards: url.searchParams.get("flashcards") !== "0" }, now), `${base}-study-guide.md`, "text/markdown; charset=utf-8");

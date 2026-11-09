@@ -3,9 +3,9 @@
 import { ThemeProvider as NextThemes, useTheme } from "next-themes";
 import { useSyncExternalStore, type ReactNode } from "react";
 
-export function ThemeProvider({ children }: { children: ReactNode }) {
+export function ThemeProvider({ children, nonce }: { children: ReactNode; nonce?: string }) {
   return (
-    <NextThemes attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+    <NextThemes attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange nonce={nonce}>
       {children}
     </NextThemes>
   );

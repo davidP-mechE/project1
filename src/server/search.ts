@@ -1,4 +1,5 @@
 import "server-only";
+import { track } from "./analytics";
 import { db } from "./db";
 import { NotFoundError } from "./courses";
 import { buildTsQuery } from "@/lib/search/query";
@@ -21,6 +22,7 @@ export async function searchCourse(userId: string, courseId: string, input: stri
   if (!course) throw new NotFoundError("Course not found");
   const tsquery = buildTsQuery(input);
   if (!tsquery) return { query: null, lessons: [] as LessonHit[], book: [] as BookHit[] };
+  await track("search_used", userId);
 
   const [lessons, chunks, ranges] = await Promise.all([
     db.$queryRaw<LessonHit[]>`

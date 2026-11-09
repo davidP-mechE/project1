@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { authClient } from "@/lib/auth-client";
 
-export function UserMenu({ name, email }: { name: string; email: string }) {
+export function UserMenu({ name, email, isAdmin = false }: { name: string; email: string; isAdmin?: boolean }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const router = useRouter();
@@ -32,10 +32,10 @@ export function UserMenu({ name, email }: { name: string; email: string }) {
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
         aria-haspopup="menu"
-        aria-label="Account menu"
         className="inline-flex size-9 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-text"
       >
-        {initials}
+        <span aria-hidden>{initials}</span>
+        <span className="sr-only">Account menu</span>
       </button>
       {open && (
         <div role="menu" className="absolute right-0 z-20 mt-2 w-60 rounded-xl border border-border bg-surface p-1 shadow-lg">
@@ -47,6 +47,11 @@ export function UserMenu({ name, email }: { name: string; email: string }) {
           <Link role="menuitem" href="/settings" onClick={() => setOpen(false)} className="block rounded-lg px-3 py-2 text-sm hover:bg-surface-2">
             Settings
           </Link>
+          {isAdmin && (
+            <Link role="menuitem" href="/admin" onClick={() => setOpen(false)} className="block rounded-lg px-3 py-2 text-sm hover:bg-surface-2">
+              Admin
+            </Link>
+          )}
           <button
             role="menuitem"
             type="button"

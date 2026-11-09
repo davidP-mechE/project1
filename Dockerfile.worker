@@ -1,0 +1,31 @@
+# The background worker (book processing, OCR, lesson generation, embeddings,
+# reminders). Deploy this image to Railway, Fly.io or Render; the web app goes
+# to Vercel. See DEPLOY.md.
+#
+#   docker build -f Dockerfile.worker -t coursebook-worker .
+#   docker run --env-file .env coursebook-worker
+
+# Debian (glibc), not Alpine: the canvas and ONNX packages ship glibc binaries.
+FROM node:22-bookworm-slim
+
+WORKDIR /app
+
+# Dependencies first, so code changes don't reinstall them. The install runs
+# `prisma generate`, which only needs some DATABASE_URL to be set.
+COPY package.json package-lock.json prisma.config.ts ./
+COPY prisma ./prisma
+COPY scripts ./scripts
+RUN DATABASE_URL=postgresql://build:build@localhost:5432/build npm ci --include=dev --no-audit --no-fund \
+  && npm cache clean --force
+
+COPY tsconfig.json ./
+COPY src ./src
+
+ENV NODE_ENV=production
+# The embedding model (~34 MB) is downloaded here on first start. Mount a volume
+# at /app/.models to keep it across deploys (optional).
+ENV EMBEDDINGS_CACHE_DIR=/app/.models
+
+# Apply any new database migrations, then start the worker. Only the worker runs
+# migrations, so there is exactly one place they happen.
+CMD ["sh", "-c", "npx prisma migrate deploy && npx tsx --conditions=react-server src/worker/index.ts"]

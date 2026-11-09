@@ -42,7 +42,7 @@ export function CourseSidebar({ courseId, courseTitle, outline, currentLessonId 
                     <span className="min-w-0">
                       {l.title}
                       <span className="sr-only">{l.completed ? " (completed)" : l.ready ? "" : " (not written yet)"}</span>
-                      {!l.ready && <span className="ml-1 text-xs opacity-70">· not ready</span>}
+                      {!l.ready && <span className="ml-1 text-xs text-muted">· not ready</span>}
                     </span>
                   </Link>
                 </li>

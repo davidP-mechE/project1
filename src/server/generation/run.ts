@@ -9,6 +9,7 @@ import type { StoredFlashcard, StoredQuestion } from "@/lib/ai/lesson-schema";
 import type { Prisma } from "@/generated/prisma/client";
 import { syncFlashcards } from "../flashcard-store";
 import { queueReadyAssessments } from "./assessments";
+import { ensureAiBudget } from "../limits";
 
 /**
  * The work done by the background worker for one lesson. Separate from the
@@ -51,6 +52,7 @@ async function loadPages(lesson: LoadedLesson): Promise<SourcePage[]> {
 async function repairPages(lesson: LoadedLesson, pages: SourcePage[], deps: GenerationDeps): Promise<SourcePage[]> {
   if (!deps.renderPage) return pages;
   const todo = pages.filter(needsRepair).slice(0, MAX_REPAIRS_PER_LESSON);
+  if (todo.length > 0) await ensureAiBudget(lesson.course.userId);
   for (const p of todo) {
     try {
       const png = await deps.renderPage(lesson.course.bookId, p.pageNumber);
@@ -150,6 +152,7 @@ export async function runLessonJob(
     pages,
     settings,
   };
+  await ensureAiBudget(lesson.course.userId);
   let result;
   try {
     result = await deps.writer.writeLesson(input);
@@ -198,6 +201,7 @@ export async function runQuestionsJob(payload: { lessonId: string }, deps: Gener
   const existing = await db.question.findMany({ where: { lessonId: lesson.id, scope: "LESSON" }, select: { prompt: true } });
   const ctx = { userId: lesson.course.userId, courseId: lesson.courseId, lessonId: lesson.id, feature: "QUESTIONS" as const };
 
+  await ensureAiBudget(lesson.course.userId);
   let result;
   try {
     result = await deps.writer.writeQuestions({

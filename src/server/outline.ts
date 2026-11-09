@@ -275,15 +275,16 @@ export async function getEstimateInputs(userId: string, courseId: string) {
  * Cost/time estimate for the lessons a "Generate" click would write:
  * "pending" = included lessons with no content yet; "all" = every included lesson.
  */
-export async function getGenerationEstimate(userId: string, courseId: string, which: "pending" | "all") {
+export async function getGenerationEstimate(userId: string, courseId: string, which: "pending" | "all" | { lessonIds: string[] }) {
   const course = await loadCourse(userId, courseId);
   const settings = parseSettings(course.settings);
   const [lessons, pages] = await Promise.all([
     db.lesson.findMany({
       where: {
         courseId,
-        skip: false,
-        ...(which === "pending" ? { generatedAt: null, status: { in: ["PENDING", "FAILED"] } } : {}),
+        ...(typeof which === "object"
+          ? { id: { in: which.lessonIds } }
+          : { skip: false, ...(which === "pending" ? { generatedAt: null, status: { in: ["PENDING", "FAILED"] } } : {}) }),
       },
       select: { unitId: true, pageStart: true, pageEnd: true },
     }),

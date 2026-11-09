@@ -17,7 +17,9 @@
     "worker": "tsx --env-file-if-exists=.env --conditions=react-server src/worker/index.ts",
     "worker:dev": "tsx watch --env-file-if-exists=.env --conditions=react-server src/worker/index.ts",
     "fixtures": "node tests/fixtures/generate.mjs",
-    "smoke:claude": "tsx --env-file-if-exists=.env scripts/smoke-claude.ts"
+    "smoke:claude": "tsx --env-file-if-exists=.env scripts/smoke-claude.ts",
+    "admin:grant": "tsx --env-file-if-exists=.env scripts/make-admin.ts",
+    "test:e2e": "playwright test --trace off"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.6.0",
@@ -52,6 +54,8 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.14.0",
+    "@playwright/test": "1.63.0",
     "@tailwindcss/turbopack": "^4",
     "@types/node": "^22.20.5",
     "@types/nodemailer": "^8.0.2",
@@ -67,5 +71,8 @@
     "tsx": "^4.23.15",
     "typescript": "^5",
     "vitest": "^5.1.0"
+  },
+  "overrides": {
+    "katex": "$katex"
   }
 }

@@ -2,7 +2,7 @@
 
 Turn a textbook PDF into a structured, self-paced course: units, lessons, practice questions, flashcards with spaced repetition, and an "Ask the book" tutor that only answers from the textbook.
 
-> **Status:** Phases 1–9 of 10 are complete: accounts, library and upload; reading the book (text, OCR, figures, outline detection, background worker); the outline editor with course settings and a cost estimate; lesson generation with Claude (lessons, practice questions, flashcards, page references, caching, regenerating and hand editing); studying (course sidebar, progress, the original book side by side, practice questions checked instantly or graded by Claude); flashcards with spaced repetition, highlights and notes, and search across lessons and the book; the "Ask the book" tutor, which answers only from the textbook with page citations; a daily dashboard with streaks, weak topics, study plans and reminder emails; and unit tests, a final exam and exports (Markdown, PDF, CSV, Anki). See [PLAN.md](PLAN.md) for the full design and build order.
+> **Status:** All 10 phases are complete: accounts, library and upload; reading the book (text, OCR, figures, outline detection, background worker); the outline editor with course settings and a cost estimate; lesson generation with Claude (lessons, practice questions, flashcards, page references, caching, regenerating and hand editing); studying (course sidebar, progress, the original book side by side, practice questions checked instantly or graded by Claude); flashcards with spaced repetition, highlights and notes, and search across lessons and the book; the "Ask the book" tutor, which answers only from the textbook with page citations; a daily dashboard with streaks, weak topics, study plans and reminder emails; unit tests, a final exam and exports (Markdown, PDF, CSV, Anki); and the launch work: plan limits with a usage meter, an admin page, legal pages, a security and accessibility pass with browser tests, and a [deployment guide](DEPLOY.md). See [PLAN.md](PLAN.md) for the full design and build order.
 
 | Phase | What | Status |
 |---|---|---|
@@ -15,7 +15,7 @@ Turn a textbook PDF into a structured, self-paced course: units, lessons, practi
 | 7 | "Ask the book" tutor | ✅ Done |
 | 8 | Dashboard, weak topics, study plan, streaks, reminders | ✅ Done |
 | 9 | Unit tests / final exam, exports | ✅ Done |
-| 10 | Usage limits, admin, legal, security + accessibility pass, deployment | ⏳ Next |
+| 10 | Usage limits, admin, legal, security + accessibility pass, deployment | ✅ Done |
 
 ---
 
@@ -58,6 +58,8 @@ Install PostgreSQL 16 with the pgvector extension and Redis yourself, create the
 | `npm run worker` | Start the background worker (PDF processing) |
 | `npm run worker:dev` | Same, restarting automatically when code changes |
 | `npm test` | Run the automated tests (uses `TEST_DATABASE_URL`, which gets wiped) |
+| `npm run test:e2e` | Browser tests: the whole student journey on a production build, with accessibility (axe) and Content-Security-Policy checks on every page. Demo mode, free; needs the database and Redis running (~3 min) |
+| `npm run admin:grant -- you@example.com` | Make an account an admin (`--revoke` to undo) |
 | `npm run typecheck` | TypeScript type check |
 | `npm run lint` | ESLint |
 | `npm run build` | Production build |
@@ -310,6 +312,33 @@ Each course has an **Ask the book** tab, and each lesson has an **Ask the book**
 - **Flashcards CSV** and **Questions CSV**: open in Excel, Google Sheets, Quizlet. Cells starting with `=`, `+`, `-`, `@` are escaped so they can't run as spreadsheet formulas.
 - **Anki deck (.apkg)**: built on the server with `sql.js` (`src/lib/export/anki.ts`). One subdeck per unit ("Course::Unit"), a Front/Back/Source note type, math converted to Anki's `\( \)` syntax. Re-importing updates cards instead of duplicating them (stable ids). Spaced-repetition progress from Coursebook isn't carried over.
 
+### Launch: limits, admin, legal, security, accessibility (Phase 10)
+
+**Plan limits** (`src/lib/usage/limits.ts`, enforced in `src/server/limits.ts`):
+- Each student is on a plan (Free or Pro) with monthly allowances: Claude spend ($5 / $50), pages turned into lessons (500 / 5,000), books kept (10 / 100) and storage (2 GB / 20 GB). Operators can change them with environment variables (`FREE_MONTHLY_AI_USD`, …; see `.env.example`).
+- Checked before anything costs money: **Generate** checks pages left and the cost estimate; regenerating, grading written answers, the tutor and tests check the AI allowance; uploads check books and storage. The worker checks again before each Claude call, so queued work stops cleanly (no retries) if the allowance runs out.
+- Spend is the real recorded cost of every call (`UsageEvent`), per calendar month (UTC). A lesson counts its pages once a month, however often it's rewritten.
+- **Settings → Plan and usage** shows four meters and when they reset. Multiple choice, flashcards, search and downloads are always free.
+- A Redis rate limiter (`src/server/rate-limit.ts`) caps downloads, answer checks and test submissions per student. Login and sign-up limits are now stored in the database, so they hold across several servers.
+
+**Admin page** (`/admin`, in the account menu for admins; everyone else gets a 404):
+- Overview (users, active students, books, spend), Claude spend for 30 days by day, feature and model, top users.
+- **Failed work**: books that couldn't be read (with technical detail), lessons and tests Claude couldn't write, each with **Retry** (runs as the owner, so their limits still apply).
+- Feature use for 30 days: counted from each feature's own tables, plus a small `AnalyticsEvent` table for downloads, searches and printed guides. No third-party trackers.
+- Users: search, and change a student's plan. Make someone an admin with `npm run admin:grant -- email`.
+- An hourly maintenance job in the worker removes unfinished uploads, expired login rate-limit rows and old analytics events.
+
+**Legal pages:** `/terms`, `/privacy` and `/copyright` are complete plain-language drafts that describe what the app really does (what's stored, what's sent to Claude, deletion, the takedown process). The operator's name and contact details come from environment variables. They are not legal advice; see DEPLOY.md.
+
+**Security pass:**
+- A **Content-Security-Policy** with a fresh nonce on every page (`src/proxy.ts`, `src/lib/security/csp.ts`): scripts only run if the server put them there. HSTS on HTTPS.
+- Audited every route and Server Action for login, ownership and origin checks. The admin role is re-read from the database on each request and can't be set through the sign-up or profile API.
+- `npm audit` now finds no known vulnerabilities in production dependencies (a nested older KaTeX is forced to the current version).
+
+**Accessibility pass:** the browser test runs [axe](https://github.com/dequelabs/axe-core) (WCAG 2.1 AA) on 28 page views in light and dark mode. Fixed: the account menu's accessible name, the hidden file input's label, and dimmed text (skipped units, "not ready") that fell below the contrast minimum. The test also checks keyboard access to "Skip to content", that phone-width pages don't scroll sideways, and that the browser console has no errors or blocked scripts.
+
+**Deployment:** [DEPLOY.md](DEPLOY.md) walks through Vercel (web), Railway (worker, from `Dockerfile.worker`), Neon, Cloudflare R2, Resend and Redis, with every environment variable, the R2 CORS policy, RAM sizing for the worker, the first-admin step, usage limits and a security checklist.
+
 ### Key decisions
 
 See the table at the top of [PLAN.md](PLAN.md). Short version: Postgres everywhere (pgvector later), Better Auth for accounts, a separate background worker for heavy PDF processing, direct-to-storage uploads, and Next.js "Cache Components" turned off because almost every page is personal to the logged-in student.
@@ -336,6 +365,15 @@ The same formula powers the estimate on each course's Settings page and in the "
 | **Total per 100 pages** | | **≈ $1.50** (≈ $15 for a 1,000-page book) |
 
 While studying: multiple choice and exact matches are free; a written answer graded by Claude ≈ $0.01–0.02 (Claude Opus 5.5 at low effort, ~2–4K tokens in); a tutor question ≈ $0.02–0.05 (up to ~6K tokens of book passages plus the conversation). Embeddings are free (computed locally).
+
+## Manual test checklist (Phase 10)
+
+1. **Settings → Plan and usage** shows four meters. Generate a few lessons (demo mode is fine) and the "pages" meter goes up.
+2. Limits: run `psql` (or `npm run db:studio`) and add a `UsageEvent` row for yourself with `costMicroUsd` = 5000000. Writing a lesson, checking a written answer and asking the tutor now say the monthly allowance is used. Multiple choice still works. Delete the row afterwards.
+3. `npm run admin:grant -- you@example.com`, then **Admin** in the account menu: the overview, spend, failed work, feature use and users all appear. Change your plan to Pro and the Settings meters change. Log in as another student: `/admin` is a 404.
+4. `/terms`, `/privacy` and `/copyright` read well, with your `CONTACT_EMAIL` filled in.
+5. `npm run test:e2e` passes (it builds the app; takes a few minutes).
+6. Follow DEPLOY.md when you're ready to go live.
 
 ## Manual test checklist (Phase 9)
 

@@ -6,6 +6,7 @@ import { requireUser } from "../session";
 import { NotFoundError } from "../courses";
 import { createMissingAssessments, regenerateAssessment } from "../generation/assessments";
 import { claudeEnabled } from "../env";
+import { LimitError } from "../limits";
 
 const id = z.string().min(1).max(64);
 
@@ -18,6 +19,7 @@ export async function regenerateAssessmentAction(courseId: string, assessmentId:
     return { ok: true };
   } catch (err) {
     if (err instanceof NotFoundError) return { ok: false, error: "That test no longer exists." };
+    if (err instanceof LimitError) return { ok: false, error: err.message };
     console.error(err);
     return { ok: false, error: "Something went wrong. Please try again." };
   }

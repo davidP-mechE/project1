@@ -7,6 +7,7 @@ import { enqueueGeneration } from "../queue";
 import { LessonContentSchema, LessonEditSchema, type LessonContent } from "@/lib/ai/lesson-schema";
 import { cleanPageRefs } from "@/lib/ai/normalize";
 import { syncFlashcards } from "../flashcard-store";
+import { assertAiBudget, assertCanGenerate, LimitError } from "../limits";
 
 /**
  * What the web app can ask for: start generating a course, regenerate a
@@ -31,6 +32,16 @@ async function ownedLesson(userId: string, lessonId: string) {
   });
   if (!lesson) throw new NotFoundError("Lesson not found");
   return lesson;
+}
+
+/** Plan limits surface as a GenerationError, with the message for the student. */
+async function withinLimits(check: () => Promise<void>) {
+  try {
+    await check();
+  } catch (err) {
+    if (err instanceof LimitError) throw new GenerationError(err.message);
+    throw err;
+  }
 }
 
 function requireClaude() {
@@ -58,6 +69,7 @@ export async function startGeneration(userId: string, courseId: string) {
   const todo = lessons
     .map((l, index) => ({ ...l, index }))
     .filter((l) => !l.content && ["PENDING", "FAILED"].includes(l.status));
+  await withinLimits(() => assertCanGenerate(userId, courseId, todo.map((l) => l.id)));
 
   await db.$transaction([
     db.lesson.updateMany({ where: { id: { in: todo.map((l) => l.id) } }, data: { status: "QUEUED", error: null } }),
@@ -76,6 +88,7 @@ export async function regenerateAll(userId: string, courseId: string, opts: { in
     orderBy: [{ unit: { order: "asc" } }, { order: "asc" }],
     select: { id: true },
   });
+  await withinLimits(() => assertCanGenerate(userId, courseId, lessons.map((l) => l.id)));
   await db.$transaction([
     db.lesson.updateMany({ where: { id: { in: lessons.map((l) => l.id) } }, data: { status: "QUEUED", error: null } }),
     db.course.update({ where: { id: courseId }, data: { status: lessons.length > 0 ? "GENERATING" : "ACTIVE" } }),
@@ -96,6 +109,7 @@ export async function regenerateLesson(
   if (opts.mode === "questions" && !lesson.content) {
     throw new GenerationError("Generate the lesson first, then you can regenerate its questions.");
   }
+  await withinLimits(() => (opts.mode === "lesson" ? assertCanGenerate(userId, lesson.courseId, [lessonId]) : assertAiBudget(userId)));
   if (opts.mode === "lesson") {
     await db.lesson.update({ where: { id: lessonId }, data: { status: "QUEUED", error: null, flagReason: null, skip: false } });
     if (lesson.course.status !== "GENERATING") {

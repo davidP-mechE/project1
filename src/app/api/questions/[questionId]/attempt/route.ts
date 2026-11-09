@@ -3,6 +3,8 @@ import { getGrader } from "@/server/ai/client";
 import { NotFoundError } from "@/server/courses";
 import { isSameOrigin, jsonError } from "@/server/http";
 import { getSession } from "@/server/session";
+import { limitOrResponse } from "@/server/rate-limit";
+import { RATE_RULES } from "@/lib/usage/rate-limit";
 import { StudyError, submitAttempt } from "@/server/study";
 
 /**
@@ -14,6 +16,8 @@ export async function POST(request: Request, ctx: RouteContext<"/api/questions/[
   if (!isSameOrigin(request)) return jsonError("Forbidden", 403);
   const session = await getSession();
   if (!session) return jsonError("Please log in.", 401);
+  const limited = await limitOrResponse(RATE_RULES.answer, session.user.id);
+  if (limited) return limited;
   const { questionId } = await ctx.params;
   if (questionId.length > 64) return jsonError("Not found", 404);
 
