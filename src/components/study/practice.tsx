@@ -63,7 +63,7 @@ export function Practice({ items, bookId, latest: initial, grading }: Props) {
   );
 }
 
-function QuestionCard({
+export function QuestionCard({
   q,
   index,
   bookId,

@@ -170,7 +170,7 @@ describe("slide uploads and labels", () => {
   it("links slide citations in lesson text", () => {
     const parts = linkCitations("Charge repels (slide 4) and flows (slides 5–6).", "book1")!;
     const links = parts.filter((p) => p.type === "element");
-    expect(links.map((l) => (l as { properties: { dataBookPage: string } }).properties.dataBookPage)).toEqual(["4", "5", "6"]);
-    expect(parts.map((p) => (p.type === "text" ? p.value : (p as { children: { value: string }[] }).children[0].value)).join("")).toBe("Charge repels (slide 4) and flows (slides 5–6).");
+    expect(links.map((l) => (l as unknown as { properties: { dataBookPage: string } }).properties.dataBookPage)).toEqual(["4", "5", "6"]);
+    expect(parts.map((p) => (p.type === "text" ? p.value : (p as unknown as { children: { value: string }[] }).children[0].value)).join("")).toBe("Charge repels (slide 4) and flows (slides 5–6).");
   });
 });

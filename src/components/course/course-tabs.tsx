@@ -24,6 +24,7 @@ export function CourseTabs({ courseId, study }: { courseId: string; study: boole
     { href: `/courses/${courseId}/setup`, label: "Settings" },
     ...(study
       ? [
+          { href: `/courses/${courseId}/practice`, label: "Practice" },
           { href: `/courses/${courseId}/plan`, label: "Plan" },
           { href: `/courses/${courseId}/flashcards`, label: "Flashcards" },
           { href: `/courses/${courseId}/notes`, label: "Notes" },
@@ -36,7 +37,7 @@ export function CourseTabs({ courseId, study }: { courseId: string; study: boole
   return (
     <nav aria-label="Course sections" className="mb-6 flex gap-1 overflow-x-auto border-b border-border">
       {tabs.map((t) => {
-        const active = pathname === t.href;
+        const active = pathname === t.href || (t.href.endsWith("/practice") && pathname.startsWith(`${t.href}/`));
         return (
           <Link
             key={t.href}

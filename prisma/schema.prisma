@@ -681,6 +681,7 @@ model StudyDay {
   minutes           Int       @default(0)
   cardsReviewed     Int       @default(0)
   questionsAnswered Int       @default(0)
+  questionsCorrect  Int       @default(0)
   lessonsCompleted  Int       @default(0)
   lastActiveAt      DateTime?
 
