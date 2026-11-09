@@ -13,7 +13,11 @@ const nextConfig: NextConfig = {
   // logged-in student, so there is little to prerender. See PLAN.md.
   cacheComponents: false,
   // Packages that must run as plain Node modules on the server (not bundled).
-  serverExternalPackages: ["pg", "@prisma/adapter-pg", "bullmq", "ioredis"],
+  serverExternalPackages: ["pg", "@prisma/adapter-pg", "bullmq", "ioredis", "sql.js"],
+  // The Anki export loads SQLite's WebAssembly file at runtime; make sure deployments include it.
+  outputFileTracingIncludes: {
+    "/api/courses/[courseId]/export": ["./node_modules/sql.js/dist/sql-wasm.wasm"],
+  },
   turbopack: {
     rules: {
       "*.css": {
