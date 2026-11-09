@@ -16,6 +16,7 @@ export type CourseCardData = {
   lastOpenedAt: string | null;
   lastOpenedLabel: string;
   archived: boolean;
+  coverUrl: string | null;
 };
 
 const statusLabels: Record<string, string> = {
@@ -44,7 +45,7 @@ export function CourseCard({ course }: { course: CourseCardData }) {
   return (
     <li className="flex gap-4 rounded-xl border border-border bg-surface p-4 sm:flex-col sm:gap-0" aria-busy={pending}>
       <Link href={`/courses/${course.id}`} className="block w-20 shrink-0 sm:w-full" tabIndex={-1} aria-hidden>
-        <CourseCover title={course.title} />
+        <CourseCover title={course.title} coverUrl={course.coverUrl} />
       </Link>
       <div className="flex min-w-0 flex-1 flex-col gap-2 sm:mt-3">
         {editing ? (

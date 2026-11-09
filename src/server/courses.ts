@@ -1,8 +1,10 @@
 import "server-only";
 import { db } from "./db";
+import { enqueueBookProcessing } from "./queue";
 import { storage, storageKeys } from "./storage";
 import { MAX_TITLE_LENGTH, MAX_UPLOADS_PER_HOUR, titleFromFilename } from "@/lib/upload/limits";
 import { checkPdfSignature, PDF_HEAD_BYTES, PDF_TAIL_BYTES } from "@/lib/pdf/validate";
+import { MATH_HEAVY_THRESHOLD } from "@/lib/pdf/math-score";
 
 /**
  * Data access for books and courses.
@@ -29,6 +31,7 @@ export async function listCourses(userId: string, opts: { archived: boolean }) {
       createdAt: true,
       archivedAt: true,
       book: { select: { id: true, coverKey: true, pageCount: true, status: true, error: true } },
+      _count: { select: { lessons: true } },
     },
   });
 }
@@ -154,7 +157,7 @@ export async function completeUpload(userId: string, bookId: string): Promise<Co
     db.book.update({ where: { id: book.id }, data: { status: "UPLOADED", error: null } }),
     db.course.update({ where: { id: book.course.id }, data: { status: "PROCESSING" } }),
   ]);
-  // Phase 2: enqueue the "process book" background job here.
+  await enqueueBookProcessing({ userId, bookId: book.id, courseId: book.course.id });
   return { ok: true, courseId: book.course.id };
 }
 
@@ -167,4 +170,70 @@ export async function cleanupAbandonedUploads(olderThanHours = 24) {
     await db.book.delete({ where: { id: book.id } });
   }
   return stale.length;
+}
+
+/** Try processing again after a failure (only if the original file is still stored). */
+export async function retryProcessing(userId: string, courseId: string): Promise<CompleteResult> {
+  const course = await db.course.findFirst({ where: { id: courseId, userId }, include: { book: true } });
+  if (!course) throw new NotFoundError("Course not found");
+  if (course.book.status !== "FAILED") return { ok: true, courseId };
+  const stored = await storage.head(course.book.storageKey);
+  if (!stored) {
+    return { ok: false, error: "The original file is no longer stored. Please delete this course and upload the PDF again." };
+  }
+  await db.$transaction([
+    db.book.update({ where: { id: course.bookId }, data: { status: "UPLOADED", error: null } }),
+    db.course.update({ where: { id: courseId }, data: { status: "PROCESSING" } }),
+  ]);
+  await enqueueBookProcessing({ userId, bookId: course.bookId, courseId });
+  return { ok: true, courseId };
+}
+
+/** Latest processing job for a course, for the status display. */
+export async function getProcessingStatus(userId: string, courseId: string) {
+  const course = await db.course.findFirst({
+    where: { id: courseId, userId },
+    select: { status: true, book: { select: { status: true, error: true, pageCount: true } } },
+  });
+  if (!course) throw new NotFoundError("Course not found");
+  const job = await db.job.findFirst({
+    where: { courseId, type: "PROCESS_BOOK" },
+    orderBy: { createdAt: "desc" },
+    select: { status: true, step: true, progress: true, message: true, error: true, updatedAt: true },
+  });
+  return { courseStatus: course.status, bookStatus: course.book.status, bookError: course.book.error, pageCount: course.book.pageCount, job };
+}
+
+/** The detected outline plus a few facts about the extraction, for the course page. */
+export async function getOutlineSummary(userId: string, courseId: string) {
+  const course = await db.course.findFirst({ where: { id: courseId, userId }, select: { id: true, bookId: true, outlineSource: true } });
+  if (!course) throw new NotFoundError("Course not found");
+  const [units, ocrPages, mathPages, figureCount, emptyPages] = await Promise.all([
+    db.unit.findMany({
+      where: { courseId },
+      orderBy: { order: "asc" },
+      select: {
+        id: true,
+        title: true,
+        isFrontBackMatter: true,
+        lessons: { orderBy: { order: "asc" }, select: { id: true, title: true, pageStart: true, pageEnd: true, isFrontBackMatter: true } },
+      },
+    }),
+    db.page.count({ where: { bookId: course.bookId, textSource: "OCR" } }),
+    db.page.findMany({
+      where: { bookId: course.bookId, mathScore: { gte: MATH_HEAVY_THRESHOLD }, isFrontBackMatter: false },
+      select: { pageNumber: true },
+      orderBy: { pageNumber: "asc" },
+    }),
+    db.figure.count({ where: { bookId: course.bookId } }),
+    db.page.count({ where: { bookId: course.bookId, textSource: "NONE", isFrontBackMatter: false } }),
+  ]);
+  return {
+    outlineSource: course.outlineSource,
+    units,
+    ocrPages,
+    mathHeavyPages: mathPages.map((p) => p.pageNumber),
+    figureCount,
+    emptyPages,
+  };
 }

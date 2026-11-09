@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireUser } from "../session";
-import { deleteCourse, NotFoundError, renameCourse, setCourseArchived } from "../courses";
+import { deleteCourse, NotFoundError, renameCourse, retryProcessing, setCourseArchived } from "../courses";
 
 /**
  * Server Actions: functions the browser calls directly from forms/buttons.
@@ -44,4 +44,19 @@ export async function deleteCourseAction(courseId: string): Promise<ActionResult
   const user = await requireUser();
   const id = idSchema.parse(courseId);
   return run(() => deleteCourse(user.id, id));
+}
+
+export async function retryProcessingAction(courseId: string): Promise<ActionResult> {
+  const user = await requireUser();
+  const id = idSchema.parse(courseId);
+  try {
+    const res = await retryProcessing(user.id, id);
+    if (!res.ok) return res;
+    revalidatePath(`/courses/${id}`);
+    return { ok: true };
+  } catch (err) {
+    if (err instanceof NotFoundError) return { ok: false, error: "That course no longer exists." };
+    console.error(err);
+    return { ok: false, error: "Couldn't restart processing. Please try again." };
+  }
 }

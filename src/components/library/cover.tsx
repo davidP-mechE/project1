@@ -5,7 +5,11 @@ function hue(text: string) {
   return h;
 }
 
-export function CourseCover({ title }: { title: string }) {
+export function CourseCover({ title, coverUrl }: { title: string; coverUrl?: string | null }) {
+  if (coverUrl) {
+    // eslint-disable-next-line @next/next/no-img-element -- private, auth-protected image; next/image can't optimise it
+    return <img src={coverUrl} alt="" className="aspect-[3/4] w-full rounded-lg border border-border bg-white object-cover object-top" loading="lazy" />;
+  }
   const h = hue(title);
   const initials = title.split(/\s+/).filter(Boolean).map((w) => w[0]).slice(0, 2).join("").toUpperCase();
   return (

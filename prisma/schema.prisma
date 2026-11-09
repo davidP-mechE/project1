@@ -1,6 +1,7 @@
 // Coursebook database schema.
 // Phase 1: accounts (Better Auth tables), books and courses.
-// Later phases add pages, chunks, lessons, questions, flashcards, etc.
+// Phase 2: extracted pages, figures, text chunks, units/lessons (outline), jobs.
+// Later phases add lesson content, questions, flashcards, etc.
 
 generator client {
   provider = "prisma-client"
@@ -103,21 +104,27 @@ enum BookStatus {
 }
 
 model Book {
-  id               String     @id @default(cuid())
-  userId           String
-  user             User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  originalFilename String
-  storageKey       String     @unique
-  sizeBytes        BigInt
-  pageCount        Int?
-  coverKey         String?
-  status           BookStatus @default(AWAITING_UPLOAD)
-  error            String?
-  rightsConfirmed  Boolean    @default(false)
-  createdAt        DateTime   @default(now())
-  updatedAt        DateTime   @updatedAt
+  id                String     @id @default(cuid())
+  userId            String
+  user              User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  originalFilename  String
+  storageKey        String     @unique
+  sizeBytes         BigInt
+  pageCount         Int?
+  coverKey          String?
+  status            BookStatus @default(AWAITING_UPLOAD)
+  error             String?
+  rightsConfirmed   Boolean    @default(false)
+  // Set by processing: did the PDF have built-in bookmarks?
+  hasBuiltInOutline Boolean    @default(false)
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
 
-  course Course?
+  course  Course?
+  pages   Page[]
+  figures Figure[]
+  chunks  Chunk[]
+  jobs    Job[]
 
   @@index([userId, createdAt])
 }
@@ -134,19 +141,172 @@ enum CourseStatus {
 }
 
 model Course {
-  id           String       @id @default(cuid())
-  userId       String
-  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  bookId       String       @unique
-  book         Book         @relation(fields: [bookId], references: [id], onDelete: Cascade)
-  title        String
-  status       CourseStatus @default(UPLOADING)
-  archivedAt   DateTime?
-  lastOpenedAt DateTime?
+  id            String         @id @default(cuid())
+  userId        String
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bookId        String         @unique
+  book          Book           @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  title         String
+  status        CourseStatus   @default(UPLOADING)
+  archivedAt    DateTime?
+  lastOpenedAt  DateTime?
   // Cached completion percentage (0-100), recomputed when lesson progress changes.
-  progressPct  Int          @default(0)
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
+  progressPct   Int            @default(0)
+  // Where the outline came from: the PDF's bookmarks, detected headings, or fixed page ranges.
+  outlineSource OutlineSource?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  units   Unit[]
+  lessons Lesson[]
+  jobs    Job[]
 
   @@index([userId, archivedAt])
+}
+
+enum OutlineSource {
+  BOOKMARKS
+  HEADINGS
+  PAGE_RANGES
+}
+
+// ─── Extracted content (Phase 2) ─────────────────────────────────────────
+
+enum TextSource {
+  NATIVE // text layer inside the PDF
+  OCR // recognised from a rendered image of the page
+  NONE // no usable text (blank page, or OCR found nothing)
+}
+
+model Page {
+  id                String     @id @default(cuid())
+  bookId            String
+  book              Book       @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  pageNumber        Int // physical page, 1-based (what the PDF viewer shows)
+  label             String? // printed page number if the PDF defines one, e.g. "xii" or "47"
+  text              String
+  charCount         Int
+  textSource        TextSource @default(NATIVE)
+  ocrConfidence     Float? // 0-100, only for OCR pages
+  // 0-1: how equation-heavy the page looks. High scores get flagged before lesson generation.
+  mathScore         Float      @default(0)
+  imageCount        Int        @default(0)
+  isFrontBackMatter Boolean    @default(false)
+  // Text lines with font sizes, kept so the outline can be re-detected without re-reading the PDF.
+  lines             Json?
+  width             Float
+  height            Float
+
+  @@unique([bookId, pageNumber])
+}
+
+model Figure {
+  id         String @id @default(cuid())
+  bookId     String
+  book       Book   @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  pageNumber Int
+  index      Int // order on the page
+  storageKey String
+  width      Int
+  height     Int
+
+  @@unique([bookId, pageNumber, index])
+}
+
+// Passages of ~400 tokens used for search and the tutor (embeddings added in Phase 7).
+model Chunk {
+  id         String @id @default(cuid())
+  bookId     String
+  book       Book   @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  ordinal    Int
+  pageStart  Int
+  pageEnd    Int
+  text       String
+  tokenCount Int
+
+  @@unique([bookId, ordinal])
+  @@index([bookId, pageStart])
+}
+
+// ─── Course structure (outline) ─────────────────────────────────────────
+
+model Unit {
+  id                String   @id @default(cuid())
+  courseId          String
+  course            Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  order             Int
+  title             String
+  isFrontBackMatter Boolean  @default(false)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  lessons Lesson[]
+
+  @@index([courseId, order])
+}
+
+enum LessonStatus {
+  PENDING
+  QUEUED
+  GENERATING
+  READY
+  FLAGGED
+  FAILED
+}
+
+model Lesson {
+  id                String       @id @default(cuid())
+  unitId            String
+  unit              Unit         @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  courseId          String
+  course            Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  order             Int
+  title             String
+  pageStart         Int
+  pageEnd           Int
+  isFrontBackMatter Boolean      @default(false)
+  status            LessonStatus @default(PENDING)
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  @@index([unitId, order])
+  @@index([courseId])
+}
+
+// ─── Background jobs ─────────────────────────────────────────────────────
+// Mirrors each queue job so the app can show live status and the admin page can list failures.
+
+enum JobType {
+  PROCESS_BOOK
+}
+
+enum JobStatus {
+  QUEUED
+  RUNNING
+  SUCCEEDED
+  FAILED
+}
+
+model Job {
+  id          String    @id @default(cuid())
+  userId      String
+  type        JobType
+  status      JobStatus @default(QUEUED)
+  bookId      String?
+  book        Book?     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  courseId    String?
+  course      Course?   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  step        String? // machine-readable current step, e.g. "ocr"
+  progress    Int       @default(0) // 0-100
+  message     String? // shown to the student, e.g. "OCR on page 112 of 340…"
+  error       String? // friendly error shown to the student
+  errorDetail String? // technical detail for the admin page
+  attempts    Int       @default(0)
+  createdAt   DateTime  @default(now())
+  startedAt   DateTime?
+  finishedAt  DateTime?
+  updatedAt   DateTime  @updatedAt
+
+  @@index([bookId, createdAt])
+  @@index([status, createdAt])
 }

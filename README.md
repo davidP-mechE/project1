@@ -2,13 +2,13 @@
 
 Turn a textbook PDF into a structured, self-paced course: units, lessons, practice questions, flashcards with spaced repetition, and an "Ask the book" tutor that only answers from the textbook.
 
-> **Status:** Phase 1 of 10 is complete (accounts, library, PDF upload and storage). See [PLAN.md](PLAN.md) for the full design and build order.
+> **Status:** Phases 1–2 of 10 are complete (accounts, library, upload, and reading the book: text extraction, OCR, figures, outline detection, background worker). See [PLAN.md](PLAN.md) for the full design and build order.
 
 | Phase | What | Status |
 |---|---|---|
 | 1 | Project setup, auth, library, PDF upload + storage | ✅ Done |
-| 2 | Extraction, OCR fallback, outline detection, background jobs | ⏳ Next |
-| 3 | Outline editor + course settings | |
+| 2 | Extraction, OCR fallback, outline detection, background jobs | ✅ Done |
+| 3 | Outline editor + course settings | ⏳ Next |
 | 4 | Lesson generation with Claude | |
 | 5 | Study view, split PDF viewer, practice questions + grading | |
 | 6 | Flashcards (spaced repetition), highlights/notes, search | |
@@ -30,8 +30,16 @@ npm install                 # also generates the database client
 cp .env.example .env        # then edit .env (see below)
 docker compose up -d        # starts Postgres, Redis and Mailpit
 npm run db:migrate          # creates the database tables
-npm run dev                 # http://localhost:3000
+npm run dev                 # web app: http://localhost:3000
 ```
+
+In a **second terminal**, start the background worker (it reads uploaded PDFs):
+
+```bash
+npm run worker
+```
+
+Uploads wait in the queue ("Waiting for a free worker…") until the worker is running.
 
 In `.env`, set at least:
 
@@ -46,13 +54,16 @@ Install PostgreSQL 16 with the pgvector extension and Redis yourself, create the
 
 | Command | What it does |
 |---|---|
-| `npm run dev` | Start the app in development mode |
+| `npm run dev` | Start the web app in development mode |
+| `npm run worker` | Start the background worker (PDF processing) |
+| `npm run worker:dev` | Same, restarting automatically when code changes |
 | `npm test` | Run the automated tests (uses `TEST_DATABASE_URL`, which gets wiped) |
 | `npm run typecheck` | TypeScript type check |
 | `npm run lint` | ESLint |
 | `npm run build` | Production build |
 | `npm run db:migrate` | Apply/create database migrations (dev) |
 | `npm run db:studio` | Browse the database in your browser |
+| `npm run fixtures` | Regenerate the test PDFs in `tests/fixtures` (needs Playwright) |
 
 ## Environment variables
 
@@ -63,7 +74,9 @@ All configuration lives in `.env` (see [.env.example](.env.example) for comments
 | `APP_URL` | yes | Public URL of the app, used in email links and for CSRF origin checks |
 | `DATABASE_URL` | yes | PostgreSQL connection string |
 | `TEST_DATABASE_URL` | for tests | Separate database for `npm test` (wiped between tests) |
-| `REDIS_URL` | from Phase 2 | Job queue |
+| `REDIS_URL` | yes | Job queue between the web app and the worker |
+| `WORKER_CONCURRENCY` | no | Books the worker processes at once (default 1) |
+| `OCR_WORKERS` | no | OCR threads per worker (default 2; ~1 CPU core each) |
 | `BETTER_AUTH_SECRET` | yes | Signs sessions and local upload links. Keep it secret |
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | no | Enables "Continue with Google". Leave empty to hide the button |
 | `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_SECURE`, `EMAIL_FROM` | production | Outgoing email. Any SMTP provider works (e.g. Resend's SMTP) |
@@ -82,14 +95,18 @@ All configuration lives in `.env` (see [.env.example](.env.example) for comments
 
 ```
 Browser ──► Next.js app (pages, Server Actions, API routes) ──► PostgreSQL (Prisma)
-   │                    │                                   └► Redis + worker (Phase 2+)
-   │                    └─ issues short-lived signed upload/download links
-   └──────── uploads/downloads PDFs directly ──────────────► Object storage (local disk / S3 / R2)
+   │                    │  adds jobs                             ▲
+   │                    ▼                                        │ pages, outline, chunks
+   │                  Redis (BullMQ queue) ──► Worker (npm run worker): pdf.js + Tesseract OCR
+   │                                                │
+   └──── uploads/downloads PDFs directly ──► Object storage (local disk / S3 / R2) ◄┘
 ```
 
 - **`src/app/`**: pages and API routes. Route groups: `(marketing)` public pages, `(auth)` login/sign-up, `(app)` logged-in area.
 - **`src/server/`**: server-only code: config (`env.ts`), database (`db.ts`), authentication (`auth.ts`, Better Auth), email, file storage drivers, and the data-access layer (`courses.ts`). Every data-access function takes the logged-in user's id and filters by it, so one student can never see another's books.
-- **`src/lib/`**: pure logic with no framework dependencies (PDF signature checks, upload rules). This is where most unit tests point.
+- **`src/lib/`**: pure logic with no framework dependencies: PDF checks, text-line grouping, OCR detection, math scoring, outline detection, front/back-matter rules, chunking. This is where most unit tests point.
+- **`src/server/processing/`**: the book-processing pipeline (pdf.js wrapper, OCR pool, `process-book.ts`).
+- **`src/worker/`**: the background worker process.
 - **`prisma/schema.prisma`**: the database schema.
 - **`tests/`**: `unit/` (pure logic) and `integration/` (runs against the test database).
 
@@ -98,6 +115,24 @@ Browser ──► Next.js app (pages, Server Actions, API routes) ──► Post
 1. The browser asks `POST /api/uploads` for permission (file name, size, rights checkbox). The server checks the rules (PDF, ≤ 200 MB, ≤ 10 uploads/hour), creates the `Book` + `Course` rows, and returns a **signed upload URL**.
 2. The browser uploads the file **directly to storage** with a progress bar. Large files never pass through the app server (Vercel would reject anything over ~4.5 MB).
 3. The browser calls `POST /api/uploads/:id/complete`. The server checks the stored file's size, its `%PDF-` header, its end-of-file marker, and whether it's encrypted, then marks it ready for processing. Bad files are deleted and the student sees a clear message.
+
+### How a book is processed (Phase 2)
+
+After an upload is verified, a job goes into the Redis queue. The worker (`src/server/processing/process-book.ts`) then:
+
+1. **Opens** the PDF with pdf.js and rejects password-protected, damaged, or over-1,000-page files with a clear message.
+2. **Reads text page by page**, keeping each line's font size and the page's printed label (e.g. "xii"). Lines are re-joined into paragraphs and words split by hyphens at line ends are repaired.
+3. **OCRs** pages that have (almost) no text but contain an image, i.e. scanned pages, or whose text is mostly broken symbols. Tesseract runs locally at 300 dpi; nothing is sent to an outside service.
+4. **Saves figures**: embedded images of at least 120×120 px, stored as PNGs linked to their page.
+5. **Scores math**: each page gets a 0–1 "equation-heavy" score. Pages over 0.12 are listed on the course page and will get special handling when lessons are generated (Phase 4).
+6. **Makes a cover** from page 1.
+7. **Builds the outline**: uses the PDF's bookmarks if it has them (unwrapping "Part I/II" groupings); otherwise detects headings from font sizes (body text is the most common size; the biggest repeated heading size = chapters, the next = sections; running headers and page numbers are ignored); otherwise falls back to 10-page lessons. Chapters become **units**, sections become **lessons**, and chapters longer than 25 pages without sections are split into parts.
+8. **Marks front/back matter** (title page, copyright, contents, preface, index, bibliography…) by title and by page text, so they're skipped by default.
+9. **Chunks** the remaining text into ~400-token passages with page ranges, for search (Phase 6) and the tutor (Phase 7).
+
+Each step can safely run again. A retry skips pages already read, and the outline and chunks are replaced, so a crash mid-book doesn't start over or duplicate anything. Unexpected errors are retried once automatically; known problems (e.g. password-protected file) fail immediately with a friendly message and a **Try again** button.
+
+**Deployment note:** the worker needs a normal always-on server (Railway, Fly.io, Render…), not Vercel, and must use the same database, Redis and **S3/R2 storage** as the web app. Local-disk storage only works when both run on one machine.
 
 ### Key decisions
 
@@ -125,6 +160,19 @@ Generation starts in Phase 4; this estimate will be replaced with measured numbe
 | **Total per 100 pages** | | **≈ $1.50** (≈ $15 for a 1,000-page book) |
 
 While studying: a graded short answer ≈ $0.01, a tutor message ≈ $0.02–0.05 (Claude Opus 5.5).
+
+## Manual test checklist (Phase 2)
+
+Run `npm run dev` **and** `npm run worker`.
+
+1. Upload `tests/fixtures/outlined.pdf`. The course page shows "Reading your textbook…" with a progress bar and step list, then switches to **Detected outline** on its own: 3 units, 5 lessons from bookmarks; Front matter, Contents and Index marked "Skipped by default"; a note that page 7 is equation-heavy.
+2. Upload `tests/fixtures/no-outline.pdf`. You get the same outline, this time "by detecting headings".
+3. Upload `tests/fixtures/scanned.pdf`. You get a note that 2 scanned pages were read with OCR.
+4. Upload a file that starts with `%PDF-` but is otherwise junk (e.g. `printf '%%PDF-1.7\njunk\n%%%%EOF\n' > broken.pdf`). You get "We couldn't read this PDF" and a **Try again** button.
+5. The library shows real cover thumbnails for processed books.
+6. Stop the worker, upload a book, and it waits at "Waiting for a free worker…". Start the worker again and processing begins.
+7. Delete a course while it's processing. The worker stops quietly and nothing is left behind.
+8. **Try one of your own textbooks**, ideally one with bookmarks and one without, and check that the outline makes sense. Real PDFs vary a lot, so tell me about anything that looks wrong.
 
 ## Manual test checklist (Phase 1)
 

@@ -23,6 +23,7 @@ export default async function LibraryPage({ searchParams }: PageProps<"/library"
     lastOpenedAt: c.lastOpenedAt?.toISOString() ?? null,
     lastOpenedLabel: c.lastOpenedAt ? timeAgo(c.lastOpenedAt, now) : "",
     archived: c.archivedAt !== null,
+    coverUrl: c.book.coverKey ? `/api/books/${c.book.id}/cover` : null,
   }));
 
   return (

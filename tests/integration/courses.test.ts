@@ -1,4 +1,13 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+// Uploads enqueue a background job; in these tests we just record the calls instead of using Redis.
+const enqueued = vi.hoisted(() => [] as unknown[]);
+vi.mock("@/server/queue", () => ({
+  enqueueBookProcessing: async (input: unknown) => {
+    enqueued.push(input);
+    return { id: "job_test" };
+  },
+}));
 import { db } from "@/server/db";
 import { storage, storageKeys } from "@/server/storage";
 import {
@@ -40,6 +49,7 @@ describe("upload flow", () => {
     expect(upload.method).toBe("PUT");
     const result = await completeUpload(user.id, bookId);
     expect(result).toEqual({ ok: true, courseId });
+    expect(enqueued.at(-1)).toEqual({ userId: user.id, bookId, courseId });
     const course = await getCourse(user.id, courseId);
     expect(course.title).toBe("My Book");
     expect(course.status).toBe("PROCESSING");

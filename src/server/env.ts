@@ -10,6 +10,10 @@ const schema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   APP_URL: z.url().default("http://localhost:3000"),
   DATABASE_URL: z.string().min(1),
+  REDIS_URL: z.string().default("redis://localhost:6379"),
+  // Background worker tuning
+  WORKER_CONCURRENCY: z.coerce.number().int().min(1).max(8).default(1),
+  OCR_WORKERS: z.coerce.number().int().min(1).max(8).default(2),
 
   BETTER_AUTH_SECRET: z.string().min(16, "BETTER_AUTH_SECRET must be at least 16 characters"),
   GOOGLE_CLIENT_ID: z.string().optional(),
