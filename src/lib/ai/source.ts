@@ -18,7 +18,7 @@ export type SourcePage = {
 };
 
 /** Slides carry far less text than book pages, so a lesson needs less to work from. */
-export const MIN_SLIDE_SOURCE_CHARS = 120;
+export const MIN_SLIDE_SOURCE_CHARS = 60;
 
 export const MIN_SOURCE_CHARS = 250;
 
@@ -34,7 +34,8 @@ export const SLIDE_READ_MAX_CHARS = 400;
  */
 export function needsRepair(p: SourcePage, kind: "book" | "slides" = "book"): boolean {
   if (p.repairedText !== null) return false;
-  if (kind === "slides") return ((p.imageCount ?? 0) > 0 && p.text.trim().length < SLIDE_READ_MAX_CHARS) || p.text.trim().length < 40;
+  // Slides with pictures and little text (diagrams, charts, or slides exported as one big image).
+  if (kind === "slides") return (p.imageCount ?? 0) > 0 && p.text.trim().length < SLIDE_READ_MAX_CHARS;
   return p.mathScore >= MATH_HEAVY_THRESHOLD;
 }
 

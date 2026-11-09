@@ -1,5 +1,8 @@
 "use client";
 
+import { useSourceKind } from "@/components/course/source-kind";
+import { sourceNoun } from "@/lib/source-label";
+
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { TutorChat } from "./tutor-chat";
@@ -10,6 +13,8 @@ import { TutorChat } from "./tutor-chat";
  * Clicking a page reference in an answer closes the panel and opens the book.
  */
 export function TutorDrawer({ courseId, bookId, lessonId, lessonTitle, disabledReason }: { courseId: string; bookId: string; lessonId: string; lessonTitle: string; disabledReason: string | null }) {
+  const kind = useSourceKind();
+  const noun = sourceNoun(kind);
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false); // keep the conversation while the panel is closed
 
@@ -31,14 +36,14 @@ export function TutorDrawer({ courseId, bookId, lessonId, lessonTitle, disabledR
         className="press inline-flex h-8 items-center gap-1.5 rounded-lg border border-border bg-surface px-3 text-sm font-medium hover:bg-surface-2"
         aria-expanded={open}
       >
-        <span aria-hidden>💬</span> Ask the book
+        <span aria-hidden>💬</span> Ask the {noun}
       </button>
       {mounted && (
         <div className={open ? "" : "hidden"}>
           <div className="fixed inset-0 z-40 bg-black/30 motion-safe:animate-[cb-fade-in_150ms_ease-out]" onClick={() => setOpen(false)} aria-hidden />
           <aside
             role="dialog"
-            aria-label="Ask the book"
+            aria-label={`Ask the ${noun}`}
             className="fixed inset-y-0 right-0 z-50 flex w-full flex-col bg-bg p-4 shadow-2xl motion-safe:animate-[cb-slide-in_220ms_cubic-bezier(0.2,0.8,0.2,1)] sm:w-[30rem] sm:border-l sm:border-border"
             onClickCapture={(e) => {
               // Opening the book from an answer: close the panel so the book is visible.
@@ -47,7 +52,7 @@ export function TutorDrawer({ courseId, bookId, lessonId, lessonTitle, disabledR
           >
             <div className="mb-2 flex items-center justify-between gap-2">
               <div className="min-w-0">
-                <h2 className="font-semibold">Ask the book</h2>
+                <h2 className="font-semibold">Ask the {noun}</h2>
                 <p className="truncate text-xs text-muted">About “{lessonTitle}”</p>
               </div>
               <div className="flex shrink-0 items-center gap-1">

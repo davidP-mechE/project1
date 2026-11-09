@@ -130,7 +130,7 @@ export function buildApkg(SQL: SqlJsStatic, course: CourseExport, now: Date): Ui
         for (const c of l.flashcards) {
           n++;
           const front = toAnkiHtml(c.front);
-          const source = escapeHtml(`${l.title}${c.pageRefs.length ? ` · ${pagesLabel(c.pageRefs)}` : ""}`);
+          const source = escapeHtml(`${l.title}${c.pageRefs.length ? ` · ${pagesLabel(c.pageRefs, course.kind)}` : ""}`);
           const noteId = ms + n;
           note.run([noteId, guidFor(c.id), modelId, s, ` ${tag} `, [front, toAnkiHtml(c.back), source].join("\x1f"), front.replace(/<[^>]*>/g, ""), ankiChecksum(front)]);
           card.run([ms + 1_000_000 + n, noteId, unitDeck.get(ui) ?? 1, s, n]);

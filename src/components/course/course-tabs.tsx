@@ -1,5 +1,8 @@
 "use client";
 
+import { useSourceKind } from "@/components/course/source-kind";
+import { sourceNoun } from "@/lib/source-label";
+
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
@@ -7,6 +10,8 @@ import { cn } from "@/lib/utils";
 
 /** Course tabs. The study tabs (Flashcards, Notes, Search) appear once lessons are being written. */
 export function CourseTabs({ courseId, study }: { courseId: string; study: boolean }) {
+  const kind = useSourceKind();
+  const noun = sourceNoun(kind);
   const pathname = usePathname();
   const activeRef = useRef<HTMLAnchorElement>(null);
   // On phones the tab row scrolls sideways: keep the current tab in view.
@@ -23,7 +28,7 @@ export function CourseTabs({ courseId, study }: { courseId: string; study: boole
           { href: `/courses/${courseId}/flashcards`, label: "Flashcards" },
           { href: `/courses/${courseId}/notes`, label: "Notes" },
           { href: `/courses/${courseId}/search`, label: "Search" },
-          { href: `/courses/${courseId}/tutor`, label: "Ask the book" },
+          { href: `/courses/${courseId}/tutor`, label: `Ask the ${noun}` },
           { href: `/courses/${courseId}/export`, label: "Export" },
         ]
       : []),

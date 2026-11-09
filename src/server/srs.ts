@@ -77,6 +77,7 @@ export type ReviewItem = {
   back: string;
   pageRefs: number[];
   bookId: string;
+  sourceKind: "BOOK" | "SLIDES";
   courseId: string;
   courseTitle: string;
   lessonId: string;
@@ -114,7 +115,7 @@ export async function getReviewQueue(userId: string, opts: { courseId?: string; 
       pageRefs: true,
       courseId: true,
       lessonId: true,
-      course: { select: { title: true, bookId: true } },
+      course: { select: { title: true, bookId: true, book: { select: { kind: true } } } },
       lesson: { select: { title: true } },
       states: { where: { userId } },
     },
@@ -131,6 +132,7 @@ export async function getReviewQueue(userId: string, opts: { courseId?: string; 
         back: c.back,
         pageRefs: c.pageRefs,
         bookId: c.course.bookId,
+        sourceKind: c.course.book.kind,
         courseId: c.courseId,
         courseTitle: c.course.title,
         lessonId: c.lessonId,

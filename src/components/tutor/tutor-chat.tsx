@@ -1,5 +1,8 @@
 "use client";
 
+import { useSourceKind } from "@/components/course/source-kind";
+import { rangeText, sourceNoun } from "@/lib/source-label";
+
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Markdown } from "@/components/lesson/markdown";
@@ -34,10 +37,14 @@ type Props = {
   className?: string;
 };
 
-const pagesLabel = (s: { pageStart: number; pageEnd: number }) => (s.pageStart === s.pageEnd ? `p. ${s.pageStart}` : `pp. ${s.pageStart}–${s.pageEnd}`);
 
 /** The chat with the tutor: ask, watch the answer stream in, see which pages it came from. */
+/** The tutor cites "[p. 12]"; in a slide deck those are slide numbers. */
+const asSlideCitations = (text: string) => text.replace(/\[(pp?)\.\s*/g, (_, p: string) => (p === "pp" ? "[slides " : "[slide "));
+
 export function TutorChat({ courseId, bookId, lessonId, lessonTitle, threadId: initialThread = null, initial = [], syncUrl = false, disabledReason, className }: Props) {
+  const kind = useSourceKind();
+  const noun = sourceNoun(kind);
   const router = useRouter();
   const [threadId, setThreadId] = useState<string | null>(initialThread);
   const [messages, setMessages] = useState<ChatMessage[]>(initial);
@@ -127,7 +134,7 @@ export function TutorChat({ courseId, bookId, lessonId, lessonTitle, threadId: i
   }
 
   const suggestions = lessonTitle
-    ? [`Explain "${lessonTitle}" in simple terms`, "What are the most important ideas here?", "Give me an example from the book"]
+    ? [`Explain "${lessonTitle}" in simple terms`, "What are the most important ideas here?", `Give me an example from the ${noun}`]
     : ["What are the main topics of this book?", "Explain the hardest idea in chapter 1", "What formulas should I know?"];
 
   return (
@@ -144,7 +151,7 @@ export function TutorChat({ courseId, bookId, lessonId, lessonTitle, threadId: i
         {messages.length === 0 && (
           <div className="flex flex-col items-start gap-3 py-6">
             <p className="text-sm text-muted">
-              Ask anything about {lessonTitle ? `"${lessonTitle}"` : "the book"}. Answers come only from the textbook, with page numbers, and the tutor will say so when the book doesn&apos;t cover something.
+              Ask anything about {lessonTitle ? `"${lessonTitle}"` : `the ${noun}`}. Answers come only from the {kind === "SLIDES" ? "slides, with slide numbers" : "textbook, with page numbers"}, and the tutor will say so when the {noun} doesn&apos;t cover something.
             </p>
             <div className="flex flex-wrap gap-2">
               {suggestions.map((s) => (
@@ -191,7 +198,7 @@ export function TutorChat({ courseId, bookId, lessonId, lessonTitle, threadId: i
             rows={2}
             maxLength={4000}
             disabled={Boolean(disabledReason)}
-            placeholder={disabledReason ?? "Ask about the book… (Enter to send, Shift+Enter for a new line)"}
+            placeholder={disabledReason ?? `Ask about the ${noun}… (Enter to send, Shift+Enter for a new line)`}
             className="min-h-11 flex-1 resize-none rounded-xl border border-border bg-surface px-3 py-2.5 text-sm"
           />
           {busy ? (
@@ -210,16 +217,18 @@ export function TutorChat({ courseId, bookId, lessonId, lessonTitle, threadId: i
 }
 
 function Answer({ m, bookId }: { m: ChatMessage; bookId: string }) {
+  const kind = useSourceKind();
+  const noun = sourceNoun(kind);
   const streaming = m.status === "STREAMING";
   return (
     <div className="flex max-w-full flex-col gap-2 self-start">
       <div className={cn("rounded-2xl rounded-bl-md border border-border bg-surface px-4 py-3", m.notInBook && "border-warning/40")}>
-        {m.notInBook && <p className="mb-1 text-xs font-medium text-warning">Not covered in the book</p>}
+        {m.notInBook && <p className="mb-1 text-xs font-medium text-warning">Not covered in the {noun}</p>}
         {m.content ? (
-          <Markdown bookId={bookId}>{m.content}</Markdown>
+          <Markdown bookId={bookId}>{kind === "SLIDES" ? asSlideCitations(m.content) : m.content}</Markdown>
         ) : streaming ? (
           <span className="flex items-center gap-2 text-sm text-muted">
-            <Spinner /> Looking through the book…
+            <Spinner /> Looking through the {noun}…
           </span>
         ) : null}
         {m.status === "STOPPED" && <p className="mt-2 text-xs text-muted">Stopped.</p>}
@@ -227,7 +236,7 @@ function Answer({ m, bookId }: { m: ChatMessage; bookId: string }) {
       </div>
       {!streaming && m.sources.length > 0 && !m.notInBook && (
         <p className="flex flex-wrap items-center gap-1 px-1 text-xs text-muted">
-          From the book:
+          From the {noun}:
           {m.sources.map((s) => (
             <a
               key={s.chunkId}
@@ -238,12 +247,12 @@ function Answer({ m, bookId }: { m: ChatMessage; bookId: string }) {
               className={cn("rounded px-1.5 py-0.5 tabular-nums hover:text-text hover:underline", m.citedPages.some((p) => p >= s.pageStart && p <= s.pageEnd) ? "bg-primary/10 text-primary" : "bg-surface-2")}
               title={m.citedPages.some((p) => p >= s.pageStart && p <= s.pageEnd) ? "Cited in the answer" : "Read by the tutor"}
             >
-              {pagesLabel(s)}
+              {rangeText(kind, s.pageStart, s.pageEnd)}
             </a>
           ))}
         </p>
       )}
-      {!streaming && m.confidence === "low" && !m.notInBook && <p className="px-1 text-xs text-muted">The book may only touch on this briefly. Check the pages.</p>}
+      {!streaming && m.confidence === "low" && !m.notInBook && <p className="px-1 text-xs text-muted">The {noun} may only touch on this briefly. Check the {kind === "SLIDES" ? "slides" : "pages"}.</p>}
     </div>
   );
 }

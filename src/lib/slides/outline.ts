@@ -38,9 +38,9 @@ export type SlideRole = "cover" | "front" | "section" | "back" | "content";
 export function classifySlide(s: SlideInfo, index: number, total: number): SlideRole {
   const title = s.title.trim();
   if (BACK.test(title) && index >= total / 2) return "back";
-  if (index === 0 && bodyChars(s) < 200) return "cover";
+  if (index === 0 && bodyChars(s) < 80) return "cover";
   if (FRONT.test(title) && index < Math.max(3, total / 4)) return "front";
-  if (title && bodyChars(s) < 40 && index > 0 && index < total - 1) return "section";
+  if (title && bodyChars(s) < 20 && index > 0 && index < total - 1) return "section";
   return "content";
 }
 

@@ -28,7 +28,7 @@ import { estimateGeneration, type EstimateLesson } from "@/lib/usage/estimate";
 /** Pages the lesson writer will re-read from their image (costs a vision call), as in src/lib/ai/source.ts. */
 function rereadFromImage(p: { charCount: number; mathScore: number; imageCount: number }, kind: "BOOK" | "SLIDES", repairedText: string | null) {
   if (repairedText) return false;
-  if (kind === "SLIDES") return (p.imageCount > 0 && p.charCount < SLIDE_READ_MAX_CHARS) || p.charCount < 40;
+  if (kind === "SLIDES") return p.imageCount > 0 && p.charCount < SLIDE_READ_MAX_CHARS;
   return p.mathScore >= MATH_HEAVY_THRESHOLD;
 }
 

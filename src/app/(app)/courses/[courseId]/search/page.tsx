@@ -7,16 +7,18 @@ import { getCourseOr404 } from "@/server/course-page";
 import { searchCourse } from "@/server/search";
 import { requireUser } from "@/server/session";
 import { bookPageHref } from "@/components/lesson/cite-pages";
+import { rangeText, sourceNoun } from "@/lib/source-label";
 
 export const metadata: Metadata = { title: "Search" };
 
-const pages = (a: number, b: number) => (a === b ? `p. ${a}` : `pp. ${a}–${b}`);
 
 export default async function SearchPage({ params, searchParams }: PageProps<"/courses/[courseId]/search">) {
   const user = await requireUser();
   const { courseId } = await params;
   const sp = await searchParams;
   const course = await getCourseOr404(user.id, courseId);
+  const kind = course.book.kind;
+  const pages = (a: number, b: number) => rangeText(kind, a, b);
   const q = typeof sp.q === "string" ? sp.q.slice(0, 200) : "";
   const results = q.trim() ? await searchCourse(user.id, courseId, q) : null;
 
@@ -54,10 +56,10 @@ export default async function SearchPage({ params, searchParams }: PageProps<"/c
               </section>
               <section aria-labelledby="in-book">
                 <h2 id="in-book" className="mb-3 text-lg font-semibold">
-                  In the book <span className="text-sm font-normal text-muted">({results.book.length})</span>
+                  In the {sourceNoun(kind)} <span className="text-sm font-normal text-muted">({results.book.length})</span>
                 </h2>
                 {results.book.length === 0 ? (
-                  <p className="text-sm text-muted">The book&apos;s text doesn&apos;t contain this.</p>
+                  <p className="text-sm text-muted">{kind === "SLIDES" ? "The slides don’t contain this." : "The book’s text doesn’t contain this."}</p>
                 ) : (
                   <ul className="flex flex-col gap-2">
                     {results.book.map((b) => (

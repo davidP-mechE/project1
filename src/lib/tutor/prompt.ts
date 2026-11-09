@@ -45,13 +45,16 @@ export function tutorMessages(input: {
   history: TutorTurn[];
   passages: TutorPassage[];
   question: string;
-  context: { courseTitle: string; lessonTitle?: string | null };
+  context: { courseTitle: string; lessonTitle?: string | null; slides?: boolean };
 }): TutorTurn[] {
   const history = input.history.filter((t) => t.content.trim()).slice(-MAX_HISTORY_TURNS);
   // The conversation must start with the student and alternate.
   while (history.length > 0 && history[0].role !== "user") history.shift();
   const where = input.context.lessonTitle ? `They're studying the lesson "${input.context.lessonTitle}" in "${input.context.courseTitle}".` : `They're studying "${input.context.courseTitle}".`;
-  const last = `${formatPassages(input.passages)}\n\n${where}\n\n<question>\n${escapeTags(input.question.trim())}\n</question>`;
+  const deck = input.context.slides
+    ? " This course is a deck of lecture slides, not a textbook: each \"page\" is one slide, and passages may include speaker notes. Keep citing in the same [p. N] format (the app shows it as a slide number)."
+    : "";
+  const last = `${formatPassages(input.passages)}\n\n${where}${deck}\n\n<question>\n${escapeTags(input.question.trim())}\n</question>`;
   const merged: TutorTurn[] = [];
   for (const t of [...history, { role: "user" as const, content: last }]) {
     const prev = merged[merged.length - 1];

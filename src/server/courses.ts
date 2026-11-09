@@ -19,9 +19,9 @@ export class NotFoundError extends Error {
   }
 }
 
-export async function listCourses(userId: string, opts: { archived: boolean }) {
+export async function listCourses(userId: string, opts: { archived: boolean; kind?: "BOOK" | "SLIDES" }) {
   return db.course.findMany({
-    where: { userId, archivedAt: opts.archived ? { not: null } : null },
+    where: { userId, archivedAt: opts.archived ? { not: null } : null, ...(opts.kind ? { book: { kind: opts.kind } } : {}) },
     orderBy: [{ lastOpenedAt: { sort: "desc", nulls: "last" } }, { createdAt: "desc" }],
     select: {
       id: true,

@@ -121,10 +121,10 @@ export function ReviewSession({ items, backHref }: { items: ReviewItem[]; backHr
             <Markdown className="[&_p]:m-0">{card.back}</Markdown>
             {card.pageRefs.length > 0 && (
               <p className="mt-4 flex flex-wrap items-center gap-1 text-xs text-muted">
-                In the book:
+                In the {card.sourceKind === "SLIDES" ? "slides" : "book"}:
                 {card.pageRefs.map((p) => (
                   <a key={p} href={bookPageHref(card.bookId, p)} target="_blank" rel="noopener" className="rounded bg-surface-2 px-1.5 py-0.5 tabular-nums hover:text-text hover:underline">
-                    p. {p}
+                    {card.sourceKind === "SLIDES" ? "slide" : "p."} {p}
                   </a>
                 ))}
               </p>

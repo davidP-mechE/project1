@@ -12,7 +12,7 @@ import type { CourseExport, ExportQuestion } from "@/lib/export/types";
 export async function getCourseExport(userId: string, courseId: string): Promise<CourseExport> {
   const course = await db.course.findFirst({
     where: { id: courseId, userId },
-    select: { title: true, book: { select: { originalFilename: true } } },
+    select: { title: true, book: { select: { originalFilename: true, kind: true } } },
   });
   if (!course) throw new NotFoundError("Course not found");
   const q = { orderBy: { order: "asc" as const }, select: { type: true, prompt: true, choices: true, correctChoice: true, answer: true, explanation: true, steps: true, pageRefs: true, topic: true } };
@@ -42,6 +42,7 @@ export async function getCourseExport(userId: string, courseId: string): Promise
   return {
     title: course.title,
     bookFilename: course.book.originalFilename,
+    kind: course.book.kind,
     units: units
       .map((u) => ({
         title: u.title,

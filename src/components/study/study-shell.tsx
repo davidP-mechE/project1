@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic";
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import { useSourceKind } from "@/components/course/source-kind";
 import { Spinner } from "@/components/ui/misc";
 
 /**
@@ -16,7 +17,7 @@ const PdfViewer = dynamic(() => import("./pdf-viewer"), {
   ssr: false,
   loading: () => (
     <div className="flex h-full items-center justify-center text-muted">
-      <Spinner label="Loading the book viewer" />
+      <Spinner label="Loading the viewer" />
     </div>
   ),
 });
@@ -26,6 +27,7 @@ const BookContext = createContext<BookCtx | null>(null);
 export const useBook = () => useContext(BookContext);
 
 export function StudyShell({ bookId, sidebar, children, initialPage = null }: { bookId: string; sidebar: ReactNode; children: ReactNode; initialPage?: number | null }) {
+  const kind = useSourceKind();
   // ?book=N (e.g. from search results) opens the book at that page.
   const [page, setPage] = useState<number | null>(initialPage);
   const open = page !== null;
@@ -63,7 +65,7 @@ export function StudyShell({ bookId, sidebar, children, initialPage = null }: { 
         {open && (
           <aside
             className="fixed inset-0 z-30 flex flex-col bg-surface lg:sticky lg:inset-auto lg:top-[4.5rem] lg:z-auto lg:h-[calc(100dvh-5.5rem)] lg:overflow-hidden lg:rounded-xl lg:border lg:border-border"
-            aria-label="Book viewer"
+            aria-label={kind === "SLIDES" ? "Slide viewer" : "Book viewer"}
           >
             <PdfViewer bookId={bookId} page={page} onPageChange={setPage} onClose={close} />
           </aside>

@@ -11,6 +11,7 @@ import { Card, ProgressBar } from "@/components/ui/misc";
 import { formatBytes } from "@/lib/upload/limits";
 import { getOutlineSummary, getProcessingStatus, markCourseOpened } from "@/server/courses";
 import { getCourseOr404 } from "@/server/course-page";
+import { rangeText, type SourceKindName } from "@/lib/source-label";
 import { claudeEnabled } from "@/server/env";
 import { getCourseCost, getCourseLessons, getGenerationProgress } from "@/server/generation/lessons";
 import { getGenerationEstimate } from "@/server/outline";
@@ -124,7 +125,7 @@ export default async function CoursePage({ params }: PageProps<"/courses/[course
           {cost > 0 && <p className="mt-4 text-xs text-muted">Claude API cost for this course so far: ${cost.toFixed(2)}</p>}
         </Card>
       )}
-      {outline && course.status === "OUTLINE_DRAFT" && <OutlinePreview outline={outline} courseId={courseId} />}
+      {outline && course.status === "OUTLINE_DRAFT" && <OutlinePreview outline={outline} courseId={courseId} kind={course.book.kind} />}
 
       <Card>
         <h2 className="mb-4 text-lg font-semibold">File</h2>
@@ -191,7 +192,7 @@ function NextSteps({ courseId, generate }: { courseId: string; generate: ReactNo
   );
 }
 
-function OutlinePreview({ outline, courseId }: { outline: Awaited<ReturnType<typeof getOutlineSummary>>; courseId: string }) {
+function OutlinePreview({ outline, courseId, kind }: { outline: Awaited<ReturnType<typeof getOutlineSummary>>; courseId: string; kind: SourceKindName }) {
   const lessonCount = outline.units.reduce((n, u) => n + u.lessons.filter((l) => !l.skip).length, 0);
   const unitCount = outline.units.filter((u) => u.lessons.some((l) => !l.skip)).length;
   return (
@@ -246,7 +247,7 @@ function OutlinePreview({ outline, courseId }: { outline: Awaited<ReturnType<typ
                   <li key={l.id} className={l.skip ? "flex justify-between gap-4 text-muted line-through" : "flex justify-between gap-4"}>
                     <span>{l.title}</span>
                     <span className="shrink-0 text-muted">
-                      {l.pageStart === l.pageEnd ? `p. ${l.pageStart}` : `pp. ${l.pageStart}–${l.pageEnd}`}
+                      {rangeText(kind, l.pageStart, l.pageEnd)}
                     </span>
                   </li>
                 ))}
@@ -254,9 +255,7 @@ function OutlinePreview({ outline, courseId }: { outline: Awaited<ReturnType<typ
             )}
             {u.lessons.length === 1 && u.lessons[0].title === u.title && (
               <p className="mt-1 text-sm text-muted">
-                {u.lessons[0].pageStart === u.lessons[0].pageEnd
-                  ? `p. ${u.lessons[0].pageStart}`
-                  : `pp. ${u.lessons[0].pageStart}–${u.lessons[0].pageEnd}`}
+                {rangeText(kind, u.lessons[0].pageStart, u.lessons[0].pageEnd)}
               </p>
             )}
           </li>

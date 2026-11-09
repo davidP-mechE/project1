@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/misc";
 import { cn } from "@/lib/utils";
 import { getUnitView } from "@/server/assessments";
 import { getCourseOr404 } from "@/server/course-page";
+import { rangeText } from "@/lib/source-label";
 import { NotFoundError } from "@/server/courses";
 import { requireUser } from "@/server/session";
 
@@ -61,7 +62,7 @@ export default async function UnitPage({ params }: PageProps<"/courses/[courseId
                   {l.completed ? "✓" : ""}
                 </span>
                 <span className="flex-1">{l.title}</span>
-                <span className="text-xs text-muted">{l.pageStart === l.pageEnd ? `p. ${l.pageStart}` : `pp. ${l.pageStart}–${l.pageEnd}`}</span>
+                <span className="text-xs text-muted">{rangeText(course.book.kind, l.pageStart, l.pageEnd)}</span>
               </Link>
             </li>
           ))}

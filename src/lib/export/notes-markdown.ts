@@ -1,3 +1,4 @@
+import { rangeText, type SourceKindName } from "@/lib/source-label";
 /** A course's notes and highlights as one Markdown document. Pure and unit-tested. */
 
 export type NotesExportLesson = {
@@ -18,7 +19,7 @@ function quote(text: string): string {
     .join("\n");
 }
 
-export function notesToMarkdown(courseTitle: string, lessons: NotesExportLesson[], exportedAt: Date): string {
+export function notesToMarkdown(courseTitle: string, lessons: NotesExportLesson[], exportedAt: Date, kind?: SourceKindName): string {
   const out: string[] = [`# ${courseTitle}: my notes`, "", `_Exported from Coursebook on ${exportedAt.toISOString().slice(0, 10)}._`, ""];
   let unit: string | null = null;
   const withContent = lessons.filter((l) => (l.note && l.note.trim()) || l.highlights.length > 0);
@@ -28,7 +29,7 @@ export function notesToMarkdown(courseTitle: string, lessons: NotesExportLesson[
       unit = l.unitTitle;
       out.push(`## ${unit}`, "");
     }
-    const pages = l.pageStart === l.pageEnd ? `p. ${l.pageStart}` : `pp. ${l.pageStart}–${l.pageEnd}`;
+    const pages = rangeText(kind, l.pageStart, l.pageEnd);
     out.push(`### ${l.title} (${pages})`, "");
     if (l.note && l.note.trim()) out.push(l.note.trim(), "");
     if (l.highlights.length > 0) {

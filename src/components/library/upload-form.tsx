@@ -6,7 +6,7 @@ import { useRef, useState } from "react";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { ProgressBar } from "@/components/ui/misc";
-import { formatBytes, MAX_UPLOAD_BYTES, validateUploadRequest } from "@/lib/upload/limits";
+import { formatBytes, MAX_SLIDES, MAX_UPLOAD_BYTES, validateUploadRequest, type UploadKind } from "@/lib/upload/limits";
 import { cn } from "@/lib/utils";
 
 type Phase = "idle" | "preparing" | "uploading" | "verifying" | "done";
@@ -37,7 +37,9 @@ async function postJson(url: string, body?: unknown) {
   return data;
 }
 
-export function UploadForm() {
+/** Upload a textbook (kind="book") or a slide deck (kind="slides": PDF or PowerPoint). */
+export function UploadForm({ kind = "book" }: { kind?: UploadKind }) {
+  const slides = kind === "slides";
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const abortRef = useRef<AbortController | null>(null);
@@ -53,7 +55,7 @@ export function UploadForm() {
   function pick(f: File | undefined) {
     setError(null);
     if (!f) return;
-    const check = validateUploadRequest({ filename: f.name, size: f.size, contentType: f.type, rightsConfirmed: true });
+    const check = validateUploadRequest({ filename: f.name, size: f.size, contentType: f.type, rightsConfirmed: true, kind });
     if (!check.ok) {
       setError(check.error);
       setFile(null);
@@ -75,6 +77,7 @@ export function UploadForm() {
         size: file.size,
         contentType: file.type,
         rightsConfirmed: rights,
+        kind,
       });
       setPhase("uploading");
       await putWithProgress(upload.url, file, upload.headers, setProgress, controller.signal);
@@ -109,17 +112,21 @@ export function UploadForm() {
           dragging ? "border-primary bg-surface-2" : "border-border bg-surface",
         )}
       >
-        <p className="font-medium">{file ? file.name : "Drag your textbook PDF here"}</p>
+        <p className="font-medium">{file ? file.name : slides ? "Drag your slides here" : "Drag your textbook PDF here"}</p>
         <p className="text-sm text-muted">
-          {file ? formatBytes(file.size) : `PDF only, up to ${formatBytes(MAX_UPLOAD_BYTES)} and 1,000 pages`}
+          {file
+            ? formatBytes(file.size)
+            : slides
+              ? `PDF or PowerPoint (.pptx), up to ${formatBytes(MAX_UPLOAD_BYTES)} and ${MAX_SLIDES} slides`
+              : `PDF only, up to ${formatBytes(MAX_UPLOAD_BYTES)} and 1,000 pages`}
         </p>
         <input
           ref={inputRef}
           id="pdf-file"
           type="file"
-          aria-label="Textbook PDF file"
+          aria-label={slides ? "Slides file (PDF or PowerPoint)" : "Textbook PDF file"}
           tabIndex={-1} // the "Choose a file" button opens it; drag and drop works too
-          accept="application/pdf,.pdf"
+          accept={slides ? "application/pdf,.pdf,.pptx,application/vnd.openxmlformats-officedocument.presentationml.presentation" : "application/pdf,.pdf"}
           className="sr-only"
           onChange={(e) => pick(e.target.files?.[0])}
           disabled={busy}
@@ -132,7 +139,9 @@ export function UploadForm() {
       <label className="flex items-start gap-3 text-sm">
         <input type="checkbox" checked={rights} onChange={(e) => setRights(e.target.checked)} disabled={busy} className="mt-0.5 size-4 accent-[var(--primary)]" />
         <span>
-          I own this textbook or otherwise have the right to use it for my personal study. See the{" "}
+          {slides
+            ? "These are my own slides, or slides I've been given for a course I'm taking (or I otherwise have the right to use them) for my personal study. See the"
+            : "I own this textbook or otherwise have the right to use it for my personal study. See the"}{" "}
           <Link href="/terms" className="underline" target="_blank">Terms</Link>.
         </span>
       </label>

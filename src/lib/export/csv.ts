@@ -20,7 +20,7 @@ export function toCsv(rows: (string | number)[][]): string {
 /** Flashcards: front, back, unit, lesson, pages. Imports into Quizlet, Anki (as text), spreadsheets. */
 export function flashcardsCsv(course: CourseExport): string {
   const rows: (string | number)[][] = [["Front", "Back", "Unit", "Lesson", "Pages"]];
-  for (const u of course.units) for (const l of u.lessons) for (const c of l.flashcards) rows.push([c.front, c.back, u.title, l.title, pagesLabel(c.pageRefs)]);
+  for (const u of course.units) for (const l of u.lessons) for (const c of l.flashcards) rows.push([c.front, c.back, u.title, l.title, pagesLabel(c.pageRefs, course.kind)]);
   return toCsv(rows);
 }
 
@@ -37,7 +37,7 @@ export function questionsCsv(course: CourseExport): string {
       q.type === "MULTIPLE_CHOICE" && q.correctChoice !== null ? `${String.fromCharCode(65 + q.correctChoice)}. ${q.choices[q.correctChoice] ?? ""}` : q.steps.length ? `${q.steps.join("\n")}\n= ${q.answer}` : q.answer,
       q.explanation,
       q.topic,
-      pagesLabel(q.pageRefs),
+      pagesLabel(q.pageRefs, course.kind),
     ]);
   for (const u of course.units) {
     for (const l of u.lessons) for (const q of l.questions) add(`${u.title} › ${l.title}`, q);
