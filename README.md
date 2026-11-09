@@ -2,15 +2,15 @@
 
 Turn a textbook PDF into a structured, self-paced course: units, lessons, practice questions, flashcards with spaced repetition, and an "Ask the book" tutor that only answers from the textbook.
 
-> **Status:** Phases 1–3 of 10 are complete: accounts, library, upload; reading the book (text, OCR, figures, outline detection, background worker); and the outline editor with course settings and a cost estimate. See [PLAN.md](PLAN.md) for the full design and build order.
+> **Status:** Phases 1–4 of 10 are complete: accounts, library and upload; reading the book (text, OCR, figures, outline detection, background worker); the outline editor with course settings and a cost estimate; and lesson generation with Claude (lessons, practice questions, flashcards, page references, caching, regenerating and hand editing). See [PLAN.md](PLAN.md) for the full design and build order.
 
 | Phase | What | Status |
 |---|---|---|
 | 1 | Project setup, auth, library, PDF upload + storage | ✅ Done |
 | 2 | Extraction, OCR fallback, outline detection, background jobs | ✅ Done |
 | 3 | Outline editor + course settings | ✅ Done |
-| 4 | Lesson generation with Claude | ⏳ Next |
-| 5 | Study view, split PDF viewer, practice questions + grading | |
+| 4 | Lesson generation with Claude | ✅ Done |
+| 5 | Study view, split PDF viewer, practice questions + grading | ⏳ Next |
 | 6 | Flashcards (spaced repetition), highlights/notes, search | |
 | 7 | "Ask the book" tutor | |
 | 8 | Dashboard, weak topics, study plan, streaks, reminders | |
@@ -64,6 +64,7 @@ Install PostgreSQL 16 with the pgvector extension and Redis yourself, create the
 | `npm run db:migrate` | Apply/create database migrations (dev) |
 | `npm run db:studio` | Browse the database in your browser |
 | `npm run fixtures` | Regenerate the test PDFs in `tests/fixtures` (needs Playwright) |
+| `npm run smoke:claude` | One **real** Claude test: writes one lesson from the test book and prints it with its exact cost (~$0.05). Needs `ANTHROPIC_API_KEY` |
 
 ## Environment variables
 
@@ -83,7 +84,11 @@ All configuration lives in `.env` (see [.env.example](.env.example) for comments
 | `STORAGE_DRIVER` | yes | `local` (files in `./storage`, dev only) or `s3` |
 | `LOCAL_STORAGE_DIR` | no | Folder for local storage (default `./storage`) |
 | `S3_BUCKET`, `S3_REGION`, `S3_ENDPOINT`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY` | if `s3` | AWS S3 or Cloudflare R2 (R2: `S3_REGION=auto`, `S3_ENDPOINT=https://<account>.r2.cloudflarestorage.com`) |
-| `ANTHROPIC_API_KEY` | from Phase 4 | Claude API key |
+| `ANTHROPIC_API_KEY` | to generate lessons | Claude API key (console.anthropic.com → API Keys). Without it everything else works |
+| `CLAUDE_MODEL_GENERATION`, `CLAUDE_MODEL_FALLBACK`, `CLAUDE_MODEL_VISION` | no | Models used for lessons, for retrying a declined request, and for re-reading equation pages |
+| `CLAUDE_EFFORT_GENERATION` | no | `low` / `medium` (default) / `high`: how much Claude thinks while writing |
+| `GENERATION_CONCURRENCY` | no | Lessons written at once (default 3) |
+| `FAKE_CLAUDE` | no | `true` = free placeholder "demo" lessons, no API calls (refused in production) |
 
 ### Setting up Google sign-in (optional)
 
@@ -143,6 +148,28 @@ Each step can safely run again. A retry skips pages already read, and the outlin
 - **Settings** (`src/lib/course/settings.ts`): student level, explanation style, content types, questions and flashcards per lesson, and whether to include front/back matter. They're stored as JSON on the course and always read through one function that fills in defaults.
 - **Estimate** (`src/lib/usage/estimate.ts`): calculated in the browser from each included lesson's amount of text and equation-heavy pages, so it updates instantly as you change settings.
 
+### Writing lessons with Claude (Phase 4)
+
+**Flow.** "Generate course" (with a confirmation that shows the estimated cost) queues every included lesson **in course order**, so lesson 1 is ready first and you can start studying while the rest are written. The worker writes 3 at a time (`GENERATION_CONCURRENCY`). The course page shows "Writing lesson 14 of 52" and each lesson's status.
+
+**For each lesson** (`src/server/generation/run.ts`):
+1. **Equation-heavy pages** (math score ≥ 0.12) are rendered to an image and re-read by Claude once, with equations written as LaTeX. The result is saved on the page (`Page.repairedText`) and reused, so no page is paid for twice. At most 15 per lesson.
+2. **Source check, before spending money:** too little text, or mostly empty pages, means the lesson is marked **Needs attention** with the reason, not guessed. The student can fix the page range or choose **Try anyway**.
+3. **Cache check:** a hash of the source text, settings, prompt version and model (`Lesson.cacheKey`). If nothing changed, or the student hand-edited the lesson, it isn't rewritten unless they ask.
+4. **Claude writes the lesson.** Only that lesson's pages are sent, each marked `=== Page 47 ===`. The system prompt (`src/lib/ai/prompts.ts`) sets the rules: use only facts from the pages, cite pages, write math in LaTeX, and if the pages aren't usable, say so instead of guessing. **Structured outputs** guarantee the reply matches a fixed JSON shape (`src/lib/ai/lesson-schema.ts`). The system prompt never changes, so it's served from Claude's **prompt cache** at about a tenth of the price.
+5. **Checked before saving** (`src/lib/ai/normalize.ts`): page references outside the lesson's pages are removed (including "(p. 999)" in the text); broken questions, like a multiple-choice question whose answer doesn't exist, are dropped; content types you turned off are removed; counts are capped.
+6. **Usage is recorded:** every API call's tokens and cost go to `UsageEvent`, and the course page shows what the course has cost so far.
+
+**When things go wrong.**
+- **Claude is busy:** rate limits, overload and network errors are retried automatically with growing waits, up to 4 tries.
+- **Claude declines:** if the generation model declines a request (safety filters occasionally misread textbook topics like chemistry or security), the same request is retried once on `CLAUDE_MODEL_FALLBACK`.
+- **Lesson too long:** one that doesn't fit in one reply fails with "split it in the outline editor".
+- **Bad API key:** fails with a clear message.
+
+**Studying and editing.** Lessons render Markdown and math with KaTeX. Raw HTML in lesson text is never rendered, so generated or edited text can't inject scripts; there's a test for this. Every page reference links to the original PDF at that page. **Regenerate lesson**, **New practice questions** (avoids repeating the old ones) and **Edit** (everything, with a live preview) are on each lesson. Regenerating a hand-edited lesson asks first.
+
+**Demo mode.** With `FAKE_CLAUDE=true` in `.env` (on both `npm run dev` and `npm run worker`), lessons are clearly-labelled placeholders made from the book's own sentences, with no API calls and no cost. Handy for trying the app or working on the UI.
+
 ### Key decisions
 
 See the table at the top of [PLAN.md](PLAN.md). Short version: Postgres everywhere (pgvector later), Better Auth for accounts, a separate background worker for heavy PDF processing, direct-to-storage uploads, and Next.js "Cache Components" turned off because almost every page is personal to the logged-in student.
@@ -158,7 +185,7 @@ See the table at the top of [PLAN.md](PLAN.md). Short version: Postgres everywhe
 
 ## Estimated Claude API cost per 100 pages
 
-The same formula powers the estimate on each course's Settings page (`src/lib/usage/estimate.ts`). With the default settings it gives **$1.53 per 100 pages**; with the "Concise" style, $1.29. Generation starts in Phase 4, and these numbers will be checked against real token usage then.
+The same formula powers the estimate on each course's Settings page and in the "Generate course" confirmation (`src/lib/usage/estimate.ts`). With the default settings it gives **$1.53 per 100 pages**; with the "Concise" style, $1.29. Every real API call is now recorded with its exact cost (`UsageEvent`), so run `npm run smoke:claude` or generate a real course and compare. The course page shows the real total.
 
 | Item | Approx. tokens | Approx. cost |
 |---|---|---|
@@ -169,6 +196,29 @@ The same formula powers the estimate on each course's Settings page (`src/lib/us
 | **Total per 100 pages** | | **≈ $1.50** (≈ $15 for a 1,000-page book) |
 
 While studying: a graded short answer ≈ $0.01, a tutor message ≈ $0.02–0.05 (Claude Opus 5.5).
+
+## Manual test checklist (Phase 4)
+
+**Free run first:** set `FAKE_CLAUDE=true` in `.env`, start `npm run dev` and `npm run worker`, and upload `tests/fixtures/outlined.pdf`.
+
+1. Overview → **Generate course**. The dialog shows the lesson count, pages, estimated cost and time.
+2. The page shows "Writing lesson N of 5", and lessons flip to **Ready** one by one. You can open a ready lesson while others are still being written.
+3. Open a lesson: objectives, the lesson text with a formula, key terms, practice questions ("Show the answer"), and flashcards ("Tap to flip"). Page numbers open the PDF at that page. Previous/Next work.
+4. **Edit:** change the explanation, check **Preview**, add a multiple-choice question, save. The lesson shows "Edited by you".
+5. ⋯ → **New practice questions**: the questions change and the explanation stays.
+6. ⋯ → **Regenerate this lesson** on the edited lesson. It asks before replacing your edits.
+7. Settings tab → **Regenerate all lessons** is offered once the course is done.
+
+**Then for real:** set your real `ANTHROPIC_API_KEY`, set `FAKE_CLAUDE=false`, and run:
+
+```bash
+npm run smoke:claude
+```
+
+That writes one lesson and re-reads one equation page, printing the result and its exact cost. Then generate a real course from one of your own textbooks. Start with a short one (20–40 pages; under $1). Check:
+- Explanations stay true to the book, and their page citations point to the right pages.
+- Equations display properly.
+- A section that's mostly figures gets **Needs attention** instead of an invented lesson.
 
 ## Manual test checklist (Phase 3)
 

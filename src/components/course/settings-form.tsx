@@ -14,6 +14,8 @@ type Props = {
   courseId: string;
   initial: CourseSettings;
   lessons: { normal: EstimateLesson[]; frontBack: EstimateLesson[]; skippedNormal: number };
+  /** Generate / Regenerate buttons, rendered by the page. */
+  actions?: React.ReactNode;
 };
 
 const usd = (n: number) => (n < 0.01 ? "under $0.01" : `$${n.toFixed(2)}`);
@@ -45,7 +47,7 @@ function Choice({ name, value, checked, onChange, title, description }: { name: 
   );
 }
 
-export function SettingsForm({ courseId, initial, lessons }: Props) {
+export function SettingsForm({ courseId, initial, lessons, actions }: Props) {
   const router = useRouter();
   const [s, setS] = useState<CourseSettings>(initial);
   const [savedJson, setSavedJson] = useState(JSON.stringify(initial));
@@ -191,10 +193,12 @@ export function SettingsForm({ courseId, initial, lessons }: Props) {
             {lessons.skippedNormal > 0 &&
               ` ${lessons.skippedNormal} ${lessons.skippedNormal === 1 ? "lesson you skipped isn't" : "lessons you skipped aren't"} counted.`}
           </p>
-          <Button className="mt-4 w-full" disabled title="Lesson generation is built in the next phase">
-            Generate course
-          </Button>
-          <p className="mt-2 text-center text-xs text-muted">Lesson generation arrives in the next build phase.</p>
+          {actions && (
+            <div className="mt-4 flex flex-col gap-2">
+              {dirty && <p className="text-xs text-warning">Save your settings first; generation uses the saved settings.</p>}
+              {actions}
+            </div>
+          )}
         </Card>
       </aside>
     </div>

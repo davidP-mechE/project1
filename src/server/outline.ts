@@ -15,7 +15,7 @@ import {
   type OutlineIssue,
 } from "@/lib/outline/edit";
 import type { DraftUnit } from "@/lib/outline/types";
-import type { EstimateLesson } from "@/lib/usage/estimate";
+import { estimateGeneration, type EstimateLesson } from "@/lib/usage/estimate";
 
 /**
  * Loading and saving a course's outline and settings. Like everything in
@@ -265,6 +265,40 @@ export async function getEstimateInputs(userId: string, courseId: string) {
     frontBack: lessons.filter((l) => l.isFrontBackMatter).map(toInput),
     skippedNormal: lessons.filter((l) => l.skip && !l.isFrontBackMatter).length,
   };
+}
+
+/**
+ * Cost/time estimate for the lessons a "Generate" click would write:
+ * "pending" = included lessons with no content yet; "all" = every included lesson.
+ */
+export async function getGenerationEstimate(userId: string, courseId: string, which: "pending" | "all") {
+  const course = await loadCourse(userId, courseId);
+  const settings = parseSettings(course.settings);
+  const [lessons, pages] = await Promise.all([
+    db.lesson.findMany({
+      where: {
+        courseId,
+        skip: false,
+        ...(which === "pending" ? { generatedAt: null, status: { in: ["PENDING", "FAILED"] } } : {}),
+      },
+      select: { unitId: true, pageStart: true, pageEnd: true },
+    }),
+    db.page.findMany({ where: { bookId: course.bookId }, select: { pageNumber: true, charCount: true, mathScore: true, repairedText: true } }),
+  ]);
+  const byPage = new Map(pages.map((p) => [p.pageNumber, p]));
+  const inputs: EstimateLesson[] = lessons.map((l) => {
+    let chars = 0;
+    let math = 0;
+    for (let n = l.pageStart; n <= l.pageEnd; n++) {
+      const p = byPage.get(n);
+      chars += p?.charCount ?? 0;
+      // Pages already re-read from an image don't cost anything extra.
+      if ((p?.mathScore ?? 0) >= MATH_HEAVY_THRESHOLD && !p?.repairedText) math += 1;
+    }
+    return { unitKey: l.unitId, pages: l.pageEnd - l.pageStart + 1, chars, mathHeavyPages: math };
+  });
+  // Unit tests, summaries and the final exam come in a later phase; estimate lessons only for now.
+  return estimateGeneration(inputs, { ...settings, contentTypes: settings.contentTypes.filter((t) => !["unitSummaries", "unitTests", "finalExam"].includes(t)) });
 }
 
 // ─── Page preview ───────────────────────────────────────────────────────────

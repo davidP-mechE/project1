@@ -15,6 +15,6 @@ export default defineConfig({
     globalSetup: ["tests/helpers/global-setup.ts"],
     // Integration tests share one test database, so run files one at a time.
     fileParallelism: false,
-    include: ["tests/**/*.test.ts"],
+    include: ["tests/**/*.test.ts", "tests/**/*.test.tsx"],
   },
 });

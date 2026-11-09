@@ -1,5 +1,9 @@
 import type { Metadata } from "next";
+import type { ReactNode } from "react";
+import Link from "next/link";
 import { CourseHeader } from "@/components/course/course-header";
+import { GenerateButton } from "@/components/course/generate-button";
+import { GenerationProgress } from "@/components/course/generation-progress";
 import { ProcessingStatus } from "@/components/course/processing-status";
 import { Alert } from "@/components/ui/alert";
 import { ButtonLink, buttonClasses } from "@/components/ui/button";
@@ -7,7 +11,11 @@ import { Card } from "@/components/ui/misc";
 import { formatBytes } from "@/lib/upload/limits";
 import { getOutlineSummary, getProcessingStatus, markCourseOpened } from "@/server/courses";
 import { getCourseOr404 } from "@/server/course-page";
+import { claudeEnabled } from "@/server/env";
+import { getCourseCost, getCourseLessons, getGenerationProgress } from "@/server/generation/lessons";
+import { getGenerationEstimate } from "@/server/outline";
 import { requireUser } from "@/server/session";
+import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Course" };
 
@@ -41,6 +49,16 @@ export default async function CoursePage({ params }: PageProps<"/courses/[course
   const outline = ["OUTLINE_DRAFT", "GENERATING", "ACTIVE"].includes(course.status)
     ? await getOutlineSummary(user.id, courseId)
     : null;
+  const generating = course.status === "GENERATING" || course.status === "ACTIVE";
+  const [pendingEstimate, progress, units, cost] = outline
+    ? await Promise.all([
+        getGenerationEstimate(user.id, courseId, "pending"),
+        generating ? getGenerationProgress(user.id, courseId) : null,
+        generating ? getCourseLessons(user.id, courseId) : null,
+        generating ? getCourseCost(user.id, courseId) : 0,
+      ])
+    : [null, null, null, 0];
+  const noKey = claudeEnabled ? undefined : "Lesson generation needs an ANTHROPIC_API_KEY on the server (see the README).";
 
   return (
     <div className="mx-auto max-w-3xl">
@@ -61,8 +79,30 @@ export default async function CoursePage({ params }: PageProps<"/courses/[course
         </Card>
       )}
 
-      {outline && course.status === "OUTLINE_DRAFT" && <NextSteps courseId={courseId} />}
-      {outline && <OutlinePreview outline={outline} courseId={courseId} />}
+      {outline && course.status === "OUTLINE_DRAFT" && pendingEstimate && (
+        <NextSteps courseId={courseId} generate={<GenerateButton courseId={courseId} estimate={pendingEstimate} disabledReason={noKey} />} />
+      )}
+      {progress && units && (
+        <Card className="mb-6">
+          <div className="mb-4 flex flex-wrap items-start justify-between gap-2">
+            <h2 className="text-lg font-semibold">Lessons</h2>
+            {pendingEstimate && pendingEstimate.lessons > 0 && course.status === "ACTIVE" && (
+              <GenerateButton courseId={courseId} estimate={pendingEstimate} label={`Generate ${pendingEstimate.lessons} remaining`} disabledReason={noKey} />
+            )}
+          </div>
+          <GenerationProgress courseId={courseId} initial={progress} />
+          {course.status === "ACTIVE" && (progress.flagged > 0 || progress.failed > 0) && (
+            <Alert tone="warning" className="mb-4">
+              {progress.flagged > 0 && `${progress.flagged} ${progress.flagged === 1 ? "lesson needs" : "lessons need"} your attention (not enough readable text). `}
+              {progress.failed > 0 && `${progress.failed} ${progress.failed === 1 ? "lesson" : "lessons"} couldn't be written. `}
+              Open {progress.flagged + progress.failed === 1 ? "it" : "them"} below to see why.
+            </Alert>
+          )}
+          <LessonList courseId={courseId} units={units} />
+          {cost > 0 && <p className="mt-4 text-xs text-muted">Claude API cost for this course so far: ${cost.toFixed(2)}</p>}
+        </Card>
+      )}
+      {outline && course.status === "OUTLINE_DRAFT" && <OutlinePreview outline={outline} courseId={courseId} />}
 
       <Card>
         <h2 className="mb-4 text-lg font-semibold">File</h2>
@@ -99,11 +139,11 @@ export default async function CoursePage({ params }: PageProps<"/courses/[course
   );
 }
 
-function NextSteps({ courseId }: { courseId: string }) {
+function NextSteps({ courseId, generate }: { courseId: string; generate: ReactNode }) {
   const steps = [
-    { title: "Check the outline", body: "Rename, merge, split or reorder lessons and fix page ranges.", href: `/courses/${courseId}/outline`, cta: "Edit outline" },
-    { title: "Choose settings", body: "Pick your level, explanation style and what to create. See the cost estimate.", href: `/courses/${courseId}/setup`, cta: "Course settings" },
-    { title: "Generate lessons", body: "Coursebook writes each lesson from its pages. Coming in the next build phase.", href: null, cta: null },
+    { title: "Check the outline", body: "Rename, merge, split or reorder lessons and fix page ranges.", href: `/courses/${courseId}/outline`, cta: "Edit outline", node: null },
+    { title: "Choose settings", body: "Pick your level, explanation style and what to create. See the cost estimate.", href: `/courses/${courseId}/setup`, cta: "Course settings", node: null },
+    { title: "Generate lessons", body: "Claude writes each lesson from its own pages. You can start studying as soon as the first one is ready.", href: null, cta: null, node: generate },
   ];
   return (
     <Card className="mb-6">
@@ -117,10 +157,11 @@ function NextSteps({ courseId }: { courseId: string }) {
             <h3 className="font-medium">{s.title}</h3>
             <p className="flex-1 text-sm text-muted">{s.body}</p>
             {s.href && (
-              <ButtonLink href={s.href} variant={i === 0 ? "primary" : "secondary"} size="sm" className="self-start">
+              <ButtonLink href={s.href} variant="secondary" size="sm" className="self-start">
                 {s.cta}
               </ButtonLink>
             )}
+            {s.node && <div className="flex flex-col items-start gap-1">{s.node}</div>}
           </li>
         ))}
       </ol>
@@ -196,5 +237,53 @@ function OutlinePreview({ outline, courseId }: { outline: Awaited<ReturnType<typ
         ))}
       </ol>
     </Card>
+  );
+}
+
+const STATUS_LABEL: Record<string, { label: string; tone: string }> = {
+  READY: { label: "Ready", tone: "bg-success-bg text-success" },
+  QUEUED: { label: "Waiting", tone: "bg-surface-2 text-muted" },
+  GENERATING: { label: "Writing…", tone: "bg-primary/15 text-primary" },
+  FLAGGED: { label: "Needs attention", tone: "bg-warning-bg text-warning" },
+  FAILED: { label: "Failed", tone: "bg-danger-bg text-danger" },
+  PENDING: { label: "Not written", tone: "bg-surface-2 text-muted" },
+};
+
+function LessonList({ courseId, units }: { courseId: string; units: Awaited<ReturnType<typeof getCourseLessons>> }) {
+  // Number included lessons 1, 2, 3… across the whole course.
+  const numbers = new Map(
+    units.flatMap((u) => u.lessons.filter((l) => !l.skip)).map((l, i) => [l.id, i + 1] as const),
+  );
+  return (
+    <ol className="mt-4 flex flex-col gap-5">
+      {units
+        .filter((u) => u.lessons.some((l) => !l.skip))
+        .map((u) => (
+          <li key={u.id}>
+            <h3 className="font-semibold">{u.title}</h3>
+            <ol className="mt-2 flex flex-col divide-y divide-border rounded-lg border border-border">
+              {u.lessons
+                .filter((l) => !l.skip)
+                .map((l) => {
+                  const st = STATUS_LABEL[l.status] ?? STATUS_LABEL.PENDING;
+                  return (
+                    <li key={l.id}>
+                      <Link
+                        href={`/courses/${courseId}/lessons/${l.id}`}
+                        className="flex items-center justify-between gap-3 px-3 py-2.5 text-sm hover:bg-surface-2"
+                      >
+                        <span className="min-w-0">
+                          <span className="mr-2 tabular-nums text-muted">{numbers.get(l.id)}.</span>
+                          {l.title}
+                        </span>
+                        <span className={cn("shrink-0 rounded-full px-2 py-0.5 text-xs font-medium", st.tone)}>{st.label}</span>
+                      </Link>
+                    </li>
+                  );
+                })}
+            </ol>
+          </li>
+        ))}
+    </ol>
   );
 }

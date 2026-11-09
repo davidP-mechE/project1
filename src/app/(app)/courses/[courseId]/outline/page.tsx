@@ -20,7 +20,9 @@ export default async function OutlinePage({ params }: PageProps<"/courses/[cours
       <CourseHeader course={course} />
       {!data.editable ? (
         <Alert tone="info">
-          The outline can be edited once the book has finished processing.{" "}
+          {course.status === "GENERATING"
+            ? "Lessons are being written right now. You can edit the outline again when generation finishes."
+            : "The outline can be edited once the book has finished processing."}{" "}
           <ButtonLink href={`/courses/${courseId}`} variant="ghost" size="sm">
             Back to overview
           </ButtonLink>

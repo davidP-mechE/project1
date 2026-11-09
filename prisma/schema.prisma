@@ -1,7 +1,8 @@
 // Coursebook database schema.
 // Phase 1: accounts (Better Auth tables), books and courses.
 // Phase 2: extracted pages, figures, text chunks, units/lessons (outline), jobs.
-// Later phases add lesson content, questions, flashcards, etc.
+// Phase 3: lesson skip flag, course settings, detected outline.
+// Phase 4: generated lesson content, questions, flashcards, API usage.
 
 generator client {
   provider = "prisma-client"
@@ -161,9 +162,11 @@ model Course {
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
 
-  units   Unit[]
-  lessons Lesson[]
-  jobs    Job[]
+  units      Unit[]
+  lessons    Lesson[]
+  jobs       Job[]
+  questions  Question[]
+  flashcards Flashcard[]
 
   @@index([userId, archivedAt])
 }
@@ -198,6 +201,9 @@ model Page {
   isFrontBackMatter Boolean    @default(false)
   // Text lines with font sizes, kept so the outline can be re-detected without re-reading the PDF.
   lines             Json?
+  // Equation-heavy pages re-read from an image by Claude, with math as LaTeX (Phase 4).
+  repairedText      String?
+  repairedAt        DateTime?
   width             Float
   height            Float
 
@@ -272,10 +278,106 @@ model Lesson {
   // Student's choice to leave this lesson out of the course (starts as true for front/back matter).
   skip              Boolean      @default(false)
   status            LessonStatus @default(PENDING)
+  // Generated content: objectives, explanation, worked examples, key terms (see src/lib/ai/lesson-schema.ts).
+  content           Json?
+  // Hash of everything that went into generating it (source text, settings, prompt, model).
+  // If nothing changed, the lesson isn't regenerated.
+  cacheKey          String?
+  model             String?
+  promptVersion     String?
+  generatedAt       DateTime?
+  userEdited        Boolean      @default(false)
+  // Why the lesson was flagged instead of generated, or why generation failed.
+  flagReason        String?
+  error             String?
   createdAt         DateTime     @default(now())
   updatedAt         DateTime     @updatedAt
 
+  questions  Question[]
+  flashcards Flashcard[]
+
   @@index([unitId, order])
+  @@index([courseId])
+}
+
+enum QuestionScope {
+  LESSON
+  UNIT_TEST
+  FINAL_EXAM
+}
+
+enum QuestionType {
+  MULTIPLE_CHOICE
+  SHORT_ANSWER
+  STEP_BY_STEP
+}
+
+model Question {
+  id            String        @id @default(cuid())
+  courseId      String
+  course        Course        @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lessonId      String?
+  lesson        Lesson?       @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  scope         QuestionScope @default(LESSON)
+  type          QuestionType
+  order         Int
+  prompt        String
+  choices       String[] // multiple choice only
+  correctChoice Int? // index into choices
+  answer        String // the correct answer, in words
+  explanation   String
+  steps         String[] // step-by-step solution (step-by-step problems)
+  pageRefs      Int[]
+  topic         String // short topic label, used later for "weak topics"
+  userEdited    Boolean       @default(false)
+  createdAt     DateTime      @default(now())
+
+  @@index([lessonId, order])
+  @@index([courseId])
+}
+
+model Flashcard {
+  id         String   @id @default(cuid())
+  courseId   String
+  course     Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lessonId   String
+  lesson     Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  order      Int
+  front      String
+  back       String
+  pageRefs   Int[]
+  userEdited Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  @@index([lessonId, order])
+  @@index([courseId])
+}
+
+// ─── Claude API usage (for cost tracking and limits) ─────────────────────
+
+enum UsageFeature {
+  LESSON
+  QUESTIONS
+  PAGE_REPAIR
+  GRADING
+  TUTOR
+}
+
+model UsageEvent {
+  id               String       @id @default(cuid())
+  userId           String
+  courseId         String?
+  lessonId         String?
+  feature          UsageFeature
+  model            String
+  inputTokens      Int
+  outputTokens     Int
+  cacheReadTokens  Int          @default(0)
+  cacheWriteTokens Int          @default(0)
+  costMicroUsd     Int // millionths of a dollar
+  createdAt        DateTime     @default(now())
+
+  @@index([userId, createdAt])
   @@index([courseId])
 }
 

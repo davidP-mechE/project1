@@ -33,6 +33,17 @@ const schema = z.object({
   S3_ENDPOINT: z.string().optional(),
   S3_ACCESS_KEY_ID: z.string().optional(),
   S3_SECRET_ACCESS_KEY: z.string().optional(),
+
+  // Claude API. Without a key, everything works except generating lessons.
+  ANTHROPIC_API_KEY: z.string().optional(),
+  CLAUDE_MODEL_GENERATION: z.string().default("claude-sonnet-5-5"),
+  CLAUDE_MODEL_FALLBACK: z.string().default("claude-opus-5-5"),
+  CLAUDE_MODEL_VISION: z.string().default("claude-sonnet-5-5"),
+  CLAUDE_EFFORT_GENERATION: z.enum(["low", "medium", "high", "xhigh", "max"]).default("medium"),
+  // Lessons the worker writes at the same time.
+  GENERATION_CONCURRENCY: z.coerce.number().int().min(1).max(10).default(3),
+  // Development only: write placeholder "demo" lessons without calling Claude (free).
+  FAKE_CLAUDE: z.stringbool().default(false),
 });
 
 // Treat empty strings in .env ("GOOGLE_CLIENT_ID=") as "not set".
@@ -49,3 +60,10 @@ if (!parsed.success) {
 export const env = parsed.data;
 
 export const googleAuthEnabled = Boolean(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET);
+
+if (env.FAKE_CLAUDE && env.NODE_ENV === "production") {
+  throw new Error("FAKE_CLAUDE must not be enabled in production.");
+}
+
+/** True when lessons can be generated: a real key, or demo mode in development. */
+export const claudeEnabled = Boolean(env.ANTHROPIC_API_KEY) || env.FAKE_CLAUDE;
