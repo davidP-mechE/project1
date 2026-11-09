@@ -10,6 +10,7 @@ const bodySchema = z.object({
   size: z.number().int(),
   contentType: z.string().max(100),
   rightsConfirmed: z.boolean(),
+  kind: z.enum(["book", "slides"]).default("book"),
 });
 
 /** Step 1 of an upload: check the request and hand back a URL to upload the file to. */

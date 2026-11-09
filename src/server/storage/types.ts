@@ -42,5 +42,7 @@ export function assertSafeKey(key: string): void {
 export const storageKeys = {
   bookPrefix: (userId: string, bookId: string) => `users/${userId}/books/${bookId}/`,
   bookOriginal: (userId: string, bookId: string) => `users/${userId}/books/${bookId}/original.pdf`,
+  /** An uploaded PowerPoint deck, before the worker turns it into original.pdf. */
+  slidesSource: (userId: string, bookId: string) => `users/${userId}/books/${bookId}/source.pptx`,
   userPrefix: (userId: string) => `users/${userId}/`,
 };

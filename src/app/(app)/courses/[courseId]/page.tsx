@@ -28,6 +28,7 @@ const sourceLabels: Record<string, string> = {
   BOOKMARKS: "from the PDF's built-in bookmarks",
   HEADINGS: "by detecting headings (this PDF has no bookmarks)",
   PAGE_RANGES: "as fixed page ranges (no chapters or headings were found)",
+  SLIDES: "from the slide titles and section slides",
 };
 
 function pageList(pages: number[]): string {

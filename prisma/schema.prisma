@@ -139,8 +139,17 @@ enum BookStatus {
   FAILED
 }
 
+// A textbook, or a deck of lecture slides (PDF or PowerPoint). Both become a course.
+enum SourceKind {
+  BOOK
+  SLIDES
+}
+
 model Book {
   id                String     @id @default(cuid())
+  kind              SourceKind @default(BOOK)
+  // PowerPoint decks: the uploaded .pptx. The worker turns it into the PDF at storageKey.
+  sourceKey         String?
   userId            String
   user              User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   originalFilename  String
@@ -221,6 +230,7 @@ enum OutlineSource {
   BOOKMARKS
   HEADINGS
   PAGE_RANGES
+  SLIDES
 }
 
 // ─── Extracted content (Phase 2) ─────────────────────────────────────────

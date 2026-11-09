@@ -77,7 +77,14 @@ export type LessonPromptInput = {
   pageEnd: number;
   pages: SourcePage[];
   settings: CourseSettings;
+  /** Lecture slides instead of a textbook: each "page" is one slide. */
+  sourceKind?: "book" | "slides";
 };
+
+/** Extra instructions for lecture slides (kept out of the cached system prompt). */
+const SLIDES_NOTE = `These "pages" are lecture slides: "=== Page 12 ===" is slide 12, and they may include the presenter's speaker notes and [Figure: …] descriptions of the slide's pictures. Slides are terse, so turn their bullet points into a clear, connected explanation a student could learn from without the lecture: say what each point means and how the points relate. The grounding rules still apply: don't add facts, formulas or examples that aren't on the slides or in the notes. In the explanation, cite slides like (slide 12) or (slides 12–14) instead of (p. 12). Page reference lists still use the slide numbers.`;
+
+const slidesNote = (input: LessonPromptInput) => (input.sourceKind === "slides" ? `\n\n${SLIDES_NOTE}` : "");
 
 function settingsLines(s: CourseSettings, opts: { questionsOnly?: boolean } = {}): string[] {
   const lines = [
@@ -116,8 +123,9 @@ function settingsLines(s: CourseSettings, opts: { questionsOnly?: boolean } = {}
 }
 
 function header(input: LessonPromptInput): string {
-  const range = input.pageStart === input.pageEnd ? `page ${input.pageStart}` : `pages ${input.pageStart}–${input.pageEnd}`;
-  return `Textbook: "${input.courseTitle}"\nUnit: "${input.unitTitle}"\nLesson: "${input.lessonTitle}" (${range})`;
+  const word = input.sourceKind === "slides" ? "slide" : "page";
+  const range = input.pageStart === input.pageEnd ? `${word} ${input.pageStart}` : `${word}s ${input.pageStart}–${input.pageEnd}`;
+  return `${input.sourceKind === "slides" ? "Slide deck" : "Textbook"}: "${input.courseTitle}"\nUnit: "${input.unitTitle}"\nLesson: "${input.lessonTitle}" (${range})`;
 }
 
 /** The user message for writing a full lesson: source pages first, then the task. */
@@ -126,7 +134,7 @@ export function lessonUserMessage(input: LessonPromptInput): string {
 ${formatSourcePages(input.pages)}
 </book_pages>
 
-${header(input)}
+${header(input)}${slidesNote(input)}
 
 Write this lesson from the pages above, following these settings:
 ${settingsLines(input.settings).join("\n")}
@@ -144,7 +152,7 @@ export function questionsUserMessage(input: LessonPromptInput & { avoid: string[
 ${formatSourcePages(input.pages)}
 </book_pages>
 
-${header(input)}
+${header(input)}${slidesNote(input)}
 
 Write only practice questions for this lesson from the pages above. Set sourceCheck as usual. Settings:
 ${settingsLines(input.settings, { questionsOnly: true }).join("\n")}
@@ -162,5 +170,15 @@ export const PAGE_REPAIR_PROMPT = `This image is one page of a textbook. Transcr
 - If part of the page is unreadable, write [unreadable] there rather than guessing.
 
 Reply with the transcription only, with no introduction or comments.`;
+
+/** Instructions for reading a lecture slide that is mostly pictures (diagrams, charts, photos). */
+export const SLIDE_READ_PROMPT = `This image is one slide from a lecture. Write out what a student needs from it, in reading order.
+
+- Transcribe all of the slide's text exactly, title first. Write math in LaTeX: $...$ inline, $$...$$ displayed.
+- For each diagram, chart, graph, table or photo that carries meaning, write [Figure: …] with one to three sentences on what it shows: its labels, axes, values, arrows and the relationship it illustrates. Do not invent values you can't read.
+- Leave out logos, decorations, slide numbers and footers.
+- If part of the slide is unreadable, write [unreadable] there rather than guessing.
+
+Reply with the text only, with no introduction or comments.`;
 
 export const contentTypeLabel = (t: keyof typeof CONTENT_TYPES) => CONTENT_TYPES[t].label;

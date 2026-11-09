@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/misc";
 import { burst } from "@/components/ui/burst";
 import { cn } from "@/lib/utils";
+import { useSourceKind } from "@/components/course/source-kind";
+import { sourceNoun, unitWord } from "@/lib/source-label";
 import type { AttemptView } from "@/server/study";
 
 export type PracticeQuestion = {
@@ -39,6 +41,7 @@ type Props = {
 
 /** Practice questions you can answer: multiple choice is checked instantly, written answers by Claude. */
 export function Practice({ items, bookId, latest: initial, grading }: Props) {
+  const noun = sourceNoun(useSourceKind());
   const [latest, setLatest] = useState(initial);
   const answered = items.filter((q) => latest[q.id]);
   const correct = answered.filter((q) => latest[q.id].correct).length;
@@ -46,7 +49,7 @@ export function Practice({ items, bookId, latest: initial, grading }: Props) {
     <div className="flex flex-col gap-4">
       <p className="text-sm text-muted" aria-live="polite">
         {answered.length === 0
-          ? "Answer each question, then check it. Written answers are compared with the book."
+          ? `Answer each question, then check it. Written answers are compared with the ${noun}.`
           : `Score: ${correct} of ${items.length} correct${answered.length < items.length ? ` (${items.length - answered.length} not tried yet)` : ""}.`}
       </p>
       <ol className="flex flex-col gap-4">
@@ -76,6 +79,7 @@ function QuestionCard({
   onAttempt: (a: AttemptView) => void;
 }) {
   const id = useId();
+  const noun = sourceNoun(useSourceKind());
   const [choice, setChoice] = useState<number | null>(null);
   const [text, setText] = useState("");
   const [result, setResult] = useState<AttemptView | null>(null);
@@ -188,7 +192,7 @@ function QuestionCard({
           <Button size="sm" onClick={check} disabled={pending} data-check>
             {pending ? (
               <>
-                <Spinner /> {mcq ? "Checking…" : "Checking against the book…"}
+                <Spinner /> {mcq ? "Checking…" : `Checking against the ${noun}…`}
               </>
             ) : (
               "Check answer"
@@ -225,7 +229,7 @@ function QuestionCard({
             <div className="mt-1 text-text">
               <Markdown bookId={bookId} className="[&_p]:m-0">{result.feedback}</Markdown>
               <p className="mt-1 text-xs text-muted">
-                {result.gradedBy === "CLAUDE" ? "Checked by Claude against the book. It can make mistakes." : result.gradedBy === "DEMO" ? "Demo check, not Claude." : "Matches the model answer."}
+                {result.gradedBy === "CLAUDE" ? `Checked by Claude against the ${noun}. It can make mistakes.` : result.gradedBy === "DEMO" ? "Demo check, not Claude." : "Matches the model answer."}
               </p>
             </div>
           )}
@@ -238,6 +242,7 @@ function QuestionCard({
 }
 
 function AnswerKey({ q, bookId }: { q: PracticeQuestion; bookId: string }) {
+  const kind = useSourceKind();
   return (
     <div className="mt-3 flex flex-col gap-3 rounded-lg bg-surface-2 p-3 text-sm">
       <div>
@@ -267,10 +272,10 @@ function AnswerKey({ q, bookId }: { q: PracticeQuestion; bookId: string }) {
       )}
       {q.pageRefs.length > 0 && (
         <p className="flex flex-wrap items-center gap-1 text-xs text-muted">
-          In the book:
+          In the {sourceNoun(kind)}:
           {q.pageRefs.map((p) => (
             <a key={p} href={`/api/books/${bookId}/file#page=${p}`} data-book-page={p} target="_blank" rel="noopener" className="rounded bg-surface px-1.5 py-0.5 tabular-nums hover:text-text hover:underline">
-              p. {p}
+              {kind === "SLIDES" ? `${unitWord(kind)} ${p}` : `p. ${p}`}
             </a>
           ))}
         </p>

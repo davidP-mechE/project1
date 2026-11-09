@@ -34,29 +34,31 @@ async function loadLesson(lessonId: string) {
     where: { id: lessonId },
     include: {
       unit: { select: { title: true } },
-      course: { select: { id: true, userId: true, title: true, settings: true, bookId: true, status: true } },
+      course: { select: { id: true, userId: true, title: true, settings: true, bookId: true, status: true, book: { select: { kind: true } } } },
     },
   });
 }
 type LoadedLesson = NonNullable<Awaited<ReturnType<typeof loadLesson>>>;
+const sourceKind = (lesson: LoadedLesson) => (lesson.course.book.kind === "SLIDES" ? ("slides" as const) : ("book" as const));
 
 async function loadPages(lesson: LoadedLesson): Promise<SourcePage[]> {
   return db.page.findMany({
     where: { bookId: lesson.course.bookId, pageNumber: { gte: lesson.pageStart, lte: lesson.pageEnd } },
     orderBy: { pageNumber: "asc" },
-    select: { pageNumber: true, label: true, text: true, textSource: true, mathScore: true, repairedText: true },
+    select: { pageNumber: true, label: true, text: true, textSource: true, mathScore: true, repairedText: true, imageCount: true },
   });
 }
 
 /** Re-read equation-heavy pages from images (once per page; the result is saved on the page). */
 async function repairPages(lesson: LoadedLesson, pages: SourcePage[], deps: GenerationDeps): Promise<SourcePage[]> {
   if (!deps.renderPage) return pages;
-  const todo = pages.filter(needsRepair).slice(0, MAX_REPAIRS_PER_LESSON);
+  const kind = sourceKind(lesson);
+  const todo = pages.filter((p) => needsRepair(p, kind)).slice(0, MAX_REPAIRS_PER_LESSON);
   if (todo.length > 0) await ensureAiBudget(lesson.course.userId);
   for (const p of todo) {
     try {
       const png = await deps.renderPage(lesson.course.bookId, p.pageNumber);
-      const res = await deps.writer.repairPage(png);
+      const res = await deps.writer.repairPage(png, kind);
       await recordUsage({ userId: lesson.course.userId, courseId: lesson.courseId, lessonId: lesson.id, feature: "PAGE_REPAIR" }, res.calls);
       if (res.value.trim().length > 0) {
         await db.page.update({
@@ -119,7 +121,7 @@ export async function runLessonJob(
   let pages = await loadPages(lesson);
   pages = await repairPages(lesson, pages, deps);
 
-  const source = assessSource(pages);
+  const source = assessSource(pages, sourceKind(lesson));
   if (!source.ok && !payload.allowThin) {
     await db.lesson.update({ where: { id: lesson.id }, data: { status: "FLAGGED", flagReason: source.reason } });
     await finishCourseIfDone(lesson.courseId);
@@ -151,6 +153,7 @@ export async function runLessonJob(
     pageEnd: lesson.pageEnd,
     pages,
     settings,
+    sourceKind: sourceKind(lesson),
   };
   await ensureAiBudget(lesson.course.userId);
   let result;
@@ -212,6 +215,7 @@ export async function runQuestionsJob(payload: { lessonId: string }, deps: Gener
       pageEnd: lesson.pageEnd,
       pages,
       settings,
+      sourceKind: sourceKind(lesson),
       avoid: existing.map((q) => q.prompt).slice(0, 30),
     });
   } catch (err) {

@@ -2,7 +2,7 @@ import "server-only";
 import { db } from "./db";
 import { enqueueBookProcessing } from "./queue";
 import { storage, storageKeys } from "./storage";
-import { MAX_TITLE_LENGTH, MAX_UPLOADS_PER_HOUR, titleFromFilename } from "@/lib/upload/limits";
+import { isPptx, MAX_TITLE_LENGTH, MAX_UPLOADS_PER_HOUR, PPTX_TYPE, titleFromFilename, type UploadKind } from "@/lib/upload/limits";
 import { assertCanUpload, LimitError } from "./limits";
 import { checkPdfSignature, PDF_HEAD_BYTES, PDF_TAIL_BYTES } from "@/lib/pdf/validate";
 import { MATH_HEAVY_THRESHOLD } from "@/lib/pdf/math-score";
@@ -31,7 +31,7 @@ export async function listCourses(userId: string, opts: { archived: boolean }) {
       lastOpenedAt: true,
       createdAt: true,
       archivedAt: true,
-      book: { select: { id: true, coverKey: true, pageCount: true, status: true, error: true } },
+      book: { select: { id: true, kind: true, coverKey: true, pageCount: true, status: true, error: true } },
       _count: { select: { lessons: true } },
     },
   });
@@ -44,6 +44,7 @@ export async function getCourse(userId: string, courseId: string) {
       book: {
         select: {
           id: true,
+          kind: true,
           originalFilename: true,
           sizeBytes: true,
           pageCount: true,
@@ -95,8 +96,10 @@ export class RateLimitError extends Error {}
 
 export async function createUpload(
   userId: string,
-  input: { filename: string; size: number; contentType: string; rightsConfirmed: boolean },
+  input: { filename: string; size: number; contentType: string; rightsConfirmed: boolean; kind?: UploadKind },
 ) {
+  const slides = input.kind === "slides";
+  const pptx = slides && isPptx(input.filename);
   const since = new Date(Date.now() - 60 * 60 * 1000);
   const recent = await db.book.count({ where: { userId, createdAt: { gte: since } } });
   if (recent >= MAX_UPLOADS_PER_HOUR) {
@@ -116,16 +119,18 @@ export async function createUpload(
       storageKey: `pending-${crypto.randomUUID()}`, // replaced below once we know the id
       sizeBytes: BigInt(input.size),
       rightsConfirmed: input.rightsConfirmed,
+      kind: slides ? "SLIDES" : "BOOK",
     },
   });
-  const storageKey = storageKeys.bookOriginal(userId, book.id);
+  // A PowerPoint file is stored as-is; the worker makes the PDF the viewer shows.
+  const storageKey = pptx ? storageKeys.slidesSource(userId, book.id) : storageKeys.bookOriginal(userId, book.id);
   const [, course] = await db.$transaction([
-    db.book.update({ where: { id: book.id }, data: { storageKey } }),
+    db.book.update({ where: { id: book.id }, data: { storageKey, sourceKey: pptx ? storageKey : null } }),
     db.course.create({ data: { userId, bookId: book.id, title: titleFromFilename(input.filename) } }),
   ]);
 
   const target = await storage.createUploadUrl(storageKey, {
-    contentType: "application/pdf",
+    contentType: pptx ? PPTX_TYPE : "application/pdf",
     contentLength: input.size,
     expiresInSeconds: 60 * 60,
   });
@@ -156,9 +161,16 @@ export async function completeUpload(userId: string, bookId: string): Promise<Co
   }
 
   const head = await storage.readRange(book.storageKey, 0, PDF_HEAD_BYTES - 1);
-  const tail = await storage.readRange(book.storageKey, Math.max(0, stored.size - PDF_TAIL_BYTES), stored.size - 1);
-  const check = checkPdfSignature(head, tail);
-  if (!check.ok) return fail(check.reason);
+  if (book.sourceKey) {
+    // PowerPoint files are zip archives; the worker checks the slides inside.
+    if (!(head[0] === 0x50 && head[1] === 0x4b && head[2] === 0x03 && head[3] === 0x04)) {
+      return fail("This doesn't look like a PowerPoint (.pptx) file. Try exporting the slides as a PDF instead.");
+    }
+  } else {
+    const tail = await storage.readRange(book.storageKey, Math.max(0, stored.size - PDF_TAIL_BYTES), stored.size - 1);
+    const check = checkPdfSignature(head, tail);
+    if (!check.ok) return fail(check.reason);
+  }
 
   await db.$transaction([
     db.book.update({ where: { id: book.id }, data: { status: "UPLOADED", error: null } }),

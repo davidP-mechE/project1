@@ -5,18 +5,36 @@ export const MAX_PAGES = 1000; // enforced when the PDF is parsed (Phase 2)
 export const MAX_UPLOADS_PER_HOUR = 10;
 export const MAX_TITLE_LENGTH = 200;
 
-export type UploadRequest = { filename: string; size: number; contentType: string; rightsConfirmed: boolean };
+export const MAX_SLIDES = 300;
+export const PPTX_TYPE = "application/vnd.openxmlformats-officedocument.presentationml.presentation";
+
+/** "book": a textbook PDF. "slides": lecture slides, as a PDF or a PowerPoint (.pptx) file. */
+export type UploadKind = "book" | "slides";
+
+export type UploadRequest = { filename: string; size: number; contentType: string; rightsConfirmed: boolean; kind?: UploadKind };
+
+export const isPptx = (filename: string) => /\.pptx$/i.test(filename.trim());
 
 export function validateUploadRequest(req: UploadRequest): { ok: true } | { ok: false; error: string } {
+  const slides = req.kind === "slides";
   if (!req.rightsConfirmed) {
-    return { ok: false, error: "Please confirm you have the right to use this textbook." };
+    return { ok: false, error: slides ? "Please confirm you have the right to use these slides." : "Please confirm you have the right to use this textbook." };
   }
-  if (!/\.pdf$/i.test(req.filename.trim())) {
-    return { ok: false, error: "Only PDF files (.pdf) can be uploaded." };
+  const pdf = /\.pdf$/i.test(req.filename.trim());
+  if (slides ? !pdf && !isPptx(req.filename) : !pdf) {
+    return {
+      ok: false,
+      error: slides
+        ? "Upload slides as a PDF (.pdf) or PowerPoint (.pptx) file. From Google Slides or Keynote, use File → Download → PDF."
+        : /\.(pptx?|key)$/i.test(req.filename)
+          ? "That looks like a slide deck. Upload it under Slides instead."
+          : "Only PDF files (.pdf) can be uploaded.",
+    };
   }
   // Browsers sometimes report an empty type; the real check happens on the file's bytes.
-  if (req.contentType && req.contentType !== "application/pdf" && req.contentType !== "application/octet-stream") {
-    return { ok: false, error: "Only PDF files can be uploaded." };
+  const allowed = ["application/pdf", "application/octet-stream", ...(slides ? [PPTX_TYPE, "application/zip"] : [])];
+  if (req.contentType && !allowed.includes(req.contentType)) {
+    return { ok: false, error: slides ? "Only PDF or PowerPoint (.pptx) files can be uploaded." : "Only PDF files can be uploaded." };
   }
   if (!Number.isInteger(req.size) || req.size <= 0) {
     return { ok: false, error: "This file is empty." };
@@ -29,7 +47,7 @@ export function validateUploadRequest(req: UploadRequest): { ok: true } | { ok: 
 
 /** "Intro_to_Circuits-3rd_ed.pdf" -> "Intro to Circuits 3rd ed" */
 export function titleFromFilename(filename: string): string {
-  const base = filename.replace(/\.pdf$/i, "").replace(/[_]+/g, " ").replace(/-+/g, " ").replace(/\s+/g, " ").trim();
+  const base = filename.replace(/\.(pdf|pptx)$/i, "").replace(/[_]+/g, " ").replace(/-+/g, " ").replace(/\s+/g, " ").trim();
   const title = base.length > 0 ? base : "Untitled textbook";
   return title.slice(0, MAX_TITLE_LENGTH);
 }

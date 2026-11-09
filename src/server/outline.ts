@@ -5,6 +5,7 @@ import { db } from "./db";
 import { NotFoundError } from "./courses";
 import { recomputeCourseProgress } from "./study";
 import { MATH_HEAVY_THRESHOLD } from "@/lib/pdf/math-score";
+import { SLIDE_READ_MAX_CHARS } from "@/lib/ai/source";
 import { courseSettingsSchema, parseSettings, type CourseSettings } from "@/lib/course/settings";
 import {
   fromDraft,
@@ -23,6 +24,13 @@ import { estimateGeneration, type EstimateLesson } from "@/lib/usage/estimate";
  * src/server, every function takes the current user's id and only touches
  * that user's data.
  */
+
+/** Pages the lesson writer will re-read from their image (costs a vision call), as in src/lib/ai/source.ts. */
+function rereadFromImage(p: { charCount: number; mathScore: number; imageCount: number }, kind: "BOOK" | "SLIDES", repairedText: string | null) {
+  if (repairedText) return false;
+  if (kind === "SLIDES") return (p.imageCount > 0 && p.charCount < SLIDE_READ_MAX_CHARS) || p.charCount < 40;
+  return p.mathScore >= MATH_HEAVY_THRESHOLD;
+}
 
 const EDITABLE_STATUSES = ["OUTLINE_DRAFT", "ACTIVE"] as const;
 
@@ -44,7 +52,7 @@ async function loadCourse(userId: string, courseId: string) {
       settings: true,
       detectedOutline: true,
       outlineSource: true,
-      book: { select: { pageCount: true } },
+      book: { select: { pageCount: true, kind: true } },
     },
   });
   if (!course) throw new NotFoundError("Course not found");
@@ -249,7 +257,7 @@ export async function getEstimateInputs(userId: string, courseId: string) {
       select: { unitId: true, pageStart: true, pageEnd: true, skip: true, isFrontBackMatter: true },
       orderBy: [{ unit: { order: "asc" } }, { order: "asc" }],
     }),
-    db.page.findMany({ where: { bookId: course.bookId }, select: { pageNumber: true, charCount: true, mathScore: true } }),
+    db.page.findMany({ where: { bookId: course.bookId }, select: { pageNumber: true, charCount: true, mathScore: true, imageCount: true } }),
   ]);
   const byPage = new Map(pages.map((p) => [p.pageNumber, p]));
   const toInput = (l: (typeof lessons)[number]): EstimateLesson => {
@@ -258,7 +266,7 @@ export async function getEstimateInputs(userId: string, courseId: string) {
     for (let n = l.pageStart; n <= l.pageEnd; n++) {
       const p = byPage.get(n);
       chars += p?.charCount ?? 0;
-      if ((p?.mathScore ?? 0) >= MATH_HEAVY_THRESHOLD) math += 1;
+      if (p && rereadFromImage(p, course.book.kind, null)) math += 1;
     }
     return { unitKey: l.unitId, pages: l.pageEnd - l.pageStart + 1, chars, mathHeavyPages: math };
   };
@@ -288,7 +296,7 @@ export async function getGenerationEstimate(userId: string, courseId: string, wh
       },
       select: { unitId: true, pageStart: true, pageEnd: true },
     }),
-    db.page.findMany({ where: { bookId: course.bookId }, select: { pageNumber: true, charCount: true, mathScore: true, repairedText: true } }),
+    db.page.findMany({ where: { bookId: course.bookId }, select: { pageNumber: true, charCount: true, mathScore: true, repairedText: true, imageCount: true } }),
   ]);
   const byPage = new Map(pages.map((p) => [p.pageNumber, p]));
   const inputs: EstimateLesson[] = lessons.map((l) => {
@@ -298,7 +306,7 @@ export async function getGenerationEstimate(userId: string, courseId: string, wh
       const p = byPage.get(n);
       chars += p?.charCount ?? 0;
       // Pages already re-read from an image don't cost anything extra.
-      if ((p?.mathScore ?? 0) >= MATH_HEAVY_THRESHOLD && !p?.repairedText) math += 1;
+      if (p && rereadFromImage(p, course.book.kind, p.repairedText)) math += 1;
     }
     return { unitKey: l.unitId, pages: l.pageEnd - l.pageStart + 1, chars, mathHeavyPages: math };
   });

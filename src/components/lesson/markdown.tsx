@@ -41,7 +41,7 @@ export function Markdown({ children, className, bookId }: { children: string; cl
             if (typeof page === "string" && /^\d+$/.test(page)) {
               // A page citation added by rehypeCitePages (our own URL).
               return (
-                <a href={href} data-book-page={page} className="page-cite" aria-label={`Open the book at page ${page}`} target="_blank" rel="noopener">
+                <a href={href} data-book-page={page} className="page-cite" aria-label={typeof rest["aria-label" as keyof typeof rest] === "string" ? String(rest["aria-label" as keyof typeof rest]) : `Open page ${page}`} target="_blank" rel="noopener">
                   {children}
                 </a>
               );

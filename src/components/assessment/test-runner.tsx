@@ -9,6 +9,8 @@ import { Button, ButtonLink } from "@/components/ui/button";
 import { ProgressBar, Spinner } from "@/components/ui/misc";
 import { burst } from "@/components/ui/burst";
 import { cn } from "@/lib/utils";
+import { useSourceKind } from "@/components/course/source-kind";
+import { sourceNoun } from "@/lib/source-label";
 import type { TestResult } from "@/server/assessments";
 
 type Q = { id: string; type: "MULTIPLE_CHOICE" | "SHORT_ANSWER" | "STEP_BY_STEP"; prompt: string; choices: string[]; topic: string };
@@ -26,6 +28,7 @@ const VERDICT = {
  * nothing is lost on a reload.
  */
 export function TestRunner({ assessmentId, bookId, title, questions, backHref }: { assessmentId: string; bookId: string; title: string; questions: Q[]; backHref: string }) {
+  const kind = useSourceKind();
   const storageKey = `cb-test-${assessmentId}`;
   const [answers, setAnswers] = useState<Record<string, Answer>>({});
   const [phase, setPhase] = useState<"taking" | "grading" | "results">("taking");
@@ -104,7 +107,7 @@ export function TestRunner({ assessmentId, bookId, title, questions, backHref }:
       </div>
       {phase === "grading" && (
         <p role="status" className="rounded-lg bg-surface-2 px-4 py-3 text-sm">
-          Checking your answers. Written answers are compared with the book by Claude, which takes a few seconds…
+          Checking your answers. Written answers are compared with the {sourceNoun(kind)} by Claude, which takes a few seconds…
         </p>
       )}
       {error && (
@@ -171,6 +174,7 @@ export function TestRunner({ assessmentId, bookId, title, questions, backHref }:
 }
 
 function Results({ result, bookId, title, backHref, onRetake }: { result: TestResult; bookId: string; title: string; backHref: string; onRetake: () => void }) {
+  const kind = useSourceKind();
   const pct = Math.round(result.score * 100);
   const message = pct >= 90 ? "Excellent! You know this material." : pct >= 75 ? "Good work. A few things to tidy up." : pct >= 50 ? "Getting there. Review the topics below and try again." : "Worth another pass. Revisit the lessons below, then retake the test.";
   const weak = [...new Set(result.questions.filter((q) => q.score < 0.8).map((q) => q.topic))];
@@ -252,10 +256,10 @@ function Results({ result, bookId, title, backHref, onRetake }: { result: TestRe
                   )}
                   {q.pageRefs.length > 0 && (
                     <p className="flex flex-wrap gap-1 text-xs text-muted">
-                      In the book:
+                      In the {sourceNoun(kind)}:
                       {q.pageRefs.map((p) => (
                         <a key={p} href={bookPageHref(bookId, p)} target="_blank" rel="noopener" className="rounded bg-surface px-1.5 tabular-nums hover:underline">
-                          p. {p}
+                          {kind === "SLIDES" ? "slide" : "p."} {p}
                         </a>
                       ))}
                     </p>

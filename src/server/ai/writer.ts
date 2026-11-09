@@ -5,6 +5,7 @@ import {
   LESSON_SYSTEM_PROMPT,
   lessonUserMessage,
   PAGE_REPAIR_PROMPT,
+  SLIDE_READ_PROMPT,
   questionsUserMessage,
   type LessonPromptInput,
 } from "@/lib/ai/prompts";
@@ -25,7 +26,8 @@ export interface LessonWriter {
   writeLesson(input: LessonPromptInput): Promise<WriterResult<LessonDraft>>;
   writeQuestions(input: LessonPromptInput & { avoid: string[] }): Promise<WriterResult<QuestionsDraft>>;
   /** Transcribe a page image (PNG) with math as LaTeX. */
-  repairPage(png: Buffer): Promise<WriterResult<string>>;
+  /** Re-read a page from its image: an equation-heavy book page, or a slide that is mostly pictures. */
+  repairPage(png: Buffer, kind?: "book" | "slides"): Promise<WriterResult<string>>;
   /** A unit summary + unit test, or the final exam, from finished lessons. */
   writeAssessment(input: AssessmentPromptInput): Promise<WriterResult<AssessmentDraft>>;
 }
@@ -158,7 +160,7 @@ export class ClaudeWriter implements LessonWriter {
     return this.structured<AssessmentDraft>(AssessmentDraftSchema, assessmentUserMessage(input), 24_000, ASSESSMENT_SYSTEM_PROMPT);
   }
 
-  async repairPage(png: Buffer): Promise<WriterResult<string>> {
+  async repairPage(png: Buffer, kind: "book" | "slides" = "book"): Promise<WriterResult<string>> {
     const calls: Call<unknown>[] = [];
     let response;
     try {
@@ -172,7 +174,7 @@ export class ClaudeWriter implements LessonWriter {
               role: "user",
               content: [
                 { type: "image", source: { type: "base64", media_type: "image/png", data: png.toString("base64") } },
-                { type: "text", text: PAGE_REPAIR_PROMPT },
+                { type: "text", text: kind === "slides" ? SLIDE_READ_PROMPT : PAGE_REPAIR_PROMPT },
               ],
             },
           ],
