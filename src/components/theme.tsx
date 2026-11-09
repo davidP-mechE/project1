@@ -3,9 +3,21 @@
 import { ThemeProvider as NextThemes, useTheme } from "next-themes";
 import { useSyncExternalStore, type ReactNode } from "react";
 
-export function ThemeProvider({ children, nonce }: { children: ReactNode; nonce?: string }) {
+export function ThemeProvider({
+  children,
+  nonce,
+}: {
+  children: ReactNode;
+  nonce?: string;
+}) {
   return (
-    <NextThemes attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange nonce={nonce}>
+    <NextThemes
+      attribute="class"
+      defaultTheme="system"
+      enableSystem
+      disableTransitionOnChange
+      nonce={nonce}
+    >
       {children}
     </NextThemes>
   );
@@ -18,13 +30,38 @@ const emptySubscribe = () => () => {};
 export function ThemeToggle({ className }: { className?: string } = {}) {
   const { theme, setTheme } = useTheme();
   // The saved theme is only known in the browser; render a neutral label on the server.
-  const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
+  const mounted = useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false,
+  );
   const current = mounted ? (theme ?? "system") : "system";
-  const next = current === "light" ? "dark" : current === "dark" ? "system" : "light";
+  const next =
+    current === "light" ? "dark" : current === "dark" ? "system" : "light";
   return (
     <button
       type="button"
-      onClick={() => setTheme(next)}
+      onClick={() => {
+        // Cross-fade between themes where the browser can (not for "reduce motion").
+        const doc = document as Document & {
+          startViewTransition?: (cb: () => void) => unknown;
+        };
+        if (
+          !doc.startViewTransition ||
+          window.matchMedia("(prefers-reduced-motion: reduce)").matches
+        )
+          return setTheme(next);
+        const dark =
+          next === "dark" ||
+          (next === "system" &&
+            window.matchMedia("(prefers-color-scheme: dark)").matches);
+        doc.startViewTransition(() => {
+          document.documentElement.classList.toggle("dark", dark);
+          document.documentElement.classList.toggle("light", !dark);
+          document.documentElement.style.colorScheme = dark ? "dark" : "light";
+          setTheme(next);
+        });
+      }}
       className={`inline-flex size-9 items-center justify-center rounded-lg ${className ?? "text-muted hover:bg-surface-2 hover:text-text"}`}
       aria-label={`Theme: ${current}. Switch to ${next}.`}
       title={`Theme: ${current}`}
@@ -35,7 +72,17 @@ export function ThemeToggle({ className }: { className?: string } = {}) {
 }
 
 function ThemeIcon({ theme }: { theme: string }) {
-  const common = { width: 18, height: 18, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 2, strokeLinecap: "round" as const, strokeLinejoin: "round" as const, "aria-hidden": true };
+  const common = {
+    width: 18,
+    height: 18,
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: 2,
+    strokeLinecap: "round" as const,
+    strokeLinejoin: "round" as const,
+    "aria-hidden": true,
+  };
   if (theme === "light")
     return (
       <svg {...common}>

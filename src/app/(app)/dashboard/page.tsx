@@ -247,10 +247,10 @@ export default async function DashboardPage() {
             </div>
             <ul className="flex flex-col gap-4">
               {game.quests.map((q) => (
-                <li key={q.id} className="flex items-center gap-3">
+                <li key={q.id} className={cn("flex items-center gap-3", q.done && "quest-done")}>
                   <span
                     aria-hidden
-                    className={cn("flex size-10 shrink-0 items-center justify-center rounded-xl text-lg font-bold", q.done ? "bg-success-bg text-success" : "bg-warning-bg text-warning")}
+                    className={cn("quest-icon flex size-10 shrink-0 items-center justify-center rounded-xl text-lg font-bold", q.done ? "bg-success-bg text-success" : "bg-warning-bg text-warning")}
                   >
                     {q.done ? "✓" : QUEST_ICON[q.id]}
                   </span>

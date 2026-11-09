@@ -60,7 +60,7 @@ export default async function LibraryPage({ searchParams }: PageProps<"/library"
           </EmptyState>
         )
       ) : (
-        <ul className="grid grid-cols-1 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+        <ul className="stagger-list grid grid-cols-1 gap-4 sm:grid-cols-3 lg:grid-cols-4">
           {cards.map((c) => <CourseCard key={c.id} course={c} />)}
         </ul>
       )}

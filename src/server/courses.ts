@@ -46,6 +46,7 @@ export async function getCourse(userId: string, courseId: string) {
           id: true,
           kind: true,
           originalFilename: true,
+          coverKey: true,
           sizeBytes: true,
           pageCount: true,
           status: true,

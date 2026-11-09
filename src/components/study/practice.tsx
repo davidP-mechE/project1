@@ -154,7 +154,7 @@ export function QuestionCard({
                   key={j}
                   className={cn(
                     "press-soft flex cursor-pointer gap-2 rounded-lg border px-3 py-2 text-sm has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-focus",
-                    isCorrect ? "border-success bg-success-bg" : isWrongPick ? "border-danger bg-danger-bg" : choice === j ? "border-primary bg-primary/5" : "border-border hover:bg-surface-2",
+                    isCorrect ? cn("border-success bg-success-bg", done && result.correct && "answer-glow") : isWrongPick ? "nudge border-danger bg-danger-bg" : choice === j ? "border-primary bg-primary/5" : "border-border hover:bg-surface-2",
                     (done || pending) && "cursor-default",
                   )}
                 >
