@@ -206,7 +206,11 @@ test("the full student journey works, is accessible, and respects the CSP", asyn
     [`${courseUrl}/tutor`, "tutor"],
     [`${courseUrl}/export`, "export"],
     [`${courseUrl}/final-exam`, "final exam"],
-    ["/review", "review"],
+    ["/review", "spaced repetition"],
+    ["/errors", "error log"],
+    ["/skills", "review (skills)"],
+    ["/mastery", "mastery"],
+    ["/hub", "hub (empty)"],
     ["/dashboard", "dashboard"],
     ["/library", "library"],
     ["/settings", "settings"],
@@ -217,6 +221,18 @@ test("the full student journey works, is accessible, and respects the CSP", asyn
   }
   await expect(page.getByRole("heading", { name: "Plan and usage" })).toBeVisible();
   await expect(page.getByRole("progressbar", { name: "Pages turned into lessons this month" })).toBeVisible();
+
+  // ── Review: hammer a skill (new questions are written when they run low) ──
+  await page.goto("/skills");
+  await page.getByRole("link", { name: /Hammer it/ }).first().click();
+  await page.waitForURL(/skills\/drill/);
+  await expect(page.getByText(/right in a row/).first()).toBeVisible();
+  const drillChoice = page.locator("fieldset label").first();
+  if (await drillChoice.count()) await drillChoice.click();
+  else await page.locator("textarea").first().fill("The rate of flow of charge.");
+  await page.getByRole("button", { name: "Check answer" }).click();
+  await expect(page.getByRole("button", { name: "Next question →" })).toBeEnabled();
+  await a11y(page, "review drill");
 
   // ── Downloads ──
   await page.goto(`${courseUrl}/export`);
@@ -279,11 +295,24 @@ test("the full student journey works, is accessible, and respects the CSP", asyn
   await expect(page.getByText(email).first()).toBeVisible();
   await a11y(page, "admin");
 
+  // ── Hub: an admin publishes a course; then it can be added to a library ──
+  await page.goto(courseUrl);
+  await page.getByLabel("Description").fill("A short demo course about circuits.");
+  await page.getByRole("button", { name: "Publish to the Hub" }).click();
+  await expect(page.getByText("Published to the Hub.")).toBeVisible({ timeout: 60_000 });
+  await page.goto("/hub");
+  await expect(page.getByRole("heading", { level: 2 }).first()).toBeVisible();
+  await a11y(page, "hub");
+  await page.getByRole("button", { name: /Add to my library/ }).first().click();
+  await page.waitForURL(/\/courses\/[^/]+$/, { timeout: 60_000 });
+  expect(page.url()).not.toBe(courseUrl);
+  await expect(page.getByRole("heading", { name: "Credits" })).toBeVisible();
+
   // ── Phone width: no sideways scrolling on the main pages ──
   const phone = await context.browser()!.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, storageState: await context.storageState() });
   const p2 = await phone.newPage();
   watch(p2);
-  for (const url of ["/dashboard", courseUrl, `${courseUrl}/export`, `${courseUrl}/practice`, deckUrl, "/slides", "/settings", "/admin", "/privacy"]) {
+  for (const url of ["/dashboard", courseUrl, `${courseUrl}/export`, `${courseUrl}/practice`, deckUrl, "/slides", "/skills", "/errors", "/mastery", "/hub", "/review", "/settings", "/admin", "/privacy"]) {
     await p2.goto(url);
     await p2.waitForLoadState("networkidle").catch(() => {});
     expect(await p2.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), `no sideways scroll on ${url}`).toBe(true);

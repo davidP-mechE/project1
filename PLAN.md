@@ -1,6 +1,6 @@
 # Textbook → Course: Implementation Plan
 
-Status: **approved; all 10 phases built, plus Phase 11 (redesign, lecture slides, mastery practice, XP and quests; see README)** (see README for what's done and how it works, and DEPLOY.md to go live). Changes from this plan along the way: PDF export prints from the browser instead of headless Chromium (D13); most feature analytics are counted from each feature's own tables, with `AnalyticsEvent` only for things stored nowhere else (D15); plan limits are a monthly AI budget plus pages, books and storage; no Sentry yet (Vercel and worker logs, plus the admin page's failed work).
+Status: **approved; all 10 phases built, plus Phase 11 (redesign, lecture slides, mastery practice, XP and quests) and Phase 12 (Error log, Review drills, spaced repetition for questions, Mastery by subject, Hub); see README** (see README for what's done and how it works, and DEPLOY.md to go live). Changes from this plan along the way: PDF export prints from the browser instead of headless Chromium (D13); most feature analytics are counted from each feature's own tables, with `AnalyticsEvent` only for things stored nowhere else (D15); plan limits are a monthly AI budget plus pages, books and storage; no Sentry yet (Vercel and worker logs, plus the admin page's failed work).
 
 Working name: **Coursebook** (rename any time; it only appears in the UI title and README).
 

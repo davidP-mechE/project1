@@ -2,7 +2,7 @@
 
 Turn a textbook PDF into a structured, self-paced course: units, lessons, practice questions, flashcards with spaced repetition, and an "Ask the book" tutor that only answers from the textbook.
 
-> **Status:** All 10 planned phases are complete, plus Phase 11 (a cream-and-moonlight redesign, lecture slides, mastery practice, XP and daily quests): accounts, library and upload; reading the book (text, OCR, figures, outline detection, background worker); the outline editor with course settings and a cost estimate; lesson generation with Claude (lessons, practice questions, flashcards, page references, caching, regenerating and hand editing); studying (course sidebar, progress, the original book side by side, practice questions checked instantly or graded by Claude); flashcards with spaced repetition, highlights and notes, and search across lessons and the book; the "Ask the book" tutor, which answers only from the textbook with page citations; a daily dashboard with streaks, weak topics, study plans and reminder emails; unit tests, a final exam and exports (Markdown, PDF, CSV, Anki); and the launch work: plan limits with a usage meter, an admin page, legal pages, a security and accessibility pass with browser tests, and a [deployment guide](DEPLOY.md). See [PLAN.md](PLAN.md) for the full design and build order.
+> **Status:** All 10 planned phases are complete, plus Phase 11 (a cream-and-moonlight redesign, lecture slides, mastery practice, XP and daily quests) and Phase 12 (Error log, Review drills, spaced repetition for questions, Mastery by subject, and the Hub of provided courses): accounts, library and upload; reading the book (text, OCR, figures, outline detection, background worker); the outline editor with course settings and a cost estimate; lesson generation with Claude (lessons, practice questions, flashcards, page references, caching, regenerating and hand editing); studying (course sidebar, progress, the original book side by side, practice questions checked instantly or graded by Claude); flashcards with spaced repetition, highlights and notes, and search across lessons and the book; the "Ask the book" tutor, which answers only from the textbook with page citations; a daily dashboard with streaks, weak topics, study plans and reminder emails; unit tests, a final exam and exports (Markdown, PDF, CSV, Anki); and the launch work: plan limits with a usage meter, an admin page, legal pages, a security and accessibility pass with browser tests, and a [deployment guide](DEPLOY.md). See [PLAN.md](PLAN.md) for the full design and build order.
 
 | Phase | What | Status |
 |---|---|---|
@@ -17,6 +17,7 @@ Turn a textbook PDF into a structured, self-paced course: units, lessons, practi
 | 9 | Unit tests / final exam, exports | ✅ Done |
 | 10 | Usage limits, admin, legal, security + accessibility pass, deployment | ✅ Done |
 | 11 | Redesign (cream & moon), lecture slides, mastery practice, XP and daily quests | ✅ Done |
+| 12 | Error log, Review (skill drills), spaced repetition for questions, Mastery by subject, Hub | ✅ Done |
 
 ---
 
@@ -313,6 +314,27 @@ Each course has an **Ask the book** tab, and each lesson has an **Ask the book**
 - **Flashcards CSV** and **Questions CSV**: open in Excel, Google Sheets, Quizlet. Cells starting with `=`, `+`, `-`, `@` are escaped so they can't run as spreadsheet formulas.
 - **Anki deck (.apkg)**: built on the server with `sql.js` (`src/lib/export/anki.ts`). One subdeck per unit ("Course::Unit"), a Front/Back/Source note type, math converted to Anki's `\( \)` syntax. Re-importing updates cards instead of duplicating them (stable ids). Spaced-repetition progress from Coursebook isn't carried over.
 
+### Error log, Review, spaced repetition, Mastery and the Hub (Phase 12)
+
+The sidebar now has a **Practice** section: Review, Spaced repetition, Error log and Mastery, plus **Hub** under Learning.
+
+**Error log** (`/errors`): every question you've missed (in lessons, practice sets, tests and Review), grouped **by course, then by skill**. A skill is the question's topic, the same grouping used for weak topics. Each entry shows your answer, the right answer, the feedback and explanation, how many times you missed it and where (lesson, unit test, final exam, Review), with a link back to the lesson. It counts as **fixed** once your latest answer is right; filter by Still missing / Fixed / All, and by course. Each skill has **Hammer this skill**.
+
+**Review** (`/skills`): every skill by course, shakiest first (Shaky → Improving → Not tried → Hammered), with recent accuracy. **Hammer it** starts a drill (`/skills/drill`):
+- questions on just that skill, untried and missed ones first; a miss comes back a few questions later;
+- when the questions run low, **Claude writes 5 new ones on that skill** from the lesson's pages (in the background, so there's always a next one). They're saved as `DRILL` questions: they join the skill but not the lesson's own practice list;
+- the goal is **5 right in a row** ("Hammered!"), then keep going as long as you like.
+- Each batch costs about as much as regenerating a lesson's questions (~1–2 cents), counts toward the monthly AI allowance, and is limited to 30 batches an hour and 60 extra questions per skill.
+
+**Spaced repetition** (`/review`, the old Review page): flashcards as before, plus **Questions due**. Every question you've answered comes back on a schedule (`src/lib/mastery/review.ts`): a miss the next day, then 1, 3, 7, 16, 35, 75 and 160 days for each right answer in a row. Worked out from your answer history, so nothing extra is stored.
+
+**Mastery** (`/mastery`): by **subject**: Mathematics, Physics, Chemistry, Biology, Earth & space, Health & nursing, Computer science, English & writing, History & social studies, Economics & business, and Other. Each course's subject is detected for free from its title and outline when it's processed (`src/lib/subjects.ts`, tuned on OpenStax titles), and you can change it on the page. Per subject: overall mastery (the average of its courses' lesson mastery), accuracy over 30 days, and skills hammered; per course: lessons by level and its shakiest skills, linked to Review.
+
+**Hub** (`/hub`): **provided courses** that any student can add to their library for free.
+- **To add one (admins):** upload the book (for example an OpenStax PDF) and generate it like any course, then at the bottom of its course page fill in **Publish to the Hub**: a description, subject, license (e.g. CC BY 4.0) and the **attribution** the license requires (pre-filled for OpenStax), plus a link to the original. Publishing copies the book's files to `catalog/<entry id>/` in storage. Republishing updates the listing; **Hide from Hub** takes it down (students keep their copies).
+- **Adding it (students):** **Add to my library** gives you your own copy of the whole course: outline, lessons, practice questions, flashcards, unit tests and final exam, plus the book's pages and search passages (embeddings included, so the tutor works straight away). Progress, notes, highlights and edits are yours. The book's files are shared, so it doesn't count toward your books or storage, and nothing is sent to Claude, so it's free. The course page shows the credits.
+- OpenStax books are free under Creative Commons licenses (most CC BY 4.0; some CC BY-NC-SA). Keep the attribution, and check each book's license before publishing.
+
 ### Redesign, lecture slides, practice and quests (Phase 11)
 
 **The look: "cream and moonlight".**
@@ -391,6 +413,14 @@ The same formula powers the estimate on each course's Settings page and in the "
 | **Total per 100 pages** | | **≈ $1.50** (≈ $15 for a 1,000-page book) |
 
 While studying: multiple choice and exact matches are free; a written answer graded by Claude ≈ $0.01–0.02 (Claude Opus 5.5 at low effort, ~2–4K tokens in); a tutor question ≈ $0.02–0.05 (up to ~6K tokens of book passages plus the conversation). Embeddings are free (computed locally).
+
+## Manual test checklist (Phase 12)
+
+1. Answer a few practice questions wrong. **Error log** shows them by course and skill, with your answer and the right one; answer one right later and it moves to **Fixed**.
+2. **Review**: your skills, shakiest first. **Hammer it** on one: miss one on purpose and it comes back; keep going and new questions on the same skill appear (with a real key, check they're good ones). Get 5 right in a row for "Hammered!".
+3. **Spaced repetition**: the next day, the questions you missed are under **Questions due**; flashcards are below as before.
+4. **Mastery**: your courses grouped by subject. Change a course's subject and it moves.
+5. **Hub** (as an admin): upload and generate an OpenStax book (a few chapters is enough to try), then **Publish to the Hub** from the bottom of its course page. Log in as another student: **Hub → Add to my library** opens their own copy, with the credits on the course page, and Settings → Plan and usage doesn't count it.
 
 ## Manual test checklist (Phase 11)
 
