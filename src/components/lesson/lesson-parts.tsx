@@ -112,7 +112,7 @@ export function Flashcards({ items }: { items: { id: string; front: string; back
     <ul className="grid gap-3 sm:grid-cols-2">
       {items.map((f) => (
         <li key={f.id}>
-          <details className="group h-full rounded-xl border border-border bg-surface p-4 open:bg-surface-2">
+          <details className="press-soft group h-full rounded-xl border border-border bg-surface p-4 open:bg-surface-2">
             <summary className="cursor-pointer list-none font-medium [&::-webkit-details-marker]:hidden">
               <Markdown className="[&_p]:m-0">{f.front}</Markdown>
               <span className="mt-2 block text-xs font-normal text-primary group-open:hidden">Tap to flip</span>

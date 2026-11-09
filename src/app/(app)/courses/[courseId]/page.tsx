@@ -299,7 +299,7 @@ function LessonList({ courseId, units, completed }: { courseId: string; units: A
                     <li key={l.id}>
                       <Link
                         href={`/courses/${courseId}/lessons/${l.id}`}
-                        className="flex items-center justify-between gap-3 px-3 py-2.5 text-sm hover:bg-surface-2"
+                        className="press-soft flex items-center justify-between gap-3 px-3 py-2.5 text-sm hover:bg-surface-2"
                       >
                         <span className="min-w-0">
                           <span className="mr-2 tabular-nums text-muted">{numbers.get(l.id)}.</span>

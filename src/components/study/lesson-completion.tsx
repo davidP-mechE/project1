@@ -40,7 +40,7 @@ export function LessonCompletion({ courseId, lessonId, completed, confusing: ini
       <div className="flex flex-wrap items-center gap-2">
         {completed ? (
           <>
-            <span className="inline-flex items-center gap-1.5 text-sm font-medium text-success">
+            <span className="pop-in inline-flex items-center gap-1.5 text-sm font-medium text-success">
               <span aria-hidden>✓</span> Lesson complete
             </span>
             <Button variant="ghost" size="sm" onClick={() => setDone(false)} disabled={pending}>

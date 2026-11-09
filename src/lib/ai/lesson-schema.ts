@@ -98,6 +98,8 @@ export const StoredQuestionSchema = z
 export type StoredQuestion = z.infer<typeof StoredQuestionSchema>;
 
 export const StoredFlashcardSchema = z.object({
+  // Present when editing an existing card, so its review history is kept.
+  id: z.string().max(64).optional(),
   front: z.string().min(1).max(1_000),
   back: z.string().min(1).max(2_000),
   pageRefs: z.array(z.number().int()).max(20),

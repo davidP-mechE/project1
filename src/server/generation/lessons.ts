@@ -6,6 +6,7 @@ import { NotFoundError } from "../courses";
 import { enqueueGeneration } from "../queue";
 import { LessonContentSchema, LessonEditSchema, type LessonContent } from "@/lib/ai/lesson-schema";
 import { cleanPageRefs } from "@/lib/ai/normalize";
+import { syncFlashcards } from "../flashcard-store";
 
 /**
  * What the web app can ask for: start generating a course, regenerate a
@@ -142,10 +143,8 @@ export async function saveLessonEdits(userId: string, lessonId: string, input: u
         userEdited: true,
       })),
     });
-    await tx.flashcard.deleteMany({ where: { lessonId } });
-    await tx.flashcard.createMany({
-      data: flashcards.map((f, i) => ({ ...f, pageRefs: cleanPageRefs(f.pageRefs, range), courseId: lesson.courseId, lessonId, order: i, userEdited: true })),
-    });
+    // Updates cards in place (by id) so review history isn't lost when fixing a typo.
+    await syncFlashcards(tx, { id: lessonId, courseId: lesson.courseId }, flashcards.map((f) => ({ ...f, pageRefs: cleanPageRefs(f.pageRefs, range) })), true);
     await tx.lesson.update({
       where: { id: lessonId },
       data: { content: cleaned as unknown as Prisma.InputJsonValue, userEdited: true, status: "READY", flagReason: null, error: null },

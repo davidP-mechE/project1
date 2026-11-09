@@ -6,7 +6,7 @@ export function CourseHeader({ course }: { course: { id: string; title: string; 
   return (
     <>
       <PageHeader title={course.title} description={course.book.originalFilename} />
-      {["OUTLINE_DRAFT", "GENERATING", "ACTIVE"].includes(course.status) && <CourseTabs courseId={course.id} />}
+      {["OUTLINE_DRAFT", "GENERATING", "ACTIVE"].includes(course.status) && <CourseTabs courseId={course.id} study={["GENERATING", "ACTIVE"].includes(course.status)} />}
     </>
   );
 }

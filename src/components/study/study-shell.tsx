@@ -25,8 +25,9 @@ type BookCtx = { openBook: (page: number) => void; bookOpen: boolean };
 const BookContext = createContext<BookCtx | null>(null);
 export const useBook = () => useContext(BookContext);
 
-export function StudyShell({ bookId, sidebar, children }: { bookId: string; sidebar: ReactNode; children: ReactNode }) {
-  const [page, setPage] = useState<number | null>(null);
+export function StudyShell({ bookId, sidebar, children, initialPage = null }: { bookId: string; sidebar: ReactNode; children: ReactNode; initialPage?: number | null }) {
+  // ?book=N (e.g. from search results) opens the book at that page.
+  const [page, setPage] = useState<number | null>(initialPage);
   const open = page !== null;
   const openBook = useCallback((p: number) => setPage(Math.max(1, Math.floor(p))), []);
   const close = useCallback(() => setPage(null), []);
@@ -80,7 +81,7 @@ export function OpenBookButton({ page, label }: { page: number; label: string })
     <button
       type="button"
       onClick={() => book.openBook(page)}
-      className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-border bg-surface px-3 text-sm font-medium hover:bg-surface-2"
+      className="press inline-flex h-8 items-center gap-1.5 rounded-lg border border-border bg-surface px-3 text-sm font-medium hover:bg-surface-2"
       aria-pressed={book.bookOpen}
     >
       <span aria-hidden>📖</span> {label}

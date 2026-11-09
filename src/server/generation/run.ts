@@ -7,6 +7,7 @@ import { assessSource, lessonCacheKey, needsRepair, type SourcePage } from "@/li
 import { normalizeLessonDraft, normalizeQuestions } from "@/lib/ai/normalize";
 import type { StoredFlashcard, StoredQuestion } from "@/lib/ai/lesson-schema";
 import type { Prisma } from "@/generated/prisma/client";
+import { syncFlashcards } from "../flashcard-store";
 
 /**
  * The work done by the background worker for one lesson. Separate from the
@@ -83,13 +84,9 @@ async function saveQuestions(tx: Prisma.TransactionClient, lesson: LoadedLesson,
   }
 }
 
+/** Keeps cards that ask the same thing, so students' review history survives a regeneration. */
 async function saveFlashcards(tx: Prisma.TransactionClient, lesson: LoadedLesson, cards: StoredFlashcard[], userEdited = false) {
-  await tx.flashcard.deleteMany({ where: { lessonId: lesson.id } });
-  if (cards.length > 0) {
-    await tx.flashcard.createMany({
-      data: cards.map((c, i) => ({ ...c, courseId: lesson.courseId, lessonId: lesson.id, order: i, userEdited })),
-    });
-  }
+  await syncFlashcards(tx, lesson, cards, userEdited);
 }
 
 /** When no included lesson is waiting or being written any more, the course is ready to study. */

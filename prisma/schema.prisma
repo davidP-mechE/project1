@@ -4,6 +4,7 @@
 // Phase 3: lesson skip flag, course settings, detected outline.
 // Phase 4: generated lesson content, questions, flashcards, API usage.
 // Phase 5: lesson progress (completion) and practice question attempts.
+// Phase 6: flashcard review (spaced repetition), highlights, notes, full-text search.
 
 generator client {
   provider = "prisma-client"
@@ -47,6 +48,10 @@ model User {
 
   lessonProgress   LessonProgress[]
   questionAttempts QuestionAttempt[]
+  cardStates       CardState[]
+  reviewLogs       ReviewLog[]
+  highlights       Highlight[]
+  notes            Note[]
 
   @@map("user")
 }
@@ -174,6 +179,10 @@ model Course {
 
   lessonProgress   LessonProgress[]
   questionAttempts QuestionAttempt[]
+  cardStates       CardState[]
+  reviewLogs       ReviewLog[]
+  highlights       Highlight[]
+  notes            Note[]
 
   @@index([userId, archivedAt])
 }
@@ -240,8 +249,11 @@ model Chunk {
   pageEnd    Int
   text       String
   tokenCount Int
+  // Full-text search vector, a generated column maintained by Postgres.
+  tsv        Unsupported("tsvector")? @default(dbgenerated("to_tsvector('english'::regconfig, text)"))
 
   @@unique([bookId, ordinal])
+  @@index([tsv], type: Gin)
   @@index([bookId, pageStart])
 }
 
@@ -304,8 +316,13 @@ model Lesson {
   flashcards Flashcard[]
   progress   LessonProgress[]
   attempts   QuestionAttempt[]
+  highlights Highlight[]
+  notes      Note[]
+  // Full-text search vector (title + content), a generated column maintained by Postgres.
+  tsv        Unsupported("tsvector")? @default(dbgenerated("(setweight(to_tsvector('english'::regconfig, title), 'A'::\"char\") || setweight(to_tsvector('english'::regconfig, COALESCE(content, '{}'::jsonb)), 'B'::\"char\"))"))
 
   @@index([unitId, order])
+  @@index([tsv], type: Gin)
   @@index([courseId])
 }
 
@@ -359,6 +376,9 @@ model Flashcard {
   pageRefs   Int[]
   userEdited Boolean  @default(false)
   createdAt  DateTime @default(now())
+
+  states     CardState[]
+  reviewLogs ReviewLog[]
 
   @@index([lessonId, order])
   @@index([courseId])
@@ -426,6 +446,113 @@ model QuestionAttempt {
 
   @@index([questionId, userId, createdAt])
   @@index([userId, createdAt])
+  @@index([courseId, userId])
+}
+
+// ─── Flashcard review, highlights and notes (Phase 6) ────────────────────
+
+enum SrsState {
+  NEW
+  LEARNING
+  REVIEW
+  RELEARNING
+}
+
+/**
+ * A student's spaced-repetition state for one flashcard (FSRS, see src/lib/srs).
+ * A flashcard with no row here is "new" for that student.
+ */
+model CardState {
+  id            String    @id @default(cuid())
+  userId        String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId      String
+  course        Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  flashcardId   String
+  flashcard     Flashcard @relation(fields: [flashcardId], references: [id], onDelete: Cascade)
+  due           DateTime
+  stability     Float
+  difficulty    Float
+  scheduledDays Int
+  learningSteps Int
+  reps          Int
+  lapses        Int
+  state         SrsState
+  lastReview    DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@unique([userId, flashcardId])
+  @@index([userId, due])
+}
+
+/** Every rating a student gives. Kept if the card is later deleted (for stats and streaks). */
+model ReviewLog {
+  id            String     @id @default(cuid())
+  userId        String
+  user          User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId      String
+  course        Course     @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  flashcardId   String?
+  flashcard     Flashcard? @relation(fields: [flashcardId], references: [id], onDelete: SetNull)
+  rating        Int // 1 Again, 2 Hard, 3 Good, 4 Easy
+  stateBefore   SrsState
+  dueBefore     DateTime?
+  scheduledDays Int // interval chosen by this review
+  durationMs    Int?
+  reviewedAt    DateTime   @default(now())
+
+  @@index([userId, reviewedAt])
+  @@index([flashcardId])
+}
+
+enum HighlightColor {
+  YELLOW
+  GREEN
+  BLUE
+  PINK
+}
+
+/**
+ * A highlighted passage of lesson text. Anchored by the quoted text plus a
+ * little context before and after (not by position), so it survives small
+ * changes. If the lesson is rewritten and the text is gone, it's kept and
+ * listed on the Notes page as "no longer in the lesson".
+ */
+model Highlight {
+  id        String         @id @default(cuid())
+  userId    String
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId  String
+  course    Course         @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lessonId  String
+  lesson    Lesson         @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  exact     String
+  prefix    String
+  suffix    String
+  color     HighlightColor @default(YELLOW)
+  note      String         @default("")
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  @@index([userId, lessonId])
+  @@index([courseId, userId])
+}
+
+/** A student's own notes on a lesson (Markdown). */
+model Note {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId  String
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lessonId  String
+  lesson    Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  body      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, lessonId])
   @@index([courseId, userId])
 }
 

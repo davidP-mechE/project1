@@ -26,7 +26,7 @@ export function CourseSidebar({ courseId, courseTitle, outline, currentLessonId 
                     href={`/courses/${courseId}/lessons/${l.id}`}
                     aria-current={current ? "page" : undefined}
                     className={cn(
-                      "flex items-start gap-2 rounded-lg px-2 py-1.5 text-sm",
+                      "press-soft flex items-start gap-2 rounded-lg px-2 py-1.5 text-sm",
                       current ? "bg-primary/10 font-medium text-text" : "text-muted hover:bg-surface-2 hover:text-text",
                     )}
                   >

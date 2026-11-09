@@ -5,8 +5,9 @@ import { cn } from "@/lib/utils";
 type Variant = "primary" | "secondary" | "ghost" | "danger";
 type Size = "sm" | "md";
 
+// "press" gives every button a small, quick squeeze when clicked (globals.css).
 const base =
-  "inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-60";
+  "press inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-[color,background-color,border-color,transform] disabled:cursor-not-allowed disabled:opacity-60";
 const variants: Record<Variant, string> = {
   primary: "bg-primary text-primary-text hover:bg-primary-hover",
   secondary: "border border-border bg-surface text-text hover:bg-surface-2",

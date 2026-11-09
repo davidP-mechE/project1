@@ -52,7 +52,7 @@ export default async function EditLessonPage({ params }: PageProps<"/courses/[co
               pageRefs: q.pageRefs,
               topic: q.topic,
             })),
-            flashcards: view.flashcards.map((f) => ({ front: f.front, back: f.back, pageRefs: f.pageRefs })),
+            flashcards: view.flashcards.map((f) => ({ id: f.id, front: f.front, back: f.back, pageRefs: f.pageRefs })),
           }}
         />
       )}

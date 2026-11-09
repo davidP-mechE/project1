@@ -164,3 +164,77 @@ body {
   text-underline-offset: 2px;
   font-variant-numeric: tabular-nums;
 }
+
+/* Highlights in lessons (CSS Custom Highlight API, see components/study/highlights.tsx). */
+::highlight(cb-hl-YELLOW) { background-color: rgb(250 204 21 / 0.45); }
+::highlight(cb-hl-GREEN) { background-color: rgb(74 222 128 / 0.4); }
+::highlight(cb-hl-BLUE) { background-color: rgb(96 165 250 / 0.4); }
+::highlight(cb-hl-PINK) { background-color: rgb(244 114 182 / 0.4); }
+.dark ::highlight(cb-hl-YELLOW) { background-color: rgb(250 204 21 / 0.3); }
+.dark ::highlight(cb-hl-GREEN) { background-color: rgb(74 222 128 / 0.25); }
+.dark ::highlight(cb-hl-BLUE) { background-color: rgb(96 165 250 / 0.3); }
+.dark ::highlight(cb-hl-PINK) { background-color: rgb(244 114 182 / 0.3); }
+
+/* ─── Motion ─────────────────────────────────────────────────────────── */
+
+/* Page changes: the old page fades out quickly, the new one fades in and rises slightly. */
+::view-transition-old(.page-exit) {
+  animation: 120ms ease-in both cb-fade-out;
+}
+::view-transition-new(.page-enter) {
+  animation: 240ms cubic-bezier(0.2, 0.8, 0.2, 1) 60ms both cb-rise-in;
+}
+@keyframes cb-fade-out {
+  to { opacity: 0; }
+}
+@keyframes cb-rise-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* Clicks: buttons, choices and cards squeeze slightly while pressed, then spring back. */
+.press {
+  transition-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+  transition-duration: 150ms;
+}
+.press:active:not(:disabled):not([aria-disabled="true"]) {
+  transform: scale(0.96);
+  transition-duration: 60ms;
+}
+.press-soft {
+  transition: transform 150ms cubic-bezier(0.2, 0.8, 0.2, 1), background-color 150ms, border-color 150ms;
+}
+.press-soft:active:not(:disabled) {
+  transform: scale(0.985);
+  transition-duration: 60ms;
+}
+
+/* A small "pop" for good news: a correct answer, a completed lesson. */
+.pop-in {
+  animation: cb-pop 320ms cubic-bezier(0.2, 0.9, 0.3, 1.4) both;
+}
+@keyframes cb-pop {
+  from { opacity: 0; transform: scale(0.92); }
+  to { opacity: 1; transform: none; }
+}
+/* A gentle shake for a wrong answer. */
+.nudge {
+  animation: cb-nudge 300ms ease-in-out both;
+}
+@keyframes cb-nudge {
+  20%, 60% { transform: translateX(-4px); }
+  40%, 80% { transform: translateX(4px); }
+}
+/* Flashcard answer appearing. */
+.reveal {
+  animation: cb-rise-in 220ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+  .press:active, .press-soft:active { transform: none; }
+}

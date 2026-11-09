@@ -8,6 +8,8 @@ import { CourseSidebar } from "@/components/study/course-sidebar";
 import { LessonCompletion } from "@/components/study/lesson-completion";
 import { Practice } from "@/components/study/practice";
 import { OpenBookButton, StudyShell } from "@/components/study/study-shell";
+import { HighlightProvider, HighlightRoot, LessonNotes } from "@/components/study/highlights";
+import { buttonClasses } from "@/components/ui/button";
 import { Alert } from "@/components/ui/alert";
 import { Card, Spinner } from "@/components/ui/misc";
 import { getCourseOr404 } from "@/server/course-page";
@@ -16,6 +18,7 @@ import { claudeEnabled, env } from "@/server/env";
 import { getLessonView } from "@/server/generation/lessons";
 import { requireUser } from "@/server/session";
 import { getLatestAttempts, getLessonProgress, getStudyOutline, markLessonViewed } from "@/server/study";
+import { getLessonNotes } from "@/server/notes";
 
 export async function generateMetadata({ params }: PageProps<"/courses/[courseId]/lessons/[lessonId]">): Promise<Metadata> {
   const user = await requireUser();
@@ -28,9 +31,11 @@ export async function generateMetadata({ params }: PageProps<"/courses/[courseId
   }
 }
 
-export default async function LessonPage({ params }: PageProps<"/courses/[courseId]/lessons/[lessonId]">) {
+export default async function LessonPage({ params, searchParams }: PageProps<"/courses/[courseId]/lessons/[lessonId]">) {
   const user = await requireUser();
   const { courseId, lessonId } = await params;
+  const bookParam = Number((await searchParams).book);
+  const initialBookPage = Number.isInteger(bookParam) && bookParam > 0 ? bookParam : null;
   const course = await getCourseOr404(user.id, courseId);
   let view;
   try {
@@ -40,10 +45,11 @@ export default async function LessonPage({ params }: PageProps<"/courses/[course
     throw err;
   }
   await Promise.all([markCourseOpened(user.id, courseId), markLessonViewed(user.id, lessonId)]);
-  const [outline, progress, attempts] = await Promise.all([
+  const [outline, progress, attempts, notes] = await Promise.all([
     getStudyOutline(user.id, courseId),
     getLessonProgress(user.id, lessonId),
     getLatestAttempts(user.id, lessonId),
+    getLessonNotes(user.id, lessonId),
   ]);
   const { lesson, content, questions, flashcards } = view;
   const grading = env.FAKE_CLAUDE ? "demo" : claudeEnabled ? "claude" : null;
@@ -52,7 +58,7 @@ export default async function LessonPage({ params }: PageProps<"/courses/[course
   const pages = lesson.pageStart === lesson.pageEnd ? `p. ${lesson.pageStart}` : `pp. ${lesson.pageStart}–${lesson.pageEnd}`;
 
   return (
-    <StudyShell bookId={bookId} sidebar={<CourseSidebar courseId={courseId} courseTitle={course.title} outline={outline} currentLessonId={lessonId} />}>
+    <StudyShell bookId={bookId} initialPage={initialBookPage} sidebar={<CourseSidebar courseId={courseId} courseTitle={course.title} outline={outline} currentLessonId={lessonId} />}>
     <article>
       <LessonStatusPoller courseId={courseId} lessonId={lessonId} status={lesson.status} />
       <nav aria-label="Breadcrumb" className="mb-3 text-sm text-muted">
@@ -137,7 +143,10 @@ export default async function LessonPage({ params }: PageProps<"/courses/[course
       )}
 
       {content && (
+        <HighlightProvider lessonId={lessonId} initial={notes.highlights}>
         <div className="flex flex-col gap-10">
+          <HighlightRoot>
+          <div className="flex flex-col gap-10">
           {content.objectives.length > 0 && (
             <Section title="What you'll learn" id="objectives">
               <Objectives items={content.objectives} />
@@ -156,6 +165,8 @@ export default async function LessonPage({ params }: PageProps<"/courses/[course
               <KeyTerms items={content.keyTerms} bookId={bookId} />
             </Section>
           )}
+          </div>
+          </HighlightRoot>
           {questions.length > 0 && (
             <Section title="Practice" id="practice" count={questions.length}>
               <Practice items={questions} bookId={bookId} latest={Object.fromEntries(attempts.latest)} grading={grading} />
@@ -164,6 +175,9 @@ export default async function LessonPage({ params }: PageProps<"/courses/[course
           {flashcards.length > 0 && (
             <Section title="Flashcards" id="flashcards" count={flashcards.length}>
               <Flashcards items={flashcards} />
+              <a href={`/review?course=${courseId}`} className={buttonClasses("secondary", "sm", "mt-3")}>
+                Review flashcards (spaced repetition)
+              </a>
             </Section>
           )}
           <p className="text-xs text-muted">
@@ -171,6 +185,7 @@ export default async function LessonPage({ params }: PageProps<"/courses/[course
             {lesson.generatedAt && ` on ${lesson.generatedAt.toLocaleDateString("en-US", { dateStyle: "medium" })}`}. Check
             important details against the original: <PageRefs bookId={bookId} pages={[lesson.pageStart]} />
           </p>
+          <LessonNotes courseId={courseId} initialNote={notes.note} />
           {!lesson.skip && (
             <LessonCompletion
               key={`${lessonId}-${progress.completed}`}
@@ -182,6 +197,7 @@ export default async function LessonPage({ params }: PageProps<"/courses/[course
             />
           )}
         </div>
+        </HighlightProvider>
       )}
 
       <nav aria-label="Lessons" className="mt-10 flex flex-col gap-3 border-t border-border pt-6 sm:flex-row sm:justify-between">

@@ -43,8 +43,8 @@ export function CourseCard({ course }: { course: CourseCardData }) {
   const status = statusLabels[course.status];
 
   return (
-    <li className="flex gap-4 rounded-xl border border-border bg-surface p-4 sm:flex-col sm:gap-0" aria-busy={pending}>
-      <Link href={`/courses/${course.id}`} className="block w-20 shrink-0 sm:w-full" tabIndex={-1} aria-hidden>
+    <li className="flex gap-4 rounded-xl border border-border bg-surface p-4 transition-[transform,box-shadow] duration-200 hover:-translate-y-0.5 hover:shadow-md motion-reduce:hover:translate-y-0 sm:flex-col sm:gap-0" aria-busy={pending}>
+      <Link href={`/courses/${course.id}`} className="press-soft block w-20 shrink-0 sm:w-full" tabIndex={-1} aria-hidden>
         <CourseCover title={course.title} coverUrl={course.coverUrl} />
       </Link>
       <div className="flex min-w-0 flex-1 flex-col gap-2 sm:mt-3">
