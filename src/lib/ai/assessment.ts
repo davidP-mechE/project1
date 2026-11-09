@@ -95,12 +95,12 @@ export function normalizeAssessment(draft: AssessmentDraft, input: { kind: "UNIT
   const seen = new Set<string>();
   const questions: StoredQuestion[] = [];
   for (const q of draft.questions) {
+    if (questions.length >= input.questionCount) break;
     if (allowed.size > 0 && !allowed.has(q.type)) continue;
     const n = normalizeQuestion(q, input.range);
     if (!n || seen.has(n.prompt.toLowerCase())) continue;
     seen.add(n.prompt.toLowerCase());
     questions.push(n);
-    if (questions.length >= input.questionCount) break;
   }
   const summary = input.kind === "UNIT_TEST" ? draft.summary.replace(/\r\n/g, "\n").trim().slice(0, 20_000) : "";
   return { summary, questions };
