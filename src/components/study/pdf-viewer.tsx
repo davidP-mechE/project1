@@ -193,7 +193,7 @@ export default function PdfViewer({ bookId, page, onPageChange, onClose }: Props
           </Button>
         </div>
       </div>
-      <div ref={scrollRef} className="relative flex-1 overflow-auto bg-surface-2 p-2" tabIndex={0} aria-label={`${Unit} ${current}`}>
+      <div ref={scrollRef} className="relative flex-1 overflow-auto bg-surface-2 p-2" tabIndex={0} role="region" aria-label={`${Unit} ${current}`}>
         {error ? (
           <p role="alert" className="m-4 rounded-lg bg-danger-bg p-3 text-sm text-danger">
             {error}

@@ -2,7 +2,7 @@
 
 Turn a textbook PDF into a structured, self-paced course: units, lessons, practice questions, flashcards with spaced repetition, and an "Ask the book" tutor that only answers from the textbook.
 
-> **Status:** All 10 phases are complete: accounts, library and upload; reading the book (text, OCR, figures, outline detection, background worker); the outline editor with course settings and a cost estimate; lesson generation with Claude (lessons, practice questions, flashcards, page references, caching, regenerating and hand editing); studying (course sidebar, progress, the original book side by side, practice questions checked instantly or graded by Claude); flashcards with spaced repetition, highlights and notes, and search across lessons and the book; the "Ask the book" tutor, which answers only from the textbook with page citations; a daily dashboard with streaks, weak topics, study plans and reminder emails; unit tests, a final exam and exports (Markdown, PDF, CSV, Anki); and the launch work: plan limits with a usage meter, an admin page, legal pages, a security and accessibility pass with browser tests, and a [deployment guide](DEPLOY.md). See [PLAN.md](PLAN.md) for the full design and build order.
+> **Status:** All 10 planned phases are complete, plus Phase 11 (a cream-and-moonlight redesign, lecture slides, mastery practice, XP and daily quests): accounts, library and upload; reading the book (text, OCR, figures, outline detection, background worker); the outline editor with course settings and a cost estimate; lesson generation with Claude (lessons, practice questions, flashcards, page references, caching, regenerating and hand editing); studying (course sidebar, progress, the original book side by side, practice questions checked instantly or graded by Claude); flashcards with spaced repetition, highlights and notes, and search across lessons and the book; the "Ask the book" tutor, which answers only from the textbook with page citations; a daily dashboard with streaks, weak topics, study plans and reminder emails; unit tests, a final exam and exports (Markdown, PDF, CSV, Anki); and the launch work: plan limits with a usage meter, an admin page, legal pages, a security and accessibility pass with browser tests, and a [deployment guide](DEPLOY.md). See [PLAN.md](PLAN.md) for the full design and build order.
 
 | Phase | What | Status |
 |---|---|---|
@@ -16,6 +16,7 @@ Turn a textbook PDF into a structured, self-paced course: units, lessons, practi
 | 8 | Dashboard, weak topics, study plan, streaks, reminders | ✅ Done |
 | 9 | Unit tests / final exam, exports | ✅ Done |
 | 10 | Usage limits, admin, legal, security + accessibility pass, deployment | ✅ Done |
+| 11 | Redesign (cream & moon), lecture slides, mastery practice, XP and daily quests | ✅ Done |
 
 ---
 
@@ -312,6 +313,31 @@ Each course has an **Ask the book** tab, and each lesson has an **Ask the book**
 - **Flashcards CSV** and **Questions CSV**: open in Excel, Google Sheets, Quizlet. Cells starting with `=`, `+`, `-`, `@` are escaped so they can't run as spreadsheet formulas.
 - **Anki deck (.apkg)**: built on the server with `sql.js` (`src/lib/export/anki.ts`). One subdeck per unit ("Course::Unit"), a Front/Back/Source note type, math converted to Anki's `\( \)` syntax. Re-importing updates cards instead of duplicating them (stable ids). Spaced-repetition progress from Coursebook isn't carried over.
 
+### Redesign, lecture slides, practice and quests (Phase 11)
+
+**The look: "cream and moonlight".**
+- Light mode is warm cream paper with deep night-blue ink; dark mode is a moonlit night with cream text and a soft moon-gold accent. Every color pair meets WCAG AA (4.5:1), and the browser test checks every page in both modes.
+- A night-sky sidebar (on phones, a top bar with a slide-out menu) shows your streak and XP, with sections for Today, Library, Slides, Review and Settings.
+- Fonts are bundled with the app: Fraunces (soft) for headings, Nunito for text.
+- **Today** has a night-sky "Your next step" card (the next planned lesson, or where you left off) with a crescent moon, Daily quests, your progress (lessons done, accuracy this week, minutes, cards due), today's goal, and your level.
+- **Book loader**: while a page loads, a file is read, or Claude writes a lesson or checks a test, an open book turns its pages (`src/components/ui/book-loader.tsx`). With "reduce motion" it's a still, open book.
+
+**Lecture slides** (**Slides** in the sidebar):
+- Upload a deck as a **PDF** (exported from PowerPoint, Google Slides or Keynote: keeps the exact look) or a **PowerPoint .pptx** file. A deck becomes a course like a book does, with slides as pages: lessons, practice, flashcards, tests, the tutor, search and exports all work, and everything says "slide 4" instead of "p. 4".
+- PowerPoint files are read directly (`src/lib/slides/pptx.ts`): titles, bullet points, tables, pictures and **speaker notes** (often the best explanation in a deck). The worker lays them out as a simple PDF for the viewer (`src/server/processing/slides-pdf.ts`); hidden slides are left out.
+- **Outline** (`src/lib/slides/outline.ts`): section-divider slides start a unit, and the slides in between become lessons of about 6 slides, named after their first slide. Title/agenda slides and "Questions? / Thank you / References" are skipped by default. Edit it like any outline.
+- **Writing lessons**: Claude is told these are slides, to turn terse bullets into a connected explanation without adding facts, and to cite "(slide 12)". Slides that are mostly pictures (diagrams, charts) are read from their image first, so the lesson can explain them (~1 cent per slide, counted in the cost estimate).
+
+**Practice** (a new tab in every course):
+- **Mastery** per lesson: New → Learning → Familiar → Mastered, from your latest answer to each practice question (70%) and how well you remember its flashcards (30%). Mastered means 80%+ with every question answered (`src/lib/mastery/mastery.ts`).
+- **Practice sets** of 10 questions, picked from what you know least: questions you haven't tried, then ones you got wrong, then a refresher of ones you got right longest ago, spread across lessons. Practise one lesson from its row, or from "Worth another look" on Today.
+- A question you miss comes back a few questions later (up to twice), so a set ends with the ideas answered right. Answers count like any practice answer (grading, weak topics, limits).
+
+**XP, levels and daily quests** (`src/lib/gamification/xp.ts`):
+- XP: 2 per question answered (+1 if right), 1 per flashcard, 10 per lesson completed, 1 per studied minute, and 20 per daily quest.
+- Three quests a day, the same on every device (e.g. "Answer 15 practice questions", "Get 10 questions right", "Review 20 flashcards", "Finish a lesson", "Study for your daily goal").
+- Levels get gradually longer (100 XP, then 150, 200…). It's all worked out from the daily activity already recorded, so nothing extra is stored and the rules can change freely.
+
 ### Launch: limits, admin, legal, security, accessibility (Phase 10)
 
 **Plan limits** (`src/lib/usage/limits.ts`, enforced in `src/server/limits.ts`):
@@ -365,6 +391,15 @@ The same formula powers the estimate on each course's Settings page and in the "
 | **Total per 100 pages** | | **≈ $1.50** (≈ $15 for a 1,000-page book) |
 
 While studying: multiple choice and exact matches are free; a written answer graded by Claude ≈ $0.01–0.02 (Claude Opus 5.5 at low effort, ~2–4K tokens in); a tutor question ≈ $0.02–0.05 (up to ~6K tokens of book passages plus the conversation). Embeddings are free (computed locally).
+
+## Manual test checklist (Phase 11)
+
+1. Look around in light and dark mode (the button at the bottom of the sidebar): Today, Library, a course, a lesson, Settings. On a phone, the menu button opens the sidebar.
+2. **Slides → Upload slides**: upload a lecture deck (.pptx, or a PDF export). Watch the book loader while it's read. The outline uses the slide titles; section slides start units; the title and "Questions?" slides are skipped.
+3. Generate it (demo mode is fine), open a lesson: it says "Slides 3–6", citations say "slide 4", and **See the slides** opens the deck beside the lesson. With a real key, check that a diagram-heavy slide gets explained.
+4. A course's **Practice** tab: levels per lesson. **Start a practice set**: get one wrong on purpose and it comes back a few questions later. Finish the set: your XP goes up in the sidebar.
+5. **Today**: the next-step card, three daily quests filling up as you study, accuracy, and your level.
+6. Turn on "reduce motion" in your OS: the book loader stays still and nothing slides.
 
 ## Manual test checklist (Phase 10)
 
