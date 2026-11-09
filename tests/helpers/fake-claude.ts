@@ -61,3 +61,19 @@ export class FakeWriter implements LessonWriter {
     };
   }
 }
+
+import type { Grader } from "@/server/ai/grader";
+import type { GradeDraft } from "@/lib/grading/grade";
+import type { GradingInput } from "@/lib/ai/grading-prompt";
+
+/** A pretend grader: records what it was asked and returns a canned grade. */
+export class FakeGrader implements Grader {
+  readonly kind = "claude" as const;
+  calls: GradingInput[] = [];
+  next: GradeDraft | AiError = { verdict: "partially_correct", score: 0.5, feedback: "You named the idea but not the formula (p. 6)." };
+  async grade(input: GradingInput): Promise<WriterResult<GradeDraft>> {
+    this.calls.push(input);
+    if (this.next instanceof AiError) throw this.next;
+    return { value: this.next, calls: [{ value: null, model: "claude-opus-5-5", usage: { inputTokens: 2500, outputTokens: 300, cacheReadTokens: 900 } }] };
+  }
+}

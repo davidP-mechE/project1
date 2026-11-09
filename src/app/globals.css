@@ -156,3 +156,11 @@ body {
   overflow-y: hidden;
   padding: 0.25em 0;
 }
+
+/* Page citations like "(p. 47)" inside lesson text: they open the book beside the lesson. */
+.prose-lesson a.page-cite {
+  color: var(--primary);
+  text-decoration: underline dotted;
+  text-underline-offset: 2px;
+  font-variant-numeric: tabular-nums;
+}

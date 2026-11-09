@@ -27,3 +27,26 @@ describe("<Markdown>", () => {
     expect(html).not.toContain('href="javascript:');
   });
 });
+
+import { linkCitations } from "@/components/lesson/cite-pages";
+
+describe("page citations", () => {
+  it("links each page number in (p. N) / (pp. N–M, K)", () => {
+    const parts = linkCitations("Charge is conserved (p. 4). See also (pp. 5–6, 9).", "book1")!;
+    const links = parts.filter((p) => p.type === "element");
+    expect(links.map((l) => (l as unknown as { properties: { dataBookPage: string } }).properties.dataBookPage)).toEqual(["4", "5", "6", "9"]);
+    const text = parts.map((p) => (p.type === "text" ? p.value : (p as unknown as { children: { value: string }[] }).children[0].value)).join("");
+    expect(text).toBe("Charge is conserved (p. 4). See also (pp. 5–6, 9).");
+  });
+  it("leaves text without citations alone", () => expect(linkCitations("Page 4 of the notes (pages) p. 5", "b")).toBeNull());
+
+  const html = renderToStaticMarkup(<Markdown bookId="book1">{"Ohm's law $V = IR$ (p. 7).\n\n`(p. 8)` in code"}</Markdown>);
+  it("renders citations as links to the book that the study page can open", () => {
+    expect(html).toContain('href="/api/books/book1/file#page=7"');
+    expect(html).toContain('data-book-page="7"');
+    expect(html).not.toContain("page=8"); // not inside code
+    expect(html).toContain('class="katex"'); // math still renders
+  });
+  it("adds no links without a bookId (e.g. the editor preview)", () =>
+    expect(renderToStaticMarkup(<Markdown>{"x (p. 7)"}</Markdown>)).not.toContain("data-book-page"));
+});

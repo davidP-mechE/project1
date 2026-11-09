@@ -2,14 +2,20 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { LessonActions, LessonRecovery, LessonStatusPoller } from "@/components/lesson/lesson-actions";
-import { Flashcards, KeyTerms, Objectives, PageRefs, Questions, Section, WorkedExamples } from "@/components/lesson/lesson-parts";
+import { Flashcards, KeyTerms, Objectives, PageRefs, Section, WorkedExamples } from "@/components/lesson/lesson-parts";
 import { Markdown } from "@/components/lesson/markdown";
+import { CourseSidebar } from "@/components/study/course-sidebar";
+import { LessonCompletion } from "@/components/study/lesson-completion";
+import { Practice } from "@/components/study/practice";
+import { OpenBookButton, StudyShell } from "@/components/study/study-shell";
 import { Alert } from "@/components/ui/alert";
 import { Card, Spinner } from "@/components/ui/misc";
 import { getCourseOr404 } from "@/server/course-page";
 import { NotFoundError, markCourseOpened } from "@/server/courses";
+import { claudeEnabled, env } from "@/server/env";
 import { getLessonView } from "@/server/generation/lessons";
 import { requireUser } from "@/server/session";
+import { getLatestAttempts, getLessonProgress, getStudyOutline, markLessonViewed } from "@/server/study";
 
 export async function generateMetadata({ params }: PageProps<"/courses/[courseId]/lessons/[lessonId]">): Promise<Metadata> {
   const user = await requireUser();
@@ -33,14 +39,21 @@ export default async function LessonPage({ params }: PageProps<"/courses/[course
     if (err instanceof NotFoundError) notFound();
     throw err;
   }
-  await markCourseOpened(user.id, courseId);
+  await Promise.all([markCourseOpened(user.id, courseId), markLessonViewed(user.id, lessonId)]);
+  const [outline, progress, attempts] = await Promise.all([
+    getStudyOutline(user.id, courseId),
+    getLessonProgress(user.id, lessonId),
+    getLatestAttempts(user.id, lessonId),
+  ]);
   const { lesson, content, questions, flashcards } = view;
+  const grading = env.FAKE_CLAUDE ? "demo" : claudeEnabled ? "claude" : null;
   const bookId = course.book.id;
   const busy = lesson.status === "QUEUED" || lesson.status === "GENERATING";
   const pages = lesson.pageStart === lesson.pageEnd ? `p. ${lesson.pageStart}` : `pp. ${lesson.pageStart}–${lesson.pageEnd}`;
 
   return (
-    <article className="mx-auto max-w-3xl">
+    <StudyShell bookId={bookId} sidebar={<CourseSidebar courseId={courseId} courseTitle={course.title} outline={outline} currentLessonId={lessonId} />}>
+    <article>
       <LessonStatusPoller courseId={courseId} lessonId={lessonId} status={lesson.status} />
       <nav aria-label="Breadcrumb" className="mb-3 text-sm text-muted">
         <Link href={`/courses/${courseId}`} className="hover:text-text hover:underline">
@@ -55,13 +68,17 @@ export default async function LessonPage({ params }: PageProps<"/courses/[course
           <h1 className="text-2xl font-semibold tracking-tight">{lesson.title}</h1>
           <p className="mt-1 text-sm text-muted">
             {view.position && `Lesson ${view.position.index} of ${view.position.total} · `}
-            <a href={`/api/books/${bookId}/file#page=${lesson.pageStart}`} target="_blank" rel="noopener" className="underline-offset-2 hover:underline">
+            <a href={`/api/books/${bookId}/file#page=${lesson.pageStart}`} data-book-page={lesson.pageStart} target="_blank" rel="noopener" className="underline-offset-2 hover:underline">
               Book {pages}
             </a>
+            {progress.completed && " · ✓ Completed"}
             {lesson.userEdited && " · Edited by you"}
           </p>
         </div>
-        <LessonActions courseId={courseId} lessonId={lessonId} status={lesson.status} hasContent={Boolean(content)} userEdited={lesson.userEdited} />
+        <div className="flex items-start gap-2">
+          <OpenBookButton page={lesson.pageStart} label="Read the book" />
+          <LessonActions courseId={courseId} lessonId={lessonId} status={lesson.status} hasContent={Boolean(content)} userEdited={lesson.userEdited} />
+        </div>
       </header>
 
       {busy && (
@@ -127,7 +144,7 @@ export default async function LessonPage({ params }: PageProps<"/courses/[course
             </Section>
           )}
           <Section title="Lesson" id="explanation">
-            <Markdown>{content.explanation}</Markdown>
+            <Markdown bookId={bookId}>{content.explanation}</Markdown>
           </Section>
           {content.workedExamples.length > 0 && (
             <Section title="Worked examples" id="examples" count={content.workedExamples.length}>
@@ -141,7 +158,7 @@ export default async function LessonPage({ params }: PageProps<"/courses/[course
           )}
           {questions.length > 0 && (
             <Section title="Practice" id="practice" count={questions.length}>
-              <Questions items={questions} bookId={bookId} />
+              <Practice items={questions} bookId={bookId} latest={Object.fromEntries(attempts.latest)} grading={grading} />
             </Section>
           )}
           {flashcards.length > 0 && (
@@ -154,6 +171,16 @@ export default async function LessonPage({ params }: PageProps<"/courses/[course
             {lesson.generatedAt && ` on ${lesson.generatedAt.toLocaleDateString("en-US", { dateStyle: "medium" })}`}. Check
             important details against the original: <PageRefs bookId={bookId} pages={[lesson.pageStart]} />
           </p>
+          {!lesson.skip && (
+            <LessonCompletion
+              key={`${lessonId}-${progress.completed}`}
+              courseId={courseId}
+              lessonId={lessonId}
+              completed={progress.completed}
+              confusing={progress.confusing}
+              nextHref={view.next ? `/courses/${courseId}/lessons/${view.next.id}` : null}
+            />
+          )}
         </div>
       )}
 
@@ -174,5 +201,6 @@ export default async function LessonPage({ params }: PageProps<"/courses/[course
         )}
       </nav>
     </article>
+    </StudyShell>
   );
 }

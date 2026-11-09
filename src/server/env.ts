@@ -40,6 +40,11 @@ const schema = z.object({
   CLAUDE_MODEL_FALLBACK: z.string().default("claude-opus-5-5"),
   CLAUDE_MODEL_VISION: z.string().default("claude-sonnet-5-5"),
   CLAUDE_EFFORT_GENERATION: z.enum(["low", "medium", "high", "xhigh", "max"]).default("medium"),
+  // Grading written answers to practice questions (needs good judgement, short replies).
+  CLAUDE_MODEL_GRADING: z.string().default("claude-opus-5-5"),
+  CLAUDE_EFFORT_GRADING: z.enum(["low", "medium", "high", "xhigh", "max"]).default("low"),
+  // Written answers one student can have graded by Claude per hour (each costs ~1-2 cents).
+  GRADING_PER_HOUR: z.coerce.number().int().min(1).max(10_000).default(60),
   // Lessons the worker writes at the same time.
   GENERATION_CONCURRENCY: z.coerce.number().int().min(1).max(10).default(3),
   // Development only: write placeholder "demo" lessons without calling Claude (free).

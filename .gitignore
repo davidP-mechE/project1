@@ -49,3 +49,6 @@ next-env.d.ts
 # generated prisma client
 /src/generated/
 /coursebook.bundle
+
+# pdf.js viewer files, copied from node_modules on install (scripts/copy-pdfjs.mjs)
+/public/pdfjs/

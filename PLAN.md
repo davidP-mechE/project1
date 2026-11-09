@@ -1,6 +1,6 @@
 # Textbook → Course: Implementation Plan
 
-Status: **draft, waiting for approval**. Nothing is built yet.
+Status: **approved; Phases 1–5 built** (see README for what's done and how it works).
 
 Working name: **Coursebook** (rename any time; it only appears in the UI title and README).
 

@@ -1,7 +1,8 @@
 /**
- * Real Claude API smoke test: writes ONE lesson from the test textbook and
- * re-reads one equation-heavy page from its image, then prints the result
- * and exactly what it cost. Costs roughly $0.03–0.06.
+ * Real Claude API smoke test: writes ONE lesson from the test textbook,
+ * re-reads one equation-heavy page from its image, and grades two written
+ * answers (one right in other words, one wrong), then prints the results and
+ * exactly what it cost. Costs roughly $0.05–0.10.
  *
  *   npm run smoke:claude
  *
@@ -16,6 +17,8 @@ import { mathScore } from "../src/lib/pdf/math-score";
 import type { SourcePage } from "../src/lib/ai/source";
 import { PdfReader } from "../src/server/processing/pdf-reader";
 import { AiError, ClaudeWriter, type Call } from "../src/server/ai/writer";
+import { ClaudeGrader } from "../src/server/ai/grader";
+import { normalizeGrade } from "../src/lib/grading/grade";
 
 async function main() {
   if (!process.env.ANTHROPIC_API_KEY) {
@@ -75,6 +78,31 @@ async function main() {
     const repaired = await writer.repairPage(png);
     report("page repair", repaired.calls);
     console.log("--- page 7 as LaTeX (first 600 characters) ---\n" + repaired.value.slice(0, 600) + "\n---");
+
+    // 3) Grade two written answers to a short-answer question about page 5.
+    const grader = new ClaudeGrader(new Anthropic(), {
+      model: process.env.CLAUDE_MODEL_GRADING ?? "claude-opus-5-5",
+      effort: (process.env.CLAUDE_EFFORT_GRADING as "low") ?? "low",
+    });
+    const question = {
+      type: "SHORT_ANSWER" as const,
+      prompt: "What is electric current?",
+      answer: "The rate at which electric charge flows through a conductor.",
+      explanation: "A good answer says current is a rate of flow of charge.",
+      steps: [],
+      pages: [await pageAt(5)],
+    };
+    for (const [label, response] of [
+      ["right, own words", "How much charge passes through the wire per second"],
+      ["wrong", "The force that pushes electrons, measured in volts"],
+    ] as const) {
+      console.log(`\nGrading a ${label} answer: "${response}"`);
+      const t1 = Date.now();
+      const g = await grader.grade({ ...question, response });
+      report("grading", g.calls);
+      const r = normalizeGrade(g.value);
+      console.log(`  ${r.verdict} (score ${r.score}) in ${((Date.now() - t1) / 1000).toFixed(1)}s: ${r.feedback}`);
+    }
   } catch (err) {
     if (err instanceof AiError) {
       report("failed call", err.calls);

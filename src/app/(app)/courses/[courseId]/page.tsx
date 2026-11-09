@@ -7,7 +7,7 @@ import { GenerationProgress } from "@/components/course/generation-progress";
 import { ProcessingStatus } from "@/components/course/processing-status";
 import { Alert } from "@/components/ui/alert";
 import { ButtonLink, buttonClasses } from "@/components/ui/button";
-import { Card } from "@/components/ui/misc";
+import { Card, ProgressBar } from "@/components/ui/misc";
 import { formatBytes } from "@/lib/upload/limits";
 import { getOutlineSummary, getProcessingStatus, markCourseOpened } from "@/server/courses";
 import { getCourseOr404 } from "@/server/course-page";
@@ -15,6 +15,7 @@ import { claudeEnabled } from "@/server/env";
 import { getCourseCost, getCourseLessons, getGenerationProgress } from "@/server/generation/lessons";
 import { getGenerationEstimate } from "@/server/outline";
 import { requireUser } from "@/server/session";
+import { getStudyOutline } from "@/server/study";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Course" };
@@ -50,14 +51,16 @@ export default async function CoursePage({ params }: PageProps<"/courses/[course
     ? await getOutlineSummary(user.id, courseId)
     : null;
   const generating = course.status === "GENERATING" || course.status === "ACTIVE";
-  const [pendingEstimate, progress, units, cost] = outline
+  const [pendingEstimate, progress, units, cost, study] = outline
     ? await Promise.all([
         getGenerationEstimate(user.id, courseId, "pending"),
         generating ? getGenerationProgress(user.id, courseId) : null,
         generating ? getCourseLessons(user.id, courseId) : null,
         generating ? getCourseCost(user.id, courseId) : 0,
+        generating ? getStudyOutline(user.id, courseId) : null,
       ])
-    : [null, null, null, 0];
+    : [null, null, null, 0, null];
+  const completed = new Set(study?.units.flatMap((u) => u.lessons.filter((l) => l.completed).map((l) => l.id)) ?? []);
   const noKey = claudeEnabled ? undefined : "Lesson generation needs an ANTHROPIC_API_KEY on the server (see the README).";
 
   return (
@@ -82,6 +85,7 @@ export default async function CoursePage({ params }: PageProps<"/courses/[course
       {outline && course.status === "OUTLINE_DRAFT" && pendingEstimate && (
         <NextSteps courseId={courseId} generate={<GenerateButton courseId={courseId} estimate={pendingEstimate} disabledReason={noKey} />} />
       )}
+      {study && (study.resume || study.done > 0) && <ContinueStudying courseId={courseId} study={study} />}
       {progress && units && (
         <Card className="mb-6">
           <div className="mb-4 flex flex-wrap items-start justify-between gap-2">
@@ -98,7 +102,7 @@ export default async function CoursePage({ params }: PageProps<"/courses/[course
               Open {progress.flagged + progress.failed === 1 ? "it" : "them"} below to see why.
             </Alert>
           )}
-          <LessonList courseId={courseId} units={units} />
+          <LessonList courseId={courseId} units={units} completed={completed} />
           {cost > 0 && <p className="mt-4 text-xs text-muted">Claude API cost for this course so far: ${cost.toFixed(2)}</p>}
         </Card>
       )}
@@ -249,7 +253,32 @@ const STATUS_LABEL: Record<string, { label: string; tone: string }> = {
   PENDING: { label: "Not written", tone: "bg-surface-2 text-muted" },
 };
 
-function LessonList({ courseId, units }: { courseId: string; units: Awaited<ReturnType<typeof getCourseLessons>> }) {
+function ContinueStudying({ courseId, study }: { courseId: string; study: Awaited<ReturnType<typeof getStudyOutline>> }) {
+  const lesson = study.resume ? study.units.flatMap((u) => u.lessons).find((l) => l.id === study.resume!.id) : null;
+  const allDone = study.done === study.total && study.total > 0;
+  return (
+    <Card className="mb-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0 flex-1">
+          <h2 className="text-lg font-semibold">{allDone ? "You've finished every lesson 🎉" : "Your progress"}</h2>
+          <div className="mt-3 flex flex-col gap-1.5">
+            <ProgressBar value={study.pct} label="Course progress" />
+            <p className="text-sm text-muted">
+              {study.done} of {study.total} lessons complete · {study.pct}%
+            </p>
+          </div>
+        </div>
+        {lesson && study.resume && (
+          <ButtonLink href={`/courses/${courseId}/lessons/${lesson.id}`} className="shrink-0">
+            {study.resume.reason === "start" ? "Start lesson 1" : study.resume.reason === "continue" ? "Continue" : "Next lesson"}: {lesson.title.length > 28 ? `${lesson.title.slice(0, 27)}…` : lesson.title}
+          </ButtonLink>
+        )}
+      </div>
+    </Card>
+  );
+}
+
+function LessonList({ courseId, units, completed }: { courseId: string; units: Awaited<ReturnType<typeof getCourseLessons>>; completed: Set<string> }) {
   // Number included lessons 1, 2, 3… across the whole course.
   const numbers = new Map(
     units.flatMap((u) => u.lessons.filter((l) => !l.skip)).map((l, i) => [l.id, i + 1] as const),
@@ -276,7 +305,11 @@ function LessonList({ courseId, units }: { courseId: string; units: Awaited<Retu
                           <span className="mr-2 tabular-nums text-muted">{numbers.get(l.id)}.</span>
                           {l.title}
                         </span>
-                        <span className={cn("shrink-0 rounded-full px-2 py-0.5 text-xs font-medium", st.tone)}>{st.label}</span>
+                        {completed.has(l.id) && l.status === "READY" ? (
+                          <span className="shrink-0 rounded-full bg-success-bg px-2 py-0.5 text-xs font-medium text-success">✓ Done</span>
+                        ) : (
+                          <span className={cn("shrink-0 rounded-full px-2 py-0.5 text-xs font-medium", st.tone)}>{st.label}</span>
+                        )}
                       </Link>
                     </li>
                   );

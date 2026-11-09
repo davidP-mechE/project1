@@ -3,6 +3,7 @@ import { z } from "zod";
 import type { Prisma } from "@/generated/prisma/client";
 import { db } from "./db";
 import { NotFoundError } from "./courses";
+import { recomputeCourseProgress } from "./study";
 import { MATH_HEAVY_THRESHOLD } from "@/lib/pdf/math-score";
 import { courseSettingsSchema, parseSettings, type CourseSettings } from "@/lib/course/settings";
 import {
@@ -203,6 +204,8 @@ export async function saveOutline(userId: string, courseId: string, input: unkno
     await tx.lesson.deleteMany({ where: { courseId, id: { notIn: [...keptLessons] } } });
     await tx.unit.deleteMany({ where: { courseId, id: { notIn: [...keptUnits] } } });
   });
+  // Lessons may have been added, removed or skipped, which changes "% complete".
+  await recomputeCourseProgress(userId, courseId);
 
   return getOutlineForEditing(userId, courseId);
 }
@@ -233,6 +236,7 @@ export async function saveSettings(userId: string, courseId: string, input: unkn
         ]
       : []),
   ]);
+  if (before.includeFrontBackMatter !== settings.includeFrontBackMatter) await recomputeCourseProgress(userId, courseId);
   return settings;
 }
 
