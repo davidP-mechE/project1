@@ -517,6 +517,15 @@ h2,
     filter: brightness(1);
   }
 }
+/* The big, centred book on full-page loading screens. */
+.book-loader.lg {
+  scale: 1.7;
+  margin: 1.4rem 2.2rem 1.6rem;
+}
+/* A soft pool of page colour behind the centred book, so it reads clearly over the shimmer. */
+.loader-halo {
+  background: radial-gradient(closest-side, var(--bg) 60%, transparent);
+}
 /* "Reduce motion": an open book, still. */
 @media (prefers-reduced-motion: reduce) {
   .book-loader .bl-page {
