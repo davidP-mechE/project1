@@ -15,8 +15,8 @@ const WORD = /[\p{L}\p{N}]+/gu;
 
 type Term = { text: string; negate: boolean; phrase: boolean; or: boolean };
 
-function words(s: string): string[] {
-  return (s.toLowerCase().match(WORD) ?? []).slice(0, 12);
+function words(s: string, max = 12): string[] {
+  return (s.toLowerCase().match(WORD) ?? []).slice(0, max);
 }
 
 export function buildTsQuery(input: string): string | null {
@@ -72,4 +72,14 @@ export function splitHighlights(snippet: string): { text: string; match: boolean
   }
   // Tidy Markdown/LaTeX markers that show up in snippets of lesson text.
   return parts.map((p) => ({ ...p, text: p.text.replace(/\*\*|__|`|#{1,6}\s/g, "").replace(/\s+/g, " ") })).filter((p) => p.text.length > 0);
+}
+
+/**
+ * For the tutor: match passages containing ANY of the question's words, ranked
+ * by how many and how close. ("why does current split at a junction" must not
+ * require every word.) Same safety rules as buildTsQuery.
+ */
+export function buildAnyWordTsQuery(input: string): string | null {
+  const ws = [...new Set(words(input.slice(0, 1_000), 60).filter((w) => w.length > 1))].slice(0, 24);
+  return ws.length > 0 ? ws.join(" | ") : null;
 }

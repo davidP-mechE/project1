@@ -7,7 +7,20 @@
  */
 import { UnrecoverableError, Worker } from "bullmq";
 import { env } from "@/server/env";
-import { GENERATE_QUEUE, PROCESS_BOOK_QUEUE, redisConnection, type GeneratePayload, type ProcessBookPayload } from "@/server/queue";
+import {
+  EMBED_BOOK_QUEUE,
+  EMBED_QUERY_QUEUE,
+  enqueueBookEmbedding,
+  GENERATE_QUEUE,
+  PROCESS_BOOK_QUEUE,
+  redisConnection,
+  type EmbedBookPayload,
+  type EmbedQueryPayload,
+  type GeneratePayload,
+  type ProcessBookPayload,
+} from "@/server/queue";
+import { LocalEmbedder } from "@/server/embeddings/local";
+import { booksNeedingEmbeddings, embedBook } from "@/server/embeddings/book";
 import { claudeEnabled } from "@/server/env";
 import { getWriter, generationModel } from "@/server/ai/client";
 import { AiError } from "@/server/ai/writer";
@@ -30,6 +43,8 @@ const worker = new Worker<ProcessBookPayload>(
     // Throwing tells BullMQ to schedule another attempt (with backoff).
     if (outcome === "retry") throw new Error("retrying after unexpected error");
     if (outcome === "failed") throw new UnrecoverableError("failed (see Job row)");
+    // Prepare the book for the tutor in the background (doesn't hold up the course page).
+    if (outcome === "done") await enqueueBookEmbedding(job.data.bookId);
   },
   {
     connection: redisConnection(),
@@ -71,13 +86,46 @@ generator.on("ready", () =>
   console.info(`[worker] generation ready (concurrency ${env.GENERATION_CONCURRENCY}${claudeEnabled ? "" : ", NO ANTHROPIC_API_KEY: lessons will fail"})`),
 );
 generator.on("error", (err) => console.error("[worker] generation error:", err.message));
+/**
+ * Embeddings for the "Ask the book" tutor (Phase 7). One model instance is
+ * shared: whole books in the background, and questions from the tutor, which
+ * the web app waits for (a few milliseconds each once the model is loaded).
+ */
+const embedder = new LocalEmbedder({ cacheDir: env.EMBEDDINGS_CACHE_DIR });
+const bookEmbedder = new Worker<EmbedBookPayload>(
+  EMBED_BOOK_QUEUE,
+  async (job) => {
+    const t0 = Date.now();
+    const n = await embedBook(job.data.bookId, embedder);
+    console.info(`[embed] book ${job.data.bookId}: ${n} passages in ${((Date.now() - t0) / 1000).toFixed(1)}s`);
+  },
+  { connection: redisConnection(), concurrency: 1, lockDuration: 10 * 60_000 },
+);
+const queryEmbedder = new Worker<EmbedQueryPayload>(EMBED_QUERY_QUEUE, async (job) => embedder.embedQuery(job.data.text), {
+  connection: redisConnection(),
+  concurrency: 4,
+});
+bookEmbedder.on("error", (err) => console.error("[worker] embed error:", err.message));
+queryEmbedder.on("error", (err) => console.error("[worker] embed-query error:", err.message));
+queryEmbedder.on("ready", async () => {
+  // Load the model now, so the first question doesn't wait for it; then catch up on older books.
+  try {
+    await embedder.embedQuery("warm up");
+    const pending = await booksNeedingEmbeddings();
+    for (const bookId of pending) await enqueueBookEmbedding(bookId);
+    console.info(`[worker] embeddings ready${pending.length ? `, ${pending.length} book(s) queued for embedding` : ""}`);
+  } catch (err) {
+    console.error("[worker] couldn't load the embedding model (the tutor will use keyword search):", err instanceof Error ? err.message : err);
+  }
+});
+
 worker.on("active", (job) => console.info(`[worker] started job ${job.id} (book ${job.data.bookId})`));
 worker.on("completed", (job) => console.info(`[worker] finished job ${job.id}`));
 worker.on("error", (err) => console.error("[worker] error:", err.message));
 
 async function shutdown(signal: string) {
   console.info(`[worker] ${signal} received, finishing current job…`);
-  await Promise.all([worker.close(), generator.close()]);
+  await Promise.all([worker.close(), generator.close(), bookEmbedder.close(), queryEmbedder.close()]);
   await ocr.close();
   await db.$disconnect();
   process.exit(0);

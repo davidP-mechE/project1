@@ -22,7 +22,8 @@ export type GraderConfig = { model: string; effort: "low" | "medium" | "high" | 
 const GRADE_MAX_TOKENS = 8_000;
 const GRADE_TIMEOUT_MS = 90_000;
 
-function usageCalls(response: Anthropic.Beta.BetaMessage, requested: string): Call<unknown>[] {
+/** Billing per model for one response (a fallback model that answered is billed at its own price). */
+export function usageCalls(response: Anthropic.Beta.BetaMessage, requested: string): Call<unknown>[] {
   const toUsage = (u: { input_tokens: number; output_tokens: number; cache_read_input_tokens?: number | null; cache_creation_input_tokens?: number | null }): TokenUsage => ({
     inputTokens: u.input_tokens,
     outputTokens: u.output_tokens,

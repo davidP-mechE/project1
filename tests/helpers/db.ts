@@ -3,7 +3,7 @@ import { db } from "@/server/db";
 /** Wipe all rows between tests (order doesn't matter with CASCADE). */
 export async function resetDb() {
   await db.$executeRawUnsafe(
-    `TRUNCATE TABLE "user", "session", "account", "verification", "Book", "Course", "Page", "Figure", "Chunk", "Unit", "Lesson", "Job", "Question", "Flashcard", "UsageEvent", "LessonProgress", "QuestionAttempt", "CardState", "ReviewLog", "Highlight", "Note" RESTART IDENTITY CASCADE`,
+    `TRUNCATE TABLE "user", "session", "account", "verification", "Book", "Course", "Page", "Figure", "Chunk", "Unit", "Lesson", "Job", "Question", "Flashcard", "UsageEvent", "LessonProgress", "QuestionAttempt", "CardState", "ReviewLog", "Highlight", "Note", "TutorThread", "TutorMessage" RESTART IDENTITY CASCADE`,
   );
 }
 

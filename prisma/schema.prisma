@@ -5,6 +5,7 @@
 // Phase 4: generated lesson content, questions, flashcards, API usage.
 // Phase 5: lesson progress (completion) and practice question attempts.
 // Phase 6: flashcard review (spaced repetition), highlights, notes, full-text search.
+// Phase 7: passage embeddings (pgvector) and the "Ask the book" tutor.
 
 generator client {
   provider = "prisma-client"
@@ -52,6 +53,7 @@ model User {
   reviewLogs       ReviewLog[]
   highlights       Highlight[]
   notes            Note[]
+  tutorThreads     TutorThread[]
 
   @@map("user")
 }
@@ -183,6 +185,7 @@ model Course {
   reviewLogs       ReviewLog[]
   highlights       Highlight[]
   notes            Note[]
+  tutorThreads     TutorThread[]
 
   @@index([userId, archivedAt])
 }
@@ -251,10 +254,14 @@ model Chunk {
   tokenCount Int
   // Full-text search vector, a generated column maintained by Postgres.
   tsv        Unsupported("tsvector")? @default(dbgenerated("to_tsvector('english'::regconfig, text)"))
+  // Meaning vector for the tutor (pgvector), and which model made it (re-embedded if the model changes).
+  embedding      Unsupported("vector")?
+  embeddingModel String?
 
   @@unique([bookId, ordinal])
   @@index([tsv], type: Gin)
   @@index([bookId, pageStart])
+  @@index([bookId, embeddingModel])
 }
 
 // ─── Course structure (outline) ─────────────────────────────────────────
@@ -318,6 +325,7 @@ model Lesson {
   attempts   QuestionAttempt[]
   highlights Highlight[]
   notes      Note[]
+  tutorThreads TutorThread[]
   // Full-text search vector (title + content), a generated column maintained by Postgres.
   tsv        Unsupported("tsvector")? @default(dbgenerated("(setweight(to_tsvector('english'::regconfig, title), 'A'::\"char\") || setweight(to_tsvector('english'::regconfig, COALESCE(content, '{}'::jsonb)), 'B'::\"char\"))"))
 
@@ -554,6 +562,55 @@ model Note {
 
   @@unique([userId, lessonId])
   @@index([courseId, userId])
+}
+
+// ─── "Ask the book" tutor (Phase 7) ──────────────────────────────────────
+
+/** One conversation with the tutor. Optionally started from a lesson (its pages are preferred). */
+model TutorThread {
+  id        String         @id @default(cuid())
+  userId    String
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId  String
+  course    Course         @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lessonId  String?
+  lesson    Lesson?        @relation(fields: [lessonId], references: [id], onDelete: SetNull)
+  title     String
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  messages  TutorMessage[]
+
+  @@index([userId, courseId, updatedAt])
+}
+
+enum TutorRole {
+  USER
+  ASSISTANT
+}
+
+enum TutorMessageStatus {
+  STREAMING
+  DONE
+  STOPPED // the student stopped it or left the page; what was written so far is kept
+  ERROR
+}
+
+model TutorMessage {
+  id        String             @id @default(cuid())
+  threadId  String
+  thread    TutorThread        @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  role      TutorRole
+  content   String
+  status    TutorMessageStatus @default(DONE)
+  // Assistant only: the book passages it was given ([{chunkId, pageStart, pageEnd}]) and the pages it cited.
+  sources   Json?
+  citedPages Int[]
+  // Assistant only: the answer says the book doesn't cover the question.
+  notInBook Boolean            @default(false)
+  error     String?
+  createdAt DateTime           @default(now())
+
+  @@index([threadId, createdAt])
 }
 
 // ─── Claude API usage (for cost tracking and limits) ─────────────────────

@@ -3,10 +3,12 @@ import Anthropic from "@anthropic-ai/sdk";
 import { claudeEnabled, env } from "../env";
 import { DemoWriter } from "./demo-writer";
 import { ClaudeGrader, DemoGrader, type Grader } from "./grader";
+import { ClaudeTutor, DemoTutor, type TutorModel } from "./tutor";
 import { AiError, ClaudeWriter, type LessonWriter } from "./writer";
 
 let writer: LessonWriter | null = null;
 let grader: Grader | null = null;
+let tutor: TutorModel | null = null;
 let client: Anthropic | null = null;
 
 function anthropic(): Anthropic {
@@ -45,6 +47,17 @@ export function getGrader(): Grader | null {
   if (!claudeEnabled) return null;
   grader ??= new ClaudeGrader(anthropic(), { model: env.CLAUDE_MODEL_GRADING, effort: env.CLAUDE_EFFORT_GRADING });
   return grader;
+}
+
+/** The "Ask the book" tutor. Null if Claude isn't set up. */
+export function getTutor(): TutorModel | null {
+  if (env.FAKE_CLAUDE) {
+    tutor ??= new DemoTutor();
+    return tutor;
+  }
+  if (!claudeEnabled) return null;
+  tutor ??= new ClaudeTutor(anthropic(), { model: env.CLAUDE_MODEL_TUTOR, effort: env.CLAUDE_EFFORT_TUTOR });
+  return tutor;
 }
 
 export const generationModel = () => ({

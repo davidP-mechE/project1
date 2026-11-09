@@ -1,5 +1,7 @@
 import "server-only";
-import { Queue } from "bullmq";
+import { Queue, QueueEvents } from "bullmq";
+import { EMBEDDING_MODEL } from "@/lib/tutor/embedding";
+import type { QueryEmbedder } from "./embeddings/types";
 import { db } from "./db";
 import { env } from "./env";
 
@@ -92,3 +94,53 @@ export async function enqueueGeneration(jobs: { payload: GeneratePayload; priori
     })),
   );
 }
+
+// ─── Embeddings (Phase 7) ────────────────────────────────────────────────
+// The embedding model lives in the worker only. Books are embedded in the
+// background; questions are embedded on request (the web app waits briefly).
+
+export const EMBED_BOOK_QUEUE = "embed-book";
+export type EmbedBookPayload = { bookId: string };
+export const EMBED_QUERY_QUEUE = "embed-query";
+export type EmbedQueryPayload = { text: string };
+
+let embedBookQueue: Queue<EmbedBookPayload> | null = null;
+function getEmbedBookQueue() {
+  embedBookQueue ??= new Queue<EmbedBookPayload>(EMBED_BOOK_QUEUE, {
+    connection: redisConnection(),
+    defaultJobOptions: { attempts: 3, backoff: { type: "exponential", delay: 60_000 }, removeOnComplete: true, removeOnFail: { age: 7 * 24 * 3600 } },
+  });
+  return embedBookQueue;
+}
+
+/** Queue a book for embedding (no-op if it's already waiting). */
+export async function enqueueBookEmbedding(bookId: string) {
+  await getEmbedBookQueue().add("embed", { bookId }, { jobId: `embed-${bookId}` });
+}
+
+let embedQueryQueue: Queue<EmbedQueryPayload> | null = null;
+let embedQueryEvents: QueueEvents | null = null;
+
+/**
+ * Embeds a question by asking the worker. Returns null if the worker doesn't
+ * answer in time (not running, still loading the model, or busy), and the
+ * tutor falls back to keyword search for that question.
+ */
+export const workerQueryEmbedder: QueryEmbedder = {
+  model: EMBEDDING_MODEL,
+  async embedQuery(text: string) {
+    try {
+      embedQueryQueue ??= new Queue<EmbedQueryPayload>(EMBED_QUERY_QUEUE, {
+        connection: redisConnection(),
+        defaultJobOptions: { attempts: 1, removeOnComplete: { age: 60 }, removeOnFail: { age: 60 } },
+      });
+      embedQueryEvents ??= new QueueEvents(EMBED_QUERY_QUEUE, { connection: redisConnection() });
+      const job = await embedQueryQueue.add("q", { text: text.slice(0, 2_000) });
+      const vector = (await job.waitUntilFinished(embedQueryEvents, 4_000)) as number[];
+      return Array.isArray(vector) ? vector : null;
+    } catch (err) {
+      console.warn("[tutor] question embedding unavailable, using keyword search:", err instanceof Error ? err.message : err);
+      return null;
+    }
+  },
+};

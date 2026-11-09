@@ -238,3 +238,9 @@ body {
   }
   .press:active, .press-soft:active { transform: none; }
 }
+@keyframes cb-fade-in {
+  from { opacity: 0; }
+}
+@keyframes cb-slide-in {
+  from { transform: translateX(24px); opacity: 0; }
+}

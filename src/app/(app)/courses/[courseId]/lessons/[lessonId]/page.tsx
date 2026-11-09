@@ -10,6 +10,7 @@ import { Practice } from "@/components/study/practice";
 import { OpenBookButton, StudyShell } from "@/components/study/study-shell";
 import { HighlightProvider, HighlightRoot, LessonNotes } from "@/components/study/highlights";
 import { buttonClasses } from "@/components/ui/button";
+import { TutorDrawer } from "@/components/tutor/tutor-drawer";
 import { Alert } from "@/components/ui/alert";
 import { Card, Spinner } from "@/components/ui/misc";
 import { getCourseOr404 } from "@/server/course-page";
@@ -81,8 +82,17 @@ export default async function LessonPage({ params, searchParams }: PageProps<"/c
             {lesson.userEdited && " · Edited by you"}
           </p>
         </div>
-        <div className="flex items-start gap-2">
+        <div className="flex flex-wrap items-start gap-2">
           <OpenBookButton page={lesson.pageStart} label="Read the book" />
+          {content && (
+            <TutorDrawer
+              courseId={courseId}
+              bookId={bookId}
+              lessonId={lessonId}
+              lessonTitle={lesson.title}
+              disabledReason={claudeEnabled ? null : "The tutor needs an ANTHROPIC_API_KEY on the server."}
+            />
+          )}
           <LessonActions courseId={courseId} lessonId={lessonId} status={lesson.status} hasContent={Boolean(content)} userEdited={lesson.userEdited} />
         </div>
       </header>

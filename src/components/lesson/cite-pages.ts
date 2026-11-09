@@ -2,14 +2,14 @@ import type { Element, ElementContent, Root, RootContent, Text } from "hast";
 
 /**
  * A rehype plugin that turns page citations in lesson text, like "(p. 47)" or
- * "(pp. 47–48, 50)", into links to the original book at that page. On the
+ * "(pp. 47–48, 50)", and in tutor answers, like "[p. 47]", into links to the original book at that page. On the
  * lesson page they open the side-by-side book viewer (see study-shell.tsx);
  * without JavaScript they open the PDF in a new tab.
  *
  * Safety: it only ever creates links to our own book URL with a page number.
  */
 
-const CITATION = /\((pp?)\.\s*(\d{1,5}(?:\s*(?:[–—-]|,|and)\s*\d{1,5})*)\)/g;
+const CITATION = /([([])(pp?)\.\s*(\d{1,5}(?:\s*(?:[–—-]|,|and)\s*\d{1,5})*)([)\]])/g;
 const SKIP_TAGS = new Set(["a", "code", "pre"]);
 
 export function bookPageHref(bookId: string, page: number) {
@@ -34,10 +34,11 @@ export function linkCitations(text: string, bookId: string): ElementContent[] | 
   let last = 0;
   for (const m of text.matchAll(CITATION)) {
     const start = m.index!;
+    if ((m[1] === "(") !== (m[4] === ")")) continue; // mismatched brackets: leave as text
     if (start > last) out.push({ type: "text", value: text.slice(last, start) });
-    out.push({ type: "text", value: `(${m[1]}. ` });
+    out.push({ type: "text", value: `${m[1]}${m[2]}. ` });
     // Each number in "47–48, 50" becomes its own link.
-    const inner = m[2];
+    const inner = m[3];
     let pos = 0;
     for (const n of inner.matchAll(/\d{1,5}/g)) {
       if (n.index! > pos) out.push({ type: "text", value: inner.slice(pos, n.index!) });
@@ -45,7 +46,7 @@ export function linkCitations(text: string, bookId: string): ElementContent[] | 
       pos = n.index! + n[0].length;
     }
     if (pos < inner.length) out.push({ type: "text", value: inner.slice(pos) });
-    out.push({ type: "text", value: ")" });
+    out.push({ type: "text", value: m[4] });
     last = start + m[0].length;
   }
   if (last < text.length) out.push({ type: "text", value: text.slice(last) });

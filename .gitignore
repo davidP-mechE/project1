@@ -55,3 +55,6 @@ next-env.d.ts
 
 # Redis snapshot written when redis-server runs in the project folder
 dump.rdb
+
+# Downloaded embedding model, if EMBEDDINGS_CACHE_DIR points inside the project
+/.cache/

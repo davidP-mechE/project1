@@ -47,6 +47,13 @@ const schema = z.object({
   GRADING_PER_HOUR: z.coerce.number().int().min(1).max(10_000).default(60),
   // Lessons the worker writes at the same time.
   GENERATION_CONCURRENCY: z.coerce.number().int().min(1).max(10).default(3),
+  // "Ask the book" tutor: model, effort, and questions per student per hour.
+  CLAUDE_MODEL_TUTOR: z.string().default("claude-opus-5-5"),
+  CLAUDE_EFFORT_TUTOR: z.enum(["low", "medium", "high", "xhigh", "max"]).default("low"),
+  TUTOR_PER_HOUR: z.coerce.number().int().min(1).max(10_000).default(30),
+  // Where the worker keeps the downloaded embedding model (~34 MB). Default: ~/.cache/coursebook/models
+  // (outside the project folder, or the dev server's file watcher keeps reloading the page).
+  EMBEDDINGS_CACHE_DIR: z.string().optional(),
   // Development only: write placeholder "demo" lessons without calling Claude (free).
   FAKE_CLAUDE: z.stringbool().default(false),
 });

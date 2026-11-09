@@ -77,3 +77,51 @@ export class FakeGrader implements Grader {
     return { value: this.next, calls: [{ value: null, model: "claude-opus-5-5", usage: { inputTokens: 2500, outputTokens: 300, cacheReadTokens: 900 } }] };
   }
 }
+
+import type { TutorAnswer, TutorModel } from "@/server/ai/tutor";
+import type { TutorTurn } from "@/lib/tutor/prompt";
+import type { Embedder, QueryEmbedder } from "@/server/embeddings/types";
+
+/** A pretend tutor: records the conversation it was sent and streams a canned answer. */
+export class FakeTutor implements TutorModel {
+  readonly kind = "claude" as const;
+  calls: TutorTurn[][] = [];
+  reply = "Current is the rate of flow of charge [p. 5]. Also see [p. 99].";
+  fail: AiError | null = null;
+  async answer(messages: TutorTurn[], onText: (t: string) => void, signal: AbortSignal): Promise<TutorAnswer> {
+    this.calls.push(messages);
+    if (this.fail) throw this.fail;
+    let text = "";
+    for (const w of this.reply.split(/(?<= )/)) {
+      if (signal.aborted) return { text, calls: [{ value: null, model: "claude-opus-5-5", usage: { inputTokens: 900, outputTokens: 5 } }], stop: "stopped" };
+      text += w;
+      onText(w);
+      await Promise.resolve();
+    }
+    return { text, calls: [{ value: null, model: "claude-opus-5-5", usage: { inputTokens: 2500, outputTokens: 120, cacheReadTokens: 800 } }], stop: "done" };
+  }
+}
+
+/** Deterministic stand-in for the embedding model: hashed bag of words, normalized (similar words → similar vectors). */
+export function fakeVector(text: string): number[] {
+  const v = new Array(384).fill(0);
+  for (const w of text.toLowerCase().match(/[a-z]+/g) ?? []) {
+    let h = 0;
+    for (const ch of w) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+    v[h % 384] += 1;
+  }
+  const n = Math.hypot(...v) || 1;
+  return v.map((x) => x / n);
+}
+export class FakeEmbedder implements Embedder, QueryEmbedder {
+  readonly model = "Xenova/bge-small-en-v1.5";
+  passages = 0;
+  override: number[] | null | undefined = undefined; // set to force a query vector (or null = unavailable)
+  async embedPassages(texts: string[]) {
+    this.passages += texts.length;
+    return texts.map(fakeVector);
+  }
+  async embedQuery(text: string) {
+    return this.override === undefined ? fakeVector(text) : (this.override as number[]);
+  }
+}
