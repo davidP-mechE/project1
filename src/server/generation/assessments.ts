@@ -4,6 +4,7 @@ import { NotFoundError } from "../courses";
 import { enqueueGeneration } from "../queue";
 import { recordUsage } from "../usage";
 import { AiError, type LessonWriter } from "../ai/writer";
+import { assertAiBudget, ensureAiBudget } from "../limits";
 import { has, parseSettings } from "@/lib/course/settings";
 import { LessonContentSchema } from "@/lib/ai/lesson-schema";
 import { normalizeAssessment, questionCountFor, type AssessmentLesson } from "@/lib/ai/assessment";
@@ -77,6 +78,7 @@ export async function runAssessmentJob(payload: { assessmentId: string }, deps: 
     await markAssessmentFailed(a.id, "There are no written lessons to make this from yet.");
     return "failed";
   }
+  await ensureAiBudget(a.course.userId);
   await db.assessment.update({ where: { id: a.id }, data: { status: "GENERATING", error: null } });
 
   const wantsQuestions = a.kind === "FINAL_EXAM" || has(settings, "unitTests");
@@ -134,6 +136,7 @@ export async function regenerateAssessment(userId: string, assessmentId: string)
   const a = await db.assessment.findFirst({ where: { id: assessmentId, course: { userId } }, select: { id: true, status: true } });
   if (!a) throw new NotFoundError("Not found");
   if (a.status === "QUEUED" || a.status === "GENERATING") return;
+  await assertAiBudget(userId);
   await db.assessment.update({ where: { id: a.id }, data: { status: "QUEUED", error: null } });
   await enqueueGeneration([{ payload: { kind: "assessment", assessmentId: a.id }, priority: 1 }]);
 }

@@ -5,6 +5,7 @@ import { env } from "../env";
 import { NotFoundError } from "../courses";
 import { recordUsage } from "../usage";
 import { AiError } from "../ai/writer";
+import { assertAiBudget, LimitError } from "../limits";
 import type { TutorModel } from "../ai/tutor";
 import type { QueryEmbedder } from "../embeddings/types";
 import { embeddingProgress } from "../embeddings/book";
@@ -106,6 +107,12 @@ export async function askTutor(userId: string, input: AskInput, deps: AskDeps, e
   const recent = await db.tutorMessage.count({ where: { role: "USER", createdAt: { gte: since }, thread: { userId } } });
   if (recent >= env.TUTOR_PER_HOUR) {
     throw new TutorError(`You've asked ${env.TUTOR_PER_HOUR} questions in the last hour, the hourly limit. Please try again a bit later.`, 429);
+  }
+  try {
+    await assertAiBudget(userId);
+  } catch (err) {
+    if (err instanceof LimitError) throw new TutorError(err.message, 429);
+    throw err;
   }
 
   const [lesson, history] = await Promise.all([

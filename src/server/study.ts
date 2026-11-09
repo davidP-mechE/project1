@@ -5,6 +5,7 @@ import { NotFoundError } from "./courses";
 import { recordUsage } from "./usage";
 import { bumpActivity } from "./activity";
 import { AiError } from "./ai/writer";
+import { assertAiBudget, LimitError } from "./limits";
 import type { Grader } from "./ai/grader";
 import { gradeMultipleChoice, normalizeGrade, practiceSummary, type GradeResult } from "@/lib/grading/grade";
 import { checkResponse, quickCheck } from "@/lib/grading/normalize";
@@ -229,6 +230,16 @@ export function needsClaude(q: Pick<GradeQuestion, "type" | "answer">, input: At
   return checked.ok && quickCheck(q.answer, checked.text) !== "correct";
 }
 
+/** The monthly AI allowance, as a StudyError the routes already turn into a 429. */
+export async function studyBudget(userId: string) {
+  try {
+    await assertAiBudget(userId);
+  } catch (err) {
+    if (err instanceof LimitError) throw new StudyError(err.message, 429);
+    throw err;
+  }
+}
+
 export async function claudeGradesLastHour(userId: string) {
   const since = new Date(Date.now() - 60 * 60 * 1000);
   return db.questionAttempt.count({ where: { userId, gradedBy: "CLAUDE", createdAt: { gte: since } } });
@@ -253,6 +264,7 @@ export async function gradeAnswer(userId: string, q: GradeQuestion, input: Attem
   if (!opts.skipLimit && (await claudeGradesLastHour(userId)) >= env.GRADING_PER_HOUR) {
     throw new StudyError(`You've had ${env.GRADING_PER_HOUR} answers checked in the last hour, the hourly limit. Please try again a bit later.`, 429);
   }
+  if (!opts.skipLimit) await studyBudget(userId);
   // The pages the question was written from: its citations (within the lesson, if it has one).
   const pageNumbers = q.lesson ? pagesForGrading(q, q.lesson) : [...new Set(q.pageRefs)].sort((a, b) => a - b).slice(0, MAX_GRADING_PAGES);
   const pages: SourcePage[] = await db.page.findMany({

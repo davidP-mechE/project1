@@ -3,7 +3,7 @@ import { db } from "./db";
 import { env } from "./env";
 import { NotFoundError } from "./courses";
 import { bumpActivity } from "./activity";
-import { claudeGradesLastHour, gradeAnswer, gradeQuestionSelect, needsClaude, StudyError, type AttemptDeps, type AttemptInput, type Graded } from "./study";
+import { claudeGradesLastHour, gradeAnswer, studyBudget, gradeQuestionSelect, needsClaude, StudyError, type AttemptDeps, type AttemptInput, type Graded } from "./study";
 
 /**
  * Taking unit tests and the final exam. While taking a test the browser only
@@ -119,6 +119,7 @@ export async function submitTest(userId: string, assessmentId: string, answers: 
     if ((await claudeGradesLastHour(userId)) + claudeNeeded > env.GRADING_PER_HOUR) {
       throw new StudyError(`Checking this test needs ${claudeNeeded} written answers graded, which would go over the hourly limit of ${env.GRADING_PER_HOUR}. Please try again a bit later.`, 429);
     }
+    await studyBudget(userId);
   }
 
   const graded = new Map<string, Graded>();

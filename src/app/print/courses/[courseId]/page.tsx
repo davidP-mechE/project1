@@ -6,6 +6,7 @@ import { pagesLabel, rangeLabel, type ExportQuestion } from "@/lib/export/types"
 import { NotFoundError } from "@/server/courses";
 import { getCourseExport } from "@/server/export";
 import { requireUser } from "@/server/session";
+import { track } from "@/server/analytics";
 
 export const metadata: Metadata = { title: "Study guide" };
 
@@ -29,6 +30,7 @@ export default async function PrintCoursePage({ params, searchParams }: PageProp
     if (err instanceof NotFoundError) notFound();
     throw err;
   }
+  await track("print_opened", user.id);
   return (
     <div className="print-doc">
       <PrintToolbar courseId={courseId} answers={answers} flashcards={flashcards} autoPrint={sp.autoprint === "1"} />

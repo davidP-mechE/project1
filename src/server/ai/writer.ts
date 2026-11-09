@@ -33,7 +33,7 @@ export interface LessonWriter {
 /** Why a call failed, and whether trying again later could help. */
 export class AiError extends Error {
   constructor(
-    readonly kind: "retryable" | "config" | "refused" | "too_long" | "invalid",
+    readonly kind: "retryable" | "config" | "refused" | "too_long" | "invalid" | "limit",
     readonly userMessage: string,
     detail?: string,
     readonly calls: Call<unknown>[] = [],

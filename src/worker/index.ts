@@ -24,6 +24,7 @@ import { LocalEmbedder } from "@/server/embeddings/local";
 import { booksNeedingEmbeddings, embedBook } from "@/server/embeddings/book";
 import { Queue } from "bullmq";
 import { sendDueReminders } from "@/server/reminders";
+import { runMaintenance } from "@/server/maintenance";
 import { claudeEnabled } from "@/server/env";
 import { getWriter, generationModel } from "@/server/ai/client";
 import { AiError } from "@/server/ai/writer";
@@ -126,19 +127,31 @@ queryEmbedder.on("ready", async () => {
   }
 });
 
-/** Daily study reminder emails: checked every 15 minutes (each student gets at most one a day, at their chosen hour). */
+/**
+ * Scheduled jobs: daily study reminder emails, checked every 15 minutes (each
+ * student gets at most one a day, at their chosen hour), and hourly housekeeping.
+ */
 const reminders = new Worker(
   REMINDERS_QUEUE,
-  async () => {
+  async (job) => {
+    if (job.name === "maintenance") {
+      const r = await runMaintenance();
+      if (r.uploads + r.rateRows + r.events + r.verifications > 0) console.info("[maintenance]", r);
+      return;
+    }
     const n = await sendDueReminders();
     if (n > 0) console.info(`[reminders] sent ${n}`);
   },
   { connection: redisConnection(), concurrency: 1 },
 );
 reminders.on("error", (err) => console.error("[worker] reminders error:", err.message));
-void new Queue(REMINDERS_QUEUE, { connection: redisConnection() })
+const scheduled = new Queue(REMINDERS_QUEUE, { connection: redisConnection() });
+void scheduled
   .upsertJobScheduler("every-15-minutes", { every: 15 * 60_000 }, { name: "check", opts: { removeOnComplete: true, removeOnFail: 50 } })
   .catch((err) => console.error("[worker] couldn't schedule reminders:", err.message));
+void scheduled
+  .upsertJobScheduler("hourly-maintenance", { every: 60 * 60_000 }, { name: "maintenance", opts: { removeOnComplete: true, removeOnFail: 50 } })
+  .catch((err) => console.error("[worker] couldn't schedule maintenance:", err.message));
 
 worker.on("active", (job) => console.info(`[worker] started job ${job.id} (book ${job.data.bookId})`));
 worker.on("completed", (job) => console.info(`[worker] finished job ${job.id}`));

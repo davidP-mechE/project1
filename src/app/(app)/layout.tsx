@@ -29,7 +29,7 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
           </div>
           <div className="flex shrink-0 items-center gap-1">
             <ThemeToggle />
-            <UserMenu name={user.name} email={user.email} />
+            <UserMenu name={user.name} email={user.email} isAdmin={user.role === "ADMIN"} />
           </div>
         </div>
       </header>

@@ -3,6 +3,7 @@ import { db } from "./db";
 import { enqueueBookProcessing } from "./queue";
 import { storage, storageKeys } from "./storage";
 import { MAX_TITLE_LENGTH, MAX_UPLOADS_PER_HOUR, titleFromFilename } from "@/lib/upload/limits";
+import { assertCanUpload, LimitError } from "./limits";
 import { checkPdfSignature, PDF_HEAD_BYTES, PDF_TAIL_BYTES } from "@/lib/pdf/validate";
 import { MATH_HEAVY_THRESHOLD } from "@/lib/pdf/math-score";
 
@@ -100,6 +101,12 @@ export async function createUpload(
   const recent = await db.book.count({ where: { userId, createdAt: { gte: since } } });
   if (recent >= MAX_UPLOADS_PER_HOUR) {
     throw new RateLimitError(`You can upload up to ${MAX_UPLOADS_PER_HOUR} books per hour. Please try again later.`);
+  }
+  try {
+    await assertCanUpload(userId, input.size);
+  } catch (err) {
+    if (err instanceof LimitError) throw new RateLimitError(err.message);
+    throw err;
   }
 
   const book = await db.book.create({

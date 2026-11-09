@@ -1,0 +1,255 @@
+import type { Metadata } from "next";
+import type { ReactNode } from "react";
+import { PlanSelect, RetryButton } from "@/components/admin/admin-controls";
+import { Card, PageHeader } from "@/components/ui/misc";
+import { inputClasses } from "@/components/ui/field";
+import { buttonClasses } from "@/components/ui/button";
+import { getAiSpend, getFailures, getFeatureUsage, getOverview, listUsers, requireAdmin } from "@/server/admin";
+
+export const metadata: Metadata = { title: "Admin" };
+
+const usd = (n: number) => (n < 10 ? `$${n.toFixed(2)}` : `$${Math.round(n).toLocaleString("en-US")}`);
+const num = (n: number) => n.toLocaleString("en-US");
+const date = (d: Date) => d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
+
+const FEATURE_LABELS: Record<string, string> = {
+  LESSON: "Lessons",
+  QUESTIONS: "Regenerated questions",
+  ASSESSMENT: "Unit tests and exams",
+  PAGE_REPAIR: "Equation pages (vision)",
+  GRADING: "Grading written answers",
+  TUTOR: "Tutor",
+};
+
+function Section({ id, title, description, children }: { id: string; title: string; description?: string; children: ReactNode }) {
+  return (
+    <section aria-labelledby={id} className="flex flex-col gap-3">
+      <div>
+        <h2 id={id} className="text-lg font-semibold">
+          {title}
+        </h2>
+        {description && <p className="text-sm text-muted">{description}</p>}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+function Stat({ label, value, sub }: { label: string; value: string; sub?: string }) {
+  return (
+    <div className="rounded-xl border border-border bg-surface p-4">
+      <p className="text-sm text-muted">{label}</p>
+      <p className="mt-1 text-2xl font-semibold tabular-nums">{value}</p>
+      {sub && <p className="text-xs text-muted">{sub}</p>}
+    </div>
+  );
+}
+
+function Table({ caption, head, children }: { caption: string; head: string[]; children: ReactNode }) {
+  return (
+    <div className="overflow-x-auto rounded-xl border border-border bg-surface">
+      <table className="w-full text-left text-sm">
+        <caption className="sr-only">{caption}</caption>
+        <thead className="border-b border-border text-muted">
+          <tr>
+            {head.map((h, i) => (
+              <th key={h} scope="col" className={`px-4 py-2 font-medium ${i > 0 && h !== "" ? "whitespace-nowrap" : ""}`}>
+                {h}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-border">{children}</tbody>
+      </table>
+    </div>
+  );
+}
+
+const td = "px-4 py-2 align-top";
+
+export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
+  await requireAdmin();
+  const sp = await searchParams;
+  const q = typeof sp.q === "string" ? sp.q : "";
+  const [overview, spend, usage, failures, users] = await Promise.all([getOverview(), getAiSpend(), getFeatureUsage(), getFailures(), listUsers(q)]);
+  const maxDay = Math.max(0.01, ...spend.daily.map((d) => d.usd));
+  const failedTotal = failures.books.length + failures.lessons.length + failures.assessments.length;
+
+  return (
+    <div className="flex flex-col gap-10">
+      <PageHeader title="Admin" description="Users, Claude API spend, failed work and feature use. Only admins can see this page." />
+
+      <Section id="overview" title="Overview">
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+          <Stat label="Users" value={num(overview.users)} sub={`${num(overview.verified)} verified · ${num(overview.new7)} new this week`} />
+          <Stat label="Active students" value={num(overview.active7)} sub={`last 7 days · ${num(overview.active30)} in 30 days`} />
+          <Stat label="Books" value={num(overview.books)} sub={`${num(overview.courses)} courses · ${num(overview.failedBooks)} failed`} />
+          <Stat label="Claude spend" value={usd(overview.spendMonth)} sub={`this month · ${usd(overview.spend30)} in 30 days`} />
+        </div>
+      </Section>
+
+      <Section id="spend" title="Claude API spend" description="Last 30 days, from the cost recorded with every API call.">
+        <Card className="p-4">
+          {spend.daily.length === 0 ? (
+            <p className="text-sm text-muted">No API calls in the last 30 days.</p>
+          ) : (
+            <div className="flex h-28 items-end gap-1" role="img" aria-label={`Daily spend over ${spend.daily.length} days, highest ${usd(maxDay)}`}>
+              {spend.daily.map((d) => (
+                <div key={d.day} title={`${d.day}: ${usd(d.usd)}`} className="flex-1 rounded-t bg-primary/80" style={{ height: `${Math.max(2, (d.usd / maxDay) * 100)}%` }} />
+              ))}
+            </div>
+          )}
+        </Card>
+        <div className="grid gap-4 lg:grid-cols-2">
+          <Table caption="Spend by feature" head={["Feature", "Calls", "Tokens in / out", "Cost"]}>
+            {spend.byFeature.map((f) => (
+              <tr key={f.feature}>
+                <td className={td}>{FEATURE_LABELS[f.feature] ?? f.feature}</td>
+                <td className={`${td} tabular-nums`}>{num(f.calls)}</td>
+                <td className={`${td} tabular-nums`}>
+                  {num(f.inputTokens)} / {num(f.outputTokens)}
+                </td>
+                <td className={`${td} tabular-nums`}>{usd(f.usd)}</td>
+              </tr>
+            ))}
+          </Table>
+          <div className="flex flex-col gap-4">
+            <Table caption="Spend by model" head={["Model", "Calls", "Cost"]}>
+              {spend.byModel.map((m) => (
+                <tr key={m.model}>
+                  <td className={`${td} font-mono text-xs`}>{m.model}</td>
+                  <td className={`${td} tabular-nums`}>{num(m.calls)}</td>
+                  <td className={`${td} tabular-nums`}>{usd(m.usd)}</td>
+                </tr>
+              ))}
+            </Table>
+            <Table caption="Top users by spend" head={["Top users", "Plan", "Cost"]}>
+              {spend.topUsers.map((u) => (
+                <tr key={u.userId}>
+                  <td className={`${td} break-all`}>{u.email}</td>
+                  <td className={td}>{u.plan ?? "—"}</td>
+                  <td className={`${td} tabular-nums`}>{usd(u.usd)}</td>
+                </tr>
+              ))}
+            </Table>
+          </div>
+        </div>
+      </Section>
+
+      <Section
+        id="failures"
+        title={`Failed work${failedTotal ? ` (${failedTotal})` : ""}`}
+        description="Retrying runs on the owner's behalf, so their plan limits still apply."
+      >
+        {failedTotal === 0 ? (
+          <Card className="p-4 text-sm text-muted">Nothing has failed. 🎉</Card>
+        ) : (
+          <div className="flex flex-col gap-4">
+            {failures.books.length > 0 && (
+              <Table caption="Books that couldn't be read" head={["Book", "Student", "Error", ""]}>
+                {failures.books.map((b) => (
+                  <tr key={b.id}>
+                    <td className={`${td} break-all`}>
+                      {b.filename}
+                      <span className="block text-xs text-muted">{date(b.at)}</span>
+                    </td>
+                    <td className={`${td} break-all`}>{b.email}</td>
+                    <td className={td}>
+                      {b.error}
+                      {b.detail && (
+                        <details className="mt-1 text-xs text-muted">
+                          <summary className="cursor-pointer">Technical detail{b.step ? ` (step: ${b.step})` : ""}</summary>
+                          <pre className="mt-1 whitespace-pre-wrap break-all">{b.detail}</pre>
+                        </details>
+                      )}
+                    </td>
+                    <td className={td}>
+                      <RetryButton kind="book" id={b.id} />
+                    </td>
+                  </tr>
+                ))}
+              </Table>
+            )}
+            {failures.lessons.length > 0 && (
+              <Table caption="Courses with failed lessons" head={["Course", "Student", "Failed lessons", ""]}>
+                {failures.lessons.map((c) => (
+                  <tr key={c.courseId}>
+                    <td className={td}>
+                      {c.title}
+                      {c.error && <span className="block text-xs text-muted">{c.error}</span>}
+                    </td>
+                    <td className={`${td} break-all`}>{c.email}</td>
+                    <td className={`${td} tabular-nums`}>{c.failed}</td>
+                    <td className={td}>
+                      <RetryButton kind="lessons" id={c.courseId} />
+                    </td>
+                  </tr>
+                ))}
+              </Table>
+            )}
+            {failures.assessments.length > 0 && (
+              <Table caption="Tests that couldn't be written" head={["Test", "Student", "Error", ""]}>
+                {failures.assessments.map((a) => (
+                  <tr key={a.id}>
+                    <td className={td}>{a.title}</td>
+                    <td className={`${td} break-all`}>{a.email}</td>
+                    <td className={td}>{a.error}</td>
+                    <td className={td}>
+                      <RetryButton kind="assessment" id={a.id} />
+                    </td>
+                  </tr>
+                ))}
+              </Table>
+            )}
+          </div>
+        )}
+      </Section>
+
+      <Section id="features" title="Feature use" description="Last 30 days.">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+          {usage.map((u) => (
+            <div key={u.label} className="rounded-xl border border-border bg-surface px-4 py-3">
+              <p className="text-xl font-semibold tabular-nums">{num(u.count)}</p>
+              <p className="text-sm text-muted">{u.label}</p>
+            </div>
+          ))}
+        </div>
+      </Section>
+
+      <Section id="users" title="Users" description="Newest first (up to 50). Change a student's plan to give them higher limits.">
+        <form className="flex gap-2" role="search">
+          <label htmlFor="admin-user-search" className="sr-only">
+            Search users by email or name
+          </label>
+          <input id="admin-user-search" name="q" defaultValue={q} placeholder="Search by email or name" className={`${inputClasses} max-w-sm`} />
+          <button type="submit" className={buttonClasses("secondary")}>
+            Search
+          </button>
+        </form>
+        <Table caption="Users" head={["User", "Joined", "Courses", "AI this month", "Plan"]}>
+          {users.map((u) => (
+            <tr key={u.id}>
+              <td className={`${td} break-all`}>
+                <span className="font-medium">{u.name}</span>
+                {u.role === "ADMIN" && <span className="ml-2 rounded bg-surface-2 px-1.5 py-0.5 text-xs">admin</span>}
+                <span className="block text-xs text-muted">
+                  {u.email}
+                  {!u.emailVerified && " · not verified"}
+                </span>
+              </td>
+              <td className={`${td} whitespace-nowrap`}>{date(u.createdAt)}</td>
+              <td className={`${td} tabular-nums`}>{u.courses}</td>
+              <td className={`${td} whitespace-nowrap tabular-nums`}>
+                {usd(u.usdThisMonth)} <span className="text-muted">/ {usd(u.budget)}</span>
+              </td>
+              <td className={td}>
+                <PlanSelect userId={u.id} plan={u.plan} email={u.email} />
+              </td>
+            </tr>
+          ))}
+        </Table>
+        {users.length === 0 && <p className="text-sm text-muted">No users match “{q}”.</p>}
+      </Section>
+    </div>
+  );
+}

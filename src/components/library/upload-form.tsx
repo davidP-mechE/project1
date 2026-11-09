@@ -117,6 +117,8 @@ export function UploadForm() {
           ref={inputRef}
           id="pdf-file"
           type="file"
+          aria-label="Textbook PDF file"
+          tabIndex={-1} // the "Choose a file" button opens it; drag and drop works too
           accept="application/pdf,.pdf"
           className="sr-only"
           onChange={(e) => pick(e.target.files?.[0])}

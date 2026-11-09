@@ -58,3 +58,7 @@ dump.rdb
 
 # Downloaded embedding model, if EMBEDDINGS_CACHE_DIR points inside the project
 /.cache/
+
+# Playwright
+/test-results/
+/playwright-report/
