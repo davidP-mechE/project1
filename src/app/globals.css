@@ -306,3 +306,43 @@ body {
   .skeleton { animation: none; }
   .fade-in-soon { animation: none; }
 }
+
+/* ─── Printable study guide (/print/courses/…) ───────────────────────── */
+.print-doc {
+  background: #fff;
+  color: #111;
+  min-height: 100vh;
+  /* Always black on white, even if the app is in dark mode. */
+  --text: #111;
+  --text-muted: #555;
+  --surface-2: #f2f2f2;
+  --border: #ccc;
+  --primary: #1f2a9c;
+}
+.print-doc .prose-lesson {
+  font-size: 0.95rem;
+}
+@media print {
+  @page {
+    margin: 18mm 16mm;
+  }
+  html, body {
+    background: #fff !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .print-unit {
+    break-before: page;
+  }
+  .print-keep, .katex-display, pre, table tr {
+    break-inside: avoid;
+  }
+  .print-doc h2, .print-doc h3, .print-doc h4 {
+    break-after: avoid;
+  }
+  .print-doc a {
+    color: inherit;
+    text-decoration: none;
+  }
+}

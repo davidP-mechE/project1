@@ -53,6 +53,22 @@ export class FakeWriter implements LessonWriter {
     return { value: { questions: q }, calls: [{ value: null, model: "claude-sonnet-5-5", usage }] };
   }
 
+  assessmentCalls: import("@/lib/ai/assessment").AssessmentPromptInput[] = [];
+  nextAssessment: AiError | null = null;
+  async writeAssessment(input: import("@/lib/ai/assessment").AssessmentPromptInput) {
+    this.assessmentCalls.push(input);
+    if (this.nextAssessment) throw this.nextAssessment;
+    const lo = Math.min(...input.lessons.map((l) => l.pageStart));
+    const q = (i: number) => sampleDraft(lo, lo).questions[i % 3];
+    return {
+      value: {
+        summary: input.kind === "UNIT_TEST" ? `- Key idea of ${input.unitTitle} (p. ${lo}).` : "ignored",
+        questions: [...Array.from({ length: input.questionCount + 2 }, (_, i) => ({ ...q(i), prompt: `${input.kind} question ${i + 1}` })), { ...q(0), prompt: "bad", correctChoice: 9 }],
+      },
+      calls: [{ value: null, model: "claude-sonnet-5-5", usage: { inputTokens: 8000, outputTokens: 4000 } }],
+    };
+  }
+
   async repairPage(): Promise<WriterResult<string>> {
     this.repairCalls += 1;
     return {

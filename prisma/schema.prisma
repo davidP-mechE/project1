@@ -7,6 +7,7 @@
 // Phase 6: flashcard review (spaced repetition), highlights, notes, full-text search.
 // Phase 7: passage embeddings (pgvector) and the "Ask the book" tutor.
 // Phase 8: study preferences, daily activity (streaks, goals), study plans, reminders.
+// Phase 9: unit summaries, unit tests and the final exam (assessments).
 
 generator client {
   provider = "prisma-client"
@@ -55,15 +56,16 @@ model User {
   books    Book[]
   courses  Course[]
 
-  lessonProgress   LessonProgress[]
-  questionAttempts QuestionAttempt[]
-  cardStates       CardState[]
-  reviewLogs       ReviewLog[]
-  highlights       Highlight[]
-  notes            Note[]
-  tutorThreads     TutorThread[]
-  studyDays        StudyDay[]
-  studyPlans       StudyPlan[]
+  lessonProgress     LessonProgress[]
+  questionAttempts   QuestionAttempt[]
+  cardStates         CardState[]
+  reviewLogs         ReviewLog[]
+  highlights         Highlight[]
+  notes              Note[]
+  tutorThreads       TutorThread[]
+  assessmentAttempts AssessmentAttempt[]
+  studyDays          StudyDay[]
+  studyPlans         StudyPlan[]
 
   @@map("user")
 }
@@ -189,14 +191,16 @@ model Course {
   questions  Question[]
   flashcards Flashcard[]
 
-  lessonProgress   LessonProgress[]
-  questionAttempts QuestionAttempt[]
-  cardStates       CardState[]
-  reviewLogs       ReviewLog[]
-  highlights       Highlight[]
-  notes            Note[]
-  tutorThreads     TutorThread[]
-  studyPlans       StudyPlan[]
+  lessonProgress     LessonProgress[]
+  questionAttempts   QuestionAttempt[]
+  cardStates         CardState[]
+  reviewLogs         ReviewLog[]
+  highlights         Highlight[]
+  notes              Note[]
+  tutorThreads       TutorThread[]
+  studyPlans         StudyPlan[]
+  assessments        Assessment[]
+  assessmentAttempts AssessmentAttempt[]
 
   @@index([userId, archivedAt])
 }
@@ -255,16 +259,16 @@ model Figure {
 
 // Passages of ~400 tokens used for search and the tutor (embeddings added in Phase 7).
 model Chunk {
-  id         String @id @default(cuid())
-  bookId     String
-  book       Book   @relation(fields: [bookId], references: [id], onDelete: Cascade)
-  ordinal    Int
-  pageStart  Int
-  pageEnd    Int
-  text       String
-  tokenCount Int
+  id             String                   @id @default(cuid())
+  bookId         String
+  book           Book                     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  ordinal        Int
+  pageStart      Int
+  pageEnd        Int
+  text           String
+  tokenCount     Int
   // Full-text search vector, a generated column maintained by Postgres.
-  tsv        Unsupported("tsvector")? @default(dbgenerated("to_tsvector('english'::regconfig, text)"))
+  tsv            Unsupported("tsvector")? @default(dbgenerated("to_tsvector('english'::regconfig, text)"))
   // Meaning vector for the tutor (pgvector), and which model made it (re-embedded if the model changes).
   embedding      Unsupported("vector")?
   embeddingModel String?
@@ -287,7 +291,8 @@ model Unit {
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
-  lessons Lesson[]
+  lessons     Lesson[]
+  assessments Assessment[]
 
   @@index([courseId, order])
 }
@@ -330,16 +335,16 @@ model Lesson {
   createdAt         DateTime     @default(now())
   updatedAt         DateTime     @updatedAt
 
-  questions  Question[]
-  flashcards Flashcard[]
-  progress   LessonProgress[]
-  attempts   QuestionAttempt[]
-  highlights Highlight[]
-  notes      Note[]
+  questions    Question[]
+  flashcards   Flashcard[]
+  progress     LessonProgress[]
+  attempts     QuestionAttempt[]
+  highlights   Highlight[]
+  notes        Note[]
   tutorThreads TutorThread[]
   planItems    PlanItem[]
   // Full-text search vector (title + content), a generated column maintained by Postgres.
-  tsv        Unsupported("tsvector")? @default(dbgenerated("(setweight(to_tsvector('english'::regconfig, title), 'A'::\"char\") || setweight(to_tsvector('english'::regconfig, COALESCE(content, '{}'::jsonb)), 'B'::\"char\"))"))
+  tsv          Unsupported("tsvector")? @default(dbgenerated("(setweight(to_tsvector('english'::regconfig, title), 'A'::\"char\") || setweight(to_tsvector('english'::regconfig, COALESCE(content, '{}'::jsonb)), 'B'::\"char\"))"))
 
   @@index([unitId, order])
   @@index([tsv], type: Gin)
@@ -377,6 +382,9 @@ model Question {
   topic         String // short topic label, used later for "weak topics"
   userEdited    Boolean       @default(false)
   createdAt     DateTime      @default(now())
+  // Unit test / final exam questions belong to an assessment instead of a lesson.
+  assessmentId  String?
+  assessment    Assessment?   @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
 
   attempts QuestionAttempt[]
 
@@ -406,7 +414,9 @@ model Flashcard {
 
 // ─── Studying (Phase 5) ──────────────────────────────────────────────────
 
-/** One row per student per lesson they've opened. */
+/**
+ * One row per student per lesson they've opened.
+ */
 model LessonProgress {
   id           String    @id @default(cuid())
   userId       String
@@ -444,25 +454,28 @@ enum GradedBy {
  * null) with a copy of its topic, so the history still counts for weak topics.
  */
 model QuestionAttempt {
-  id         String         @id @default(cuid())
-  userId     String
-  user       User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  courseId   String
-  course     Course         @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  lessonId   String?
-  lesson     Lesson?        @relation(fields: [lessonId], references: [id], onDelete: SetNull)
-  questionId String?
-  question   Question?      @relation(fields: [questionId], references: [id], onDelete: SetNull)
-  topic      String
-  choice     Int? // multiple choice: the option picked
-  response   String // short answer / step-by-step: what the student wrote
-  verdict    AttemptVerdict
-  correct    Boolean
-  score      Float // 0-1
-  feedback   String
-  gradedBy   GradedBy
-  model      String?
-  createdAt  DateTime       @default(now())
+  id                  String             @id @default(cuid())
+  userId              String
+  user                User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId            String
+  course              Course             @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lessonId            String?
+  lesson              Lesson?            @relation(fields: [lessonId], references: [id], onDelete: SetNull)
+  questionId          String?
+  question            Question?          @relation(fields: [questionId], references: [id], onDelete: SetNull)
+  topic               String
+  choice              Int? // multiple choice: the option picked
+  response            String // short answer / step-by-step: what the student wrote
+  verdict             AttemptVerdict
+  correct             Boolean
+  score               Float // 0-1
+  feedback            String
+  gradedBy            GradedBy
+  model               String?
+  createdAt           DateTime           @default(now())
+  // Answers given as part of a unit test / final exam.
+  assessmentAttemptId String?
+  assessmentAttempt   AssessmentAttempt? @relation(fields: [assessmentAttemptId], references: [id], onDelete: Cascade)
 
   @@index([questionId, userId, createdAt])
   @@index([userId, createdAt])
@@ -506,7 +519,9 @@ model CardState {
   @@index([userId, due])
 }
 
-/** Every rating a student gives. Kept if the card is later deleted (for stats and streaks). */
+/**
+ * Every rating a student gives. Kept if the card is later deleted (for stats and streaks).
+ */
 model ReviewLog {
   id            String     @id @default(cuid())
   userId        String
@@ -559,7 +574,9 @@ model Highlight {
   @@index([courseId, userId])
 }
 
-/** A student's own notes on a lesson (Markdown). */
+/**
+ * A student's own notes on a lesson (Markdown).
+ */
 model Note {
   id        String   @id @default(cuid())
   userId    String
@@ -578,7 +595,9 @@ model Note {
 
 // ─── "Ask the book" tutor (Phase 7) ──────────────────────────────────────
 
-/** One conversation with the tutor. Optionally started from a lesson (its pages are preferred). */
+/**
+ * One conversation with the tutor. Optionally started from a lesson (its pages are preferred).
+ */
 model TutorThread {
   id        String         @id @default(cuid())
   userId    String
@@ -608,19 +627,19 @@ enum TutorMessageStatus {
 }
 
 model TutorMessage {
-  id        String             @id @default(cuid())
-  threadId  String
-  thread    TutorThread        @relation(fields: [threadId], references: [id], onDelete: Cascade)
-  role      TutorRole
-  content   String
-  status    TutorMessageStatus @default(DONE)
+  id         String             @id @default(cuid())
+  threadId   String
+  thread     TutorThread        @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  role       TutorRole
+  content    String
+  status     TutorMessageStatus @default(DONE)
   // Assistant only: the book passages it was given ([{chunkId, pageStart, pageEnd}]) and the pages it cited.
-  sources   Json?
+  sources    Json?
   citedPages Int[]
   // Assistant only: the answer says the book doesn't cover the question.
-  notInBook Boolean            @default(false)
-  error     String?
-  createdAt DateTime           @default(now())
+  notInBook  Boolean            @default(false)
+  error      String?
+  createdAt  DateTime           @default(now())
 
   @@index([threadId, createdAt])
 }
@@ -646,7 +665,9 @@ model StudyDay {
   @@unique([userId, day])
 }
 
-/** A plan to finish a course by a date: which lessons on which days. */
+/**
+ * A plan to finish a course by a date: which lessons on which days.
+ */
 model StudyPlan {
   id            String     @id @default(cuid())
   userId        String
@@ -683,11 +704,73 @@ model PlanItem {
   @@index([planId, day])
 }
 
+// ─── Unit tests and final exam (Phase 9) ────────────────────────────────
+
+enum AssessmentKind {
+  UNIT_TEST
+  FINAL_EXAM
+}
+
+enum AssessmentStatus {
+  QUEUED
+  GENERATING
+  READY
+  FAILED
+}
+
+/**
+ * A unit's summary + test, or the course's final exam. Written by Claude from
+ * the unit's finished lessons once they're all done. Its questions are
+ * Question rows (scope UNIT_TEST / FINAL_EXAM) pointing here.
+ */
+model Assessment {
+  id          String           @id @default(cuid())
+  courseId    String
+  course      Course           @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  unitId      String? // null for the final exam
+  unit        Unit?            @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  kind        AssessmentKind
+  status      AssessmentStatus @default(QUEUED)
+  summary     String? // unit summary (Markdown)
+  error       String?
+  model       String?
+  generatedAt DateTime?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  questions Question[]
+  attempts  AssessmentAttempt[]
+
+  @@index([courseId, kind])
+  @@index([unitId])
+}
+
+/**
+ * One time a student took a unit test or the final exam. Each answer is a QuestionAttempt.
+ */
+model AssessmentAttempt {
+  id           String            @id @default(cuid())
+  userId       String
+  user         User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId     String
+  course       Course            @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  assessmentId String
+  assessment   Assessment        @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  score        Float // 0-1
+  correct      Int
+  total        Int
+  createdAt    DateTime          @default(now())
+  answers      QuestionAttempt[]
+
+  @@index([userId, assessmentId, createdAt])
+}
+
 // ─── Claude API usage (for cost tracking and limits) ─────────────────────
 
 enum UsageFeature {
   LESSON
   QUESTIONS
+  ASSESSMENT
   PAGE_REPAIR
   GRADING
   TUTOR

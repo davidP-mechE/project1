@@ -12,12 +12,13 @@ import {
   startGeneration,
 } from "@/server/generation/lessons";
 import { markLessonFailed, runLessonJob, runQuestionsJob, type GenerationDeps } from "@/server/generation/run";
+import { runAssessmentJob } from "@/server/generation/assessments";
 import { DEFAULT_SETTINGS } from "@/lib/course/settings";
 import { createUser, resetDb } from "../helpers/db";
 import { FakeWriter, sampleDraft } from "../helpers/fake-claude";
 
 // Record queued jobs instead of using Redis.
-const queued = vi.hoisted(() => [] as { payload: { kind: string; lessonId: string; force?: boolean; allowThin?: boolean }; priority: number }[]);
+const queued = vi.hoisted(() => [] as { payload: { kind: string; lessonId: string; assessmentId?: string; force?: boolean; allowThin?: boolean }; priority: number }[]);
 vi.mock("@/server/queue", () => ({
   enqueueGeneration: async (jobs: typeof queued) => void queued.push(...jobs),
   enqueueBookProcessing: async () => ({ id: "job" }),
@@ -78,6 +79,11 @@ async function drain() {
   const outcomes: string[] = [];
   while (queued.length > 0) {
     const { payload } = queued.shift()!;
+    // Unit tests / the final exam get queued once a unit's lessons are done (Phase 9); run them, but only report lesson outcomes.
+    if (payload.kind === "assessment") {
+      await runAssessmentJob({ assessmentId: payload.assessmentId! }, deps);
+      continue;
+    }
     outcomes.push(payload.kind === "questions" ? await runQuestionsJob(payload, deps) : await runLessonJob(payload, deps));
   }
   return outcomes;

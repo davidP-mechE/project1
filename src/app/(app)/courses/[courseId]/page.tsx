@@ -17,6 +17,8 @@ import { getGenerationEstimate } from "@/server/outline";
 import { requireUser } from "@/server/session";
 import { getStudyOutline } from "@/server/study";
 import { getUnitScores } from "@/server/dashboard";
+import { getCourseAssessments } from "@/server/assessments";
+import { CreateAssessmentsButton } from "@/components/assessment/assessment-status";
 import { UnitScores } from "@/components/dashboard/charts";
 import { cn } from "@/lib/utils";
 
@@ -62,7 +64,7 @@ export default async function CoursePage({ params }: PageProps<"/courses/[course
         generating ? getStudyOutline(user.id, courseId) : null,
       ])
     : [null, null, null, 0, null];
-  const unitScores = study ? await getUnitScores(user.id, courseId) : [];
+  const [unitScores, assessments] = study ? await Promise.all([getUnitScores(user.id, courseId), getCourseAssessments(user.id, courseId)]) : [[], []];
   const completed = new Set(study?.units.flatMap((u) => u.lessons.filter((l) => l.completed).map((l) => l.id)) ?? []);
   const noKey = claudeEnabled ? undefined : "Lesson generation needs an ANTHROPIC_API_KEY on the server (see the README).";
 
@@ -112,7 +114,12 @@ export default async function CoursePage({ params }: PageProps<"/courses/[course
               Open {progress.flagged + progress.failed === 1 ? "it" : "them"} below to see why.
             </Alert>
           )}
-          <LessonList courseId={courseId} units={units} completed={completed} />
+          <LessonList courseId={courseId} units={units} completed={completed} assessments={assessments} />
+          {course.status === "ACTIVE" && assessments.length === 0 && claudeEnabled && (
+            <div className="mt-4">
+              <CreateAssessmentsButton courseId={courseId} />
+            </div>
+          )}
           {cost > 0 && <p className="mt-4 text-xs text-muted">Claude API cost for this course so far: ${cost.toFixed(2)}</p>}
         </Card>
       )}
@@ -223,7 +230,11 @@ function OutlinePreview({ outline, courseId }: { outline: Awaited<ReturnType<typ
         {outline.units.map((u) => (
           <li key={u.id} className={u.lessons.every((l) => l.skip) ? "opacity-70" : undefined}>
             <div className="flex flex-wrap items-baseline gap-2">
-              <h3 className="font-semibold">{u.title}</h3>
+              <h3 className="font-semibold">
+              <Link href={`/courses/${courseId}/units/${u.id}`} className="hover:underline">
+                {u.title}
+              </Link>
+            </h3>
               {u.lessons.every((l) => l.skip) && (
                 <span className="rounded-full bg-surface-2 px-2 py-0.5 text-xs text-muted">Skipped</span>
               )}
@@ -288,7 +299,29 @@ function ContinueStudying({ courseId, study }: { courseId: string; study: Awaite
   );
 }
 
-function LessonList({ courseId, units, completed }: { courseId: string; units: Awaited<ReturnType<typeof getCourseLessons>>; completed: Set<string> }) {
+type CourseAssessments = Awaited<ReturnType<typeof getCourseAssessments>>;
+
+function TestRow({ href, label, a }: { href: string; label: string; a: CourseAssessments[number] }) {
+  const state =
+    a.status === "READY"
+      ? a.best !== null
+        ? { text: `Best ${Math.round(a.best * 100)}%`, tone: a.best >= 0.8 ? "bg-success-bg text-success" : "bg-surface-2 text-muted" }
+        : { text: `${a.questionCount} questions`, tone: "bg-primary/10 text-primary" }
+      : a.status === "FAILED"
+        ? { text: "Failed", tone: "bg-danger-bg text-danger" }
+        : { text: "Writing…", tone: "bg-primary/15 text-primary" };
+  return (
+    <Link href={href} className="press-soft flex items-center justify-between gap-3 px-3 py-2.5 text-sm hover:bg-surface-2">
+      <span className="flex items-center gap-2 font-medium">
+        <span aria-hidden>📝</span> {label}
+      </span>
+      <span className={cn("shrink-0 rounded-full px-2 py-0.5 text-xs font-medium", state.tone)}>{state.text}</span>
+    </Link>
+  );
+}
+
+function LessonList({ courseId, units, completed, assessments }: { courseId: string; units: Awaited<ReturnType<typeof getCourseLessons>>; completed: Set<string>; assessments: CourseAssessments }) {
+  const final = assessments.find((a) => a.kind === "FINAL_EXAM");
   // Number included lessons 1, 2, 3… across the whole course.
   const numbers = new Map(
     units.flatMap((u) => u.lessons.filter((l) => !l.skip)).map((l, i) => [l.id, i + 1] as const),
@@ -324,9 +357,26 @@ function LessonList({ courseId, units, completed }: { courseId: string; units: A
                     </li>
                   );
                 })}
+              {(() => {
+                const a = assessments.find((x) => x.unitId === u.id);
+                return a ? (
+                  <li>
+                    <TestRow href={`/courses/${courseId}/units/${u.id}`} label="Unit test" a={a} />
+                  </li>
+                ) : null;
+              })()}
             </ol>
           </li>
         ))}
+      {final && (
+        <li>
+          <ol className="flex flex-col rounded-lg border border-primary/30 bg-primary/5">
+            <li>
+              <TestRow href={`/courses/${courseId}/final-exam`} label="Final exam" a={final} />
+            </li>
+          </ol>
+        </li>
+      )}
     </ol>
   );
 }

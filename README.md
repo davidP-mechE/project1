@@ -2,7 +2,7 @@
 
 Turn a textbook PDF into a structured, self-paced course: units, lessons, practice questions, flashcards with spaced repetition, and an "Ask the book" tutor that only answers from the textbook.
 
-> **Status:** Phases 1–8 of 10 are complete: accounts, library and upload; reading the book (text, OCR, figures, outline detection, background worker); the outline editor with course settings and a cost estimate; lesson generation with Claude (lessons, practice questions, flashcards, page references, caching, regenerating and hand editing); studying (course sidebar, progress, the original book side by side, practice questions checked instantly or graded by Claude); flashcards with spaced repetition, highlights and notes, and search across lessons and the book; the "Ask the book" tutor, which answers only from the textbook with page citations; and a daily dashboard with streaks, weak topics, study plans and reminder emails. See [PLAN.md](PLAN.md) for the full design and build order.
+> **Status:** Phases 1–9 of 10 are complete: accounts, library and upload; reading the book (text, OCR, figures, outline detection, background worker); the outline editor with course settings and a cost estimate; lesson generation with Claude (lessons, practice questions, flashcards, page references, caching, regenerating and hand editing); studying (course sidebar, progress, the original book side by side, practice questions checked instantly or graded by Claude); flashcards with spaced repetition, highlights and notes, and search across lessons and the book; the "Ask the book" tutor, which answers only from the textbook with page citations; a daily dashboard with streaks, weak topics, study plans and reminder emails; and unit tests, a final exam and exports (Markdown, PDF, CSV, Anki). See [PLAN.md](PLAN.md) for the full design and build order.
 
 | Phase | What | Status |
 |---|---|---|
@@ -14,8 +14,8 @@ Turn a textbook PDF into a structured, self-paced course: units, lessons, practi
 | 6 | Flashcards (spaced repetition), highlights/notes, search | ✅ Done |
 | 7 | "Ask the book" tutor | ✅ Done |
 | 8 | Dashboard, weak topics, study plan, streaks, reminders | ✅ Done |
-| 9 | Unit tests / final exam, exports | ⏳ Next |
-| 10 | Usage limits, admin, legal, security + accessibility pass, deployment | |
+| 9 | Unit tests / final exam, exports | ✅ Done |
+| 10 | Usage limits, admin, legal, security + accessibility pass, deployment | ⏳ Next |
 
 ---
 
@@ -294,6 +294,22 @@ Each course has an **Ask the book** tab, and each lesson has an **Ask the book**
 - The dashboard's cards, charts and goal ring animate in.
 - All of it is off with "reduce motion".
 
+### Unit tests, final exam and exports (Phase 9)
+
+**Tests** (`src/server/generation/assessments.ts`, `src/lib/ai/assessment.ts`):
+- When every lesson in a unit has been written, a **unit test** is written for it automatically (12 questions, or 3 per lesson if fewer). When all units are done, a **final exam** (30 questions, or 2 per lesson if fewer) covering the whole course.
+- Written by the same model as the lessons, from the unit's lessons, with page references. A mix of multiple choice and written answers. Recorded as `ASSESSMENT` usage. Courses generated before Phase 9 get a **Create tests** button on the course page.
+- Each unit has its own page (`/courses/…/units/…`) with its lessons, the test and past scores. The course page lists the tests under each unit, plus the final exam.
+- Taking a test: answers aren't sent to the browser until you submit. Your answers are saved in the browser as you go, so a reload doesn't lose them. On submit, multiple choice and exact answers are checked instantly and written answers are graded by Claude (4 at a time, counted against the hourly grading limit). Unanswered questions score 0.
+- Results: score, what to revisit, each question with your answer, the right answer, why and the book page. Confetti at 80%+. Every attempt is kept (`AssessmentAttempt`), and test answers also count toward weak topics.
+- A failed test can be regenerated.
+
+**Exports** (each course's **Export** tab, `GET /api/courses/:id/export?format=…`):
+- **Markdown**: the whole course (lessons, questions with answers, flashcards; answers and flashcards can be left out), one `.md` file with LaTeX math.
+- **PDF study guide**: a print-ready page (`/print/courses/:id`) opens your browser's print dialog; choose **Save as PDF**. Math, page breaks and a cover page included. *Change from PLAN.md (D13):* the plan was to render PDFs with headless Chromium in the worker. Printing from the browser gives the same result without adding ~300 MB of Chromium to the worker or the server.
+- **Flashcards CSV** and **Questions CSV**: open in Excel, Google Sheets, Quizlet. Cells starting with `=`, `+`, `-`, `@` are escaped so they can't run as spreadsheet formulas.
+- **Anki deck (.apkg)**: built on the server with `sql.js` (`src/lib/export/anki.ts`). One subdeck per unit ("Course::Unit"), a Front/Back/Source note type, math converted to Anki's `\( \)` syntax. Re-importing updates cards instead of duplicating them (stable ids). Spaced-repetition progress from Coursebook isn't carried over.
+
 ### Key decisions
 
 See the table at the top of [PLAN.md](PLAN.md). Short version: Postgres everywhere (pgvector later), Better Auth for accounts, a separate background worker for heavy PDF processing, direct-to-storage uploads, and Next.js "Cache Components" turned off because almost every page is personal to the logged-in student.
@@ -320,6 +336,14 @@ The same formula powers the estimate on each course's Settings page and in the "
 | **Total per 100 pages** | | **≈ $1.50** (≈ $15 for a 1,000-page book) |
 
 While studying: multiple choice and exact matches are free; a written answer graded by Claude ≈ $0.01–0.02 (Claude Opus 5.5 at low effort, ~2–4K tokens in); a tutor question ≈ $0.02–0.05 (up to ~6K tokens of book passages plus the conversation). Embeddings are free (computed locally).
+
+## Manual test checklist (Phase 9)
+
+1. Generate a course (demo mode is fine) with `npm run worker` running. When the lessons are done, each unit gets a test and then the course gets a final exam (watch the course page update).
+2. Open a unit test, answer half the questions, reload: your answers are still there. Submit. You see your score, what to revisit, and each question with the right answer and page. Retake it: the course page shows your best score.
+3. Take the final exam the same way. A written answer is graded by Claude (real mode).
+4. **Export** tab: download the Markdown, both CSVs (open them in a spreadsheet) and the Anki deck (File → Import in Anki: one subdeck per unit). **PDF study guide** opens the print dialog; Save as PDF and check math and page breaks.
+5. Phone width and dark mode on a test and its results.
 
 ## Manual test checklist (Phase 8)
 

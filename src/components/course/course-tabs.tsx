@@ -24,6 +24,7 @@ export function CourseTabs({ courseId, study }: { courseId: string; study: boole
           { href: `/courses/${courseId}/notes`, label: "Notes" },
           { href: `/courses/${courseId}/search`, label: "Search" },
           { href: `/courses/${courseId}/tutor`, label: "Ask the book" },
+          { href: `/courses/${courseId}/export`, label: "Export" },
         ]
       : []),
   ];
