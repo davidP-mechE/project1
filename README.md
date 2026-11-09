@@ -2,14 +2,14 @@
 
 Turn a textbook PDF into a structured, self-paced course: units, lessons, practice questions, flashcards with spaced repetition, and an "Ask the book" tutor that only answers from the textbook.
 
-> **Status:** Phases 1–2 of 10 are complete (accounts, library, upload, and reading the book: text extraction, OCR, figures, outline detection, background worker). See [PLAN.md](PLAN.md) for the full design and build order.
+> **Status:** Phases 1–3 of 10 are complete: accounts, library, upload; reading the book (text, OCR, figures, outline detection, background worker); and the outline editor with course settings and a cost estimate. See [PLAN.md](PLAN.md) for the full design and build order.
 
 | Phase | What | Status |
 |---|---|---|
 | 1 | Project setup, auth, library, PDF upload + storage | ✅ Done |
 | 2 | Extraction, OCR fallback, outline detection, background jobs | ✅ Done |
-| 3 | Outline editor + course settings | ⏳ Next |
-| 4 | Lesson generation with Claude | |
+| 3 | Outline editor + course settings | ✅ Done |
+| 4 | Lesson generation with Claude | ⏳ Next |
 | 5 | Study view, split PDF viewer, practice questions + grading | |
 | 6 | Flashcards (spaced repetition), highlights/notes, search | |
 | 7 | "Ask the book" tutor | |
@@ -134,6 +134,15 @@ Each step can safely run again. A retry skips pages already read, and the outlin
 
 **Deployment note:** the worker needs a normal always-on server (Railway, Fly.io, Render…), not Vercel, and must use the same database, Redis and **S3/R2 storage** as the web app. Local-disk storage only works when both run on one machine.
 
+### Editing the outline (Phase 3)
+
+- **Units and lessons:** each course has units (usually chapters), and each unit has lessons (usually sections). A lesson is defined by a **page range** and will be written from those pages only.
+- **Editing happens in the browser:** the editor (`src/components/outline/`) keeps your edits in the page, with **Undo** and **Reset to detected**. **Save** sends the whole outline at once. Every editing action (rename, move, merge, split, add, delete, change pages, skip) is a small pure function in `src/lib/outline/edit.ts`, with unit tests.
+- **Saving keeps existing lessons:** `saveOutline` in `src/server/outline.ts` compares the new outline with the database instead of replacing it. Lessons you kept keep their database id, so lesson content generated in Phase 4 stays attached when you rename or move a lesson. A lesson whose page range changes is marked to be regenerated. Ids from anywhere else are ignored, so a tampered request can't touch another course.
+- **Checks:** you can't save with errors (empty titles, impossible page ranges, every lesson skipped). Warnings (uncovered pages, lessons over 40 pages) are shown but don't block saving.
+- **Settings** (`src/lib/course/settings.ts`): student level, explanation style, content types, questions and flashcards per lesson, and whether to include front/back matter. They're stored as JSON on the course and always read through one function that fills in defaults.
+- **Estimate** (`src/lib/usage/estimate.ts`): calculated in the browser from each included lesson's amount of text and equation-heavy pages, so it updates instantly as you change settings.
+
 ### Key decisions
 
 See the table at the top of [PLAN.md](PLAN.md). Short version: Postgres everywhere (pgvector later), Better Auth for accounts, a separate background worker for heavy PDF processing, direct-to-storage uploads, and Next.js "Cache Components" turned off because almost every page is personal to the logged-in student.
@@ -149,7 +158,7 @@ See the table at the top of [PLAN.md](PLAN.md). Short version: Postgres everywhe
 
 ## Estimated Claude API cost per 100 pages
 
-Generation starts in Phase 4; this estimate will be replaced with measured numbers then.
+The same formula powers the estimate on each course's Settings page (`src/lib/usage/estimate.ts`). With the default settings it gives **$1.53 per 100 pages**; with the "Concise" style, $1.29. Generation starts in Phase 4, and these numbers will be checked against real token usage then.
 
 | Item | Approx. tokens | Approx. cost |
 |---|---|---|
@@ -160,6 +169,29 @@ Generation starts in Phase 4; this estimate will be replaced with measured numbe
 | **Total per 100 pages** | | **≈ $1.50** (≈ $15 for a 1,000-page book) |
 
 While studying: a graded short answer ≈ $0.01, a tutor message ≈ $0.02–0.05 (Claude Opus 5.5).
+
+## Manual test checklist (Phase 3)
+
+Run `npm run dev` and `npm run worker`, then upload `tests/fixtures/outlined.pdf` (or one of your own books).
+
+1. When processing finishes, the course page shows **Next steps** and the tabs **Overview / Outline / Settings**.
+2. **Outline** tab:
+   - **Rename:** rename a lesson. "Unsaved changes" appears.
+   - **Page preview:** click the eye button on a lesson to see how its first page begins and its last page ends.
+   - **Split:** use the ⋯ menu to split a lesson at a page.
+   - **Merge and new unit:** merge two lessons, and "Start a new unit here".
+   - **Move:** move lessons with the ↑ ↓ buttons. At the top or bottom of a unit, a lesson moves into the neighbouring unit.
+   - **Errors:** type an impossible page range. An error appears and **Save** is disabled.
+   - **Undo:** steps back one change at a time. Typing a title counts as one step.
+   - **Save, then reload:** your changes are still there.
+   - **Reset to detected:** brings back the original outline. Undo works on that too.
+3. **Keyboard only:** Tab to a ⋯ button, press Enter, use the arrow keys, then Enter to choose an item. Escape closes the menu.
+4. **Settings** tab:
+   - Change level, style and content types. The estimate updates instantly.
+   - Tick "Include pages like the preface…". The lesson count goes up.
+   - Save, then reload. Your choices stay.
+5. Try both tabs at phone width and in dark mode.
+6. While a book is still processing, the Outline and Settings tabs aren't shown, and those pages say to wait.
 
 ## Manual test checklist (Phase 2)
 

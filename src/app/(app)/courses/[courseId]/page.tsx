@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { CourseHeader } from "@/components/course/course-header";
 import { ProcessingStatus } from "@/components/course/processing-status";
 import { Alert } from "@/components/ui/alert";
 import { ButtonLink, buttonClasses } from "@/components/ui/button";
-import { Card, PageHeader } from "@/components/ui/misc";
+import { Card } from "@/components/ui/misc";
 import { formatBytes } from "@/lib/upload/limits";
-import { getCourse, getOutlineSummary, getProcessingStatus, markCourseOpened, NotFoundError } from "@/server/courses";
+import { getOutlineSummary, getProcessingStatus, markCourseOpened } from "@/server/courses";
+import { getCourseOr404 } from "@/server/course-page";
 import { requireUser } from "@/server/session";
 
 export const metadata: Metadata = { title: "Course" };
@@ -31,13 +32,7 @@ function pageList(pages: number[]): string {
 export default async function CoursePage({ params }: PageProps<"/courses/[courseId]">) {
   const user = await requireUser();
   const { courseId } = await params;
-  let course;
-  try {
-    course = await getCourse(user.id, courseId);
-  } catch (err) {
-    if (err instanceof NotFoundError) notFound();
-    throw err;
-  }
+  const course = await getCourseOr404(user.id, courseId);
   await markCourseOpened(user.id, courseId);
   const { book } = course;
   const fileAvailable = ["UPLOADED", "PROCESSING", "READY", "FAILED"].includes(book.status) && course.status !== "UPLOADING";
@@ -49,7 +44,7 @@ export default async function CoursePage({ params }: PageProps<"/courses/[course
 
   return (
     <div className="mx-auto max-w-3xl">
-      <PageHeader title={course.title} description={book.originalFilename} />
+      <CourseHeader course={course} />
 
       {course.status === "UPLOADING" && (
         <Alert tone="warning" className="mb-6">
@@ -66,7 +61,8 @@ export default async function CoursePage({ params }: PageProps<"/courses/[course
         </Card>
       )}
 
-      {outline && <OutlinePreview outline={outline} />}
+      {outline && course.status === "OUTLINE_DRAFT" && <NextSteps courseId={courseId} />}
+      {outline && <OutlinePreview outline={outline} courseId={courseId} />}
 
       <Card>
         <h2 className="mb-4 text-lg font-semibold">File</h2>
@@ -103,15 +99,48 @@ export default async function CoursePage({ params }: PageProps<"/courses/[course
   );
 }
 
-function OutlinePreview({ outline }: { outline: Awaited<ReturnType<typeof getOutlineSummary>> }) {
-  const lessonCount = outline.units.reduce((n, u) => n + u.lessons.filter((l) => !l.isFrontBackMatter).length, 0);
-  const unitCount = outline.units.filter((u) => !u.isFrontBackMatter).length;
+function NextSteps({ courseId }: { courseId: string }) {
+  const steps = [
+    { title: "Check the outline", body: "Rename, merge, split or reorder lessons and fix page ranges.", href: `/courses/${courseId}/outline`, cta: "Edit outline" },
+    { title: "Choose settings", body: "Pick your level, explanation style and what to create. See the cost estimate.", href: `/courses/${courseId}/setup`, cta: "Course settings" },
+    { title: "Generate lessons", body: "Coursebook writes each lesson from its pages. Coming in the next build phase.", href: null, cta: null },
+  ];
   return (
     <Card className="mb-6">
-      <h2 className="text-lg font-semibold">Detected outline</h2>
+      <h2 className="text-lg font-semibold">Next steps</h2>
+      <ol className="mt-4 grid gap-4 sm:grid-cols-3">
+        {steps.map((s, i) => (
+          <li key={s.title} className="flex flex-col gap-2 rounded-lg border border-border p-4">
+            <span className="inline-flex size-6 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-text" aria-hidden>
+              {i + 1}
+            </span>
+            <h3 className="font-medium">{s.title}</h3>
+            <p className="flex-1 text-sm text-muted">{s.body}</p>
+            {s.href && (
+              <ButtonLink href={s.href} variant={i === 0 ? "primary" : "secondary"} size="sm" className="self-start">
+                {s.cta}
+              </ButtonLink>
+            )}
+          </li>
+        ))}
+      </ol>
+    </Card>
+  );
+}
+
+function OutlinePreview({ outline, courseId }: { outline: Awaited<ReturnType<typeof getOutlineSummary>>; courseId: string }) {
+  const lessonCount = outline.units.reduce((n, u) => n + u.lessons.filter((l) => !l.skip).length, 0);
+  const unitCount = outline.units.filter((u) => u.lessons.some((l) => !l.skip)).length;
+  return (
+    <Card className="mb-6">
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <h2 className="text-lg font-semibold">Course outline</h2>
+        <ButtonLink href={`/courses/${courseId}/outline`} variant="secondary" size="sm">
+          Edit outline
+        </ButtonLink>
+      </div>
       <p className="mt-1 text-sm text-muted">
-        {unitCount} units and {lessonCount} lessons, built {sourceLabels[outline.outlineSource ?? "PAGE_RANGES"]}. You&apos;ll be
-        able to rename, merge, split and reorder them before lessons are written.
+        {unitCount} units and {lessonCount} lessons. The outline was first built {sourceLabels[outline.outlineSource ?? "PAGE_RANGES"]}.
       </p>
 
       <div className="mt-4 flex flex-col gap-2">
@@ -137,17 +166,17 @@ function OutlinePreview({ outline }: { outline: Awaited<ReturnType<typeof getOut
 
       <ol className="mt-5 flex flex-col gap-4">
         {outline.units.map((u) => (
-          <li key={u.id} className={u.isFrontBackMatter ? "opacity-70" : undefined}>
+          <li key={u.id} className={u.lessons.every((l) => l.skip) ? "opacity-70" : undefined}>
             <div className="flex flex-wrap items-baseline gap-2">
               <h3 className="font-semibold">{u.title}</h3>
-              {u.isFrontBackMatter && (
-                <span className="rounded-full bg-surface-2 px-2 py-0.5 text-xs text-muted">Skipped by default</span>
+              {u.lessons.every((l) => l.skip) && (
+                <span className="rounded-full bg-surface-2 px-2 py-0.5 text-xs text-muted">Skipped</span>
               )}
             </div>
             {!(u.lessons.length === 1 && u.lessons[0].title === u.title) && (
               <ol className="mt-1 flex flex-col gap-1 border-l border-border pl-4 text-sm">
                 {u.lessons.map((l) => (
-                  <li key={l.id} className="flex justify-between gap-4">
+                  <li key={l.id} className={l.skip ? "flex justify-between gap-4 text-muted line-through" : "flex justify-between gap-4"}>
                     <span>{l.title}</span>
                     <span className="shrink-0 text-muted">
                       {l.pageStart === l.pageEnd ? `p. ${l.pageStart}` : `pp. ${l.pageStart}–${l.pageEnd}`}

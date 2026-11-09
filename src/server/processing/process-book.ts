@@ -279,6 +279,7 @@ async function saveOutline(courseId: string, bookId: string, units: DraftUnit[],
               pageStart: Math.max(1, l.pageStart),
               pageEnd: Math.min(pageCount, l.pageEnd),
               isFrontBackMatter: l.isFrontBackMatter,
+              skip: l.isFrontBackMatter,
             })),
           },
         },
@@ -288,7 +289,10 @@ async function saveOutline(courseId: string, bookId: string, units: DraftUnit[],
     if (frontBack.size > 0) {
       await tx.page.updateMany({ where: { bookId, pageNumber: { in: [...frontBack] } }, data: { isFrontBackMatter: true } });
     }
-    await tx.course.update({ where: { id: courseId }, data: { outlineSource: source } });
+    await tx.course.update({
+      where: { id: courseId },
+      data: { outlineSource: source, detectedOutline: units as unknown as Prisma.InputJsonValue },
+    });
     await tx.book.update({ where: { id: bookId }, data: { hasBuiltInOutline: source === "BOOKMARKS" } });
   });
 }

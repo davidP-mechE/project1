@@ -216,7 +216,7 @@ export async function getOutlineSummary(userId: string, courseId: string) {
         id: true,
         title: true,
         isFrontBackMatter: true,
-        lessons: { orderBy: { order: "asc" }, select: { id: true, title: true, pageStart: true, pageEnd: true, isFrontBackMatter: true } },
+        lessons: { orderBy: { order: "asc" }, select: { id: true, title: true, pageStart: true, pageEnd: true, isFrontBackMatter: true, skip: true } },
       },
     }),
     db.page.count({ where: { bookId: course.bookId, textSource: "OCR" } }),

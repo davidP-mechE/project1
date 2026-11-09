@@ -141,21 +141,25 @@ enum CourseStatus {
 }
 
 model Course {
-  id            String         @id @default(cuid())
-  userId        String
-  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  bookId        String         @unique
-  book          Book           @relation(fields: [bookId], references: [id], onDelete: Cascade)
-  title         String
-  status        CourseStatus   @default(UPLOADING)
-  archivedAt    DateTime?
-  lastOpenedAt  DateTime?
+  id              String         @id @default(cuid())
+  userId          String
+  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bookId          String         @unique
+  book            Book           @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  title           String
+  status          CourseStatus   @default(UPLOADING)
+  archivedAt      DateTime?
+  lastOpenedAt    DateTime?
   // Cached completion percentage (0-100), recomputed when lesson progress changes.
-  progressPct   Int            @default(0)
+  progressPct     Int            @default(0)
   // Where the outline came from: the PDF's bookmarks, detected headings, or fixed page ranges.
-  outlineSource OutlineSource?
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  outlineSource   OutlineSource?
+  // The outline exactly as processing detected it, so the student can reset their edits.
+  detectedOutline Json?
+  // Level, explanation style, content types… (validated by src/lib/course/settings.ts)
+  settings        Json?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
 
   units   Unit[]
   lessons Lesson[]
@@ -265,6 +269,8 @@ model Lesson {
   pageStart         Int
   pageEnd           Int
   isFrontBackMatter Boolean      @default(false)
+  // Student's choice to leave this lesson out of the course (starts as true for front/back matter).
+  skip              Boolean      @default(false)
   status            LessonStatus @default(PENDING)
   createdAt         DateTime     @default(now())
   updatedAt         DateTime     @updatedAt
