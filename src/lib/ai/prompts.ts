@@ -79,6 +79,8 @@ export type LessonPromptInput = {
   settings: CourseSettings;
   /** Lecture slides instead of a textbook: each "page" is one slide. */
   sourceKind?: "book" | "slides";
+  /** Review: write every question on this one skill (topic), to drill it. */
+  focus?: string;
 };
 
 /** Extra instructions for lecture slides (kept out of the cached system prompt). */
@@ -154,7 +156,11 @@ ${formatSourcePages(input.pages)}
 
 ${header(input)}${slidesNote(input)}
 
-Write only practice questions for this lesson from the pages above. Set sourceCheck as usual. Settings:
+Write only practice questions for this lesson from the pages above. Set sourceCheck as usual.${
+    input.focus
+      ? ` Every question must test the skill "${input.focus.replace(/"/g, "'")}" (set each question's topic to exactly that), from different angles: definitions, applying it, spotting mistakes, and problems like the pages' examples with new numbers where the pages give a method.`
+      : ""
+  } Settings:
 ${settingsLines(input.settings, { questionsOnly: true }).join("\n")}
 
 Cite only pages ${input.pageStart}–${input.pageEnd}.${avoid}`;

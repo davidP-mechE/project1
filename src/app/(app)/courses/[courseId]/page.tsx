@@ -11,6 +11,9 @@ import { Card, ProgressBar } from "@/components/ui/misc";
 import { formatBytes } from "@/lib/upload/limits";
 import { getOutlineSummary, getProcessingStatus, markCourseOpened } from "@/server/courses";
 import { getCourseOr404 } from "@/server/course-page";
+import { getPublishState } from "@/server/catalog";
+import { db } from "@/server/db";
+import { PublishForm } from "@/components/hub/hub-controls";
 import { rangeText, type SourceKindName } from "@/lib/source-label";
 import { claudeEnabled } from "@/server/env";
 import { getCourseCost, getCourseLessons, getGenerationProgress } from "@/server/generation/lessons";
@@ -57,6 +60,10 @@ export default async function CoursePage({ params }: PageProps<"/courses/[course
     ? await getOutlineSummary(user.id, courseId)
     : null;
   const generating = course.status === "GENERATING" || course.status === "ACTIVE";
+  const [hubEntry, publish] = await Promise.all([
+    course.catalogEntryId ? db.catalogEntry.findUnique({ where: { id: course.catalogEntryId }, select: { attribution: true, license: true, sourceUrl: true } }) : null,
+    user.role === "ADMIN" && !course.catalogEntryId && generating ? getPublishState(courseId) : null,
+  ]);
   const [pendingEstimate, progress, units, cost, study] = outline
     ? await Promise.all([
         getGenerationEstimate(user.id, courseId, "pending"),
@@ -153,11 +160,42 @@ export default async function CoursePage({ params }: PageProps<"/courses/[course
               {course.book.kind === "SLIDES" ? "Open the slides" : "Open original PDF"}
             </a>
           )}
-          <ButtonLink href={course.book.kind === "SLIDES" ? "/slides" : "/library"} variant="ghost">
-            {course.book.kind === "SLIDES" ? "Back to slides" : "Back to library"}
+          <ButtonLink href={course.catalogEntryId ? "/hub" : course.book.kind === "SLIDES" ? "/slides" : "/library"} variant="ghost">
+            {course.catalogEntryId ? "Back to the Hub" : course.book.kind === "SLIDES" ? "Back to slides" : "Back to library"}
           </ButtonLink>
         </div>
       </Card>
+
+      {hubEntry && (
+        <Card className="mt-6">
+          <h2 className="mb-2 text-lg font-semibold">Credits</h2>
+          <p className="text-sm text-muted">
+            A provided course from the Hub ({hubEntry.license}). {hubEntry.attribution}
+          </p>
+          {hubEntry.sourceUrl && (
+            <a href={hubEntry.sourceUrl} target="_blank" rel="noopener noreferrer" className="mt-2 inline-block text-sm font-semibold text-accent-ink underline">
+              Original book ↗
+            </a>
+          )}
+        </Card>
+      )}
+
+      {publish && (
+        <Card className="mt-6">
+          <h2 className="mb-1 text-lg font-semibold">Publish to the Hub</h2>
+          <p className="mb-4 text-sm text-muted">
+            Admins only. Students can add this course to their library from the Hub and study it without paying for generation. Only publish books you&apos;re allowed to
+            share, such as OpenStax textbooks (CC BY), with the attribution their license asks for.
+          </p>
+          <PublishForm
+            courseId={courseId}
+            title={course.title}
+            subject={publish.subject}
+            students={publish.entry?._count.enrollments ?? 0}
+            initial={publish.entry ? { description: publish.entry.description, subject: publish.entry.subject, license: publish.entry.license, attribution: publish.entry.attribution, sourceUrl: publish.entry.sourceUrl } : null}
+          />
+        </Card>
+      )}
     </div>
   );
 }

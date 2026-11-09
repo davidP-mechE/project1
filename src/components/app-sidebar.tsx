@@ -48,6 +48,36 @@ const ICONS: Record<string, ReactNode> = {
     </>
   ),
   admin: <path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z" />,
+  hub: (
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <path d="m15.5 8.5-2 5-5 2 2-5z" />
+    </>
+  ),
+  skills: (
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <circle cx="12" cy="12" r="5" />
+      <circle cx="12" cy="12" r="1" />
+    </>
+  ),
+  spaced: (
+    <>
+      <path d="M3 12a9 9 0 1 0 3-6.7L3 8" />
+      <path d="M3 3v5h5M12 7v5l3 2" />
+    </>
+  ),
+  errors: (
+    <>
+      <path d="M5 4h11l3 3v13H5z" />
+      <path d="m9.5 10.5 5 5M14.5 10.5l-5 5" />
+    </>
+  ),
+  mastery: (
+    <>
+      <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" />
+    </>
+  ),
 };
 
 function Icon({ name }: { name: keyof typeof ICONS }) {
@@ -78,7 +108,16 @@ function NavLinks({ isAdmin, dueCount, onNavigate }: { isAdmin: boolean; dueCoun
       links: [
         { href: "/library", label: "Library", icon: "library" },
         { href: "/slides", label: "Slides", icon: "slides" },
-        { href: "/review", label: "Review", icon: "review", badge: dueCount },
+        { href: "/hub", label: "Hub", icon: "hub" },
+      ],
+    },
+    {
+      label: "Practice",
+      links: [
+        { href: "/skills", label: "Review", icon: "skills" },
+        { href: "/review", label: "Spaced repetition", icon: "spaced", badge: dueCount },
+        { href: "/errors", label: "Error log", icon: "errors" },
+        { href: "/mastery", label: "Mastery", icon: "mastery" },
       ],
     },
     {
@@ -88,7 +127,7 @@ function NavLinks({ isAdmin, dueCount, onNavigate }: { isAdmin: boolean; dueCoun
   ];
   const isActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
   return (
-    <nav aria-label="Main" className="flex flex-col gap-5">
+    <nav aria-label="Main" className="flex flex-col gap-4">
       {groups.map((g, i) => (
         <div key={i} className="flex flex-col gap-1">
           {g.label && <p className="px-3 text-xs font-semibold uppercase tracking-wider text-nav-muted">{g.label}</p>}

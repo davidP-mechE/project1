@@ -9,6 +9,8 @@ export const RATE_RULES = {
   answer: { name: "answer", max: 120, windowSeconds: 60 },
   /** Submitting a unit test or the final exam. */
   testSubmit: { name: "test-submit", max: 20, windowSeconds: 60 * 60 },
+  /** Review: asking Claude for more questions on a skill (each request writes 5). */
+  skillQuestions: { name: "skill-questions", max: 30, windowSeconds: 60 * 60 },
 } satisfies Record<string, RateRule>;
 
 /** Which window `now` falls in, and how long until it ends. */

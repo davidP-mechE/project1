@@ -63,7 +63,8 @@ export async function getUsage(userId: string, now = new Date()): Promise<{ plan
     planOf(userId),
     aiUsdThisMonth(userId, now),
     lessonsWrittenThisMonth(userId, now),
-    db.book.aggregate({ where: { userId }, _count: { _all: true }, _sum: { sizeBytes: true } }),
+    // Courses added from the Hub share the provided files, so they don't count toward books or storage.
+    db.book.aggregate({ where: { userId, OR: [{ course: null }, { course: { catalogEntryId: null } }] }, _count: { _all: true }, _sum: { sizeBytes: true } }),
   ]);
   return {
     plan,

@@ -17,7 +17,25 @@ type Item = { question: PracticeQuestion; lesson: { id: string; title: string } 
  * back a few questions later (at most twice), so the set finishes with the
  * ideas answered right. Every answer is saved like any other practice answer.
  */
-export function PracticeSession({ courseId, bookId, items, grading, lessonTitle }: { courseId: string; bookId: string; items: Item[]; grading: "claude" | "demo" | null; lessonTitle: string | null }) {
+export function PracticeSession({
+  courseId,
+  bookId,
+  items,
+  grading,
+  lessonTitle,
+  title = "Practice set",
+  doneHref,
+  doneLabel = "See your mastery",
+}: {
+  courseId: string;
+  bookId: string;
+  items: Item[];
+  grading: "claude" | "demo" | null;
+  lessonTitle: string | null;
+  title?: string;
+  doneHref?: string;
+  doneLabel?: string;
+}) {
   const byId = useMemo(() => new Map(items.map((i) => [i.question.id, i])), [items]);
   const [queue, setQueue] = useState(() => items.map((i) => i.question.id));
   const [answeredNow, setAnsweredNow] = useState<AttemptView | null>(null);
@@ -39,7 +57,7 @@ export function PracticeSession({ courseId, bookId, items, grading, lessonTitle 
         <p className="text-5xl" aria-hidden>
           {right === total ? "🌕" : right >= total / 2 ? "🌔" : "🌓"}
         </p>
-        <h2 className="font-display text-2xl font-semibold">Set complete!</h2>
+        <h2 className="font-display text-2xl font-semibold">{title === "Practice set" ? "Set complete!" : "All done!"}</h2>
         <p className="text-muted">
           {right} of {total} right the first time · +{xp} XP
         </p>
@@ -48,8 +66,8 @@ export function PracticeSession({ courseId, bookId, items, grading, lessonTitle 
         </p>
         <div className="flex flex-wrap justify-center gap-2">
           <Button onClick={() => window.location.reload()}>Another set</Button>
-          <ButtonLink href={`/courses/${courseId}/practice`} variant="secondary">
-            See your mastery
+          <ButtonLink href={doneHref ?? `/courses/${courseId}/practice`} variant="secondary">
+            {doneLabel}
           </ButtonLink>
         </div>
       </div>
@@ -74,7 +92,7 @@ export function PracticeSession({ courseId, bookId, items, grading, lessonTitle 
     <div className="flex flex-col gap-4">
       <div className="sticky top-14 z-[5] -mx-1 flex flex-col gap-2 rounded-xl bg-bg/95 px-1 py-2 backdrop-blur lg:top-2">
         <div className="flex items-baseline justify-between text-sm">
-          <span className="font-medium">{lessonTitle ? `Practising: ${lessonTitle}` : "Practice set"}</span>
+          <span className="font-medium">{lessonTitle ? `Practising: ${lessonTitle}` : title}</span>
           <span className="tabular-nums text-muted" aria-live="polite">
             {solved} of {total} done
           </span>

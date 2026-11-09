@@ -17,6 +17,7 @@ import { chunkPages } from "@/lib/chunking/chunk";
 import { PdfOpenError, PdfReader } from "./pdf-reader";
 import { cleanOcrText, OcrPool } from "./ocr";
 import { ProgressReporter } from "./progress";
+import { detectSubject } from "../subjects";
 
 /**
  * The "process book" pipeline. Runs in the worker, one book at a time:
@@ -269,6 +270,7 @@ export async function processBook(bookId: string, opts: ProcessOptions = {}): Pr
     }
     }
     await saveOutline(course.id, bookId, units, source, pageCount);
+    await detectSubject(course.id).catch((err) => console.warn("[process] couldn't detect the subject:", err));
 
     // ── 7. chunks ───────────────────────────────────────────────────────
     await progress.update("chunks", P.outline, "Preparing text for search…", true);
