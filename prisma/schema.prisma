@@ -1,0 +1,152 @@
+// Coursebook database schema.
+// Phase 1: accounts (Better Auth tables), books and courses.
+// Later phases add pages, chunks, lessons, questions, flashcards, etc.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── Accounts (shape required by Better Auth) ────────────────────────────
+
+enum Role {
+  USER
+  ADMIN
+}
+
+// Plan only gates usage limits. Payments (Stripe) come later and will just set this.
+enum Plan {
+  FREE
+  PRO
+}
+
+model User {
+  id            String   @id
+  name          String
+  email         String   @unique
+  emailVerified Boolean  @default(false)
+  image         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  role     Role   @default(USER)
+  plan     Plan   @default(FREE)
+  timezone String @default("UTC")
+
+  sessions Session[]
+  accounts Account[]
+  books    Book[]
+  courses  Course[]
+
+  @@map("user")
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String? // scrypt hash, never the plain password
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+  @@map("verification")
+}
+
+// ─── Books (the uploaded PDF files) ─────────────────────────────────────
+
+enum BookStatus {
+  AWAITING_UPLOAD // record created, browser is uploading the file
+  UPLOADED // file stored and validated, waiting for processing
+  PROCESSING
+  READY
+  FAILED
+}
+
+model Book {
+  id               String     @id @default(cuid())
+  userId           String
+  user             User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  originalFilename String
+  storageKey       String     @unique
+  sizeBytes        BigInt
+  pageCount        Int?
+  coverKey         String?
+  status           BookStatus @default(AWAITING_UPLOAD)
+  error            String?
+  rightsConfirmed  Boolean    @default(false)
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+
+  course Course?
+
+  @@index([userId, createdAt])
+}
+
+// ─── Courses (one per book) ──────────────────────────────────────────────
+
+enum CourseStatus {
+  UPLOADING
+  PROCESSING // extracting text / OCR / outline (Phase 2)
+  OUTLINE_DRAFT // student reviews the outline (Phase 3)
+  GENERATING // lessons being written (Phase 4)
+  ACTIVE
+  FAILED
+}
+
+model Course {
+  id           String       @id @default(cuid())
+  userId       String
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bookId       String       @unique
+  book         Book         @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  title        String
+  status       CourseStatus @default(UPLOADING)
+  archivedAt   DateTime?
+  lastOpenedAt DateTime?
+  // Cached completion percentage (0-100), recomputed when lesson progress changes.
+  progressPct  Int          @default(0)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  @@index([userId, archivedAt])
+}
