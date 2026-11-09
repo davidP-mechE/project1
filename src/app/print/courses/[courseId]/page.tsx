@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { PrintToolbar } from "@/components/export/print-toolbar";
 import { Markdown } from "@/components/lesson/markdown";
 import { pagesLabel, rangeLabel, type ExportQuestion } from "@/lib/export/types";
+import type { SourceKindName } from "@/lib/source-label";
 import { NotFoundError } from "@/server/courses";
 import { getCourseExport } from "@/server/export";
 import { requireUser } from "@/server/session";
@@ -51,7 +52,7 @@ export default async function PrintCoursePage({ params, searchParams }: PageProp
                 <ol className="list-[lower-alpha] pl-6 text-neutral-700">
                   {u.lessons.map((l, j) => (
                     <li key={j}>
-                      {l.title} <span className="text-neutral-500">({rangeLabel(l.pageStart, l.pageEnd)})</span>
+                      {l.title} <span className="text-neutral-500">({rangeLabel(l.pageStart, l.pageEnd, c.kind)})</span>
                     </li>
                   ))}
                 </ol>
@@ -72,7 +73,7 @@ export default async function PrintCoursePage({ params, searchParams }: PageProp
             {u.lessons.map((l, j) => (
               <section key={j} className="print-lesson mb-8">
                 <h3 className="text-xl font-bold">{l.title}</h3>
-                <p className="mb-3 text-xs text-neutral-500">{rangeLabel(l.pageStart, l.pageEnd)}</p>
+                <p className="mb-3 text-xs text-neutral-500">{rangeLabel(l.pageStart, l.pageEnd, c.kind)}</p>
                 {l.objectives.length > 0 && (
                   <ul className="mb-3 list-disc pl-6 text-sm">
                     {l.objectives.map((o, k) => (
@@ -89,7 +90,7 @@ export default async function PrintCoursePage({ params, searchParams }: PageProp
                     {l.workedExamples.map((w, k) => (
                       <div key={k} className="print-keep mt-2 rounded border border-neutral-300 p-3 text-sm">
                         <p className="font-semibold">
-                          {w.title} <span className="font-normal text-neutral-500">{pagesLabel(w.pageRefs)}</span>
+                          {w.title} <span className="font-normal text-neutral-500">{pagesLabel(w.pageRefs, c.kind)}</span>
                         </p>
                         <Markdown>{w.problem}</Markdown>
                         <ol className="mt-1 list-decimal pl-6">
@@ -121,7 +122,7 @@ export default async function PrintCoursePage({ params, searchParams }: PageProp
                     </dl>
                   </div>
                 )}
-                {l.questions.length > 0 && <Questions title="Practice questions" qs={l.questions} answers={answers} />}
+                {l.questions.length > 0 && <Questions title="Practice questions" qs={l.questions} answers={answers} kind={c.kind} />}
                 {flashcards && l.flashcards.length > 0 && (
                   <div className="mt-4">
                     <h4 className="font-bold">Flashcards</h4>
@@ -143,13 +144,13 @@ export default async function PrintCoursePage({ params, searchParams }: PageProp
                 )}
               </section>
             ))}
-            {u.test.length > 0 && <Questions title={`${u.title}: unit test`} qs={u.test} answers={answers} />}
+            {u.test.length > 0 && <Questions title={`${u.title}: unit test`} qs={u.test} answers={answers} kind={c.kind} />}
           </section>
         ))}
         {c.finalExam.length > 0 && (
           <section className="print-unit">
             <h2 className="mb-4 border-b border-black pb-2 text-2xl font-bold">Final exam</h2>
-            <Questions title="" qs={c.finalExam} answers={answers} />
+            <Questions title="" qs={c.finalExam} answers={answers} kind={c.kind} />
           </section>
         )}
       </article>
@@ -157,7 +158,7 @@ export default async function PrintCoursePage({ params, searchParams }: PageProp
   );
 }
 
-function Questions({ title, qs, answers }: { title: string; qs: ExportQuestion[]; answers: boolean }) {
+function Questions({ title, qs, answers, kind }: { title: string; qs: ExportQuestion[]; answers: boolean; kind?: SourceKindName }) {
   return (
     <div className="mt-4">
       {title && <h4 className="font-bold">{title}</h4>}
@@ -189,7 +190,7 @@ function Questions({ title, qs, answers }: { title: string; qs: ExportQuestion[]
                     ))}
                   </ol>
                 )}
-                {q.pageRefs.length > 0 && <span className="text-xs text-neutral-500"> ({pagesLabel(q.pageRefs)})</span>}
+                {q.pageRefs.length > 0 && <span className="text-xs text-neutral-500"> ({pagesLabel(q.pageRefs, kind)})</span>}
               </div>
             )}
           </li>

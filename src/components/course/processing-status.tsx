@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
+import { BookLoader } from "@/components/ui/book-loader";
 import { retryProcessingAction } from "@/server/actions/courses";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -91,7 +92,8 @@ export function ProcessingStatus({ courseId, initial }: { courseId: string; init
 
   return (
     <div className="flex flex-col gap-4">
-      <div aria-live="polite" className="flex flex-col gap-2">
+      <div aria-live="polite" className="flex flex-col gap-3">
+        <BookLoader label="Reading your file" className="self-center py-2" />
         <ProgressBar value={job?.progress ?? 0} label="Processing progress" />
         <p className="text-sm">
           {queued && !job?.message?.startsWith("Hit a problem")

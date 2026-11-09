@@ -63,7 +63,7 @@ export function CourseSidebar({ courseId, courseTitle, outline, currentLessonId 
   );
   return (
     <>
-      <nav aria-label="Course contents" className="sticky top-[4.5rem] hidden max-h-[calc(100dvh-5.5rem)] flex-col gap-4 overflow-y-auto pb-4 lg:flex">
+      <nav aria-label="Course contents" className="sticky top-6 hidden max-h-[calc(100dvh-3rem)] flex-col gap-4 overflow-y-auto pb-4 lg:flex">
         <Link href={`/courses/${courseId}`} className="px-2 text-sm font-semibold hover:underline">
           {courseTitle}
         </Link>

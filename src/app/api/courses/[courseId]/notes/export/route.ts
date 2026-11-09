@@ -11,7 +11,7 @@ export async function GET(_request: Request, ctx: RouteContext<"/api/courses/[co
   const { courseId } = await ctx.params;
   try {
     const { course, lessons } = await getCourseNotes(session.user.id, courseId);
-    const md = notesToMarkdown(course.title, lessons, new Date());
+    const md = notesToMarkdown(course.title, lessons, new Date(), course.book.kind);
     const name = `${course.title.replace(/[^\p{L}\p{N} _-]+/gu, "").trim().replace(/\s+/g, "-").slice(0, 60) || "course"}-notes.md`;
     return new Response(md, {
       headers: {

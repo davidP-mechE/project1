@@ -4,6 +4,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { PDFDocumentProxy, RenderTask } from "pdfjs-dist";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/misc";
+import { useSourceKind } from "@/components/course/source-kind";
+import { sourceNoun, unitWord } from "@/lib/source-label";
 
 /**
  * The original book, one page at a time, rendered with pdf.js in the browser.
@@ -17,6 +19,9 @@ type Props = { bookId: string; page: number; onPageChange: (page: number) => voi
 const ZOOMS = [0.75, 1, 1.25, 1.5, 2, 3];
 
 export default function PdfViewer({ bookId, page, onPageChange, onClose }: Props) {
+  const kind = useSourceKind();
+  const noun = sourceNoun(kind);
+  const Unit = kind === "SLIDES" ? "Slide" : "Page";
   const [doc, setDoc] = useState<PDFDocumentProxy | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [rendering, setRendering] = useState(true);
@@ -49,14 +54,14 @@ export default function PdfViewer({ bookId, page, onPageChange, onClose }: Props
         if (!cancelled) setDoc(loaded);
       } catch (err) {
         console.error(err);
-        if (!cancelled) setError("The book couldn't be opened here. Try opening it in a new tab instead.");
+        if (!cancelled) setError(`The ${noun} couldn't be opened here. Try opening it in a new tab instead.`);
       }
     })();
     return () => {
       cancelled = true;
       void loading?.destroy(); // closes the document and its worker
     };
-  }, [bookId]);
+  }, [bookId, noun]);
 
   // Re-render when the panel is resized.
   useEffect(() => {
@@ -107,14 +112,14 @@ export default function PdfViewer({ bookId, page, onPageChange, onClose }: Props
         console.error(err);
         if (!cancelled) {
           setRendering(false);
-          setError("This page couldn't be shown.");
+          setError(`This ${unitWord(kind)} couldn't be shown.`);
         }
       }
     })();
     return () => {
       cancelled = true;
     };
-  }, [doc, current, width, zoomIndex]);
+  }, [doc, current, width, zoomIndex, kind]);
 
   const go = useCallback(
     (n: number) => {
@@ -135,7 +140,7 @@ export default function PdfViewer({ bookId, page, onPageChange, onClose }: Props
   };
 
   return (
-    <section aria-label="Original book" className="flex h-full flex-col bg-surface" onKeyDown={onKeyDown}>
+    <section aria-label={kind === "SLIDES" ? "Original slides" : "Original book"} className="flex h-full flex-col bg-surface" onKeyDown={onKeyDown}>
       <div className="flex flex-wrap items-center gap-1 border-b border-border px-2 py-1.5 text-sm">
         <Button variant="ghost" size="sm" onClick={() => go(current - 1)} disabled={!pageCount || current <= 1} aria-label="Previous page">
           ‹
@@ -149,7 +154,7 @@ export default function PdfViewer({ bookId, page, onPageChange, onClose }: Props
           }}
         >
           <label htmlFor="book-page" className="sr-only">
-            Page number
+            {Unit} number
           </label>
           <input
             id="book-page"
@@ -183,12 +188,12 @@ export default function PdfViewer({ bookId, page, onPageChange, onClose }: Props
           >
             New tab ↗
           </a>
-          <Button variant="ghost" size="sm" onClick={onClose} aria-label="Close the book">
+          <Button variant="ghost" size="sm" onClick={onClose} aria-label={`Close the ${noun}`}>
             ✕
           </Button>
         </div>
       </div>
-      <div ref={scrollRef} className="relative flex-1 overflow-auto bg-surface-2 p-2" tabIndex={0} aria-label={`Page ${current}`}>
+      <div ref={scrollRef} className="relative flex-1 overflow-auto bg-surface-2 p-2" tabIndex={0} role="region" aria-label={`${Unit} ${current}`}>
         {error ? (
           <p role="alert" className="m-4 rounded-lg bg-danger-bg p-3 text-sm text-danger">
             {error}
@@ -197,7 +202,7 @@ export default function PdfViewer({ bookId, page, onPageChange, onClose }: Props
           <>
             {(rendering || !doc) && (
               <div className="absolute inset-x-0 top-8 flex justify-center text-muted">
-                <Spinner label="Loading page" />
+                <Spinner label={`Loading ${unitWord(kind)}`} />
               </div>
             )}
             <canvas ref={canvasRef} className="mx-auto block bg-white shadow-sm" aria-hidden />

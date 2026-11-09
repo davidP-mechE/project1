@@ -139,12 +139,22 @@ enum BookStatus {
   FAILED
 }
 
+// A textbook, or a deck of lecture slides (PDF or PowerPoint). Both become a course.
+enum SourceKind {
+  BOOK
+  SLIDES
+}
+
 model Book {
   id                String     @id @default(cuid())
+  kind              SourceKind @default(BOOK)
+  // PowerPoint decks: the uploaded .pptx. The worker turns it into the PDF at storageKey.
+  sourceKey         String?
   userId            String
   user              User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   originalFilename  String
-  storageKey        String     @unique
+  // Not unique: courses added from the Hub share the provided course's file.
+  storageKey        String
   sizeBytes         BigInt
   pageCount         Int?
   coverKey          String?
@@ -194,6 +204,13 @@ model Course {
   detectedOutline Json?
   // Level, explanation style, content types… (validated by src/lib/course/settings.ts)
   settings        Json?
+  // Subject for the Mastery page (src/lib/subjects.ts): detected from the book, changeable by the student.
+  subject         String?
+  // Added from the Hub: the provided course it was copied from.
+  catalogEntryId  String?
+  catalogEntry    CatalogEntry?  @relation("enrollments", fields: [catalogEntryId], references: [id], onDelete: SetNull)
+  // This course is the source of a Hub entry (admins only).
+  publishedAs     CatalogEntry?  @relation("source")
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
 
@@ -221,6 +238,7 @@ enum OutlineSource {
   BOOKMARKS
   HEADINGS
   PAGE_RANGES
+  SLIDES
 }
 
 // ─── Extracted content (Phase 2) ─────────────────────────────────────────
@@ -367,6 +385,7 @@ enum QuestionScope {
   LESSON
   UNIT_TEST
   FINAL_EXAM
+  DRILL // extra questions written on demand to hammer one skill (Review)
 }
 
 enum QuestionType {
@@ -671,6 +690,7 @@ model StudyDay {
   minutes           Int       @default(0)
   cardsReviewed     Int       @default(0)
   questionsAnswered Int       @default(0)
+  questionsCorrect  Int       @default(0)
   lessonsCompleted  Int       @default(0)
   lastActiveAt      DateTime?
 
@@ -858,4 +878,30 @@ model AnalyticsEvent {
 
   @@index([name, createdAt])
   @@index([createdAt])
+}
+
+// ─── Hub: provided courses (e.g. OpenStax books) ─────────────────────────
+// An admin generates a course as usual and publishes it. Students add it to
+// their library: they get their own copy of the course (progress, notes and
+// all), sharing the provided book's files under catalog/<entry id>/.
+
+model CatalogEntry {
+  id             String   @id @default(cuid())
+  sourceCourseId String   @unique
+  sourceCourse   Course   @relation("source", fields: [sourceCourseId], references: [id], onDelete: Cascade)
+  title          String
+  subject        String
+  description    String
+  license        String // e.g. "CC BY 4.0"
+  attribution    String // shown with the course, as the license requires
+  sourceUrl      String?
+  fileKey        String // catalog/<id>/original.pdf
+  coverKey       String?
+  published      Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  enrollments Course[] @relation("enrollments")
+
+  @@index([published, subject])
 }

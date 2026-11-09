@@ -8,19 +8,22 @@ import { localDay } from "@/lib/planning/dates";
  * a minute while a study page is open and being used.
  */
 
-type Counter = "cardsReviewed" | "questionsAnswered" | "lessonsCompleted";
+type Counter = "cardsReviewed" | "questionsAnswered" | "questionsCorrect" | "lessonsCompleted";
 
 async function today(userId: string, now: Date) {
   const u = await db.user.findUnique({ where: { id: userId }, select: { timezone: true } });
   return localDay(now, u?.timezone ?? "UTC");
 }
 
-export async function bumpActivity(userId: string, field: Counter, now = new Date()) {
+/** Add to today's counters: bumpActivity(id, "cardsReviewed") or bumpActivity(id, { questionsAnswered: 3, questionsCorrect: 2 }). */
+export async function bumpActivity(userId: string, field: Counter | Partial<Record<Counter, number>>, now = new Date()) {
+  const counts = typeof field === "string" ? { [field]: 1 } : Object.fromEntries(Object.entries(field).filter(([, n]) => n && n > 0));
+  if (Object.keys(counts).length === 0) return;
   const day = await today(userId, now);
   await db.studyDay.upsert({
     where: { userId_day: { userId, day } },
-    create: { userId, day, [field]: 1 },
-    update: { [field]: { increment: 1 } },
+    create: { userId, day, ...counts },
+    update: Object.fromEntries(Object.entries(counts).map(([k, n]) => [k, { increment: n }])),
   });
 }
 

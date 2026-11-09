@@ -1,7 +1,10 @@
 import type { Prisma } from "@/generated/prisma/client";
 import { db } from "../db";
 import { storage, storageKeys } from "../storage";
-import { MAX_PAGES } from "@/lib/upload/limits";
+import { MAX_PAGES, MAX_SLIDES } from "@/lib/upload/limits";
+import { parsePptx, PptxError, slideSourceText, type PptxSlide } from "@/lib/slides/pptx";
+import { slideOutline, titleFromLines } from "@/lib/slides/outline";
+import { slidesToPdf } from "./slides-pdf";
 import { mathScore } from "@/lib/pdf/math-score";
 import { needsOcr } from "@/lib/pdf/text-quality";
 import type { Line } from "@/lib/pdf/lines";
@@ -14,6 +17,7 @@ import { chunkPages } from "@/lib/chunking/chunk";
 import { PdfOpenError, PdfReader } from "./pdf-reader";
 import { cleanOcrText, OcrPool } from "./ocr";
 import { ProgressReporter } from "./progress";
+import { detectSubject } from "../subjects";
 
 /**
  * The "process book" pipeline. Runs in the worker, one book at a time:
@@ -25,6 +29,11 @@ import { ProgressReporter } from "./progress";
  *   5. cover     render page 1 as the cover thumbnail
  *   6. outline   bookmarks → units/lessons; otherwise detect headings; otherwise fixed page ranges
  *   7. chunks    split text into ~400-token passages for search and the tutor
+ *
+ * Slide decks (Book.kind = SLIDES) take the same path, with slides as pages.
+ * A PowerPoint file is first laid out as a PDF (step 0); its own text, with
+ * speaker notes, is used instead of the PDF's. The outline comes from slide
+ * titles and section slides (src/lib/slides/outline.ts).
  *
  * Every step can be re-run safely: pages already read are skipped, and the
  * outline/chunks are replaced. So a retry after a crash picks up where it stopped.
@@ -61,8 +70,35 @@ export async function processBook(bookId: string, opts: ProcessOptions = {}): Pr
     db.course.update({ where: { id: course.id }, data: { status: "PROCESSING" } }),
   ]);
 
+  const slides = book.kind === "SLIDES";
+  const word = slides ? "slide" : "page";
+
+  // ── 0. PowerPoint → PDF ───────────────────────────────────────────────
+  let pptx: PptxSlide[] | null = null;
+  if (book.sourceKey) {
+    await progress.update("open", 0, "Opening your slides…", true);
+    const source = await storage.getBuffer(book.sourceKey).catch(() => {
+      throw new ProcessingError("We couldn't find the uploaded file. Please delete these slides and upload them again.");
+    });
+    try {
+      pptx = parsePptx(new Uint8Array(source), { maxSlides: MAX_SLIDES });
+    } catch (err) {
+      if (err instanceof PptxError) throw new ProcessingError(err.message);
+      throw err;
+    }
+    if (pptx.length > MAX_SLIDES) {
+      throw new ProcessingError(`This deck has more than ${MAX_SLIDES} slides. Try splitting it into smaller files.`);
+    }
+    if (book.storageKey === book.sourceKey) {
+      const pdfKey = storageKeys.bookOriginal(book.userId, bookId);
+      await storage.put(pdfKey, Buffer.from(await slidesToPdf(pptx, course.title)), "application/pdf");
+      await db.book.update({ where: { id: bookId }, data: { storageKey: pdfKey } });
+      book.storageKey = pdfKey;
+    }
+  }
+
   // ── 1. open ───────────────────────────────────────────────────────────
-  await progress.update("open", 0, "Opening your PDF…", true);
+  await progress.update("open", 0, slides ? "Opening your slides…" : "Opening your PDF…", true);
   const data = await storage.getBuffer(book.storageKey).catch(() => {
     throw new ProcessingError("We couldn't find the uploaded file. Please delete this course and upload the PDF again.");
   });
@@ -76,15 +112,18 @@ export async function processBook(bookId: string, opts: ProcessOptions = {}): Pr
 
   try {
     const pageCount = reader.pageCount;
+    if (slides && pageCount > MAX_SLIDES) {
+      throw new ProcessingError(`This deck has ${pageCount} slides. The limit is ${MAX_SLIDES}. Try splitting it into smaller files.`);
+    }
     if (pageCount > MAX_PAGES) {
       throw new ProcessingError(
         `This PDF has ${pageCount.toLocaleString("en-US")} pages. The limit is ${MAX_PAGES.toLocaleString("en-US")}. Try splitting it into smaller files (for example, one per part of the book).`,
       );
     }
-    if (pageCount === 0) throw new ProcessingError("This PDF has no pages.");
+    if (pageCount === 0) throw new ProcessingError(slides ? "This file has no slides." : "This PDF has no pages.");
     await db.book.update({ where: { id: bookId }, data: { pageCount } });
     const labels = await reader.pageLabels();
-    await progress.update("open", P.open, `Found ${pageCount} pages.`, true);
+    await progress.update("open", P.open, `Found ${pageCount} ${word}s.`, true);
 
     // ── 2. text ─────────────────────────────────────────────────────────
     const done = new Set(
@@ -100,6 +139,9 @@ export async function processBook(bookId: string, opts: ProcessOptions = {}): Pr
       opts.signal?.throwIfAborted();
       if (done.has(n)) continue;
       const page = await reader.readPage(n);
+      // PowerPoint: the deck's own text (with speaker notes) is better than reading it back from our PDF.
+      const own = pptx?.[n - 1];
+      if (own) page.text = slideSourceText(own);
       batch.push({
         bookId,
         pageNumber: n,
@@ -114,7 +156,7 @@ export async function processBook(bookId: string, opts: ProcessOptions = {}): Pr
         height: page.height,
       });
       if (batch.length >= SAVE_BATCH) await flush();
-      await progress.update("text", P.open + ((P.text - P.open) * n) / pageCount, `Reading text… page ${n} of ${pageCount}`);
+      await progress.update("text", P.open + ((P.text - P.open) * n) / pageCount, `Reading text… ${word} ${n} of ${pageCount}`);
     }
     await flush();
     await ensureBookExists(bookId);
@@ -132,7 +174,7 @@ export async function processBook(bookId: string, opts: ProcessOptions = {}): Pr
       await progress.update(
         "ocr",
         P.text + ((P.ocr - P.text) * i) / ocrCandidates.length,
-        `OCR on page ${p.pageNumber} (${i + 1} of ${ocrCandidates.length} scanned pages)…`,
+        `OCR on ${word} ${p.pageNumber} (${i + 1} of ${ocrCandidates.length} scanned ${word}s)…`,
         i === 0,
       );
       const canvas = await reader.render(p.pageNumber, { scale: OCR_DPI / 72, maxPixels: OCR_MAX_PIXELS });
@@ -167,7 +209,7 @@ export async function processBook(bookId: string, opts: ProcessOptions = {}): Pr
       await progress.update(
         "figures",
         P.ocr + ((P.figures - P.ocr) * i) / figurePages.length,
-        `Saving figures… page ${pageNumber}`,
+        `Saving figures… ${word} ${pageNumber}`,
       );
       const images = await reader.extractImages(pageNumber, { minSize: FIGURE_MIN_PX, max: FIGURES_PER_PAGE });
       for (const [index, img] of images.entries()) {
@@ -202,24 +244,33 @@ export async function processBook(bookId: string, opts: ProcessOptions = {}): Pr
       return Math.max(...lines.map((l) => l.y + l.size));
     };
 
-    const pageFlags: PageFlag[] = pages.map((p) => ({ pageNumber: p.pageNumber, frontBack: classifyPageText(p.text) !== null }));
-    const fromBookmarks = entriesFromBookmarks(await reader.bookmarks(pageTop), pageCount);
-    let source: "BOOKMARKS" | "HEADINGS" | "PAGE_RANGES";
+    let source: "BOOKMARKS" | "HEADINGS" | "PAGE_RANGES" | "SLIDES";
     let units: DraftUnit[];
-    if (fromBookmarks.filter((e) => e.level === 1).length >= 2) {
-      source = "BOOKMARKS";
-      units = buildOutline(fromBookmarks, pageCount, pageFlags);
+    if (slides) {
+      source = "SLIDES";
+      units = slideOutline(
+        pages.map((p) => ({ number: p.pageNumber, title: pptx?.[p.pageNumber - 1]?.title || titleFromLines(linesByPage.get(p.pageNumber) ?? []), text: p.text })),
+        course.title,
+      );
     } else {
-      const detected = detectHeadings(pages.map((p) => ({ pageNumber: p.pageNumber, lines: linesByPage.get(p.pageNumber) ?? [] })));
-      if (detected.filter((e) => e.level === 1).length >= 2) {
-        source = "HEADINGS";
-        units = buildOutline(detected, pageCount, pageFlags);
+      const pageFlags: PageFlag[] = pages.map((p) => ({ pageNumber: p.pageNumber, frontBack: classifyPageText(p.text) !== null }));
+      const fromBookmarks = entriesFromBookmarks(await reader.bookmarks(pageTop), pageCount);
+      if (fromBookmarks.filter((e) => e.level === 1).length >= 2) {
+        source = "BOOKMARKS";
+        units = buildOutline(fromBookmarks, pageCount, pageFlags);
       } else {
-        source = "PAGE_RANGES";
-        units = buildOutline([], pageCount, pageFlags);
-      }
+        const detected = detectHeadings(pages.map((p) => ({ pageNumber: p.pageNumber, lines: linesByPage.get(p.pageNumber) ?? [] })));
+        if (detected.filter((e) => e.level === 1).length >= 2) {
+          source = "HEADINGS";
+          units = buildOutline(detected, pageCount, pageFlags);
+        } else {
+          source = "PAGE_RANGES";
+          units = buildOutline([], pageCount, pageFlags);
+        }
+    }
     }
     await saveOutline(course.id, bookId, units, source, pageCount);
+    await detectSubject(course.id).catch((err) => console.warn("[process] couldn't detect the subject:", err));
 
     // ── 7. chunks ───────────────────────────────────────────────────────
     await progress.update("chunks", P.outline, "Preparing text for search…", true);
@@ -255,7 +306,7 @@ async function ensureBookExists(bookId: string) {
 }
 
 /** Replace the course outline with the detected one and mark front/back-matter pages. */
-async function saveOutline(courseId: string, bookId: string, units: DraftUnit[], source: "BOOKMARKS" | "HEADINGS" | "PAGE_RANGES", pageCount: number) {
+async function saveOutline(courseId: string, bookId: string, units: DraftUnit[], source: "BOOKMARKS" | "HEADINGS" | "PAGE_RANGES" | "SLIDES", pageCount: number) {
   const frontBack = new Set<number>();
   for (const u of units) {
     for (const l of u.lessons) {

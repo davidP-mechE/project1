@@ -12,14 +12,14 @@ const letter = (i: number) => String.fromCharCode(65 + i);
 const demote = (md: string) => md.replace(/^(#{1,4}) /gm, (_m, h: string) => `${"#".repeat(Math.min(6, h.length + 3))} `);
 const anchor = (s: string) => s.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, "-").replace(/^-|-$/g, "");
 
-function questionsMd(qs: ExportQuestion[], answers: boolean): string[] {
+function questionsMd(qs: ExportQuestion[], answers: boolean, kind?: CourseExport["kind"]): string[] {
   const out: string[] = [];
   qs.forEach((q, i) => {
     out.push(`${i + 1}. ${q.prompt.replace(/\n/g, "\n   ")}`);
     q.choices.forEach((c, j) => out.push(`   - ${letter(j)}. ${c}`));
     if (answers) {
       const ans = q.type === "MULTIPLE_CHOICE" && q.correctChoice !== null ? `${letter(q.correctChoice)}. ${q.choices[q.correctChoice] ?? ""}` : q.answer;
-      out.push("", `   **Answer:** ${ans}${q.pageRefs.length ? ` _(${pagesLabel(q.pageRefs)})_` : ""}`);
+      out.push("", `   **Answer:** ${ans}${q.pageRefs.length ? ` _(${pagesLabel(q.pageRefs, kind)})_` : ""}`);
       if (q.steps.length) q.steps.forEach((s, j) => out.push(`   ${j + 1}) ${s}`));
       if (q.explanation) out.push(`   _${q.explanation.replace(/\n+/g, " ")}_`);
     }
@@ -40,23 +40,23 @@ export function courseToMarkdown(c: CourseExport, opts: MarkdownOptions, exporte
     out.push(`## ${u.title}`, "");
     if (u.summary) out.push("**Unit summary**", "", u.summary.trim(), "");
     for (const l of u.lessons) {
-      out.push(`### ${l.title}`, "", `_${rangeLabel(l.pageStart, l.pageEnd)}_`, "");
+      out.push(`### ${l.title}`, "", `_${rangeLabel(l.pageStart, l.pageEnd, c.kind)}_`, "");
       if (l.objectives.length) out.push("**You'll learn to:**", "", ...l.objectives.map((o) => `- ${o}`), "");
       out.push(demote(l.explanation.trim()), "");
       if (l.workedExamples.length) {
         out.push("#### Worked examples", "");
         for (const w of l.workedExamples) {
-          out.push(`**${w.title}**${w.pageRefs.length ? ` _(${pagesLabel(w.pageRefs)})_` : ""}`, "", w.problem, "", ...w.steps.map((s, i) => `${i + 1}. ${s}`), "", `**Answer:** ${w.answer}`, "");
+          out.push(`**${w.title}**${w.pageRefs.length ? ` _(${pagesLabel(w.pageRefs, c.kind)})_` : ""}`, "", w.problem, "", ...w.steps.map((s, i) => `${i + 1}. ${s}`), "", `**Answer:** ${w.answer}`, "");
         }
       }
       if (l.keyTerms.length) out.push("#### Key terms", "", ...l.keyTerms.map((k) => `- **${k.term}**: ${k.definition}`), "");
-      if (l.questions.length) out.push("#### Practice questions", "", ...questionsMd(l.questions, opts.answers));
+      if (l.questions.length) out.push("#### Practice questions", "", ...questionsMd(l.questions, opts.answers, c.kind));
       if (opts.flashcards && l.flashcards.length) {
         out.push("#### Flashcards", "", "| Front | Back |", "| --- | --- |", ...l.flashcards.map((f) => `| ${f.front.replace(/\|/g, "\\|").replace(/\n/g, " ")} | ${f.back.replace(/\|/g, "\\|").replace(/\n/g, " ")} |`), "");
       }
     }
-    if (u.test.length) out.push(`### ${u.title}: unit test`, "", ...questionsMd(u.test, opts.answers));
+    if (u.test.length) out.push(`### ${u.title}: unit test`, "", ...questionsMd(u.test, opts.answers, c.kind));
   }
-  if (c.finalExam.length) out.push("## Final exam", "", ...questionsMd(c.finalExam, opts.answers));
+  if (c.finalExam.length) out.push("## Final exam", "", ...questionsMd(c.finalExam, opts.answers, c.kind));
   return `${out.join("\n").replace(/\n{3,}/g, "\n\n").trimEnd()}\n`;
 }

@@ -11,6 +11,10 @@ import { Card, ProgressBar } from "@/components/ui/misc";
 import { formatBytes } from "@/lib/upload/limits";
 import { getOutlineSummary, getProcessingStatus, markCourseOpened } from "@/server/courses";
 import { getCourseOr404 } from "@/server/course-page";
+import { getPublishState } from "@/server/catalog";
+import { db } from "@/server/db";
+import { PublishForm } from "@/components/hub/hub-controls";
+import { rangeText, type SourceKindName } from "@/lib/source-label";
 import { claudeEnabled } from "@/server/env";
 import { getCourseCost, getCourseLessons, getGenerationProgress } from "@/server/generation/lessons";
 import { getGenerationEstimate } from "@/server/outline";
@@ -28,6 +32,7 @@ const sourceLabels: Record<string, string> = {
   BOOKMARKS: "from the PDF's built-in bookmarks",
   HEADINGS: "by detecting headings (this PDF has no bookmarks)",
   PAGE_RANGES: "as fixed page ranges (no chapters or headings were found)",
+  SLIDES: "from the slide titles and section slides",
 };
 
 function pageList(pages: number[]): string {
@@ -55,6 +60,10 @@ export default async function CoursePage({ params }: PageProps<"/courses/[course
     ? await getOutlineSummary(user.id, courseId)
     : null;
   const generating = course.status === "GENERATING" || course.status === "ACTIVE";
+  const [hubEntry, publish] = await Promise.all([
+    course.catalogEntryId ? db.catalogEntry.findUnique({ where: { id: course.catalogEntryId }, select: { attribution: true, license: true, sourceUrl: true } }) : null,
+    user.role === "ADMIN" && !course.catalogEntryId && generating ? getPublishState(courseId) : null,
+  ]);
   const [pendingEstimate, progress, units, cost, study] = outline
     ? await Promise.all([
         getGenerationEstimate(user.id, courseId, "pending"),
@@ -123,7 +132,7 @@ export default async function CoursePage({ params }: PageProps<"/courses/[course
           {cost > 0 && <p className="mt-4 text-xs text-muted">Claude API cost for this course so far: ${cost.toFixed(2)}</p>}
         </Card>
       )}
-      {outline && course.status === "OUTLINE_DRAFT" && <OutlinePreview outline={outline} courseId={courseId} />}
+      {outline && course.status === "OUTLINE_DRAFT" && <OutlinePreview outline={outline} courseId={courseId} kind={course.book.kind} />}
 
       <Card>
         <h2 className="mb-4 text-lg font-semibold">File</h2>
@@ -133,7 +142,7 @@ export default async function CoursePage({ params }: PageProps<"/courses/[course
             <dd className="font-medium">{formatBytes(Number(book.sizeBytes))}</dd>
           </div>
           <div>
-            <dt className="text-muted">Pages</dt>
+            <dt className="text-muted">{course.book.kind === "SLIDES" ? "Slides" : "Pages"}</dt>
             <dd className="font-medium">{book.pageCount ?? "—"}</dd>
           </div>
           <div>
@@ -148,14 +157,45 @@ export default async function CoursePage({ params }: PageProps<"/courses/[course
         <div className="mt-6 flex flex-wrap gap-2">
           {fileAvailable && (
             <a href={`/api/books/${book.id}/file`} target="_blank" rel="noopener" className={buttonClasses("secondary")}>
-              Open original PDF
+              {course.book.kind === "SLIDES" ? "Open the slides" : "Open original PDF"}
             </a>
           )}
-          <ButtonLink href="/library" variant="ghost">
-            Back to library
+          <ButtonLink href={course.catalogEntryId ? "/hub" : course.book.kind === "SLIDES" ? "/slides" : "/library"} variant="ghost">
+            {course.catalogEntryId ? "Back to the Hub" : course.book.kind === "SLIDES" ? "Back to slides" : "Back to library"}
           </ButtonLink>
         </div>
       </Card>
+
+      {hubEntry && (
+        <Card className="mt-6">
+          <h2 className="mb-2 text-lg font-semibold">Credits</h2>
+          <p className="text-sm text-muted">
+            A provided course from the Hub ({hubEntry.license}). {hubEntry.attribution}
+          </p>
+          {hubEntry.sourceUrl && (
+            <a href={hubEntry.sourceUrl} target="_blank" rel="noopener noreferrer" className="mt-2 inline-block text-sm font-semibold text-accent-ink underline">
+              Original book ↗
+            </a>
+          )}
+        </Card>
+      )}
+
+      {publish && (
+        <Card className="mt-6">
+          <h2 className="mb-1 text-lg font-semibold">Publish to the Hub</h2>
+          <p className="mb-4 text-sm text-muted">
+            Admins only. Students can add this course to their library from the Hub and study it without paying for generation. Only publish books you&apos;re allowed to
+            share, such as OpenStax textbooks (CC BY), with the attribution their license asks for.
+          </p>
+          <PublishForm
+            courseId={courseId}
+            title={course.title}
+            subject={publish.subject}
+            students={publish.entry?._count.enrollments ?? 0}
+            initial={publish.entry ? { description: publish.entry.description, subject: publish.entry.subject, license: publish.entry.license, attribution: publish.entry.attribution, sourceUrl: publish.entry.sourceUrl } : null}
+          />
+        </Card>
+      )}
     </div>
   );
 }
@@ -190,7 +230,7 @@ function NextSteps({ courseId, generate }: { courseId: string; generate: ReactNo
   );
 }
 
-function OutlinePreview({ outline, courseId }: { outline: Awaited<ReturnType<typeof getOutlineSummary>>; courseId: string }) {
+function OutlinePreview({ outline, courseId, kind }: { outline: Awaited<ReturnType<typeof getOutlineSummary>>; courseId: string; kind: SourceKindName }) {
   const lessonCount = outline.units.reduce((n, u) => n + u.lessons.filter((l) => !l.skip).length, 0);
   const unitCount = outline.units.filter((u) => u.lessons.some((l) => !l.skip)).length;
   return (
@@ -245,7 +285,7 @@ function OutlinePreview({ outline, courseId }: { outline: Awaited<ReturnType<typ
                   <li key={l.id} className={l.skip ? "flex justify-between gap-4 text-muted line-through" : "flex justify-between gap-4"}>
                     <span>{l.title}</span>
                     <span className="shrink-0 text-muted">
-                      {l.pageStart === l.pageEnd ? `p. ${l.pageStart}` : `pp. ${l.pageStart}–${l.pageEnd}`}
+                      {rangeText(kind, l.pageStart, l.pageEnd)}
                     </span>
                   </li>
                 ))}
@@ -253,9 +293,7 @@ function OutlinePreview({ outline, courseId }: { outline: Awaited<ReturnType<typ
             )}
             {u.lessons.length === 1 && u.lessons[0].title === u.title && (
               <p className="mt-1 text-sm text-muted">
-                {u.lessons[0].pageStart === u.lessons[0].pageEnd
-                  ? `p. ${u.lessons[0].pageStart}`
-                  : `pp. ${u.lessons[0].pageStart}–${u.lessons[0].pageEnd}`}
+                {rangeText(kind, u.lessons[0].pageStart, u.lessons[0].pageEnd)}
               </p>
             )}
           </li>

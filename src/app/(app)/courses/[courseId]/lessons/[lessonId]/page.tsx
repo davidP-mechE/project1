@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { BookLoader } from "@/components/ui/book-loader";
 import { notFound } from "next/navigation";
 import { LessonActions, LessonRecovery, LessonStatusPoller } from "@/components/lesson/lesson-actions";
 import { Flashcards, KeyTerms, Objectives, PageRefs, Section, WorkedExamples } from "@/components/lesson/lesson-parts";
@@ -13,7 +14,7 @@ import { buttonClasses } from "@/components/ui/button";
 import { TutorDrawer } from "@/components/tutor/tutor-drawer";
 import { StudyTimer } from "@/components/study/study-timer";
 import { Alert } from "@/components/ui/alert";
-import { Card, Spinner } from "@/components/ui/misc";
+import { Card } from "@/components/ui/misc";
 import { getCourseOr404 } from "@/server/course-page";
 import { NotFoundError, markCourseOpened } from "@/server/courses";
 import { claudeEnabled, env } from "@/server/env";
@@ -21,6 +22,7 @@ import { getLessonView } from "@/server/generation/lessons";
 import { requireUser } from "@/server/session";
 import { getLatestAttempts, getLessonProgress, getStudyOutline, markLessonViewed } from "@/server/study";
 import { getLessonNotes } from "@/server/notes";
+import { rangeText, sourceNoun } from "@/lib/source-label";
 
 export async function generateMetadata({ params }: PageProps<"/courses/[courseId]/lessons/[lessonId]">): Promise<Metadata> {
   const user = await requireUser();
@@ -57,7 +59,9 @@ export default async function LessonPage({ params, searchParams }: PageProps<"/c
   const grading = env.FAKE_CLAUDE ? "demo" : claudeEnabled ? "claude" : null;
   const bookId = course.book.id;
   const busy = lesson.status === "QUEUED" || lesson.status === "GENERATING";
-  const pages = lesson.pageStart === lesson.pageEnd ? `p. ${lesson.pageStart}` : `pp. ${lesson.pageStart}–${lesson.pageEnd}`;
+  const kind = course.book.kind;
+  const slides = kind === "SLIDES";
+  const pages = rangeText(kind, lesson.pageStart, lesson.pageEnd);
 
   return (
     <StudyShell bookId={bookId} initialPage={initialBookPage} sidebar={<CourseSidebar courseId={courseId} courseTitle={course.title} outline={outline} currentLessonId={lessonId} />}>
@@ -78,14 +82,14 @@ export default async function LessonPage({ params, searchParams }: PageProps<"/c
           <p className="mt-1 text-sm text-muted">
             {view.position && `Lesson ${view.position.index} of ${view.position.total} · `}
             <a href={`/api/books/${bookId}/file#page=${lesson.pageStart}`} data-book-page={lesson.pageStart} target="_blank" rel="noopener" className="underline-offset-2 hover:underline">
-              Book {pages}
+              {slides ? "Slides" : "Book"} {pages.replace(/^slides? /, "")}
             </a>
             {progress.completed && " · ✓ Completed"}
             {lesson.userEdited && " · Edited by you"}
           </p>
         </div>
         <div className="flex flex-wrap items-start gap-2">
-          <OpenBookButton page={lesson.pageStart} label="Read the book" />
+          <OpenBookButton page={lesson.pageStart} label={slides ? "See the slides" : "Read the book"} />
           {content && (
             <TutorDrawer
               courseId={courseId}
@@ -101,13 +105,13 @@ export default async function LessonPage({ params, searchParams }: PageProps<"/c
 
       {busy && (
         <Alert tone="info" className="mb-6">
-          <span className="flex items-center gap-2">
-            <Spinner />
+          <span className="flex items-center gap-4">
+            <BookLoader label="Writing" className="shrink-0 scale-75" />
             {content
               ? "This lesson is being rewritten. The current version stays here until the new one is ready."
               : lesson.status === "QUEUED"
                 ? "This lesson is waiting its turn to be written…"
-                : "Claude is writing this lesson from the book… This usually takes under a minute."}
+                : `Claude is writing this lesson from the ${sourceNoun(kind)}… This usually takes under a minute.`}
           </span>
         </Alert>
       )}
@@ -169,12 +173,12 @@ export default async function LessonPage({ params, searchParams }: PageProps<"/c
           </Section>
           {content.workedExamples.length > 0 && (
             <Section title="Worked examples" id="examples" count={content.workedExamples.length}>
-              <WorkedExamples items={content.workedExamples} bookId={bookId} />
+              <WorkedExamples items={content.workedExamples} bookId={bookId} kind={kind} />
             </Section>
           )}
           {content.keyTerms.length > 0 && (
             <Section title="Key terms" id="terms" count={content.keyTerms.length}>
-              <KeyTerms items={content.keyTerms} bookId={bookId} />
+              <KeyTerms items={content.keyTerms} bookId={bookId} kind={kind} />
             </Section>
           )}
           </div>
@@ -193,9 +197,9 @@ export default async function LessonPage({ params, searchParams }: PageProps<"/c
             </Section>
           )}
           <p className="text-xs text-muted">
-            {lesson.model === "demo" ? "Demo lesson (not written by Claude) from" : "Written by Claude from"} {pages} of the book
+            {lesson.model === "demo" ? "Demo lesson (not written by Claude) from" : "Written by Claude from"} {pages} of the {sourceNoun(kind)}
             {lesson.generatedAt && ` on ${lesson.generatedAt.toLocaleDateString("en-US", { dateStyle: "medium" })}`}. Check
-            important details against the original: <PageRefs bookId={bookId} pages={[lesson.pageStart]} />
+            important details against the original: <PageRefs bookId={bookId} pages={[lesson.pageStart]} kind={kind} />
           </p>
           <LessonNotes courseId={courseId} initialNote={notes.note} />
           {!lesson.skip && (

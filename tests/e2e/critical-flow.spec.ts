@@ -2,6 +2,10 @@ import { test, expect, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { config } from "dotenv";
 import { Client } from "pg";
+import { writeFileSync } from "node:fs";
+import os from "node:os";
+import path from "node:path";
+import { LECTURE, makePptx } from "../helpers/slides";
 
 /**
  * The journey that must never break: sign up → upload a textbook → it's read
@@ -178,6 +182,20 @@ test("the full student journey works, is accessible, and respects the CSP", asyn
   await expect(page.getByRole("heading", { name: /% ·/ })).toBeVisible({ timeout: 60_000 });
   await a11y(page, "test results");
 
+  // ── Practice: mastery per lesson, and a practice set that brings misses back ──
+  await page.goto(`${courseUrl}/practice`);
+  await expect(page.getByRole("heading", { name: /% mastered/ })).toBeVisible();
+  await a11y(page, "practice");
+  await page.getByRole("link", { name: "Start a practice set" }).click();
+  await page.waitForURL(/practice\/session/);
+  await expect(page.getByText(/of \d+ done/)).toBeVisible();
+  const choice = page.locator("fieldset label").first();
+  if (await choice.count()) await choice.click();
+  else await page.locator("textarea").first().fill("Charge is a property of matter.");
+  await page.getByRole("button", { name: "Check answer" }).click();
+  await expect(page.getByRole("button", { name: /Next question|Finish/ })).toBeEnabled();
+  await a11y(page, "practice session");
+
   // ── Everything else a student uses ──
   for (const [path, name] of [
     [`${courseUrl}/flashcards`, "course flashcards"],
@@ -188,7 +206,11 @@ test("the full student journey works, is accessible, and respects the CSP", asyn
     [`${courseUrl}/tutor`, "tutor"],
     [`${courseUrl}/export`, "export"],
     [`${courseUrl}/final-exam`, "final exam"],
-    ["/review", "review"],
+    ["/review", "spaced repetition"],
+    ["/errors", "error log"],
+    ["/skills", "review (skills)"],
+    ["/mastery", "mastery"],
+    ["/hub", "hub (empty)"],
     ["/dashboard", "dashboard"],
     ["/library", "library"],
     ["/settings", "settings"],
@@ -200,10 +222,55 @@ test("the full student journey works, is accessible, and respects the CSP", asyn
   await expect(page.getByRole("heading", { name: "Plan and usage" })).toBeVisible();
   await expect(page.getByRole("progressbar", { name: "Pages turned into lessons this month" })).toBeVisible();
 
+  // ── Review: hammer a skill (new questions are written when they run low) ──
+  await page.goto("/skills");
+  await page.getByRole("link", { name: /Hammer it/ }).first().click();
+  await page.waitForURL(/skills\/drill/);
+  await expect(page.getByText(/right in a row/).first()).toBeVisible();
+  const drillChoice = page.locator("fieldset label").first();
+  if (await drillChoice.count()) await drillChoice.click();
+  else await page.locator("textarea").first().fill("The rate of flow of charge.");
+  await page.getByRole("button", { name: "Check answer" }).click();
+  await expect(page.getByRole("button", { name: "Next question →" })).toBeEnabled();
+  await a11y(page, "review drill");
+
   // ── Downloads ──
   await page.goto(`${courseUrl}/export`);
   const [dl] = await Promise.all([page.waitForEvent("download"), page.getByRole("link", { name: "Download .apkg" }).click()]);
   expect(dl.suggestedFilename()).toMatch(/\.apkg$/);
+
+  // ── Lecture slides: a PowerPoint deck becomes a mini-course ──
+  const deckFile = path.join(os.tmpdir(), `e2e-lecture-${Date.now()}.pptx`);
+  writeFileSync(deckFile, makePptx(LECTURE));
+  await page.goto("/slides");
+  await a11y(page, "slides (empty)");
+  await page.goto("/slides/upload");
+  await a11y(page, "upload slides");
+  await page.locator('input[type="file"]').setInputFiles(deckFile);
+  await page.locator('input[type="checkbox"]').check();
+  await page.getByRole("button", { name: "Upload and continue" }).click();
+  await page.waitForURL(/\/courses\/[^/]+$/, { timeout: 60_000 });
+  const deckUrl = page.url();
+  await expect(page.getByRole("button", { name: "Generate course" }).first()).toBeVisible({ timeout: 120_000 });
+  await expect(page.getByText("from the slide titles and section slides")).toBeVisible();
+  await page.getByRole("button", { name: "Generate course" }).first().click();
+  await page.getByRole("button", { name: "Generate", exact: true }).click();
+  await expect(async () => {
+    await page.reload();
+    expect(await page.getByText(/Writing…|Waiting/).count()).toBe(0);
+    expect(await page.getByRole("link", { name: /Final exam/ }).count()).toBeGreaterThan(0);
+  }).toPass({ timeout: 180_000, intervals: [3000] });
+  await page.getByRole("link", { name: /Continue|Start/ }).first().click();
+  await page.waitForURL(/\/lessons\//);
+  await expect(page.getByText(/Slides \d+–\d+/).first()).toBeVisible();
+  await page.getByRole("button", { name: "See the slides" }).click();
+  await expect(page.getByRole("region", { name: "Original slides" }).or(page.getByLabel("Original slides"))).toBeVisible({ timeout: 30_000 });
+  await a11y(page, "slide lesson");
+  await page.goto("/slides");
+  await expect(page.getByRole("link", { name: /e2e lecture/i }).first()).toBeVisible();
+  await a11y(page, "slides");
+  await page.goto("/library");
+  await expect(page.getByText(/e2e lecture/i)).toHaveCount(0); // decks are not listed with books
 
   // ── Keyboard: the first Tab reaches "Skip to content", which moves focus past the header ──
   await page.goto("/dashboard");
@@ -225,18 +292,39 @@ test("the full student journey works, is accessible, and respects the CSP", asyn
   await sql(`UPDATE "user" SET role = 'ADMIN' WHERE email = $1`, [email]);
   await page.goto("/admin");
   await expect(page.getByRole("heading", { name: "Admin", level: 1 })).toBeVisible();
-  await expect(page.getByRole("cell", { name: email, exact: true })).toBeVisible();
+  await expect(page.getByText(email).first()).toBeVisible();
   await a11y(page, "admin");
+
+  // ── Hub: an admin publishes a course; then it can be added to a library ──
+  await page.goto(courseUrl);
+  await page.getByLabel("Description").fill("A short demo course about circuits.");
+  await page.getByRole("button", { name: "Publish to the Hub" }).click();
+  await expect(page.getByText("Published to the Hub.")).toBeVisible({ timeout: 60_000 });
+  await page.goto("/hub");
+  await expect(page.getByRole("heading", { level: 2 }).first()).toBeVisible();
+  await a11y(page, "hub");
+  await page.getByRole("button", { name: /Add to my library/ }).first().click();
+  await page.waitForURL(/\/courses\/[^/]+$/, { timeout: 60_000 });
+  expect(page.url()).not.toBe(courseUrl);
+  await expect(page.getByRole("heading", { name: "Credits" })).toBeVisible();
 
   // ── Phone width: no sideways scrolling on the main pages ──
   const phone = await context.browser()!.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, storageState: await context.storageState() });
   const p2 = await phone.newPage();
   watch(p2);
-  for (const path of ["/dashboard", courseUrl, `${courseUrl}/export`, "/settings", "/admin", "/privacy"]) {
-    await p2.goto(path);
+  for (const url of ["/dashboard", courseUrl, `${courseUrl}/export`, `${courseUrl}/practice`, deckUrl, "/slides", "/skills", "/errors", "/mastery", "/hub", "/review", "/settings", "/admin", "/privacy"]) {
+    await p2.goto(url);
     await p2.waitForLoadState("networkidle").catch(() => {});
-    expect(await p2.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), `no sideways scroll on ${path}`).toBe(true);
+    expect(await p2.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), `no sideways scroll on ${url}`).toBe(true);
   }
+  // The phone menu opens and closes.
+  await p2.goto("/dashboard");
+  await p2.getByRole("button", { name: "Open menu" }).click();
+  await expect(p2.getByRole("dialog", { name: "Menu" })).toBeVisible();
+  await a11y(p2, "phone menu");
+  await p2.getByRole("dialog", { name: "Menu" }).getByRole("link", { name: "Slides" }).click();
+  await p2.waitForURL(/\/slides$/);
+  await expect(p2.getByRole("dialog", { name: "Menu" })).toBeHidden();
   await phone.close();
 
   // Clean up the test account.

@@ -40,7 +40,7 @@ export type TutorEvent =
 async function ownedCourse(userId: string, courseId: string) {
   const course = await db.course.findFirst({
     where: { id: courseId, userId },
-    select: { id: true, title: true, bookId: true, status: true, book: { select: { status: true } } },
+    select: { id: true, title: true, bookId: true, status: true, book: { select: { status: true, kind: true } } },
   });
   if (!course) throw new NotFoundError("Course not found");
   return course;
@@ -133,7 +133,7 @@ export async function askTutor(userId: string, input: AskInput, deps: AskDeps, e
   emit({ type: "meta", threadId: thread.id, threadTitle: thread.title, messageId: reply.id, sources, confidence: found.confidence, mode: found.mode });
 
   const turns: TutorTurn[] = history.reverse().map((m) => ({ role: m.role === "USER" ? "user" : "assistant", content: m.content }));
-  const messages = tutorMessages({ history: turns, passages: found.passages, question, context: { courseTitle: course.title, lessonTitle: lesson?.title } });
+  const messages = tutorMessages({ history: turns, passages: found.passages, question, context: { courseTitle: course.title, lessonTitle: lesson?.title, slides: course.book.kind === "SLIDES" } });
   const usageCtx = { userId, courseId: course.id, lessonId, feature: "TUTOR" as const };
 
   try {

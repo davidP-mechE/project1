@@ -15,7 +15,7 @@ export default async function LibraryPage({ searchParams }: PageProps<"/library"
   const user = await requireUser();
   const { view } = await searchParams;
   const archived = view === "archived";
-  const [courses, today] = await Promise.all([listCourses(user.id, { archived }), getTodaySummary(user.id)]);
+  const [courses, today] = await Promise.all([listCourses(user.id, { archived, kind: "BOOK" }), getTodaySummary(user.id)]);
   const now = new Date();
   const cards: CourseCardData[] = courses.map((c) => ({
     id: c.id,

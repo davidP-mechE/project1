@@ -94,7 +94,7 @@ export async function saveLessonNote(userId: string, lessonId: string, body: unk
 
 /** All notes and highlights in a course, lesson by lesson in course order (for the Notes page and export). */
 export async function getCourseNotes(userId: string, courseId: string) {
-  const course = await db.course.findFirst({ where: { id: courseId, userId }, select: { id: true, title: true } });
+  const course = await db.course.findFirst({ where: { id: courseId, userId }, select: { id: true, title: true, book: { select: { kind: true } } } });
   if (!course) throw new NotFoundError("Course not found");
   const lessons = await db.lesson.findMany({
     where: { courseId, OR: [{ highlights: { some: { userId } } }, { notes: { some: { userId } } }] },

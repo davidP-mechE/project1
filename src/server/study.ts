@@ -151,7 +151,7 @@ export type AttemptView = {
   createdAt: string;
 };
 
-const toView = (a: {
+export const toView = (a: {
   verdict: AttemptView["verdict"];
   correct: boolean;
   score: number;
@@ -325,6 +325,6 @@ export async function submitAttempt(userId: string, questionId: string, input: A
       model: g.model,
     },
   });
-  await bumpActivity(userId, "questionsAnswered");
+  await bumpActivity(userId, { questionsAnswered: 1, questionsCorrect: g.result.correct ? 1 : 0 });
   return toView(attempt);
 }

@@ -2,17 +2,18 @@ import type { ReactNode } from "react";
 import type { LessonContent } from "@/lib/ai/lesson-schema";
 import { bookPageHref } from "./cite-pages";
 import { Markdown } from "./markdown";
+import { refPrefix, unitWord, type SourceKindName } from "@/lib/source-label";
 
 /**
  * "p. 4" / "pp. 4, 6" links to the original book at that page. On the lesson
  * page they open the book viewer beside the lesson (data-book-page); elsewhere
  * they open the PDF in a new tab.
  */
-export function PageRefs({ bookId, pages }: { bookId: string; pages: number[] }) {
+export function PageRefs({ bookId, pages, kind }: { bookId: string; pages: number[]; kind?: SourceKindName }) {
   if (pages.length === 0) return null;
   return (
     <span className="inline-flex flex-wrap items-center gap-1 text-xs text-muted">
-      <span>{pages.length === 1 ? "p." : "pp."}</span>
+      <span>{refPrefix(kind, pages.length)}</span>
       {pages.map((p) => (
         <a
           key={p}
@@ -21,7 +22,7 @@ export function PageRefs({ bookId, pages }: { bookId: string; pages: number[] })
           target="_blank"
           rel="noopener"
           className="rounded bg-surface-2 px-1.5 py-0.5 tabular-nums hover:text-text hover:underline"
-          aria-label={`Open the original book at page ${p}`}
+          aria-label={`Open ${unitWord(kind)} ${p}`}
         >
           {p}
         </a>
@@ -57,14 +58,14 @@ export function Objectives({ items }: { items: string[] }) {
   );
 }
 
-export function WorkedExamples({ items, bookId }: { items: LessonContent["workedExamples"]; bookId: string }) {
+export function WorkedExamples({ items, bookId, kind }: { items: LessonContent["workedExamples"]; bookId: string; kind?: SourceKindName }) {
   return (
     <ol className="flex flex-col gap-4">
       {items.map((w, i) => (
         <li key={i} className="rounded-xl border border-border bg-surface p-4">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <h3 className="font-semibold">{w.title}</h3>
-            <PageRefs bookId={bookId} pages={w.pageRefs} />
+            <PageRefs bookId={bookId} pages={w.pageRefs} kind={kind} />
           </div>
           <Markdown className="mt-2" bookId={bookId}>{w.problem}</Markdown>
           <details className="mt-3 group">
@@ -89,14 +90,14 @@ export function WorkedExamples({ items, bookId }: { items: LessonContent["worked
   );
 }
 
-export function KeyTerms({ items, bookId }: { items: LessonContent["keyTerms"]; bookId: string }) {
+export function KeyTerms({ items, bookId, kind }: { items: LessonContent["keyTerms"]; bookId: string; kind?: SourceKindName }) {
   return (
     <dl className="grid gap-3 sm:grid-cols-2">
       {items.map((k, i) => (
         <div key={i} className="rounded-lg border border-border bg-surface p-3">
           <dt className="flex flex-wrap items-baseline justify-between gap-2 font-semibold">
             <span>{k.term}</span>
-            <PageRefs bookId={bookId} pages={k.pageRefs} />
+            <PageRefs bookId={bookId} pages={k.pageRefs} kind={kind} />
           </dt>
           <dd className="mt-1 text-sm">
             <Markdown className="[&_p]:m-0" bookId={bookId}>{k.definition}</Markdown>

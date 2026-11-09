@@ -160,7 +160,7 @@ export async function submitTest(userId: string, assessmentId: string, answers: 
     });
     return at;
   });
-  await bumpActivity(userId, "questionsAnswered");
+  await bumpActivity(userId, { questionsAnswered: graded.size, questionsCorrect: correct });
   return {
     attemptId: attempt.id,
     score,

@@ -1,3 +1,4 @@
+import { rangeText, refsText, type SourceKindName } from "@/lib/source-label";
 /** A whole course, ready to export (built by src/server/export.ts). */
 export type ExportQuestion = {
   type: "MULTIPLE_CHOICE" | "SHORT_ANSWER" | "STEP_BY_STEP";
@@ -23,7 +24,7 @@ export type ExportLesson = {
   flashcards: ExportCard[];
 };
 export type ExportUnit = { title: string; summary: string | null; lessons: ExportLesson[]; test: ExportQuestion[] };
-export type CourseExport = { title: string; bookFilename: string; units: ExportUnit[]; finalExam: ExportQuestion[] };
+export type CourseExport = { title: string; bookFilename: string; kind?: SourceKindName; units: ExportUnit[]; finalExam: ExportQuestion[] };
 
-export const pagesLabel = (refs: number[]) => (refs.length === 0 ? "" : refs.length === 1 ? `p. ${refs[0]}` : `pp. ${refs.join(", ")}`);
-export const rangeLabel = (a: number, b: number) => (a === b ? `p. ${a}` : `pp. ${a}–${b}`);
+export const pagesLabel = (refs: number[], kind?: SourceKindName) => refsText(kind, refs);
+export const rangeLabel = (a: number, b: number, kind?: SourceKindName) => rangeText(kind, a, b);

@@ -35,6 +35,7 @@ export class FakeWriter implements LessonWriter {
   lessonCalls: LessonPromptInput[] = [];
   questionCalls: (LessonPromptInput & { avoid: string[] })[] = [];
   repairCalls = 0;
+  repairKinds: string[] = [];
   /** Set to make the next lesson call fail or return something specific. */
   nextLesson: ((input: LessonPromptInput) => LessonDraft) | AiError | null = null;
 
@@ -69,8 +70,9 @@ export class FakeWriter implements LessonWriter {
     };
   }
 
-  async repairPage(): Promise<WriterResult<string>> {
+  async repairPage(_png?: Buffer, kind: "book" | "slides" = "book"): Promise<WriterResult<string>> {
     this.repairCalls += 1;
+    this.repairKinds.push(kind);
     return {
       value: "Ohm's law relates voltage, current and resistance: $$V = IR$$ and power is $$P = I^2 R$$. ".repeat(4),
       calls: [{ value: null, model: "claude-sonnet-5-5", usage: { inputTokens: 1700, outputTokens: 700 } }],
