@@ -7,14 +7,14 @@ type Size = "sm" | "md";
 
 // "press" gives every button a small, quick squeeze when clicked (globals.css).
 const base =
-  "press inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-[color,background-color,border-color,transform] disabled:cursor-not-allowed disabled:opacity-60";
+  "press inline-flex items-center justify-center gap-2 rounded-xl font-semibold transition-[color,background-color,border-color,transform] disabled:cursor-not-allowed disabled:opacity-60";
 const variants: Record<Variant, string> = {
   primary: "bg-primary text-primary-text hover:bg-primary-hover",
   secondary: "border border-border bg-surface text-text hover:bg-surface-2",
   ghost: "text-text hover:bg-surface-2",
   danger: "bg-danger text-white hover:opacity-90 dark:text-bg",
 };
-const sizes: Record<Size, string> = { sm: "h-8 px-3 text-sm", md: "h-10 px-4 text-sm" };
+const sizes: Record<Size, string> = { sm: "h-8 px-3 text-sm", md: "h-11 px-5 text-sm" };
 
 export function buttonClasses(variant: Variant = "primary", size: Size = "md", className?: string) {
   return cn(base, variants[variant], sizes[size], className);

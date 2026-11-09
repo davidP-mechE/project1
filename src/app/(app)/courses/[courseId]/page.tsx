@@ -135,7 +135,7 @@ export default async function CoursePage({ params }: PageProps<"/courses/[course
             <dd className="font-medium">{formatBytes(Number(book.sizeBytes))}</dd>
           </div>
           <div>
-            <dt className="text-muted">Pages</dt>
+            <dt className="text-muted">{course.book.kind === "SLIDES" ? "Slides" : "Pages"}</dt>
             <dd className="font-medium">{book.pageCount ?? "—"}</dd>
           </div>
           <div>
@@ -150,11 +150,11 @@ export default async function CoursePage({ params }: PageProps<"/courses/[course
         <div className="mt-6 flex flex-wrap gap-2">
           {fileAvailable && (
             <a href={`/api/books/${book.id}/file`} target="_blank" rel="noopener" className={buttonClasses("secondary")}>
-              Open original PDF
+              {course.book.kind === "SLIDES" ? "Open the slides" : "Open original PDF"}
             </a>
           )}
-          <ButtonLink href="/library" variant="ghost">
-            Back to library
+          <ButtonLink href={course.book.kind === "SLIDES" ? "/slides" : "/library"} variant="ghost">
+            {course.book.kind === "SLIDES" ? "Back to slides" : "Back to library"}
           </ButtonLink>
         </div>
       </Card>

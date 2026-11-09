@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { authClient } from "@/lib/auth-client";
 
-export function UserMenu({ name, email, isAdmin = false }: { name: string; email: string; isAdmin?: boolean }) {
+export function UserMenu({ name, email, isAdmin = false, placement = "down", showName = false }: { name: string; email: string; isAdmin?: boolean; placement?: "up" | "down"; showName?: boolean }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const router = useRouter();
@@ -32,13 +32,25 @@ export function UserMenu({ name, email, isAdmin = false }: { name: string; email
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
         aria-haspopup="menu"
-        className="inline-flex size-9 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-text"
+        className={showName ? "flex min-w-0 items-center gap-2.5 rounded-xl p-1 pr-2 text-left text-nav-text hover:bg-nav-active" : "inline-flex size-9 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-text"}
       >
-        <span aria-hidden>{initials}</span>
-        <span className="sr-only">Account menu</span>
+        {showName ? (
+          <>
+            <span aria-hidden className="inline-flex size-9 shrink-0 items-center justify-center rounded-full bg-[#f4e4b0] text-sm font-bold text-[#1b1f33]">
+              {initials}
+            </span>
+            <span className="min-w-0 truncate text-sm font-semibold">{name}</span>
+            <span className="sr-only"> (account menu)</span>
+          </>
+        ) : (
+          <>
+            <span aria-hidden>{initials}</span>
+            <span className="sr-only">Account menu</span>
+          </>
+        )}
       </button>
       {open && (
-        <div role="menu" className="absolute right-0 z-20 mt-2 w-60 rounded-xl border border-border bg-surface p-1 shadow-lg">
+        <div role="menu" className={`absolute z-30 w-60 rounded-xl border border-border bg-surface p-1 text-text shadow-lg ${placement === "up" ? "bottom-full left-0 mb-2" : "right-0 mt-2"}`}>
           <div className="px-3 py-2 text-sm">
             <p className="truncate font-medium">{name}</p>
             <p className="truncate text-muted">{email}</p>

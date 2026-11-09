@@ -4,42 +4,69 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /* Color tokens. Contrast pairs meet WCAG AA (4.5:1) for body text. */
+/*
+ * Colors: "cream and moonlight". Light mode is warm cream paper with deep
+ * night-blue ink; dark mode is a moonlit night with cream text and a soft
+ * moon-gold accent. The sidebar is night sky in both. Every text/background
+ * pair below meets WCAG AA (4.5:1); the browser tests check the real pages.
+ */
 :root {
-  --bg: #f7f7f8;
-  --surface: #ffffff;
-  --surface-2: #f0f1f4;
-  --border: #dcdee3;
-  --text: #16181d;
-  --text-muted: #555b66;
-  --primary: #4338ca;
-  --primary-hover: #3730a3;
-  --primary-text: #ffffff;
-  --danger: #b42318;
-  --danger-bg: #fef3f2;
-  --success: #067647;
-  --success-bg: #ecfdf3;
-  --warning: #93370d;
-  --warning-bg: #fffaeb;
-  --focus: #6366f1;
+  --bg: #f6efe0;
+  --surface: #fffbf2;
+  --surface-2: #efe6d2;
+  --border: #e0d4ba;
+  --text: #1b1f33;
+  --text-muted: #5c5a64;
+  --primary: #28326a;
+  --primary-hover: #1d2550;
+  --primary-text: #fdf7e8;
+  --accent: #d9b45a; /* moon gold: decoration only */
+  --accent-ink: #7a5a12; /* moon gold dark enough for text */
+  --danger: #a3301d;
+  --danger-bg: #fbe8e1;
+  --success: #2c6a3c;
+  --success-bg: #e5efdc;
+  --warning: #80520a;
+  --warning-bg: #faefd0;
+  --focus: #4a5bd4;
+  --shadow: 0 1px 2px rgb(27 31 51 / 0.05), 0 8px 24px -12px rgb(27 31 51 / 0.18);
+  /* Night-sky sidebar and hero cards (the same in both themes) */
+  --nav-bg: #151a30;
+  --nav-text: #f1e8d2;
+  --nav-muted: #b9b09a;
+  --nav-active: #262d52;
+  --hero-from: #1d2448;
+  --hero-to: #2f3b78;
+  --hero-text: #fbf3df;
 }
 
 .dark {
-  --bg: #0e1014;
-  --surface: #171a20;
-  --surface-2: #20242c;
-  --border: #2e333d;
-  --text: #eceef2;
-  --text-muted: #a3a9b5;
-  --primary: #818cf8;
-  --primary-hover: #a5b4fc;
-  --primary-text: #0e1014;
-  --danger: #fda29b;
-  --danger-bg: #3a1714;
-  --success: #75e0a7;
-  --success-bg: #0f2e1e;
-  --warning: #fec84b;
-  --warning-bg: #33260a;
-  --focus: #a5b4fc;
+  --bg: #0f1220;
+  --surface: #171b2d;
+  --surface-2: #20253b;
+  --border: #2d3350;
+  --text: #f1ead8;
+  --text-muted: #b2ab9a;
+  --primary: #f0d78f;
+  --primary-hover: #f7e6b4;
+  --primary-text: #141729;
+  --accent: #f0d78f;
+  --accent-ink: #f0d78f;
+  --danger: #f3a08f;
+  --danger-bg: #3a1a17;
+  --success: #9ed8a6;
+  --success-bg: #15301d;
+  --warning: #f1c56a;
+  --warning-bg: #34280c;
+  --focus: #f0d78f;
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 10px 30px -14px rgb(0 0 0 / 0.6);
+  --nav-bg: #0a0d18;
+  --nav-text: #f1e8d2;
+  --nav-muted: #a9a18e;
+  --nav-active: #1e2440;
+  --hero-from: #1d2448;
+  --hero-to: #2f3b78;
+  --hero-text: #fbf3df;
 }
 
 @theme inline {
@@ -59,7 +86,14 @@
   --color-warning: var(--warning);
   --color-warning-bg: var(--warning-bg);
   --color-focus: var(--focus);
-  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-nav: var(--nav-bg);
+  --color-nav-text: var(--nav-text);
+  --color-nav-muted: var(--nav-muted);
+  --color-nav-active: var(--nav-active);
+  --font-sans: "Nunito Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-display: "Fraunces Variable", ui-serif, Georgia, "Times New Roman", serif;
 }
 
 html {
@@ -357,4 +391,156 @@ body {
 }
 .legal a:not([class]) {
   text-decoration: underline;
+}
+
+/* ─── Cream & moon look (Phase 11) ──────────────────────────────────── */
+
+h1,
+h2,
+.font-display {
+  font-family: var(--font-display);
+  font-optical-sizing: auto;
+  letter-spacing: -0.01em;
+}
+
+/* Night-sky hero card with a crescent moon and a few stars. */
+.hero-card {
+  position: relative;
+  overflow: hidden;
+  color: var(--hero-text);
+  background:
+    radial-gradient(1.5px 1.5px at 62% 22%, rgb(251 243 223 / 0.9), transparent),
+    radial-gradient(1px 1px at 74% 64%, rgb(251 243 223 / 0.7), transparent),
+    radial-gradient(1.5px 1.5px at 92% 78%, rgb(251 243 223 / 0.8), transparent),
+    radial-gradient(1px 1px at 48% 12%, rgb(251 243 223 / 0.6), transparent),
+    radial-gradient(1px 1px at 83% 40%, rgb(251 243 223 / 0.7), transparent),
+    linear-gradient(135deg, var(--hero-from), var(--hero-to));
+  box-shadow: var(--shadow);
+}
+.hero-card::before {
+  /* the moon: a crescent made with an inset shadow, softly glowing */
+  content: "";
+  position: absolute;
+  top: -1.25rem;
+  right: 2rem;
+  width: 6rem;
+  height: 6rem;
+  border-radius: 9999px;
+  box-shadow:
+    inset -1.35rem 0.6rem 0 0 #f4e4b0,
+    0 0 3rem 0.5rem rgb(244 228 176 / 0.12);
+  transform: rotate(-12deg);
+  pointer-events: none;
+}
+.hero-card > * {
+  position: relative;
+}
+/* Light-on-night button inside hero cards (plain CSS so it wins over the button's utility classes). */
+.hero-button {
+  background: var(--hero-text);
+  color: #1b1f33;
+}
+.hero-button:hover {
+  background: #fffaf0;
+}
+.hero-card .hero-track {
+  background: rgb(251 243 223 / 0.22);
+}
+.hero-card .hero-fill {
+  background: #f4e4b0;
+}
+
+/* Soft lift for cards. */
+.lift {
+  box-shadow: var(--shadow);
+}
+
+/* ─── Book loader: an open book whose pages turn ─────────────────────── */
+.book-loader {
+  position: relative;
+  width: 4.5rem;
+  height: 3rem;
+  perspective: 18rem;
+}
+.book-loader .bl-cover {
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 100%;
+  border-radius: 0.3rem;
+  background: var(--primary);
+  transform: translateY(0.25rem) scaleX(1.06);
+}
+.book-loader .bl-half,
+.book-loader .bl-page {
+  position: absolute;
+  top: 0;
+  width: 50%;
+  height: 100%;
+  background:
+    repeating-linear-gradient(to bottom, transparent 0 0.42rem, rgb(27 31 51 / 0.12) 0.42rem 0.48rem) 0.45rem 0.6rem / calc(100% - 0.9rem) calc(100% - 1rem) no-repeat,
+    #fffbf2;
+  border: 1px solid rgb(27 31 51 / 0.15);
+}
+.book-loader .bl-half.left {
+  left: 0;
+  border-radius: 0.3rem 0 0 0.3rem;
+}
+.book-loader .bl-half.right {
+  right: 0;
+  border-radius: 0 0.3rem 0.3rem 0;
+}
+.book-loader .bl-page {
+  right: 0;
+  border-radius: 0 0.3rem 0.3rem 0;
+  transform-origin: left center;
+  animation: page-turn 1.8s cubic-bezier(0.45, 0.05, 0.35, 1) infinite;
+  backface-visibility: visible;
+}
+.book-loader .bl-page:nth-of-type(2) {
+  animation-delay: 0.3s;
+}
+.book-loader .bl-page:nth-of-type(3) {
+  animation-delay: 0.6s;
+}
+@keyframes page-turn {
+  0%,
+  10% {
+    transform: rotateY(0deg);
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(0.9);
+  }
+  70%,
+  100% {
+    transform: rotateY(-180deg);
+    filter: brightness(1);
+  }
+}
+/* "Reduce motion": an open book, still. */
+@media (prefers-reduced-motion: reduce) {
+  .book-loader .bl-page {
+    animation: none;
+    display: none;
+  }
+}
+
+/* The phone menu slides in from the left. */
+dialog.drawer {
+  inset: 0 auto 0 0;
+}
+dialog.drawer[open] {
+  animation: drawer-in 0.2s ease-out;
+}
+@keyframes drawer-in {
+  from {
+    transform: translateX(-100%);
+  }
+}
+.hero-ghost {
+  color: var(--hero-text);
+  box-shadow: inset 0 0 0 1px rgb(251 243 223 / 0.45);
+}
+.hero-ghost:hover {
+  background: rgb(251 243 223 / 0.12);
 }

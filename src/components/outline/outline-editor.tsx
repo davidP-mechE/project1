@@ -98,7 +98,7 @@ export function OutlineEditor({ courseId, pageCount, initial, detected }: Props)
   return (
     <div className="flex flex-col gap-4">
       {/* Toolbar */}
-      <div className="sticky top-14 z-10 -mx-4 flex flex-wrap items-center gap-2 border-b border-border bg-bg/95 px-4 py-3 backdrop-blur">
+      <div className="sticky top-14 z-10 -mx-4 lg:top-0 flex flex-wrap items-center gap-2 border-b border-border bg-bg/95 px-4 py-3 backdrop-blur">
         <p className="mr-auto text-sm" aria-live="polite">
           {pending ? "Saving…" : dirty ? <span className="font-medium text-warning">Unsaved changes</span> : justSaved ? <span className="text-success">All changes saved</span> : <span className="text-muted">{included} of {lessonsTotal} lessons included</span>}
         </p>

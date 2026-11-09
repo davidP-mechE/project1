@@ -26,16 +26,19 @@ export class DemoWriter implements LessonWriter {
     const pages = input.pages.filter((p) => pageText(p).length > 0);
     const all = pages.flatMap((p) => sentences(pageText(p)).map((s) => ({ s, page: p.pageNumber })));
     const first = pages[0]?.pageNumber ?? input.pageStart;
+    const deck = input.sourceKind === "slides";
+    const word = deck ? "slides" : "pages";
+    const cite = (n: number) => (deck ? `(slide ${n})` : `(p. ${n})`);
     const pick = (i: number) => all[i % Math.max(1, all.length)] ?? { s: input.lessonTitle, page: first };
     const value: LessonDraft = {
       sourceCheck: { usable: true, problem: "" },
-      objectives: [`Describe the main ideas of "${input.lessonTitle}".`, "Recall the key terms from these pages."],
+      objectives: [`Describe the main ideas of "${input.lessonTitle}".`, `Recall the key terms from these ${word}.`],
       explanation: [
         "> **Demo lesson.** This placeholder was assembled from sentences in the book without using Claude (FAKE_CLAUDE=true). Real lessons are written by Claude.",
         "",
-        "### From the book",
+        deck ? "### From the slides" : "### From the book",
         "",
-        ...all.slice(0, 6).map((x) => `${x.s} (p. ${x.page})`),
+        ...all.slice(0, 6).map((x) => `${x.s} ${cite(x.page)}`),
         "",
         "### A formula, to check math display",
         "",
@@ -46,8 +49,8 @@ export class DemoWriter implements LessonWriter {
       questions: [
         {
           type: "multiple_choice",
-          prompt: `Which lesson covers pages ${input.pageStart}–${input.pageEnd}? (demo question)`,
-          choices: [input.lessonTitle, "The index", "The preface", "None of these pages"],
+          prompt: `Which lesson covers ${word} ${input.pageStart}–${input.pageEnd}? (demo question)`,
+          choices: [input.lessonTitle, "The index", "The preface", `None of these ${word}`],
           correctChoice: 0,
           answer: input.lessonTitle,
           explanation: "This is a demo question.",

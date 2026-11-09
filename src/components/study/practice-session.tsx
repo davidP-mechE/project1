@@ -67,6 +67,9 @@ export function PracticeSession({ courseId, bookId, items, grading, lessonTitle 
   };
 
   const comingBack = (retries.get(current.question.id) ?? 0) > 0;
+  // "Question 3": the order questions were first shown in (a returning question keeps its number).
+  const seen = [...firstTry.keys()];
+  const seenIndex = seen.includes(current.question.id) ? seen.indexOf(current.question.id) : seen.length;
   return (
     <div className="flex flex-col gap-4">
       <div className="sticky top-14 z-[5] -mx-1 flex flex-col gap-2 rounded-xl bg-bg/95 px-1 py-2 backdrop-blur lg:top-2">
@@ -90,7 +93,7 @@ export function PracticeSession({ courseId, bookId, items, grading, lessonTitle 
       <QuestionCard
         key={`${current.question.id}-${round}`}
         q={current.question}
-        index={Math.min(total - 1, solved)}
+        index={seenIndex}
         bookId={bookId}
         last={comingBack ? null : current.last}
         grading={grading}

@@ -14,7 +14,8 @@ export function ThemeProvider({ children, nonce }: { children: ReactNode; nonce?
 const emptySubscribe = () => () => {};
 
 /** Cycles light → dark → system. */
-export function ThemeToggle() {
+/** `className` replaces the default colors (e.g. on the night-sky sidebar). */
+export function ThemeToggle({ className }: { className?: string } = {}) {
   const { theme, setTheme } = useTheme();
   // The saved theme is only known in the browser; render a neutral label on the server.
   const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
@@ -24,7 +25,7 @@ export function ThemeToggle() {
     <button
       type="button"
       onClick={() => setTheme(next)}
-      className="inline-flex size-9 items-center justify-center rounded-lg text-muted hover:bg-surface-2 hover:text-text"
+      className={`inline-flex size-9 items-center justify-center rounded-lg ${className ?? "text-muted hover:bg-surface-2 hover:text-text"}`}
       aria-label={`Theme: ${current}. Switch to ${next}.`}
       title={`Theme: ${current}`}
     >

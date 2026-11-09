@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { BookLoader } from "@/components/ui/book-loader";
 import { Markdown } from "@/components/lesson/markdown";
 import { bookPageHref } from "@/components/lesson/cite-pages";
 import { GoalRing } from "@/components/dashboard/charts";
@@ -88,7 +89,7 @@ export function TestRunner({ assessmentId, bookId, title, questions, backHref }:
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="sticky top-14 z-10 -mx-4 flex items-center gap-3 border-b border-border bg-bg/95 px-4 py-3 backdrop-blur">
+      <div className="sticky top-14 z-10 -mx-4 lg:top-0 flex items-center gap-3 border-b border-border bg-bg/95 px-4 py-3 backdrop-blur">
         <div className="flex min-w-0 flex-1 flex-col gap-1">
           <ProgressBar value={(answered / questions.length) * 100} label="Questions answered" />
           <span className="text-xs text-muted" aria-live="polite">
@@ -106,9 +107,10 @@ export function TestRunner({ assessmentId, bookId, title, questions, backHref }:
         </Button>
       </div>
       {phase === "grading" && (
-        <p role="status" className="rounded-lg bg-surface-2 px-4 py-3 text-sm">
-          Checking your answers. Written answers are compared with the {sourceNoun(kind)} by Claude, which takes a few seconds…
-        </p>
+        <div className="flex items-center gap-4 rounded-2xl bg-surface-2 px-4 py-3 text-sm">
+          <BookLoader label="Checking" className="shrink-0 scale-75" />
+          <p role="status">Checking your answers. Written answers are compared with the {sourceNoun(kind)} by Claude, which takes a few seconds…</p>
+        </div>
       )}
       {error && (
         <p role="alert" className="rounded-lg bg-danger-bg px-4 py-3 text-sm text-danger">

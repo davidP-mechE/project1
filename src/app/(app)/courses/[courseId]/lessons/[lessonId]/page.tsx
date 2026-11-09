@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { BookLoader } from "@/components/ui/book-loader";
 import { notFound } from "next/navigation";
 import { LessonActions, LessonRecovery, LessonStatusPoller } from "@/components/lesson/lesson-actions";
 import { Flashcards, KeyTerms, Objectives, PageRefs, Section, WorkedExamples } from "@/components/lesson/lesson-parts";
@@ -13,7 +14,7 @@ import { buttonClasses } from "@/components/ui/button";
 import { TutorDrawer } from "@/components/tutor/tutor-drawer";
 import { StudyTimer } from "@/components/study/study-timer";
 import { Alert } from "@/components/ui/alert";
-import { Card, Spinner } from "@/components/ui/misc";
+import { Card } from "@/components/ui/misc";
 import { getCourseOr404 } from "@/server/course-page";
 import { NotFoundError, markCourseOpened } from "@/server/courses";
 import { claudeEnabled, env } from "@/server/env";
@@ -104,8 +105,8 @@ export default async function LessonPage({ params, searchParams }: PageProps<"/c
 
       {busy && (
         <Alert tone="info" className="mb-6">
-          <span className="flex items-center gap-2">
-            <Spinner />
+          <span className="flex items-center gap-4">
+            <BookLoader label="Writing" className="shrink-0 scale-75" />
             {content
               ? "This lesson is being rewritten. The current version stays here until the new one is ready."
               : lesson.status === "QUEUED"

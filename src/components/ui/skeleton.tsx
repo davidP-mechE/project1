@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { BookLoader } from "./book-loader";
 
 /**
  * Placeholder shapes shown the instant you click a link, while the next page
@@ -12,7 +13,9 @@ export function Skeleton({ className }: { className?: string }) {
 export function PageSkeleton({ variant = "page", label = "Loading…" }: { variant?: "page" | "lesson" | "dashboard" | "narrow"; label?: string }) {
   return (
     <div aria-busy className="fade-in-soon">
-      <span className="sr-only">{label}</span>
+      <div className="mb-6 flex justify-center">
+        <BookLoader label={label} />
+      </div>
       {variant === "dashboard" ? (
         <div className="mx-auto flex max-w-5xl flex-col gap-6">
           <Skeleton className="h-9 w-72" />
