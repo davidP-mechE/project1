@@ -3,6 +3,7 @@ import { db } from "./db";
 import { env } from "./env";
 import { NotFoundError } from "./courses";
 import { recordUsage } from "./usage";
+import { bumpActivity } from "./activity";
 import { AiError } from "./ai/writer";
 import type { Grader } from "./ai/grader";
 import { gradeMultipleChoice, normalizeGrade, practiceSummary, type GradeResult } from "@/lib/grading/grade";
@@ -117,11 +118,13 @@ export async function setLessonCompleted(userId: string, lessonId: string, compl
   const lesson = await ownedLesson(userId, lessonId);
   if (lesson.skip) throw new StudyError("This lesson is skipped in the outline.");
   const completedAt = completed ? new Date() : null;
+  const before = await db.lessonProgress.findUnique({ where: { userId_lessonId: { userId, lessonId } }, select: { completedAt: true } });
   await db.lessonProgress.upsert({
     where: { userId_lessonId: { userId, lessonId } },
     create: { userId, lessonId, courseId: lesson.courseId, completedAt },
     update: { completedAt },
   });
+  if (completed && !before?.completedAt) await bumpActivity(userId, "lessonsCompleted");
   return recomputeCourseProgress(userId, lesson.courseId);
 }
 
@@ -286,5 +289,6 @@ export async function submitAttempt(userId: string, questionId: string, input: A
       model,
     },
   });
+  await bumpActivity(userId, "questionsAnswered");
   return toView(attempt);
 }

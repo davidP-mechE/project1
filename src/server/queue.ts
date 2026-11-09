@@ -144,3 +144,6 @@ export const workerQueryEmbedder: QueryEmbedder = {
     }
   },
 };
+
+// ─── Daily reminders (Phase 8) ──────────────────────────────────────────
+export const REMINDERS_QUEUE = "reminders";

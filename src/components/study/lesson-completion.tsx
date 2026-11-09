@@ -5,6 +5,7 @@ import { useState, useTransition } from "react";
 import { setLessonCompletedAction, setLessonConfusingAction } from "@/server/actions/study";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { burst } from "@/components/ui/burst";
 
 type Props = { courseId: string; lessonId: string; completed: boolean; confusing: boolean; nextHref: string | null };
 
@@ -15,11 +16,12 @@ export function LessonCompletion({ courseId, lessonId, completed, confusing: ini
   const [error, setError] = useState<string | null>(null);
   const [confusing, setConfusing] = useState(initialConfusing);
 
-  const setDone = (done: boolean, thenNext = false) =>
+  const setDone = (done: boolean, thenNext = false, from: Element | null = null) =>
     startTransition(async () => {
       setError(null);
       const res = await setLessonCompletedAction(courseId, lessonId, done);
       if (!res.ok) return setError(res.error);
+      if (done) burst(from, { count: 26, spread: 120 });
       if (thenNext && nextHref) router.push(nextHref);
       else router.refresh();
     });
@@ -54,11 +56,11 @@ export function LessonCompletion({ courseId, lessonId, completed, confusing: ini
           </>
         ) : (
           <>
-            <Button variant="secondary" size="sm" onClick={() => setDone(true)} disabled={pending}>
+            <Button variant="secondary" size="sm" onClick={(e) => setDone(true, false, e.currentTarget)} disabled={pending}>
               Mark as complete
             </Button>
             {nextHref && (
-              <Button size="sm" onClick={() => setDone(true, true)} disabled={pending}>
+              <Button size="sm" onClick={(e) => setDone(true, true, e.currentTarget)} disabled={pending}>
                 Complete and continue →
               </Button>
             )}

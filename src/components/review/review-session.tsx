@@ -6,6 +6,7 @@ import { Markdown } from "@/components/lesson/markdown";
 import { bookPageHref } from "@/components/lesson/cite-pages";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { ProgressBar, Spinner } from "@/components/ui/misc";
+import { burst } from "@/components/ui/burst";
 import { reviewCardAction } from "@/server/actions/review";
 import { RATINGS, type ReviewRating } from "@/lib/srs/fsrs";
 import { LEARN_AHEAD_MS } from "@/lib/srs/queue";
@@ -46,6 +47,7 @@ export function ReviewSession({ items, backHref }: { items: ReviewItem[]; backHr
       setPending(false);
       if (!res.ok) return setError(res.error);
       setDone((d) => ({ reviewed: d.reviewed + 1, again: d.again + (rating === 1 ? 1 : 0) }));
+      if (queue.length === 1 && new Date(res.due).getTime() - Date.now() > LEARN_AHEAD_MS) burst(null, { count: 40, spread: 160 }); // session finished
       setRevealed(false);
       setQueue(([, ...rest]) => {
         const comesBack = new Date(res.due).getTime() - Date.now() <= LEARN_AHEAD_MS;
@@ -56,7 +58,7 @@ export function ReviewSession({ items, backHref }: { items: ReviewItem[]; backHr
         return [...rest.slice(0, at), again, ...rest.slice(at)];
       });
     },
-    [card, pending],
+    [card, pending, queue.length],
   );
 
   useEffect(() => {

@@ -11,6 +11,7 @@ import { OpenBookButton, StudyShell } from "@/components/study/study-shell";
 import { HighlightProvider, HighlightRoot, LessonNotes } from "@/components/study/highlights";
 import { buttonClasses } from "@/components/ui/button";
 import { TutorDrawer } from "@/components/tutor/tutor-drawer";
+import { StudyTimer } from "@/components/study/study-timer";
 import { Alert } from "@/components/ui/alert";
 import { Card, Spinner } from "@/components/ui/misc";
 import { getCourseOr404 } from "@/server/course-page";
@@ -61,6 +62,7 @@ export default async function LessonPage({ params, searchParams }: PageProps<"/c
   return (
     <StudyShell bookId={bookId} initialPage={initialBookPage} sidebar={<CourseSidebar courseId={courseId} courseTitle={course.title} outline={outline} currentLessonId={lessonId} />}>
     <article>
+      <StudyTimer />
       <LessonStatusPoller courseId={courseId} lessonId={lessonId} status={lesson.status} />
       <nav aria-label="Breadcrumb" className="mb-3 text-sm text-muted">
         <Link href={`/courses/${courseId}`} className="hover:text-text hover:underline">

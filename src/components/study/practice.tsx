@@ -1,9 +1,10 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useId, useRef, useState } from "react";
 import { Markdown } from "@/components/lesson/markdown";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/misc";
+import { burst } from "@/components/ui/burst";
 import { cn } from "@/lib/utils";
 import type { AttemptView } from "@/server/study";
 
@@ -85,6 +86,8 @@ function QuestionCard({
   const done = result !== null;
   const showAnswer = done || revealed;
 
+  const cardRef = useRef<HTMLDivElement>(null);
+
   async function check() {
     setError(null);
     if (mcq && choice === null) return setError("Pick one of the answers first.");
@@ -104,6 +107,7 @@ function QuestionCard({
       }
       setResult(data.attempt);
       onAttempt(data.attempt);
+      if (data.attempt.correct) burst(cardRef.current?.querySelector("[data-check]") ?? null, { count: 14, spread: 70 });
     } catch {
       setError("You seem to be offline. Check your connection and try again.");
     } finally {
@@ -119,7 +123,7 @@ function QuestionCard({
   }
 
   return (
-    <div className="rounded-xl border border-border bg-surface p-4">
+    <div ref={cardRef} className="rounded-xl border border-border bg-surface p-4">
       <div className="mb-2 flex flex-wrap items-center justify-between gap-2 text-xs text-muted">
         <span>
           Question {index + 1} · {TYPE_LABEL[q.type]} · {q.topic}
@@ -181,7 +185,7 @@ function QuestionCard({
 
       <div className="mt-3 flex flex-wrap items-center gap-2">
         {!done && (
-          <Button size="sm" onClick={check} disabled={pending}>
+          <Button size="sm" onClick={check} disabled={pending} data-check>
             {pending ? (
               <>
                 <Spinner /> {mcq ? "Checking…" : "Checking against the book…"}

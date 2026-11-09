@@ -2,7 +2,7 @@
 
 Turn a textbook PDF into a structured, self-paced course: units, lessons, practice questions, flashcards with spaced repetition, and an "Ask the book" tutor that only answers from the textbook.
 
-> **Status:** Phases 1–7 of 10 are complete: accounts, library and upload; reading the book (text, OCR, figures, outline detection, background worker); the outline editor with course settings and a cost estimate; lesson generation with Claude (lessons, practice questions, flashcards, page references, caching, regenerating and hand editing); studying (course sidebar, progress, the original book side by side, practice questions checked instantly or graded by Claude); flashcards with spaced repetition, highlights and notes, and search across lessons and the book; and the "Ask the book" tutor, which answers only from the textbook with page citations. See [PLAN.md](PLAN.md) for the full design and build order.
+> **Status:** Phases 1–8 of 10 are complete: accounts, library and upload; reading the book (text, OCR, figures, outline detection, background worker); the outline editor with course settings and a cost estimate; lesson generation with Claude (lessons, practice questions, flashcards, page references, caching, regenerating and hand editing); studying (course sidebar, progress, the original book side by side, practice questions checked instantly or graded by Claude); flashcards with spaced repetition, highlights and notes, and search across lessons and the book; the "Ask the book" tutor, which answers only from the textbook with page citations; and a daily dashboard with streaks, weak topics, study plans and reminder emails. See [PLAN.md](PLAN.md) for the full design and build order.
 
 | Phase | What | Status |
 |---|---|---|
@@ -13,8 +13,8 @@ Turn a textbook PDF into a structured, self-paced course: units, lessons, practi
 | 5 | Study view, split PDF viewer, practice questions + grading | ✅ Done |
 | 6 | Flashcards (spaced repetition), highlights/notes, search | ✅ Done |
 | 7 | "Ask the book" tutor | ✅ Done |
-| 8 | Dashboard, weak topics, study plan, streaks, reminders | ⏳ Next |
-| 9 | Unit tests / final exam, exports | |
+| 8 | Dashboard, weak topics, study plan, streaks, reminders | ✅ Done |
+| 9 | Unit tests / final exam, exports | ⏳ Next |
 | 10 | Usage limits, admin, legal, security + accessibility pass, deployment | |
 
 ---
@@ -252,6 +252,48 @@ Each course has an **Ask the book** tab, and each lesson has an **Ask the book**
 
 **Deployment note:** the worker needs about 300 MB more memory for the model. The web app (e.g. on Vercel) is unaffected.
 
+### Dashboard, streaks, plans and reminders (Phase 8)
+
+**Today** (`/dashboard`, first in the top bar):
+- A greeting, today's goal as a ring (minutes studied out of your daily goal), and today's counts (cards, questions, lessons).
+- Your streak, a 14-day chart of minutes studied, and **Up next**: cards to review, lessons due on your study plan, or where to continue each course.
+- Your courses' progress, and **Worth another look**: weak topics, lessons you marked confusing, and flashcards you keep forgetting, each with a link back to the lesson.
+- The library shows a small "today" strip too.
+
+**How it's counted:**
+- **Days** are the student's own days, in their time zone (`src/lib/planning/dates.ts`). Activity is stored per student per day (`StudyDay`).
+- **Minutes** come from a heartbeat sent once a minute while a lesson, the review page or the tutor is open, visible, and has been used in the last 2 minutes. Several open tabs count once.
+- Reviews, answered questions and completed lessons are counted as they happen.
+- **Streaks** (`src/lib/planning/streaks.ts`) count consecutive days with any studying. A streak isn't broken until a whole day is missed.
+
+**Weak topics** (`src/lib/planning/weak-topics.ts`):
+- Every practice answer has a topic and a score. Recent answers count more (two weeks ago counts half).
+- Each topic's average is pulled toward a neutral starting point, so one slip doesn't brand it weak.
+- A topic is weak below 60% with at least 2 answers.
+- The course page also shows **practice scores by unit** (each question's latest answer counts).
+
+**Study plans** (each course's **Plan** tab, `src/lib/planning/study-plan.ts`):
+- Choose a finish date, study days and minutes per day.
+- If there's room, the lessons you haven't completed are **paced evenly** up to the finish date. If time is tight, each study day is filled up to your minutes (going over by at most 20%). Every study day also gets a 10-minute flashcard review.
+- If it won't fit, the plan says how many minutes a day you'd need.
+- Lessons tick off as you complete them. Overdue ones are flagged, and **Re-plan from today** spreads what's left again.
+- Lesson time is estimated from the lesson's length (about 200 words a minute) plus 2 minutes per practice question.
+
+**Reminders** (Settings → Studying, off by default):
+- At most one email a day, in the hour you choose (your time zone), and only if you haven't reached your daily goal.
+- It mentions your streak, cards due and lessons on your plan.
+- The worker checks every 15 minutes (`src/server/reminders.ts`). Each email has a signed one-click **Turn off reminders** link.
+- Uses the same SMTP settings as the account emails.
+
+**Settings → Studying** also sets the daily goal, **new flashcards per day** (was fixed at 20) and the time zone (picked up from your browser automatically).
+
+**Speed and feel:**
+- Every main page has a loading placeholder (`loading.tsx`), so the screen responds to a click immediately; in a production build that's about 0.1 s, with the page ready in about 0.4 s.
+- The page transition no longer waits for the old page to fade out.
+- Small celebrations: confetti when you complete a lesson, get an answer right, finish a review session, reach your daily goal, or hit a streak milestone.
+- The dashboard's cards, charts and goal ring animate in.
+- All of it is off with "reduce motion".
+
 ### Key decisions
 
 See the table at the top of [PLAN.md](PLAN.md). Short version: Postgres everywhere (pgvector later), Better Auth for accounts, a separate background worker for heavy PDF processing, direct-to-storage uploads, and Next.js "Cache Components" turned off because almost every page is personal to the logged-in student.
@@ -278,6 +320,15 @@ The same formula powers the estimate on each course's Settings page and in the "
 | **Total per 100 pages** | | **≈ $1.50** (≈ $15 for a 1,000-page book) |
 
 While studying: multiple choice and exact matches are free; a written answer graded by Claude ≈ $0.01–0.02 (Claude Opus 5.5 at low effort, ~2–4K tokens in); a tutor question ≈ $0.02–0.05 (up to ~6K tokens of book passages plus the conversation). Embeddings are free (computed locally).
+
+## Manual test checklist (Phase 8)
+
+1. Generate a course (demo mode is fine) and open a lesson. Answer a question wrong twice. **Complete and continue**: you get a confetti burst.
+2. **Today** in the top bar shows the greeting, the goal ring (your minutes go up by one for each minute you're active on a study page), the streak, the 14-day chart, Up next, and the topic you got wrong under **Worth another look**.
+3. The course's **Plan** tab: pick a finish date 4 weeks out and **Make my plan**. Lessons are spread out, with review-only days summarized. Choose a date 2 days out: it says how many minutes a day you'd need. Complete a lesson and it's ticked off.
+4. **Settings → Studying**: change the daily goal and new cards per day, then save. Turn on reminders and pick the current hour. Within 15 minutes (with `npm run worker` running) an email arrives in Mailpit, or in the terminal if `SMTP_HOST` is empty. Its **Turn off reminders** link works.
+5. Click around (Today, Library, Review, course tabs). The screen responds immediately with a placeholder, then the page. Try a production build (`npm run build && npm start`) for the real speed: `npm run dev` compiles each page on first visit and is much slower.
+6. Phone width and dark mode on Today and Plan.
 
 ## Manual test checklist (Phase 7)
 

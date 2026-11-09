@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 
 // Settings is also in the account menu, so it's hidden here on phones to make room.
 const links = [
+  { href: "/dashboard", label: "Today", phone: true },
   { href: "/library", label: "Library", phone: true },
   { href: "/review", label: "Review", phone: true },
   { href: "/settings", label: "Settings", phone: false },

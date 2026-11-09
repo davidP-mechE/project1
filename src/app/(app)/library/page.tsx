@@ -6,6 +6,8 @@ import { EmptyState, PageHeader } from "@/components/ui/misc";
 import { cn, timeAgo } from "@/lib/utils";
 import { listCourses } from "@/server/courses";
 import { requireUser } from "@/server/session";
+import { TodayStrip } from "@/components/dashboard/today-strip";
+import { getTodaySummary } from "@/server/dashboard";
 
 export const metadata: Metadata = { title: "Library" };
 
@@ -13,7 +15,7 @@ export default async function LibraryPage({ searchParams }: PageProps<"/library"
   const user = await requireUser();
   const { view } = await searchParams;
   const archived = view === "archived";
-  const courses = await listCourses(user.id, { archived });
+  const [courses, today] = await Promise.all([listCourses(user.id, { archived }), getTodaySummary(user.id)]);
   const now = new Date();
   const cards: CourseCardData[] = courses.map((c) => ({
     id: c.id,
@@ -33,6 +35,7 @@ export default async function LibraryPage({ searchParams }: PageProps<"/library"
         description="Each textbook you upload becomes its own course."
         actions={<ButtonLink href="/library/upload">Upload a textbook</ButtonLink>}
       />
+      {today.hasStudied && <TodayStrip {...today} />}
       <nav aria-label="Library views" className="mb-6 flex gap-1 border-b border-border">
         {[
           { href: "/library", label: "Courses", active: !archived },

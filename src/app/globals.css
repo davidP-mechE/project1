@@ -177,12 +177,16 @@ body {
 
 /* ─── Motion ─────────────────────────────────────────────────────────── */
 
-/* Page changes: the old page fades out quickly, the new one fades in and rises slightly. */
+/* Page changes: the new page appears right away and settles in (no waiting for the old one to fade out). */
 ::view-transition-old(.page-exit) {
-  animation: 120ms ease-in both cb-fade-out;
+  animation: 90ms linear both cb-fade-out;
 }
 ::view-transition-new(.page-enter) {
-  animation: 240ms cubic-bezier(0.2, 0.8, 0.2, 1) 60ms both cb-rise-in;
+  animation: 180ms cubic-bezier(0.2, 0.8, 0.2, 1) both cb-settle-in;
+}
+@keyframes cb-settle-in {
+  from { opacity: 0.4; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
 }
 @keyframes cb-fade-out {
   to { opacity: 0; }
@@ -243,4 +247,62 @@ body {
 }
 @keyframes cb-slide-in {
   from { transform: translateX(24px); opacity: 0; }
+}
+
+/* Charts: bars grow in, the goal ring fills. */
+.grow-up {
+  transform-origin: bottom;
+  animation: cb-grow-y 500ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.grow-right {
+  transform-origin: left;
+  animation: cb-grow-x 600ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.ring-fill {
+  animation: cb-ring 900ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+@keyframes cb-grow-y { from { transform: scaleY(0); } }
+@keyframes cb-grow-x { from { transform: scaleX(0); } }
+@keyframes cb-ring { from { stroke-dashoffset: var(--ring-from); } }
+
+/* Dashboard flourishes */
+.confetti {
+  animation: cb-confetti 2400ms cubic-bezier(0.3, 0.6, 0.5, 1) both;
+}
+@keyframes cb-confetti {
+  to { transform: translate(var(--drift), 105vh) rotate(var(--rot)); opacity: 0.9; }
+}
+.streak-glow {
+  animation: cb-glow 2.4s ease-in-out infinite;
+}
+@keyframes cb-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgb(251 146 60 / 0); }
+  50% { box-shadow: 0 0 22px 2px rgb(251 146 60 / 0.35); }
+}
+/* Cards on the dashboard arrive one after another. */
+.stagger {
+  animation: cb-rise-in 360ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.stagger:nth-child(2) { animation-delay: 50ms; }
+.stagger:nth-child(3) { animation-delay: 100ms; }
+@media (prefers-reduced-motion: reduce) {
+  .streak-glow, .stagger, .grow-up, .grow-right, .ring-fill { animation: none; }
+}
+
+/* Loading placeholders: a soft shimmer. Shown only if loading takes more than a moment, so fast pages don't flash. */
+.skeleton {
+  background: linear-gradient(90deg, var(--surface-2) 0%, color-mix(in oklab, var(--surface-2) 60%, var(--surface)) 50%, var(--surface-2) 100%);
+  background-size: 200% 100%;
+  animation: cb-shimmer 1.4s ease-in-out infinite;
+}
+@keyframes cb-shimmer {
+  from { background-position: 100% 0; }
+  to { background-position: -100% 0; }
+}
+.fade-in-soon {
+  animation: cb-fade-in 200ms ease-out 120ms both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeleton { animation: none; }
+  .fade-in-soon { animation: none; }
 }

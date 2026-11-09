@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ReviewSession } from "@/components/review/review-session";
+import { StudyTimer } from "@/components/study/study-timer";
 import { PageHeader } from "@/components/ui/misc";
 import { cn } from "@/lib/utils";
 import { requireUser } from "@/server/session";
@@ -19,6 +20,7 @@ export default async function ReviewPage({ searchParams }: PageProps<"/review">)
 
   return (
     <div className="mx-auto max-w-2xl">
+      <StudyTimer />
       <PageHeader
         title={course ? `Review: ${course.title}` : "Review"}
         description={`${queue.dueCount} due · ${queue.newCount} new today. Spaced repetition shows each card just before you're likely to forget it.`}

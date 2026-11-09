@@ -6,6 +6,7 @@
 // Phase 5: lesson progress (completion) and practice question attempts.
 // Phase 6: flashcard review (spaced repetition), highlights, notes, full-text search.
 // Phase 7: passage embeddings (pgvector) and the "Ask the book" tutor.
+// Phase 8: study preferences, daily activity (streaks, goals), study plans, reminders.
 
 generator client {
   provider = "prisma-client"
@@ -42,6 +43,13 @@ model User {
   plan     Plan   @default(FREE)
   timezone String @default("UTC")
 
+  // Study preferences (Settings → Studying)
+  dailyGoalMinutes Int     @default(20)
+  newCardsPerDay   Int     @default(20)
+  reminderEmails   Boolean @default(false)
+  reminderHour     Int     @default(18) // local hour (0-23) for the daily reminder
+  lastReminderOn   String? // local date (YYYY-MM-DD) the last reminder was sent, so it's never sent twice a day
+
   sessions Session[]
   accounts Account[]
   books    Book[]
@@ -54,6 +62,8 @@ model User {
   highlights       Highlight[]
   notes            Note[]
   tutorThreads     TutorThread[]
+  studyDays        StudyDay[]
+  studyPlans       StudyPlan[]
 
   @@map("user")
 }
@@ -186,6 +196,7 @@ model Course {
   highlights       Highlight[]
   notes            Note[]
   tutorThreads     TutorThread[]
+  studyPlans       StudyPlan[]
 
   @@index([userId, archivedAt])
 }
@@ -326,6 +337,7 @@ model Lesson {
   highlights Highlight[]
   notes      Note[]
   tutorThreads TutorThread[]
+  planItems    PlanItem[]
   // Full-text search vector (title + content), a generated column maintained by Postgres.
   tsv        Unsupported("tsvector")? @default(dbgenerated("(setweight(to_tsvector('english'::regconfig, title), 'A'::\"char\") || setweight(to_tsvector('english'::regconfig, COALESCE(content, '{}'::jsonb)), 'B'::\"char\"))"))
 
@@ -611,6 +623,64 @@ model TutorMessage {
   createdAt DateTime           @default(now())
 
   @@index([threadId, createdAt])
+}
+
+// ─── Dashboard, streaks, study plans (Phase 8) ──────────────────────────
+
+/**
+ * One row per student per day they studied, in THEIR time zone (day = "2026-11-09").
+ * Drives streaks, the daily goal and the activity chart. Minutes come from a
+ * heartbeat while a study page is open and in use; counts are bumped as things happen.
+ */
+model StudyDay {
+  id                String    @id @default(cuid())
+  userId            String
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  day               String
+  minutes           Int       @default(0)
+  cardsReviewed     Int       @default(0)
+  questionsAnswered Int       @default(0)
+  lessonsCompleted  Int       @default(0)
+  lastActiveAt      DateTime?
+
+  @@unique([userId, day])
+}
+
+/** A plan to finish a course by a date: which lessons on which days. */
+model StudyPlan {
+  id            String     @id @default(cuid())
+  userId        String
+  user          User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId      String
+  course        Course     @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  startDate     String // local date the plan was (re)made
+  targetDate    String // local date to finish by
+  studyDays     Int[] // weekdays to study, 0 = Sunday … 6 = Saturday
+  minutesPerDay Int
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  items         PlanItem[]
+
+  @@unique([userId, courseId])
+}
+
+enum PlanItemKind {
+  LESSON
+  REVIEW
+}
+
+model PlanItem {
+  id       String       @id @default(cuid())
+  planId   String
+  plan     StudyPlan    @relation(fields: [planId], references: [id], onDelete: Cascade)
+  day      String
+  kind     PlanItemKind
+  lessonId String?
+  lesson   Lesson?      @relation(fields: [lessonId], references: [id], onDelete: SetNull)
+  minutes  Int
+  order    Int
+
+  @@index([planId, day])
 }
 
 // ─── Claude API usage (for cost tracking and limits) ─────────────────────

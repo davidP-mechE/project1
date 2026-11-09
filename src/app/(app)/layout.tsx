@@ -19,7 +19,12 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
       <header className="sticky top-0 z-10 border-b border-border bg-surface/95 backdrop-blur">
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-2 px-4">
           <div className="flex min-w-0 items-center gap-2 sm:gap-4">
-            <Link href="/library" className="font-semibold tracking-tight">Coursebook</Link>
+            <Link href="/dashboard" className="font-semibold tracking-tight" aria-label="Coursebook home">
+              <span className="hidden sm:inline">Coursebook</span>
+              <span className="inline-flex size-8 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-text sm:hidden" aria-hidden>
+                C
+              </span>
+            </Link>
             <AppNav dueCount={counts.due + counts.new} timeZone={prefs?.timezone ?? "UTC"} />
           </div>
           <div className="flex shrink-0 items-center gap-1">

@@ -4,6 +4,7 @@ import { CourseHeader } from "@/components/course/course-header";
 import { StudyShell } from "@/components/study/study-shell";
 import { ThreadList } from "@/components/tutor/thread-list";
 import { TutorChat, type ChatMessage } from "@/components/tutor/tutor-chat";
+import { StudyTimer } from "@/components/study/study-timer";
 import { Alert } from "@/components/ui/alert";
 import { getCourseOr404 } from "@/server/course-page";
 import { NotFoundError } from "@/server/courses";
@@ -44,6 +45,7 @@ export default async function TutorPage({ params, searchParams }: PageProps<"/co
 
   return (
     <div>
+      <StudyTimer />
       <div className="mx-auto max-w-3xl">
         <CourseHeader course={course} />
       </div>

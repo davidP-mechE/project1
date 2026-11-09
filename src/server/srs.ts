@@ -1,6 +1,7 @@
 import "server-only";
 import { db } from "./db";
 import { NotFoundError } from "./courses";
+import { bumpActivity } from "./activity";
 import { createScheduler, isRating, previewIntervals, reviewCard, type ReviewRating, type StoredCard } from "@/lib/srs/fsrs";
 import { buildQueue, endOfDay, NEW_CARDS_PER_DAY, startOfDay } from "@/lib/srs/queue";
 
@@ -23,6 +24,10 @@ const studyable = (userId: string, courseId?: string) => ({
 async function userTimeZone(userId: string) {
   const u = await db.user.findUnique({ where: { id: userId }, select: { timezone: true } });
   return u?.timezone ?? "UTC";
+}
+async function newPerDay(userId: string) {
+  const u = await db.user.findUnique({ where: { id: userId }, select: { newCardsPerDay: true } });
+  return u?.newCardsPerDay ?? NEW_CARDS_PER_DAY;
 }
 
 const toStored = (s: {
@@ -89,12 +94,13 @@ export async function getReviewQueue(userId: string, opts: { courseId?: string; 
     where: { userId, due: { lt: dayEnd }, flashcard: studyable(userId, opts.courseId) },
     select: { flashcardId: true, due: true, state: true },
   });
-  const introduced = await newIntroducedToday(userId, dayStart);
-  const fresh = await newCandidates(userId, opts.courseId, NEW_CARDS_PER_DAY - introduced);
+  const [introduced, perDay] = await Promise.all([newIntroducedToday(userId, dayStart), newPerDay(userId)]);
+  const fresh = await newCandidates(userId, opts.courseId, perDay - introduced);
   const q = buildQueue({
     scheduled,
     newCandidates: fresh.map((c) => c.id),
     newIntroducedToday: introduced,
+    newPerDay: perDay,
     now,
     endOfToday: dayEnd,
   });
@@ -168,6 +174,7 @@ export async function reviewFlashcard(userId: string, flashcardId: string, ratin
       },
     }),
   ]);
+  await bumpActivity(userId, "cardsReviewed", now);
   return { due: next.due.toISOString(), state: next.state, intervals: previewIntervals(next, now, scheduler) };
 }
 
@@ -180,8 +187,8 @@ export async function getReviewCounts(userId: string, now = new Date()) {
     orderBy: [{ lastOpenedAt: { sort: "desc", nulls: "last" } }],
     select: { id: true, title: true, _count: { select: { flashcards: true } } },
   });
-  const introduced = await newIntroducedToday(userId, dayStart);
-  const allowance = Math.max(0, NEW_CARDS_PER_DAY - introduced);
+  const [introduced, perDay] = await Promise.all([newIntroducedToday(userId, dayStart), newPerDay(userId)]);
+  const allowance = Math.max(0, perDay - introduced);
   const rows = await Promise.all(
     courses.map(async (c) => {
       const [scheduled, unseen] = await Promise.all([

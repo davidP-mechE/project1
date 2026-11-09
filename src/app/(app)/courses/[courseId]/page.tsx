@@ -16,6 +16,8 @@ import { getCourseCost, getCourseLessons, getGenerationProgress } from "@/server
 import { getGenerationEstimate } from "@/server/outline";
 import { requireUser } from "@/server/session";
 import { getStudyOutline } from "@/server/study";
+import { getUnitScores } from "@/server/dashboard";
+import { UnitScores } from "@/components/dashboard/charts";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Course" };
@@ -60,6 +62,7 @@ export default async function CoursePage({ params }: PageProps<"/courses/[course
         generating ? getStudyOutline(user.id, courseId) : null,
       ])
     : [null, null, null, 0, null];
+  const unitScores = study ? await getUnitScores(user.id, courseId) : [];
   const completed = new Set(study?.units.flatMap((u) => u.lessons.filter((l) => l.completed).map((l) => l.id)) ?? []);
   const noKey = claudeEnabled ? undefined : "Lesson generation needs an ANTHROPIC_API_KEY on the server (see the README).";
 
@@ -86,6 +89,13 @@ export default async function CoursePage({ params }: PageProps<"/courses/[course
         <NextSteps courseId={courseId} generate={<GenerateButton courseId={courseId} estimate={pendingEstimate} disabledReason={noKey} />} />
       )}
       {study && (study.resume || study.done > 0) && <ContinueStudying courseId={courseId} study={study} />}
+      {unitScores.some((u) => u.answered > 0) && (
+        <Card className="mb-6">
+          <h2 className="mb-1 text-lg font-semibold">Practice scores by unit</h2>
+          <p className="mb-4 text-sm text-muted">Your latest answer to each practice question counts.</p>
+          <UnitScores units={unitScores} />
+        </Card>
+      )}
       {progress && units && (
         <Card className="mb-6">
           <div className="mb-4 flex flex-wrap items-start justify-between gap-2">
