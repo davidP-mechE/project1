@@ -8,6 +8,7 @@ import { normalizeLessonDraft, normalizeQuestions } from "@/lib/ai/normalize";
 import type { StoredFlashcard, StoredQuestion } from "@/lib/ai/lesson-schema";
 import type { Prisma } from "@/generated/prisma/client";
 import { syncFlashcards } from "../flashcard-store";
+import { queueReadyAssessments } from "./assessments";
 
 /**
  * The work done by the background worker for one lesson. Separate from the
@@ -93,6 +94,8 @@ async function saveFlashcards(tx: Prisma.TransactionClient, lesson: LoadedLesson
 export async function finishCourseIfDone(courseId: string) {
   const busy = await db.lesson.count({ where: { courseId, skip: false, status: { in: ["QUEUED", "GENERATING"] } } });
   if (busy === 0) await db.course.updateMany({ where: { id: courseId, status: "GENERATING" }, data: { status: "ACTIVE" } });
+  // A unit whose lessons are all finished gets its summary and test written next.
+  await queueReadyAssessments(courseId);
 }
 
 /** Write (or re-write) one lesson. */

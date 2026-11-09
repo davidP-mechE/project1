@@ -2,6 +2,7 @@ import type { LessonDraft, QuestionsDraft } from "@/lib/ai/lesson-schema";
 import type { LessonPromptInput } from "@/lib/ai/prompts";
 import { pageText } from "@/lib/ai/source";
 import type { LessonWriter, WriterResult } from "./writer";
+import type { AssessmentDraft, AssessmentPromptInput } from "@/lib/ai/assessment";
 
 /**
  * DEMO MODE (FAKE_CLAUDE=true, development only): builds placeholder lessons
@@ -77,6 +78,49 @@ export class DemoWriter implements LessonWriter {
       value: { questions: lesson.value.questions.map((q) => ({ ...q, prompt: `${q.prompt} (new)` })) },
       calls: lesson.calls,
     };
+  }
+
+  async writeAssessment(input: AssessmentPromptInput): Promise<WriterResult<AssessmentDraft>> {
+    await wait(800);
+    const titles = input.lessons.map((l) => l.title);
+    const questions: AssessmentDraft["questions"] = [];
+    input.lessons.forEach((l, i) => {
+      const others = titles.filter((t) => t !== l.title);
+      const wrong = [...others, "The index", "The preface", "The glossary"].slice(0, 3);
+      const choices = [l.title, ...wrong];
+      const correct = i % choices.length;
+      [choices[0], choices[correct]] = [choices[correct], choices[0]];
+      questions.push({
+        type: "multiple_choice",
+        prompt: `Which lesson covers pages ${l.pageStart}–${l.pageEnd}? (demo test question)`,
+        choices,
+        correctChoice: correct,
+        answer: l.title,
+        explanation: "Demo question: it's the lesson with those pages.",
+        steps: [],
+        pageRefs: [l.pageStart],
+        topic: l.title.slice(0, 40),
+      });
+      const term = l.content.keyTerms[0];
+      if (term) {
+        questions.push({
+          type: "short_answer",
+          prompt: `In your own words, what is "${term.term}"? (demo test question)`,
+          choices: [],
+          correctChoice: -1,
+          answer: term.definition,
+          explanation: "Any answer close to the definition in the lesson.",
+          steps: [],
+          pageRefs: [l.pageStart],
+          topic: term.term.slice(0, 40),
+        });
+      }
+    });
+    const summary =
+      input.kind === "UNIT_TEST"
+        ? ["> **Demo summary** (not written by Claude).", "", ...input.lessons.map((l) => `- **${l.title}**: ${l.content.objectives[0] ?? "see the lesson"} (p. ${l.pageStart})`)].join("\n")
+        : "";
+    return { value: { summary, questions: questions.slice(0, input.questionCount) }, calls: [{ value: null, model: "demo", usage: noUsage }] };
   }
 
   async repairPage(): Promise<WriterResult<string>> {

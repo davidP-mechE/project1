@@ -15,14 +15,16 @@ export const PROCESS_BOOK_QUEUE = "process-book";
 export type ProcessBookPayload = { jobId: string; bookId: string };
 
 export const GENERATE_QUEUE = "generate";
-export type GeneratePayload = {
-  kind: "lesson" | "questions";
-  lessonId: string;
-  /** Regenerate even if the cached lesson is up to date (the student asked). */
-  force?: boolean;
-  /** Generate even if the pages look too thin (the student chose "Try anyway"). */
-  allowThin?: boolean;
-};
+export type GeneratePayload =
+  | {
+      kind: "lesson" | "questions";
+      lessonId: string;
+      /** Regenerate even if the cached lesson is up to date (the student asked). */
+      force?: boolean;
+      /** Generate even if the pages look too thin (the student chose "Try anyway"). */
+      allowThin?: boolean;
+    }
+  | { kind: "assessment"; assessmentId: string };
 
 export function redisConnection() {
   const url = new URL(env.REDIS_URL);
@@ -90,7 +92,10 @@ export async function enqueueGeneration(jobs: { payload: GeneratePayload; priori
     jobs.map(({ payload, priority }) => ({
       name: payload.kind,
       data: payload,
-      opts: { jobId: `${payload.kind}-${payload.lessonId}`, priority: Math.max(1, Math.min(2_000_000, priority)) },
+      opts: {
+        jobId: payload.kind === "assessment" ? `assessment-${payload.assessmentId}` : `${payload.kind}-${payload.lessonId}`,
+        priority: Math.max(1, Math.min(2_000_000, priority)),
+      },
     })),
   );
 }

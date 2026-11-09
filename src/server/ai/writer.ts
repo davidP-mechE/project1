@@ -9,6 +9,7 @@ import {
   type LessonPromptInput,
 } from "@/lib/ai/prompts";
 import type { TokenUsage } from "@/lib/ai/models";
+import { ASSESSMENT_SYSTEM_PROMPT, AssessmentDraftSchema, assessmentUserMessage, type AssessmentDraft, type AssessmentPromptInput } from "@/lib/ai/assessment";
 
 /**
  * Everything that talks to Claude goes through a "writer". The real one
@@ -25,6 +26,8 @@ export interface LessonWriter {
   writeQuestions(input: LessonPromptInput & { avoid: string[] }): Promise<WriterResult<QuestionsDraft>>;
   /** Transcribe a page image (PNG) with math as LaTeX. */
   repairPage(png: Buffer): Promise<WriterResult<string>>;
+  /** A unit summary + unit test, or the final exam, from finished lessons. */
+  writeAssessment(input: AssessmentPromptInput): Promise<WriterResult<AssessmentDraft>>;
 }
 
 /** Why a call failed, and whether trying again later could help. */
@@ -93,6 +96,7 @@ export class ClaudeWriter implements LessonWriter {
     schema: Parameters<typeof zodOutputFormat>[0],
     userMessage: string,
     maxTokens: number,
+    system: string = LESSON_SYSTEM_PROMPT,
   ): Promise<WriterResult<T>> {
     const calls: Call<unknown>[] = [];
     for (const model of [this.config.model, this.config.fallbackModel]) {
@@ -105,7 +109,7 @@ export class ClaudeWriter implements LessonWriter {
             model,
             max_tokens: maxTokens,
             // The system prompt never changes, so it's cached across all lessons.
-            system: [{ type: "text", text: LESSON_SYSTEM_PROMPT, cache_control: { type: "ephemeral" } }],
+            system: [{ type: "text", text: system, cache_control: { type: "ephemeral" } }],
             messages: [{ role: "user", content: userMessage }],
             output_config: { format: zodOutputFormat(schema), effort: this.config.effort },
           })
@@ -148,6 +152,10 @@ export class ClaudeWriter implements LessonWriter {
       QUESTIONS_MAX_TOKENS,
     );
     return res as WriterResult<QuestionsDraft>;
+  }
+
+  writeAssessment(input: AssessmentPromptInput) {
+    return this.structured<AssessmentDraft>(AssessmentDraftSchema, assessmentUserMessage(input), 24_000, ASSESSMENT_SYSTEM_PROMPT);
   }
 
   async repairPage(png: Buffer): Promise<WriterResult<string>> {

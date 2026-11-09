@@ -205,73 +205,97 @@ export type AttemptDeps = { grader: Grader | null };
  * - Written answers: an obviously identical answer is accepted without Claude;
  *   otherwise Claude grades it against the model answer and the book's pages.
  */
-export async function submitAttempt(userId: string, questionId: string, input: AttemptInput, deps: AttemptDeps) {
-  const q = await db.question.findFirst({
-    where: { id: questionId, course: { userId } },
-    include: { lesson: { select: { id: true, pageStart: true, pageEnd: true, course: { select: { bookId: true } } } } },
-  });
-  if (!q) throw new NotFoundError("Question not found");
+type GradeQuestion = {
+  id: string;
+  courseId: string;
+  lessonId: string | null;
+  type: "MULTIPLE_CHOICE" | "SHORT_ANSWER" | "STEP_BY_STEP";
+  prompt: string;
+  choices: string[];
+  correctChoice: number | null;
+  answer: string;
+  explanation: string;
+  steps: string[];
+  pageRefs: number[];
+  lesson: { pageStart: number; pageEnd: number } | null;
+  course: { bookId: string };
+};
+export type Graded = { result: GradeResult; gradedBy: AttemptView["gradedBy"]; model: string | null; choice: number | null; response: string };
 
-  let result: GradeResult;
-  let gradedBy: AttemptView["gradedBy"] = "LOCAL";
-  let model: string | null = null;
-  let choice: number | null = null;
-  let response = "";
+/** Does this answer need Claude (i.e. it's written and doesn't obviously match)? Used to check limits before grading a whole test. */
+export function needsClaude(q: Pick<GradeQuestion, "type" | "answer">, input: AttemptInput): boolean {
+  if (q.type === "MULTIPLE_CHOICE") return false;
+  const checked = checkResponse(input.response);
+  return checked.ok && quickCheck(q.answer, checked.text) !== "correct";
+}
 
+export async function claudeGradesLastHour(userId: string) {
+  const since = new Date(Date.now() - 60 * 60 * 1000);
+  return db.questionAttempt.count({ where: { userId, gradedBy: "CLAUDE", createdAt: { gte: since } } });
+}
+
+/** Grade one answer (without saving it). Throws StudyError with a message for the student. */
+export async function gradeAnswer(userId: string, q: GradeQuestion, input: AttemptInput, deps: AttemptDeps, opts: { skipLimit?: boolean } = {}): Promise<Graded> {
   if (q.type === "MULTIPLE_CHOICE") {
     const r = gradeMultipleChoice(q, input.choice);
     if ("error" in r) throw new StudyError(r.error);
-    result = r;
-    choice = input.choice as number;
-  } else {
-    const checked = checkResponse(input.response);
-    if (!checked.ok) throw new StudyError(checked.error);
-    response = checked.text;
-    if (quickCheck(q.answer, response) === "correct") {
-      result = { verdict: "CORRECT", correct: true, score: 1, feedback: "Correct! That matches the model answer." };
-    } else {
-      if (!deps.grader) {
-        throw new StudyError("Answer checking isn't set up on this server (no Claude API key). Compare your answer with the model answer.", 503);
-      }
-      const since = new Date(Date.now() - 60 * 60 * 1000);
-      const recent = await db.questionAttempt.count({ where: { userId, gradedBy: "CLAUDE", createdAt: { gte: since } } });
-      if (recent >= env.GRADING_PER_HOUR) {
-        throw new StudyError(`You've had ${env.GRADING_PER_HOUR} answers checked in the last hour, the hourly limit. Please try again a bit later.`, 429);
-      }
-      const bookId = q.lesson?.course.bookId;
-      const pageNumbers = q.lesson ? pagesForGrading(q, q.lesson) : [];
-      const pages: SourcePage[] = bookId
-        ? await db.page.findMany({
-            where: { bookId, pageNumber: { in: pageNumbers } },
-            orderBy: { pageNumber: "asc" },
-            select: { pageNumber: true, label: true, text: true, textSource: true, mathScore: true, repairedText: true },
-          })
-        : [];
-      try {
-        const graded = await deps.grader.grade({
-          type: q.type,
-          prompt: q.prompt,
-          answer: q.answer,
-          explanation: q.explanation,
-          steps: q.steps,
-          response,
-          pages,
-        });
-        await recordUsage({ userId, courseId: q.courseId, lessonId: q.lessonId, feature: "GRADING" }, graded.calls);
-        result = normalizeGrade(graded.value);
-        gradedBy = deps.grader.kind === "demo" ? "DEMO" : "CLAUDE";
-        model = graded.calls.at(-1)?.model ?? null;
-      } catch (err) {
-        if (err instanceof AiError) {
-          await recordUsage({ userId, courseId: q.courseId, lessonId: q.lessonId, feature: "GRADING" }, err.calls);
-          if (err.kind !== "retryable") console.error("Grading failed:", err.message);
-          throw new StudyError(err.userMessage, err.kind === "retryable" ? 503 : 502);
-        }
-        throw err;
-      }
-    }
+    return { result: r, gradedBy: "LOCAL", model: null, choice: input.choice as number, response: "" };
   }
+  const checked = checkResponse(input.response);
+  if (!checked.ok) throw new StudyError(checked.error);
+  const response = checked.text;
+  if (quickCheck(q.answer, response) === "correct") {
+    return { result: { verdict: "CORRECT", correct: true, score: 1, feedback: "Correct! That matches the model answer." }, gradedBy: "LOCAL", model: null, choice: null, response };
+  }
+  if (!deps.grader) {
+    throw new StudyError("Answer checking isn't set up on this server (no Claude API key). Compare your answer with the model answer.", 503);
+  }
+  if (!opts.skipLimit && (await claudeGradesLastHour(userId)) >= env.GRADING_PER_HOUR) {
+    throw new StudyError(`You've had ${env.GRADING_PER_HOUR} answers checked in the last hour, the hourly limit. Please try again a bit later.`, 429);
+  }
+  // The pages the question was written from: its citations (within the lesson, if it has one).
+  const pageNumbers = q.lesson ? pagesForGrading(q, q.lesson) : [...new Set(q.pageRefs)].sort((a, b) => a - b).slice(0, MAX_GRADING_PAGES);
+  const pages: SourcePage[] = await db.page.findMany({
+    where: { bookId: q.course.bookId, pageNumber: { in: pageNumbers } },
+    orderBy: { pageNumber: "asc" },
+    select: { pageNumber: true, label: true, text: true, textSource: true, mathScore: true, repairedText: true },
+  });
+  const usage = { userId, courseId: q.courseId, lessonId: q.lessonId, feature: "GRADING" as const };
+  try {
+    const graded = await deps.grader.grade({ type: q.type, prompt: q.prompt, answer: q.answer, explanation: q.explanation, steps: q.steps, response, pages });
+    await recordUsage(usage, graded.calls);
+    return { result: normalizeGrade(graded.value), gradedBy: deps.grader.kind === "demo" ? "DEMO" : "CLAUDE", model: graded.calls.at(-1)?.model ?? null, choice: null, response };
+  } catch (err) {
+    if (err instanceof AiError) {
+      await recordUsage(usage, err.calls);
+      if (err.kind !== "retryable") console.error("Grading failed:", err.message);
+      throw new StudyError(err.userMessage, err.kind === "retryable" ? 503 : 502);
+    }
+    throw err;
+  }
+}
 
+export const gradeQuestionSelect = {
+  id: true,
+  courseId: true,
+  lessonId: true,
+  type: true,
+  prompt: true,
+  choices: true,
+  correctChoice: true,
+  answer: true,
+  explanation: true,
+  steps: true,
+  pageRefs: true,
+  topic: true,
+  lesson: { select: { pageStart: true, pageEnd: true } },
+  course: { select: { bookId: true } },
+} as const;
+
+export async function submitAttempt(userId: string, questionId: string, input: AttemptInput, deps: AttemptDeps) {
+  const q = await db.question.findFirst({ where: { id: questionId, course: { userId } }, select: gradeQuestionSelect });
+  if (!q) throw new NotFoundError("Question not found");
+  const g = await gradeAnswer(userId, q, input, deps);
   const attempt = await db.questionAttempt.create({
     data: {
       userId,
@@ -279,14 +303,14 @@ export async function submitAttempt(userId: string, questionId: string, input: A
       lessonId: q.lessonId,
       questionId: q.id,
       topic: q.topic,
-      choice,
-      response,
-      verdict: result.verdict,
-      correct: result.correct,
-      score: result.score,
-      feedback: result.feedback,
-      gradedBy,
-      model,
+      choice: g.choice,
+      response: g.response,
+      verdict: g.result.verdict,
+      correct: g.result.correct,
+      score: g.result.score,
+      feedback: g.result.feedback,
+      gradedBy: g.gradedBy,
+      model: g.model,
     },
   });
   await bumpActivity(userId, "questionsAnswered");

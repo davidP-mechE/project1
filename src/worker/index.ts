@@ -28,6 +28,7 @@ import { claudeEnabled } from "@/server/env";
 import { getWriter, generationModel } from "@/server/ai/client";
 import { AiError } from "@/server/ai/writer";
 import { markLessonFailed, runLessonJob, runQuestionsJob } from "@/server/generation/run";
+import { markAssessmentFailed, runAssessmentJob } from "@/server/generation/assessments";
 import { renderPagePng } from "@/server/processing/page-images";
 import { OcrPool } from "@/server/processing/ocr";
 import { runProcessBookJob } from "@/server/processing/run-job";
@@ -67,19 +68,22 @@ worker.on("ready", () => console.info(`[worker] ready (concurrency ${env.WORKER_
 const generator = new Worker<GeneratePayload>(
   GENERATE_QUEUE,
   async (job) => {
-    const { lessonId, kind } = job.data;
+    const data = job.data;
+    const id = data.kind === "assessment" ? data.assessmentId : data.lessonId;
     const lastAttempt = job.attemptsMade + 1 >= (job.opts.attempts ?? 1);
     try {
       const deps = { writer: getWriter(), ...generationModel(), renderPage: renderPagePng };
-      const outcome = kind === "questions" ? await runQuestionsJob(job.data, deps) : await runLessonJob(job.data, deps);
-      console.info(`[generate] ${kind} ${lessonId}: ${outcome}`);
+      const outcome =
+        data.kind === "assessment" ? await runAssessmentJob(data, deps) : data.kind === "questions" ? await runQuestionsJob(data, deps) : await runLessonJob(data, deps);
+      console.info(`[generate] ${data.kind} ${id}: ${outcome}`);
     } catch (err) {
       const ai = err instanceof AiError ? err : null;
       const retryable = !ai || ai.kind === "retryable";
-      const message = ai?.userMessage ?? "Something went wrong while writing this lesson. Please try again.";
-      console.error(`[generate] ${kind} ${lessonId} attempt ${job.attemptsMade + 1} failed:`, err instanceof Error ? err.message : err);
+      const message = ai?.userMessage ?? "Something went wrong while writing this. Please try again.";
+      console.error(`[generate] ${data.kind} ${id} attempt ${job.attemptsMade + 1} failed:`, err instanceof Error ? err.message : err);
       if (retryable && !lastAttempt) throw err; // BullMQ will try again after a wait
-      await markLessonFailed(lessonId, message);
+      if (data.kind === "assessment") await markAssessmentFailed(id, message);
+      else await markLessonFailed(id, message);
       throw new UnrecoverableError(message);
     }
   },
