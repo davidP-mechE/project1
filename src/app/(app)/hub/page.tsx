@@ -45,9 +45,9 @@ export default async function HubPage({ searchParams }: PageProps<"/hub">) {
               items={[{ href: "/hub", label: "All subjects", active: !subject }, ...subjects.map((s) => ({ href: `/hub?subject=${s}`, label: subjectOf(s).name, count: entries.filter((e) => e.subject === s).length, active: s === subject }))]}
             />
           )}
-          <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <ul className="stagger-list grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {shown.map((e) => (
-              <li key={e.id} className="lift flex flex-col overflow-hidden rounded-2xl border border-border bg-surface">
+              <li key={e.id} className="lift card-hover flex flex-col overflow-hidden rounded-2xl border border-border bg-surface">
                 <div className="hero-card flex h-36 items-end gap-3 rounded-none p-4">
                   {e.hasCover && (
                     // eslint-disable-next-line @next/next/no-img-element -- auth-checked API image

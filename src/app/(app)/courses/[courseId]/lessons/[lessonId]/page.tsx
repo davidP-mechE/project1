@@ -76,6 +76,7 @@ export default async function LessonPage({ params, searchParams }: PageProps<"/c
         <span>{view.unit.title}</span>
       </nav>
 
+      <div className="read-progress" aria-hidden />
       <header className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">{lesson.title}</h1>
