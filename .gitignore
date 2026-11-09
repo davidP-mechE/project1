@@ -52,3 +52,6 @@ next-env.d.ts
 
 # pdf.js viewer files, copied from node_modules on install (scripts/copy-pdfjs.mjs)
 /public/pdfjs/
+
+# Redis snapshot written when redis-server runs in the project folder
+dump.rdb
