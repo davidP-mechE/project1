@@ -42,7 +42,7 @@ export function ScoreStats({ stats, goalGain = 300 }: { stats: Stats; goalGain?:
         <Card className="flex flex-col gap-1">
           <span className="text-xs font-medium text-muted">Missing a baseline</span>
           <span className={stats.missingBaseline ? "text-3xl font-semibold tabular-nums text-warning" : "text-3xl font-semibold tabular-nums"}>{stats.missingBaseline}</span>
-          <span className="text-xs text-muted">of {stats.students} students</span>
+          <span className="text-xs text-muted">of {stats.students} {stats.students === 1 ? "student" : "students"}</span>
         </Card>
       </div>
       <div className="grid gap-4 md:grid-cols-2">

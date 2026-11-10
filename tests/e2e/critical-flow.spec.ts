@@ -533,11 +533,82 @@ test("the full student journey works, is accessible, and respects the CSP", asyn
   await a11y(page, "two-factor setup");
   await shot(page, "two-factor-setup");
 
+  // ── Phase 3: scores, attendance, alerts, curriculum, assistant, diagnostics, review queue ──
+  await page.goto(`${classUrl}/scores`);
+  await expect(page.getByRole("heading", { name: "Students" })).toBeVisible();
+  await a11y(page, "class scores");
+  await shot(page, "class-scores");
+
+  await page.goto(`${classUrl}/attendance`);
+  const yesterday = new Date(Date.now() - 86_400_000);
+  const local = new Date(yesterday.getTime() - yesterday.getTimezoneOffset() * 60_000).toISOString().slice(0, 11) + "16:00";
+  await page.getByLabel("Starts").fill(local);
+  await page.getByRole("button", { name: "Add session" }).click();
+  await expect(page.getByText("Added 1 session")).toBeVisible();
+  await a11y(page, "attendance");
+  await shot(page, "attendance");
+  await page.getByRole("heading", { name: "Past sessions" }).locator("xpath=..").getByRole("link").first().click();
+  await page.getByRole("group", { name: "Attendance for Sam Student" }).getByRole("button", { name: "Present" }).click();
+  await expect(page.getByRole("button", { name: "Present", pressed: true })).toBeVisible();
+  await a11y(page, "attendance register");
+  await shot(page, "attendance-register");
+
+  await page.goto(`${classUrl}/alerts`);
+  await a11y(page, "alerts");
+  await shot(page, "alerts");
+
+  await page.goto(`${classUrl}/curriculum`);
+  await page.getByRole("button", { name: "Start from the SAT template" }).click();
+  await expect(page.getByRole("heading", { name: /SAT plan/ })).toBeVisible();
+  await a11y(page, "curriculum");
+  await shot(page, "curriculum");
+
+  await page.goto(`${classUrl}/assistant`);
+  await page.getByLabel("Ask about your class").fill("Who is behind on their work?");
+  await page.getByRole("button", { name: "Ask", exact: true }).click();
+  await expect(page.getByText(/Demo mode: the assistant/)).toBeVisible();
+  await a11y(page, "assistant");
+  await shot(page, "assistant");
+
+  await page.goto(`${classUrl}/assign`);
+  await a11y(page, "assign");
+  await shot(page, "assign");
+  await page.goto("/teach/diagnostics");
+  await a11y(page, "diagnostics");
+  await shot(page, "diagnostics");
+  await page.goto("/teach/review");
+  await a11y(page, "review queue");
+  await shot(page, "review-queue");
+  await page.goto(`${programUrl}/dashboard`);
+  await a11y(page, "program dashboard");
+  await shot(page, "program-dashboard");
+
+  // The student adds a baseline and sees the mistake log.
+  const s3 = await context.browser()!.newContext();
+  const sp3 = await s3.newPage();
+  watch(sp3);
+  await sp3.goto("/login");
+  await sp3.getByLabel("Email").fill(studentEmail);
+  await sp3.getByLabel("Password").fill(password);
+  await sp3.getByRole("button", { name: "Log in" }).click();
+  await sp3.waitForURL(/library|dashboard/);
+  await sp3.goto("/scores");
+  await sp3.getByLabel("Date taken").fill("2026-09-12");
+  await sp3.getByLabel("Total score").fill("980");
+  await sp3.getByRole("button", { name: "Save my baseline" }).click();
+  await expect(sp3.getByText("Baseline", { exact: true }).first()).toBeVisible();
+  await a11y(sp3, "student scores");
+  await shot(sp3, "student-scores");
+  await sp3.goto("/mistakes");
+  await a11y(sp3, "mistake log");
+  await shot(sp3, "mistake-log");
+  await s3.close();
+
   // ── Phone width: no sideways scrolling on the main pages ──
   const phone = await context.browser()!.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, storageState: await context.storageState() });
   const p2 = await phone.newPage();
   watch(p2);
-  for (const url of ["/dashboard", courseUrl, `${courseUrl}/export`, `${courseUrl}/practice`, deckUrl, "/slides", "/skills", "/errors", "/mastery", "/hub", "/review", "/settings", "/admin", "/privacy", "/teach", classUrl, `${classUrl}/students`, `${classUrl}/staff`, `${classUrl}/groups`, `${classUrl}/review`, programUrl, "/teach/worksheets", "/classes"]) {
+  for (const url of ["/dashboard", courseUrl, `${courseUrl}/export`, `${courseUrl}/practice`, deckUrl, "/slides", "/skills", "/errors", "/mastery", "/hub", "/review", "/settings", "/admin", "/privacy", "/teach", classUrl, `${classUrl}/students`, `${classUrl}/staff`, `${classUrl}/groups`, `${classUrl}/review`, `${classUrl}/scores`, `${classUrl}/attendance`, `${classUrl}/alerts`, `${classUrl}/curriculum`, `${classUrl}/assistant`, `${classUrl}/assign`, programUrl, `${programUrl}/dashboard`, "/teach/diagnostics", "/teach/review", "/teach/worksheets", "/classes"]) {
     await p2.goto(url);
     await p2.waitForLoadState("networkidle").catch(() => {});
     expect(await p2.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), `no sideways scroll on ${url}`).toBe(true);
