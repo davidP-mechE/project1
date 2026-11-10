@@ -7,6 +7,7 @@ import { DeleteAssignmentButton, DueDateForm } from "@/components/classes/teache
 import { dueText, pct, STATUS_LABEL } from "@/components/classes/format";
 import { cn } from "@/lib/utils";
 import { RegradeButton } from "@/components/classes/regrade-button";
+import { domainName } from "@/lib/sat/domains";
 import { NotFoundError } from "@/server/courses";
 import { assignmentReport } from "@/server/classes";
 import { requireUser } from "@/server/session";
@@ -99,6 +100,30 @@ export default async function AssignmentReportPage({ params }: PageProps<"/teach
           </table>
         </div>
       </Card>
+
+      {r.external.length > 0 && (
+        <Card>
+          <h2 className="mb-1 text-lg font-semibold">College Board questions</h2>
+          <p className="mb-4 text-sm text-muted">Students answer these on the College Board site and record how they did.</p>
+          <ul className="flex flex-col divide-y divide-border text-sm">
+            {r.external.map((q) => (
+              <li key={q.key} className="flex flex-wrap items-center justify-between gap-2 py-2">
+                <span>
+                  <a href={q.url} target="_blank" rel="noopener noreferrer" className="font-medium text-primary underline">
+                    {q.questionId}
+                    <span className="sr-only"> (opens College Board in a new tab)</span>
+                  </a>{" "}
+                  <span className="text-muted">· {domainName(q.domain)}</span>
+                </span>
+                <span className="tabular-nums text-muted">
+                  {q.correct} right · {q.incorrect} wrong · {q.skipped} skipped
+                </span>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      )}
+
 
       {questions && (
         <section aria-labelledby="by-question" className="flex flex-col gap-4">

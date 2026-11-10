@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Card, PageHeader } from "@/components/ui/misc";
+import { ButtonLink } from "@/components/ui/button";
 import { ProgramSettingsForm, TransferAdminForm } from "@/components/classes/staff-forms";
 import { NotFoundError } from "@/server/courses";
 import { ClassError } from "@/server/access";
@@ -38,7 +39,11 @@ export default async function ProgramPage({ params }: PageProps<"/teach/programs
           ← My classes
         </Link>
       </p>
-      <PageHeader title={program.name} description={`You're the program admin · ${program.classes.length} ${program.classes.length === 1 ? "class" : "classes"}`} />
+      <PageHeader
+        title={program.name}
+        description={`You're the program admin · ${program.classes.length} ${program.classes.length === 1 ? "class" : "classes"}`}
+        actions={<ButtonLink href={`/teach/programs/${program.id}/dashboard`}>Program dashboard</ButtonLink>}
+      />
       <Card>
         <h2 className="mb-4 text-lg font-semibold">Settings</h2>
         <ProgramSettingsForm program={program} />

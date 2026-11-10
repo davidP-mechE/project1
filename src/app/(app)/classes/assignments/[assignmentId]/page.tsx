@@ -8,6 +8,8 @@ import { dueText } from "@/components/classes/format";
 import { NotFoundError } from "@/server/courses";
 import { ClassError, getQuestionAssignment, startLessons } from "@/server/classes";
 import { requireUser } from "@/server/session";
+import { getExternalAssignment } from "@/server/external";
+import { ExternalSet } from "@/components/classes/external-forms";
 
 export const metadata: Metadata = { title: "Assignment" };
 
@@ -15,6 +17,26 @@ export const metadata: Metadata = { title: "Assignment" };
 export default async function AssignmentPage({ params }: PageProps<"/classes/assignments/[assignmentId]">) {
   const user = await requireUser();
   const { assignmentId } = await params;
+  const ext = await getExternalAssignment(user.id, assignmentId).catch((err) => {
+    if (err instanceof NotFoundError) return null;
+    throw err;
+  });
+  if (ext) {
+    const done = ext.items.filter((i) => i.result).length;
+    return (
+      <div className="mx-auto flex max-w-3xl flex-col gap-4">
+        <p className="text-sm">
+          <Link href="/classes" className="text-muted hover:text-text hover:underline">
+            ← {ext.assignment.className}
+          </Link>
+        </p>
+        <PageHeader title={ext.assignment.title} description={`${ext.items.length} College Board questions · ${done} recorded · ${dueText(ext.assignment.dueAt)}`} />
+        {ext.assignment.note && <Alert tone="info">{ext.assignment.note}</Alert>}
+        <p className="text-sm text-muted">These questions are on the College Board&apos;s Question Bank. Open each one, answer it there, then come back and record how it went. Wrong ones go into your mistake log.</p>
+        <ExternalSet assignmentId={ext.assignment.id} items={ext.items.map((i) => ({ key: i.key, number: i.number, questionId: i.questionId, url: i.url, domain: i.domain, result: i.result ? { result: i.result.result, reason: i.result.reason } : null }))} />
+      </div>
+    );
+  }
   let data;
   try {
     data = await getQuestionAssignment(user.id, assignmentId);

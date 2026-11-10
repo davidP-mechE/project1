@@ -2,7 +2,7 @@ import Link from "next/link";
 import { PillNav } from "@/components/review/filters";
 import { PageHeader } from "@/components/ui/misc";
 
-export type ClassTab = "overview" | "students" | "assign" | "skills" | "groups" | "review" | "staff";
+export type ClassTab = "overview" | "students" | "assign" | "skills" | "groups" | "review" | "staff" | "scores";
 type Role = "ADMIN" | "TEACHER" | "SPECIALIST" | "VIEWER";
 
 export const ROLE_LABEL: Record<Role, string> = { ADMIN: "Program admin", TEACHER: "Teacher", SPECIALIST: "Specialist", VIEWER: "Viewer" };
@@ -18,7 +18,8 @@ export function ClassNav({
   const role = c.access?.role ?? "TEACHER";
   const tabs: { id: ClassTab; label: string; href: string; show: boolean }[] = [
     { id: "overview", label: "Progress", href: `/teach/${c.id}`, show: true },
-    { id: "assign", label: "Assign lessons", href: `/teach/${c.id}/assign`, show: role !== "VIEWER" },
+    { id: "assign", label: "Assign", href: `/teach/${c.id}/assign`, show: role !== "VIEWER" },
+    { id: "scores", label: "Scores", href: `/teach/${c.id}/scores`, show: true },
     { id: "skills", label: "Skills", href: `/teach/${c.id}/skills`, show: true },
     { id: "review", label: "Review AI grades", href: `/teach/${c.id}/review`, show: role !== "VIEWER" },
     { id: "students", label: "Students", href: `/teach/${c.id}/students`, show: true },

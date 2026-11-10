@@ -5,6 +5,7 @@ import { Card, EmptyState } from "@/components/ui/misc";
 import { ButtonLink } from "@/components/ui/button";
 import { ClassNav } from "@/components/classes/class-nav";
 import { AssignLessonsForm } from "@/components/classes/assign-lessons-form";
+import { ExternalAssignForm } from "@/components/classes/external-forms";
 import { NotFoundError } from "@/server/courses";
 import { assignableCourses, getClassForTeacher } from "@/server/classes";
 import { requireUser } from "@/server/session";
@@ -41,6 +42,13 @@ export default async function AssignPage({ params }: PageProps<"/teach/[classId]
           <AssignLessonsForm classId={c.id} courses={courses.map((x) => ({ id: x.id, title: x.title, units: x.units }))} />
         </Card>
       )}
+      <Card>
+        <h2 className="mb-1 text-lg font-semibold">College Board practice (by link)</h2>
+        <p className="mb-4 text-sm text-muted">
+          Attach questions from the College Board&apos;s Student Question Bank by their link and question ID. Students open them on the College Board site and record how they did here. Coursebook never copies or stores the questions themselves.
+        </p>
+        <ExternalAssignForm classId={c.id} />
+      </Card>
     </div>
   );
 }

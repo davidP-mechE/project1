@@ -709,7 +709,25 @@ export async function assignmentReport(userId: string, assignmentId: string, now
       ];
     });
   }
-  return { assignment: a, students: rows, questions, access };
+  // College Board questions (by link): how the class did on each.
+  let external: { key: string; questionId: string; url: string; domain: string; correct: number; incorrect: number; skipped: number; results: { studentId: string; result: string; reason: string | null }[] }[] = [];
+  if (a.kind === "EXTERNAL") {
+    const results = await db.externalResult.findMany({ where: { assignmentId: a.id, userId: { in: students.map((s) => s.id) } } });
+    external = externalItemsOf(a).map((i) => {
+      const got = results.filter((r) => r.itemKey === i.key);
+      return {
+        key: i.key,
+        questionId: i.questionId,
+        url: i.url,
+        domain: i.domain,
+        correct: got.filter((r) => r.result === "CORRECT").length,
+        incorrect: got.filter((r) => r.result === "INCORRECT").length,
+        skipped: got.filter((r) => r.result === "SKIPPED").length,
+        results: got.map((r) => ({ studentId: r.userId, result: r.result, reason: r.reason })),
+      };
+    });
+  }
+  return { assignment: a, students: rows, questions, external, access };
 }
 
 /** How the class does on each skill (worksheet question topics), overall and per student: who needs help with what. */

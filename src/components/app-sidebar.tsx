@@ -92,6 +92,12 @@ const ICONS: Record<string, ReactNode> = {
       <path d="m9.5 10.5 5 5M14.5 10.5l-5 5" />
     </>
   ),
+  scores: (
+    <>
+      <path d="M3 17l5-5 4 4 8-9" />
+      <path d="M15 7h5v5" />
+    </>
+  ),
   mastery: (
     <>
       <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" />
@@ -129,6 +135,7 @@ function NavLinks({ isAdmin, dueCount, onNavigate }: { isAdmin: boolean; dueCoun
         { href: "/slides", label: "Slides", icon: "slides" },
         { href: "/hub", label: "Hub", icon: "hub" },
         { href: "/classes", label: "Classes", icon: "classes" },
+        { href: "/scores", label: "SAT scores", icon: "scores" },
       ],
     },
     {

@@ -1,3 +1,4 @@
+import { BaselineBanner } from "@/components/scores/baseline-banner";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { buttonClasses } from "@/components/ui/button";
@@ -18,6 +19,7 @@ export default async function ClassesPage() {
   const now = new Date();
   return (
     <div className="mx-auto flex max-w-4xl flex-col gap-6">
+      <BaselineBanner userId={user.id} />
       <PageHeader title="Classes" description="Work your teachers assign, with due dates. Your progress on it is shared with them." />
       <Card>
         <h2 className="mb-3 text-lg font-semibold">Join a class</h2>
@@ -46,7 +48,7 @@ export default async function ClassesPage() {
                       <div className="min-w-0">
                         <p className="font-medium">{a.title}</p>
                         <p className="text-xs text-muted">
-                          {a.kind === "LESSONS" ? `${a.lessonIds.length || "All"} ${a.lessonIds.length === 1 ? "lesson" : "lessons"}` : `${a.itemIds.length} ${a.itemIds.length === 1 ? "question" : "questions"}`}
+                          {a.kind === "LESSONS" ? `${a.lessonIds.length || "All"} ${a.lessonIds.length === 1 ? "lesson" : "lessons"}` : a.kind === "EXTERNAL" ? `${a.cell.total} College Board ${a.cell.total === 1 ? "question" : "questions"}` : `${a.itemIds.length} ${a.itemIds.length === 1 ? "question" : "questions"}`}
                           {a.timeLimitMin ? ` · timed, ${a.timeLimitMin} min` : ""}
                           {a.classCourse ? ` · ${a.classCourse.title}` : ""}
                         </p>

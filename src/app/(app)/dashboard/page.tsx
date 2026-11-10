@@ -1,3 +1,4 @@
+import { BaselineBanner } from "@/components/scores/baseline-banner";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { GoalRing, MinutesChart } from "@/components/dashboard/charts";
@@ -70,6 +71,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-6">
+      <BaselineBanner userId={user.id} />
       <Celebrate goalMet={goalMet} streak={d.streak.current} today={d.today} />
 
       <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
