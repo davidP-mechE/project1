@@ -7,6 +7,8 @@ import { setTimeZoneAction } from "@/server/actions/review";
 import { ThemeToggle } from "@/components/theme";
 import { UserMenu } from "@/components/user-menu";
 import { cn } from "@/lib/utils";
+import { Seal, Wordmark } from "@/components/brand/seal";
+import { BRAND } from "@/lib/brand";
 
 /**
  * The app's navigation: a night-sky sidebar on desktop; on phones, a top bar
@@ -113,15 +115,9 @@ function Icon({ name }: { name: keyof typeof ICONS }) {
   );
 }
 
-/** A crescent moon over an open book: the Coursebook mark. */
+/** The 1600 Project seal (kept as Logo for existing imports). */
 export function Logo({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 32 32" className={cn("size-8", className)} aria-hidden>
-      <rect width="32" height="32" rx="9" fill="#f4e4b0" />
-      <path d="M20.5 6.5a7 7 0 1 0 5 10.7A6 6 0 1 1 20.5 6.5Z" fill="#1d2448" />
-      <path d="M7 22.5c3-1.4 6-1.4 9 .4 3-1.8 6-1.8 9-.4v3c-3-1.4-6-1.4-9 .4-3-1.8-6-1.8-9-.4z" fill="#1d2448" />
-    </svg>
-  );
+  return <Seal className={className} />;
 }
 
 function NavLinks({ isAdmin, dueCount, onNavigate }: { isAdmin: boolean; dueCount: number; onNavigate?: () => void }) {
@@ -181,7 +177,7 @@ function NavLinks({ isAdmin, dueCount, onNavigate }: { isAdmin: boolean; dueCoun
                 aria-current={active ? "page" : undefined}
                 className={cn(
                   "press flex items-center gap-3 rounded-xl px-3 py-2 text-[0.95rem] transition-colors",
-                  active ? "bg-nav-active font-semibold text-nav-text" : "text-nav-text/90 hover:bg-nav-active/60",
+                  active ? "bg-nav-active font-semibold text-nav-text shadow-[inset_3px_0_0_var(--accent)]" : "text-nav-text/90 hover:bg-nav-active/60",
                 )}
               >
                 <Icon name={l.icon} />
@@ -232,9 +228,8 @@ export function AppSidebar({ user, dueCount, timeZone, game }: Props) {
   }, [pathname]);
 
   const brand = (
-    <Link href="/dashboard" className="flex items-center gap-2.5" aria-label="Coursebook home">
-      <Logo />
-      <span className="font-display text-xl font-semibold tracking-tight text-nav-text">Coursebook</span>
+    <Link href="/dashboard" className="flex items-center gap-2.5" aria-label={`${BRAND.name} home`}>
+      <Wordmark />
     </Link>
   );
 
@@ -253,9 +248,9 @@ export function AppSidebar({ user, dueCount, timeZone, game }: Props) {
 
       {/* Phones and tablets: top bar + slide-out menu */}
       <header className="sticky top-0 z-20 flex h-14 items-center justify-between gap-2 bg-nav px-4 lg:hidden">
-        <Link href="/dashboard" className="flex items-center gap-2" aria-label="Coursebook home">
-          <Logo className="size-7" />
-          <span className="font-display text-lg font-semibold text-nav-text">Coursebook</span>
+        <Link href="/dashboard" className="flex items-center gap-2" aria-label={`${BRAND.name} home`}>
+          <Seal className="size-8" />
+          <span className="font-display text-lg font-semibold text-nav-text">{BRAND.short}</span>
         </Link>
         <div className="flex items-center gap-2">
           <span className="hidden min-[400px]:block">

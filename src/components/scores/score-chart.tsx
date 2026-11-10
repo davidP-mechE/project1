@@ -33,7 +33,7 @@ export function ScoreChart({ points, targets, projection, now = new Date() }: { 
       <svg viewBox={`0 0 ${W} ${H}`} className="h-auto w-full" role="img" aria-label={`Score history: ${sorted.map((p) => `${p.total} on ${fmt(p.takenOn)}`).join(", ")}${projection ? `; estimated now ${projection.low} to ${projection.high}` : ""}`}>
         {ticks.map((v) => (
           <g key={v}>
-            <line x1={PAD.l} x2={W - PAD.r} y1={y(v)} y2={y(v)} className="stroke-border" strokeWidth={1} />
+            <line x1={PAD.l} x2={W - PAD.r} y1={y(v)} y2={y(v)} stroke="var(--chart-grid)" strokeWidth={1} />
             <text x={PAD.l - 8} y={y(v) + 4} textAnchor="end" className="fill-muted text-[11px]">
               {v}
             </text>
@@ -43,21 +43,21 @@ export function ScoreChart({ points, targets, projection, now = new Date() }: { 
           .filter((t) => t >= lo && t <= hi)
           .map((t) => (
             <g key={t}>
-              <line x1={PAD.l} x2={W - PAD.r} y1={y(t)} y2={y(t)} className="stroke-accent" strokeWidth={1.5} strokeDasharray="6 4" />
-              <text x={W - PAD.r} y={y(t) - 5} textAnchor="end" className="fill-accent-ink text-[11px] font-semibold">
+              <line x1={PAD.l} x2={W - PAD.r} y1={y(t)} y2={y(t)} stroke="var(--accent)" strokeWidth={1.75} strokeDasharray="6 5" />
+              <text x={W - PAD.r} y={y(t) - 5} textAnchor="end" fill="var(--accent-ink)" className="text-[11px] font-semibold">
                 Goal {t}
               </text>
             </g>
           ))}
         {projection && (
           <g>
-            <rect x={x(sorted.at(-1)!.takenOn.getTime())} width={Math.max(4, x(tEnd) - x(sorted.at(-1)!.takenOn.getTime()))} y={y(projection.high)} height={Math.max(2, y(projection.low) - y(projection.high))} className="fill-primary/15" />
-            <line x1={x(sorted.at(-1)!.takenOn.getTime())} x2={x(tEnd)} y1={y(sorted.at(-1)!.total)} y2={y(projection.mid)} className="stroke-primary" strokeWidth={2} strokeDasharray="3 4" />
+            <rect x={x(sorted.at(-1)!.takenOn.getTime())} width={Math.max(4, x(tEnd) - x(sorted.at(-1)!.takenOn.getTime()))} y={y(projection.high)} height={Math.max(2, y(projection.low) - y(projection.high))} fill="var(--chart-band)" rx={4} />
+            <line x1={x(sorted.at(-1)!.takenOn.getTime())} x2={x(tEnd)} y1={y(sorted.at(-1)!.total)} y2={y(projection.mid)} stroke="var(--chart-1)" strokeOpacity={0.6} strokeWidth={2} strokeDasharray="3 4" />
           </g>
         )}
-        <path d={path} fill="none" className="stroke-primary" strokeWidth={2.5} strokeLinejoin="round" />
+        <path d={path} fill="none" stroke="var(--chart-1)" strokeWidth={2.75} strokeLinejoin="round" strokeLinecap="round" />
         {sorted.map((p, i) => (
-          <circle key={i} cx={x(p.takenOn.getTime())} cy={y(p.total)} r={official(p.source) ? 5.5 : 4.5} className={official(p.source) ? "fill-primary stroke-surface" : "fill-surface stroke-primary"} strokeWidth={2} />
+          <circle key={i} cx={x(p.takenOn.getTime())} cy={y(p.total)} r={official(p.source) ? 5.5 : 4.5} fill={official(p.source) ? "var(--chart-1)" : "var(--surface)"} stroke={official(p.source) ? "var(--surface)" : "var(--chart-1)"} strokeWidth={2} />
         ))}
         <text x={PAD.l} y={H - 8} className="fill-muted text-[11px]">
           {fmt(sorted[0].takenOn)}

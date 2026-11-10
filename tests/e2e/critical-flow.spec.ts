@@ -135,6 +135,13 @@ test("the full student journey works, is accessible, and respects the CSP", asyn
     await expect(page.getByRole("navigation", { name: "On this page" })).toBeVisible();
     await a11y(page, p);
   }
+  await page.goto("/privacy");
+  await expect(page.getByText(/DRAFT/).first()).toBeVisible();
+  await page.goto("/help");
+  await expect(page.getByRole("heading", { name: "For students" })).toBeVisible();
+  await page.getByText("How do I join my class?").click();
+  await expect(page.getByText(/enter the class code/)).toBeVisible();
+  await a11y(page, "help");
 
   // ── Sign up, verify (directly in the database), log in ──
   await page.goto("/signup");

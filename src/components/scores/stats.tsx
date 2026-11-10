@@ -22,26 +22,26 @@ export function ScoreStats({ stats, goalGain = 300 }: { stats: Stats; goalGain?:
     <div className="flex flex-col gap-4">
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <Card className="flex flex-col gap-1">
-          <span className="text-xs font-medium text-muted">Average gain</span>
-          <span className="text-3xl font-semibold tabular-nums">{signed(stats.averageGain)}</span>
+          <span className="eyebrow">Average gain</span>
+          <span className="score-num text-3xl">{signed(stats.averageGain)}</span>
           <span className="text-xs text-muted">Median {signed(stats.medianGain)} · goal +{goalGain}</span>
         </Card>
         <Card className="flex flex-col gap-1">
-          <span className="text-xs font-medium text-muted">On track</span>
-          <span className="text-3xl font-semibold tabular-nums">
+          <span className="eyebrow">On track</span>
+          <span className="score-num text-3xl">
             {stats.onTrack}
             <span className="text-base font-normal text-muted">/{stats.withBaseline}</span>
           </span>
           <span className="text-xs text-muted">Projected +{goalGain} or at their goal</span>
         </Card>
         <Card className="flex flex-col gap-1">
-          <span className="text-xs font-medium text-muted">Average now</span>
-          <span className="text-3xl font-semibold tabular-nums">{stats.averageLatest ?? "–"}</span>
+          <span className="eyebrow">Average now</span>
+          <span className="score-num text-3xl">{stats.averageLatest ?? "–"}</span>
           <span className="text-xs text-muted">Baseline average {stats.averageBaseline ?? "–"}</span>
         </Card>
         <Card className="flex flex-col gap-1">
-          <span className="text-xs font-medium text-muted">Missing a baseline</span>
-          <span className={stats.missingBaseline ? "text-3xl font-semibold tabular-nums text-warning" : "text-3xl font-semibold tabular-nums"}>{stats.missingBaseline}</span>
+          <span className="eyebrow">Missing a baseline</span>
+          <span className={stats.missingBaseline ? "score-num text-3xl text-warning" : "score-num text-3xl"}>{stats.missingBaseline}</span>
           <span className="text-xs text-muted">of {stats.students} {stats.students === 1 ? "student" : "students"}</span>
         </Card>
       </div>
@@ -73,7 +73,7 @@ export function ScoreStats({ stats, goalGain = 300 }: { stats: Stats; goalGain?:
                     </th>
                     <td className="py-0.5">
                       <span className="flex items-center gap-2">
-                        <span className="h-3 rounded-sm bg-primary" style={{ width: `${(b.count / max) * 100}%`, minWidth: b.count ? 6 : 0 }} aria-hidden />
+                        <span className="h-3 rounded-sm bg-chart-1" style={{ width: `${(b.count / max) * 100}%`, minWidth: b.count ? 6 : 0 }} aria-hidden />
                         <span className="tabular-nums">{b.count}</span>
                       </span>
                     </td>

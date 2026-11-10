@@ -6,6 +6,9 @@ import { BaselinePendingButton, GoalForm, ScoreForm, ScoreRowActions } from "@/c
 import { baselineStatus, myScores } from "@/server/scores";
 import { db } from "@/server/db";
 import { requireUser } from "@/server/session";
+import Link from "next/link";
+import { cn } from "@/lib/utils";
+import { ScoreGauge } from "@/components/scores/score-gauge";
 import { planFor } from "@/server/pacing";
 import { PlanView } from "@/components/sat/plan-view";
 
@@ -20,6 +23,7 @@ export default async function ScoresPage() {
     db.program.findMany({ where: { classes: { some: { members: { some: { userId: user.id } } } } }, select: { targets: true, testDates: true } }),
     planFor(user.id),
   ]);
+  const mistakesDue = await db.mistakeItem.count({ where: { studentId: user.id, retiredAt: null, due: { lte: new Date() } } });
   const officialDates = [...new Set(programs.flatMap((p) => p.testDates.map((d) => d.toISOString().slice(0, 10))))].filter((d) => d >= new Date().toISOString().slice(0, 10)).sort();
   const targets = [...new Set(programs.flatMap((p) => p.targets))].sort((a, b) => a - b);
   const goals = h.target ? [h.target] : targets;
@@ -42,20 +46,33 @@ export default async function ScoresPage() {
         </Card>
       ) : (
         <>
-          <div className="grid gap-4 sm:grid-cols-3">
-            <Card className="flex flex-col gap-1">
-              <span className="text-xs font-medium text-muted">Baseline</span>
-              <span className="text-3xl font-semibold tabular-nums">{h.baseline?.total ?? "–"}</span>
+          <div className="grid gap-4 lg:grid-cols-[1.1fr_1fr]">
+            <Card className="flex items-center justify-center">
+              <ScoreGauge score={h.latest?.total ?? null} baseline={h.baseline?.total} goal={goals.at(-1) ?? null} />
             </Card>
-            <Card className="flex flex-col gap-1">
-              <span className="text-xs font-medium text-muted">Latest</span>
-              <span className="text-3xl font-semibold tabular-nums">{h.latest?.total ?? "–"}</span>
-              {gain !== null && <span className={gain >= 0 ? "text-sm font-medium text-success" : "text-sm font-medium text-danger"}>{gain >= 0 ? `+${gain}` : gain} since your baseline</span>}
-            </Card>
-            <Card className="flex flex-col gap-1">
-              <span className="text-xs font-medium text-muted">Estimated now</span>
-              <span className="text-3xl font-semibold tabular-nums">{h.projection ? `${h.projection.low}–${h.projection.high}` : "–"}</span>
-              <span className="text-xs text-muted">An estimate from your recent scores and practice, not an official score.</span>
+            <Card className="grid grid-cols-2 gap-x-4 gap-y-5">
+              <div>
+                <p className="eyebrow">Gain</p>
+                <p className={cn("score-num text-3xl", gain !== null && gain < 0 ? "text-danger" : "text-success")}>{gain === null ? "–" : gain >= 0 ? `+${gain}` : gain}</p>
+                <p className="text-xs text-muted">since your baseline ({h.baseline?.total ?? "–"})</p>
+              </div>
+              <div>
+                <p className="eyebrow">Estimated now</p>
+                <p className="score-num text-3xl">{h.projection ? `${h.projection.low}–${h.projection.high}` : "–"}</p>
+                <p className="text-xs text-muted">an estimate, not an official score</p>
+              </div>
+              <div>
+                <p className="eyebrow">To your goal</p>
+                <p className="score-num text-3xl">{h.latest && goals.length ? Math.max(0, goals.at(-1)! - h.latest.total) : "–"}</p>
+                <p className="text-xs text-muted">{goals.length ? `points to ${goals.at(-1)}` : "set a goal below"}</p>
+              </div>
+              <div>
+                <p className="eyebrow">Mistakes due</p>
+                <p className="score-num text-3xl">{mistakesDue}</p>
+                <p className="text-xs text-muted">
+                  in your <Link href="/mistakes" className="underline">mistake log</Link>
+                </p>
+              </div>
             </Card>
           </div>
           <Card>

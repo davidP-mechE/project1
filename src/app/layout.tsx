@@ -1,13 +1,14 @@
+import { BRAND } from "@/lib/brand";
 import type { Metadata, Viewport } from "next";
 import { headers } from "next/headers";
 import { ThemeProvider } from "@/components/theme";
 import "katex/dist/katex.min.css";
-import "@fontsource-variable/nunito";
+import "@fontsource-variable/inter";
 import "@fontsource-variable/fraunces/soft.css";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: { default: "Coursebook", template: "%s · Coursebook" },
+  title: { default: BRAND.name, template: `%s · ${BRAND.short}` },
   description: "Turn a textbook PDF into a structured, self-paced course.",
 };
 

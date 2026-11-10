@@ -10,6 +10,13 @@ export default function PrivacyPage() {
   return (
     <LegalPage
       title="Privacy Policy"
+      draft={[
+        "Who runs the program and who to contact (name, email, address)",
+        "Whether the school needs a data agreement (FERPA), and parental consent for students under 18",
+        "Confirmation that every student is 13 or older (COPPA)",
+        "How long data is kept after a student leaves",
+        "The tutoring-program data: SAT scores, answers, attendance, guardian contacts, and what's sent to Claude (Anthropic)",
+      ]}
       intro={
         <p>
           This explains what {who} (“we”) collects when you use Coursebook, why, who else handles it, and how to delete it. Short version: we keep
