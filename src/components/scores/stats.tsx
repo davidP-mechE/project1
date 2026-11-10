@@ -62,7 +62,7 @@ export function ScoreStats({ stats, goalGain = 300 }: { stats: Stats; goalGain?:
         <Card>
           <h3 className="mb-3 font-semibold">Latest scores</h3>
           <table className="w-full text-sm">
-            <caption className="sr-only">How many students' latest scores fall in each range</caption>
+            <caption className="sr-only">How many students&apos; latest scores fall in each range</caption>
             <tbody>
               {stats.distribution
                 .filter((b) => b.from >= 700)

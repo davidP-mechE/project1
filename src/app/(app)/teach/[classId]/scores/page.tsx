@@ -52,7 +52,7 @@ export default async function ClassScoresPage({ params, searchParams }: PageProp
               <h2 className="mb-3 text-lg font-semibold">Students</h2>
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-sm">
-                  <caption className="sr-only">Each student's baseline, latest and estimated score</caption>
+                  <caption className="sr-only">Each student&apos;s baseline, latest and estimated score</caption>
                   <thead className="text-xs text-muted">
                     <tr>
                       <th scope="col" className="py-2 pr-3 font-medium">Student</th>
