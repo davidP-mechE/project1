@@ -44,5 +44,9 @@ export const storageKeys = {
   bookOriginal: (userId: string, bookId: string) => `users/${userId}/books/${bookId}/original.pdf`,
   /** An uploaded PowerPoint deck, before the worker turns it into original.pdf. */
   slidesSource: (userId: string, bookId: string) => `users/${userId}/books/${bookId}/source.pptx`,
+  /** One deck of a slide collage, as uploaded. */
+  deckSource: (userId: string, bookId: string, deckId: string, pptx: boolean) => `users/${userId}/books/${bookId}/decks/${deckId}.${pptx ? "pptx" : "pdf"}`,
+  /** A collage's merged PDF (a new name each time decks are added, so a half-finished merge never replaces the old one). */
+  combinedPdf: (userId: string, bookId: string, stamp: number) => `users/${userId}/books/${bookId}/combined-${stamp}.pdf`,
   userPrefix: (userId: string) => `users/${userId}/`,
 };

@@ -349,6 +349,7 @@ The sidebar now has a **Practice** section: Review, Spaced repetition, Error log
 **Lecture slides** (**Slides** in the sidebar):
 - Upload a deck as a **PDF** (exported from PowerPoint, Google Slides or Keynote: keeps the exact look) or a **PowerPoint .pptx** file. A deck becomes a course like a book does, with slides as pages: lessons, practice, flashcards, tests, the tutor, search and exports all work, and everything says "slide 4" instead of "p. 4".
 - PowerPoint files are read directly (`src/lib/slides/pptx.ts`): titles, bullet points, tables, pictures and **speaker notes** (often the best explanation in a deck). The worker lays them out as a simple PDF for the viewer (`src/server/processing/slides-pdf.ts`); hidden slides are left out.
+- **Several decks, one course (a "collage")**: choose several decks at once on **Slides → Upload slides** (put them in order and name the course), or press **Add slides** on any slides course to add more later, like each week's lecture. Each deck becomes a unit. The worker merges them, in order, into the course's one PDF (`src/server/processing/collage.ts`), so lessons, the viewer, search and the tutor work as usual and slides are numbered through the whole course. Adding decks keeps the course open and leaves lessons already written untouched; the new deck's lessons wait for **Generate remaining**. A deck that can't be read (damaged, password-protected) is left out and can be removed; the others go ahead. Up to 15 decks at a time and 30 per course (`src/lib/upload/limits.ts`); courses added from the Hub can't take more decks.
 - **Outline** (`src/lib/slides/outline.ts`): section-divider slides start a unit, and the slides in between become lessons of about 6 slides, named after their first slide. Title/agenda slides and "Questions? / Thank you / References" are skipped by default. Edit it like any outline.
 - **Writing lessons**: Claude is told these are slides, to turn terse bullets into a connected explanation without adding facts, and to cite "(slide 12)". Slides that are mostly pictures (diagrams, charts) are read from their image first, so the lesson can explain them (~1 cent per slide, counted in the cost estimate).
 
@@ -430,6 +431,13 @@ With the default settings, per 100 pages (10 lessons, 3 units, 10 equation-heavy
 Output tokens (the lesson text plus Claude's thinking) are most of the cost. If real courses still cost more than you'd like, the next lever is `CLAUDE_EFFORT_GENERATION=low` (less thinking per lesson): try it on a chapter and compare the lessons before switching.
 
 While studying: multiple choice and exact matches are free; a written answer graded by Claude ≈ $0.01–0.02 (Claude Opus 5.5 at low effort, ~2–4K tokens in); a tutor question ≈ $0.02–0.05 (up to ~6K tokens of book passages plus the conversation). Embeddings are free (computed locally).
+
+## Manual test checklist (slide collages)
+
+1. **Slides → Upload slides**: choose 3 decks (mix PDF and .pptx). Reorder them with the arrows, name the course, upload. The outline has one unit per deck, in your order, with the cover and "Questions?" slides skipped.
+2. Generate it and open a lesson from the second deck: "See the slides" opens at the right slide (slides are numbered through the whole course).
+3. On the course page, **Add slides**: add next week's deck while the course is open. It says "Adding…", then the deck appears with its slide range, the lessons you wrote are unchanged, and **Generate 1 remaining** (or more) writes only the new ones.
+4. Add a password-protected PDF: it shows why it couldn't be added and can be removed; the other decks are fine.
 
 ## Manual test checklist (generation cost)
 

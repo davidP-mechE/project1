@@ -5,6 +5,7 @@ import { MAX_PAGES, MAX_SLIDES } from "@/lib/upload/limits";
 import { parsePptx, PptxError, slideSourceText, type PptxSlide } from "@/lib/slides/pptx";
 import { slideOutline, titleFromLines } from "@/lib/slides/outline";
 import { slidesToPdf } from "./slides-pdf";
+import { deckUnit, mergeDecks } from "./collage";
 import { mathScore } from "@/lib/pdf/math-score";
 import { needsOcr } from "@/lib/pdf/text-quality";
 import type { Line } from "@/lib/pdf/lines";
@@ -65,9 +66,14 @@ export async function processBook(bookId: string, opts: ProcessOptions = {}): Pr
   const book = await db.book.findUnique({ where: { id: bookId }, include: { course: true } });
   if (!book || !book.course) throw new BookGoneError();
   const course = book.course;
+  // Slide collage: several decks merged into this book's PDF. Adding decks to a
+  // course that's in use ("appending") leaves the course and its lessons open.
+  const decks = await db.deck.findMany({ where: { bookId }, select: { status: true } });
+  const collage = decks.length > 0;
+  const appending = decks.some((d) => d.status === "READY");
   await db.$transaction([
     db.book.update({ where: { id: bookId }, data: { status: "PROCESSING", error: null } }),
-    db.course.update({ where: { id: course.id }, data: { status: "PROCESSING" } }),
+    ...(appending ? [] : [db.course.update({ where: { id: course.id }, data: { status: "PROCESSING" } })]),
   ]);
 
   const slides = book.kind === "SLIDES";
@@ -75,7 +81,13 @@ export async function processBook(bookId: string, opts: ProcessOptions = {}): Pr
 
   // ── 0. PowerPoint → PDF ───────────────────────────────────────────────
   let pptx: PptxSlide[] | null = null;
-  if (book.sourceKey) {
+  let collageText: Map<number, PptxSlide> | null = null;
+  if (collage) {
+    await progress.update("open", 0, appending ? "Adding your slides…" : "Putting your decks together…", true);
+    const merged = await mergeDecks(book);
+    if (merged.pageCount === 0) throw new ProcessingError("None of the decks could be read. Check they're PDF or PowerPoint (.pptx) files and upload them again.");
+    collageText = merged.slideText;
+  } else if (book.sourceKey) {
     await progress.update("open", 0, "Opening your slides…", true);
     const source = await storage.getBuffer(book.sourceKey).catch(() => {
       throw new ProcessingError("We couldn't find the uploaded file. Please delete these slides and upload them again.");
@@ -112,7 +124,7 @@ export async function processBook(bookId: string, opts: ProcessOptions = {}): Pr
 
   try {
     const pageCount = reader.pageCount;
-    if (slides && pageCount > MAX_SLIDES) {
+    if (slides && !collage && pageCount > MAX_SLIDES) {
       throw new ProcessingError(`This deck has ${pageCount} slides. The limit is ${MAX_SLIDES}. Try splitting it into smaller files.`);
     }
     if (pageCount > MAX_PAGES) {
@@ -140,7 +152,7 @@ export async function processBook(bookId: string, opts: ProcessOptions = {}): Pr
       if (done.has(n)) continue;
       const page = await reader.readPage(n);
       // PowerPoint: the deck's own text (with speaker notes) is better than reading it back from our PDF.
-      const own = pptx?.[n - 1];
+      const own = collageText ? collageText.get(n) : pptx?.[n - 1];
       if (own) page.text = slideSourceText(own);
       batch.push({
         bookId,
@@ -246,10 +258,28 @@ export async function processBook(bookId: string, opts: ProcessOptions = {}): Pr
 
     let source: "BOOKMARKS" | "HEADINGS" | "PAGE_RANGES" | "SLIDES";
     let units: DraftUnit[];
-    if (slides) {
+    const slideTitle = (n: number, text: string) => ({
+      number: n,
+      title: (collageText ? collageText.get(n)?.title : pptx?.[n - 1]?.title) || titleFromLines(linesByPage.get(n) ?? []),
+      text,
+    });
+    if (collage) {
+      // One unit per deck that isn't in the outline yet.
+      source = "SLIDES";
+      const newDecks = await db.deck.findMany({ where: { bookId, status: "MERGED" }, orderBy: { order: "asc" } });
+      units = newDecks.map((d) =>
+        deckUnit(
+          { title: d.title, pageStart: d.pageStart!, pageEnd: d.pageEnd! },
+          pages.filter((p) => p.pageNumber >= d.pageStart! && p.pageNumber <= d.pageEnd!).map((p) => slideTitle(p.pageNumber, p.text)),
+        ),
+      );
+      if (appending) await appendOutline(course.id, bookId, units, pageCount);
+      else await saveOutline(course.id, bookId, units, source, pageCount);
+      await db.deck.updateMany({ where: { id: { in: newDecks.map((d) => d.id) } }, data: { status: "READY", error: null } });
+    } else if (slides) {
       source = "SLIDES";
       units = slideOutline(
-        pages.map((p) => ({ number: p.pageNumber, title: pptx?.[p.pageNumber - 1]?.title || titleFromLines(linesByPage.get(p.pageNumber) ?? []), text: p.text })),
+        pages.map((p) => slideTitle(p.pageNumber, p.text)),
         course.title,
       );
     } else {
@@ -269,8 +299,8 @@ export async function processBook(bookId: string, opts: ProcessOptions = {}): Pr
         }
     }
     }
-    await saveOutline(course.id, bookId, units, source, pageCount);
-    await detectSubject(course.id).catch((err) => console.warn("[process] couldn't detect the subject:", err));
+    if (!collage) await saveOutline(course.id, bookId, units, source, pageCount);
+    if (!appending) await detectSubject(course.id).catch((err) => console.warn("[process] couldn't detect the subject:", err));
 
     // ── 7. chunks ───────────────────────────────────────────────────────
     await progress.update("chunks", P.outline, "Preparing text for search…", true);
@@ -286,9 +316,15 @@ export async function processBook(bookId: string, opts: ProcessOptions = {}): Pr
     // ── done ────────────────────────────────────────────────────────────
     await db.$transaction([
       db.book.update({ where: { id: bookId }, data: { status: "READY", error: null } }),
-      db.course.update({ where: { id: course.id }, data: { status: "OUTLINE_DRAFT" } }),
+      // Added decks join a course that's already open: its new lessons wait to be generated.
+      ...(appending ? [] : [db.course.update({ where: { id: course.id }, data: { status: "OUTLINE_DRAFT" } })]),
     ]);
-    await progress.update("done", 100, "Done! Your outline is ready to review.", true);
+    await progress.update(
+      "done",
+      100,
+      appending ? `Done! Added ${units.length} ${units.length === 1 ? "deck" : "decks"}. Generate their lessons from the course page.` : "Done! Your outline is ready to review.",
+      true,
+    );
   } catch (err) {
     // Deleted mid-way? Prisma reports missing rows as P2025 / foreign-key errors (P2003).
     const code = (err as { code?: string }).code;
@@ -298,6 +334,39 @@ export async function processBook(bookId: string, opts: ProcessOptions = {}): Pr
     await reader.close().catch(() => {});
     if (ownOcr) await ocr.close().catch(() => {});
   }
+}
+
+/** Add units for newly added decks after the course's existing ones, without touching anything already there. */
+async function appendOutline(courseId: string, bookId: string, units: DraftUnit[], pageCount: number) {
+  const last = await db.unit.findFirst({ where: { courseId }, orderBy: { order: "desc" }, select: { order: true } });
+  const course = await db.course.findUniqueOrThrow({ where: { id: courseId }, select: { detectedOutline: true } });
+  const frontBack = units.flatMap((u) => u.lessons.filter((l) => l.isFrontBackMatter).flatMap((l) => Array.from({ length: l.pageEnd - l.pageStart + 1 }, (_, i) => l.pageStart + i)));
+  await db.$transaction(async (tx) => {
+    for (const [i, u] of units.entries()) {
+      await tx.unit.create({
+        data: {
+          courseId,
+          order: (last?.order ?? -1) + 1 + i,
+          title: u.title.slice(0, 300),
+          isFrontBackMatter: u.isFrontBackMatter,
+          lessons: {
+            create: u.lessons.map((l, j) => ({
+              courseId,
+              order: j,
+              title: l.title.slice(0, 300),
+              pageStart: Math.max(1, l.pageStart),
+              pageEnd: Math.min(pageCount, l.pageEnd),
+              isFrontBackMatter: l.isFrontBackMatter,
+              skip: l.isFrontBackMatter,
+            })),
+          },
+        },
+      });
+    }
+    if (frontBack.length > 0) await tx.page.updateMany({ where: { bookId, pageNumber: { in: frontBack } }, data: { isFrontBackMatter: true } });
+    const before = Array.isArray(course.detectedOutline) ? (course.detectedOutline as unknown[]) : [];
+    await tx.course.update({ where: { id: courseId }, data: { detectedOutline: [...before, ...units] as unknown as Prisma.InputJsonValue } });
+  });
 }
 
 async function ensureBookExists(bookId: string) {

@@ -45,6 +45,28 @@ export function validateUploadRequest(req: UploadRequest): { ok: true } | { ok: 
   return { ok: true };
 }
 
+/** Slide collages: several decks under one course. */
+export const MAX_DECKS_PER_COURSE = 30;
+export const MAX_DECKS_PER_UPLOAD = 15;
+
+export type DeckFile = { filename: string; size: number; contentType: string };
+
+/** Check a batch of decks for a collage (new or added to an existing course). */
+export function validateDeckFiles(files: DeckFile[], rightsConfirmed: boolean, existingDecks = 0): { ok: true } | { ok: false; error: string } {
+  if (files.length === 0) return { ok: false, error: "Choose at least one slide deck." };
+  if (files.length > MAX_DECKS_PER_UPLOAD) return { ok: false, error: `You can add up to ${MAX_DECKS_PER_UPLOAD} decks at a time.` };
+  if (existingDecks + files.length > MAX_DECKS_PER_COURSE) {
+    return { ok: false, error: `A course can have up to ${MAX_DECKS_PER_COURSE} decks${existingDecks ? ` (this one has ${existingDecks})` : ""}.` };
+  }
+  for (const f of files) {
+    const check = validateUploadRequest({ ...f, rightsConfirmed, kind: "slides" });
+    if (!check.ok) return { ok: false, error: files.length > 1 ? `${f.filename}: ${check.error}` : check.error };
+  }
+  const total = files.reduce((n, f) => n + f.size, 0);
+  if (total > MAX_UPLOAD_BYTES * 2) return { ok: false, error: `These decks add up to ${formatBytes(total)}. Add up to ${formatBytes(MAX_UPLOAD_BYTES * 2)} at a time.` };
+  return { ok: true };
+}
+
 /** "Intro_to_Circuits-3rd_ed.pdf" -> "Intro to Circuits 3rd ed" */
 export function titleFromFilename(filename: string): string {
   const base = filename.replace(/\.(pdf|pptx)$/i, "").replace(/[_]+/g, " ").replace(/-+/g, " ").replace(/\s+/g, " ").trim();

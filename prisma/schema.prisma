@@ -167,12 +167,47 @@ model Book {
   updatedAt         DateTime   @updatedAt
 
   course  Course?
+  decks   Deck[]
   pages   Page[]
   figures Figure[]
   chunks  Chunk[]
   jobs    Job[]
 
   @@index([userId, createdAt])
+}
+
+// ─── Slide collages ──────────────────────────────────────────────────────
+// A slides course can be made of several decks. They're merged, in order, into
+// the book's one PDF (so lessons, the viewer and search work as usual); each
+// deck becomes a unit. Decks can be added later without touching what's written.
+
+enum DeckStatus {
+  AWAITING_UPLOAD
+  UPLOADED // stored and checked; waiting to be merged
+  MERGED // its slides are in the book's PDF; its unit isn't made yet
+  READY // in the outline as a unit
+  FAILED
+}
+
+model Deck {
+  id               String     @id @default(cuid())
+  bookId           String
+  book             Book       @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  order            Int
+  title            String
+  originalFilename String
+  storageKey       String // the uploaded PDF or .pptx
+  isPptx           Boolean    @default(false)
+  sizeBytes        BigInt
+  status           DeckStatus @default(AWAITING_UPLOAD)
+  error            String?
+  // Where its slides are in the book's PDF, once merged.
+  pageStart        Int?
+  pageEnd          Int?
+  createdAt        DateTime   @default(now())
+
+  @@unique([bookId, order])
+  @@index([bookId, status])
 }
 
 // ─── Courses (one per book) ──────────────────────────────────────────────

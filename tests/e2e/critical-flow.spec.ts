@@ -272,6 +272,39 @@ test("the full student journey works, is accessible, and respects the CSP", asyn
   await page.goto("/library");
   await expect(page.getByText(/e2e lecture/i)).toHaveCount(0); // decks are not listed with books
 
+  // ── Slide collage: more decks under the same course ──
+  const week2 = path.join(os.tmpdir(), `e2e-week2-${Date.now()}.pptx`);
+  writeFileSync(week2, makePptx([{ title: "Week 2 review" }, { title: "Series circuits", body: ["Resistances in series add up", "The same current flows through each one"] }, { title: "Parallel circuits", body: ["Branch currents add up to the total", "Each branch has the same voltage"] }, { title: "Questions?" }]));
+  await page.goto(deckUrl);
+  await expect(page.getByRole("heading", { name: "Slide decks" })).toBeVisible();
+  await page.getByRole("button", { name: "Add slides" }).click();
+  await page.getByLabel("Slide decks to add (PDF or PowerPoint)").setInputFiles(week2);
+  await page.getByRole("list", { name: "Decks, in course order" }).waitFor();
+  await a11y(page, "add slides");
+  await page.getByRole("checkbox", { name: /my own slides/ }).check();
+  await page.getByRole("button", { name: "Add deck" }).click();
+  await expect(page.getByText("Adding your slides…")).toBeVisible({ timeout: 30_000 });
+  await expect(async () => {
+    await page.reload();
+    await expect(page.getByText("slides 12–15")).toBeVisible({ timeout: 1000 });
+  }).toPass({ timeout: 120_000, intervals: [3000] });
+  await expect(page.getByRole("button", { name: /Generate 1 remaining/ })).toBeVisible(); // the new deck's lessons, ready to write
+  await a11y(page, "course with two decks");
+
+  // Several decks at once become one course.
+  await page.goto("/slides/upload");
+  await page.locator('input[type="file"]').setInputFiles([deckFile, week2]);
+  await page.getByLabel("Course name").fill("E2E collage");
+  await page.getByRole("button", { name: `Move ${path.basename(week2)} up` }).click(); // week 2 first
+  await a11y(page, "upload a collage");
+  await page.getByRole("checkbox").check();
+  await page.getByRole("button", { name: "Upload 2 decks as one course" }).click();
+  await page.waitForURL(/\/courses\/[^/]+$/, { timeout: 60_000 });
+  await expect(page.getByRole("button", { name: "Generate course" }).first()).toBeVisible({ timeout: 120_000 });
+  await expect(page.getByRole("heading", { name: "E2E collage" })).toBeVisible();
+  await expect(page.getByText("slides 1–4")).toBeVisible();
+  await expect(page.getByText("slides 5–15")).toBeVisible();
+
   // ── Keyboard: the first Tab reaches "Skip to content", which moves focus past the header ──
   await page.goto("/dashboard");
   await page.keyboard.press("Tab");

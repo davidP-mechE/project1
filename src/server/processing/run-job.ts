@@ -47,6 +47,17 @@ export async function runProcessBookJob(
       data: { status: "FAILED", error: message, errorDetail: detail, message, finishedAt: new Date() },
     });
     const book = await db.book.findUnique({ where: { id: bookId }, select: { course: { select: { id: true } } } });
+    // Adding decks to a course that's in use: the course and its slides are fine; only the new decks failed.
+    // (Decks already merged keep their place in the PDF and are finished on a retry.)
+    const appending = (await db.deck.count({ where: { bookId, status: "READY" } })) > 0;
+    if (book && appending) {
+      await db.$transaction([
+        db.deck.updateMany({ where: { bookId, status: "UPLOADED" }, data: { status: "FAILED", error: message } }),
+        db.deck.updateMany({ where: { bookId, status: "MERGED" }, data: { error: message } }),
+        db.book.update({ where: { id: bookId }, data: { status: "READY", error: null } }),
+      ]);
+      return "failed";
+    }
     if (book) {
       await db.$transaction([
         db.book.update({ where: { id: bookId }, data: { status: "FAILED", error: message } }),

@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { CourseHeader } from "@/components/course/course-header";
+import { DecksCard } from "@/components/course/decks-card";
+import { getDecks } from "@/server/collage";
 import { GenerateButton } from "@/components/course/generate-button";
 import { GenerationProgress } from "@/components/course/generation-progress";
 import { ProcessingStatus } from "@/components/course/processing-status";
@@ -73,6 +75,8 @@ export default async function CoursePage({ params }: PageProps<"/courses/[course
         generating ? getStudyOutline(user.id, courseId) : null,
       ])
     : [null, null, null, 0, null];
+  // Slide courses list their decks and can take more (not Hub copies, which share their files).
+  const decks = book.kind === "SLIDES" && outline ? await getDecks(user.id, courseId) : null;
   const [unitScores, assessments] = study ? await Promise.all([getUnitScores(user.id, courseId), getCourseAssessments(user.id, courseId)]) : [[], []];
   const completed = new Set(study?.units.flatMap((u) => u.lessons.filter((l) => l.completed).map((l) => l.id)) ?? []);
   const noKey = claudeEnabled ? undefined : "Lesson generation needs an ANTHROPIC_API_KEY on the server (see the README).";
@@ -90,7 +94,13 @@ export default async function CoursePage({ params }: PageProps<"/courses/[course
       {status && (
         <Card className="mb-6">
           <h2 className="mb-4 text-lg font-semibold">
-            {course.status === "FAILED" ? "We couldn't process this book" : "Reading your textbook…"}
+            {course.status === "FAILED"
+              ? book.kind === "SLIDES"
+                ? "We couldn't process these slides"
+                : "We couldn't process this book"
+              : book.kind === "SLIDES"
+                ? "Reading your slides…"
+                : "Reading your textbook…"}
           </h2>
           <ProcessingStatus key={course.status} courseId={courseId} initial={status} />
         </Card>
@@ -133,6 +143,9 @@ export default async function CoursePage({ params }: PageProps<"/courses/[course
         </Card>
       )}
       {outline && course.status === "OUTLINE_DRAFT" && <OutlinePreview outline={outline} courseId={courseId} kind={course.book.kind} />}
+      {decks && (decks.decks.length > 0 || !course.catalogEntryId) && (
+        <DecksCard courseId={courseId} decks={decks.decks} pageCount={decks.pageCount} canAdd={!course.catalogEntryId && decks.bookStatus === "READY"} />
+      )}
 
       <Card>
         <h2 className="mb-4 text-lg font-semibold">File</h2>
