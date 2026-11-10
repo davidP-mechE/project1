@@ -26,7 +26,7 @@ Status: **draft for approval. No Phase 3 code has been written.** Approve, cut o
 - **Group:** a subset of a class (a score band, a weak domain, a session time).
 - **Course:** study material, as today.
 
-⚠ **Please confirm:** a specialist is added to a **class** (with a scope of domains and/or groups), not to a course.
+✅ **Decided:** a specialist is added to a **class** (with a scope of domains and/or groups), not to a course.
 
 ### Rules that apply to every feature
 
@@ -82,7 +82,7 @@ I'd build in releases of 1–3 steps. Each release ends with its permission test
 |---|---|
 | **Teacher** | Full access to the class and all its groups |
 | **Specialist** | Teaches and grades only inside their **scope**: chosen SAT sections or domains (for example only Math, or only Advanced Math) and/or chosen groups |
-| **Student tutor** | Like a specialist, plus: sees only students assigned to them, can't export or message parents, can't see scores older than the class |
+| **Student tutor** | Views, coaches and **grades** (including overriding AI grades), but only for the students assigned to them. Sees those students' scores. Can't export, manage staff or message parents |
 | **Viewer** | Read-only reports (a counselor, an observer); no student contact details by default |
 
 *Adding staff:*
@@ -307,16 +307,16 @@ Filters: class, group, and teacher.
 - **Shown as a range** (for example 1150–1210) and labelled **"estimate"**.
 - **Stalling:** no gain over the last 3 entries, or a projection that's dropped 30 points or more in 3 weeks.
 
-⚠ **Risky:** this isn't an official conversion. It's tuned on our own data as it grows, and I'd show it to staff only at first.
+⚠ **Risky:** this isn't an official conversion. It's tuned on our own data as it grows. Students see it (decided), so it's always shown as a range, labelled "estimate", with a one-line explanation of how it's worked out.
 
 **Data model.** A nightly `ScoreProjection` table: `studentId`, `computedAt`, `low`, `high`, `basis`.
 
-**Roles:** staff in scope; the student sees it only if you turn that on.
+**Roles:** staff in scope; each student sees their own range (never anyone else's).
 
 **Tests:**
 - The calculation is deterministic on fixtures.
 - Stalling is flagged in both directions (no gain, or a drop).
-- Hidden from students by default.
+- A student sees only their own projection, always labelled as an estimate.
 
 ---
 
@@ -412,9 +412,9 @@ The Error log and question spacing from Phase 12 already do this for course ques
 - The app records whether the calculator was opened and used on each question.
 - Reports show accuracy with and without Desmos on Desmos-solvable questions, which finds students who should use it more.
 
-⚠ **Unclear:** Desmos's embeddable API needs an API key and acceptance of their terms. I'd confirm free use for a school program before building.
+✅ **Decided:** use the embedded Desmos calculator. It needs a free API key and acceptance of Desmos's terms. ⚠ Those terms may treat a paid product differently from an in-house school tool, so re-check them before Coursebook is sold (see §13).
 
-- **Fallback:** a link to desmos.com/calculator in a side panel, which can track "opened" but not "used".
+- **Fallback** if the key is ever unavailable: a link to desmos.com/calculator in a side panel, which can track "opened" but not "used".
 
 **Data model.** `desmosSolvable` on question versions; `usedDesmos` and `desmosOpened` on answers.
 
@@ -764,7 +764,7 @@ Every call is recorded with its model, tokens and cost (this already exists, see
 | **Claude API** | Anthropic, with a **$50/month limit** set in the console | See below | ~$10–40 |
 | **Total** | | | **≈ $20–80/month** |
 
-This is a simpler version of what `DEPLOY.md` already describes: Railway hosts the web app too, instead of Vercel, so there's one fewer account. Vercel's free Hobby plan is meant for personal, non-commercial use; check whether that fits your program before choosing it.
+This is a simpler version of what `DEPLOY.md` already describes: Railway hosts the web app too, instead of Vercel, so there's one fewer account. Vercel's free Hobby plan is for personal, non-commercial use, and Coursebook is meant to be sold later, so Railway is the better fit either way.
 
 **AI usage estimate for 30 students.** SAT questions are multiple choice and grid-in, so grading them is free (local).
 
@@ -810,21 +810,43 @@ Database migrations run automatically on deploy (`prisma migrate deploy`). Rollb
 
 ---
 
-## 12. Open questions and risks (please answer before building)
+## 12. Open questions and risks
 
-1. **"Course" vs "class":** confirm specialists and staff attach to a **class** (cohort), with groups and domains as scope.
-2. **Student tutors:** can they grade, or only view and coach? Should they see scores?
-3. **Students 18 and older:** do guardians still get summaries if the student opts out?
-4. **Baseline required:** OK that a student without a score can use the site, with "Baseline missing" shown until they take the diagnostic?
-5. **Projection (S5) and estimated scaled scores (P1)** are our own estimates, not official. OK to show students, or staff only?
-6. **Desmos API terms** for a school program (P3).
-7. **Question source:** do you have licensed question sets to import, or will the bank start from staff worksheets and reviewed AI drafts?
-8. **School agreement** for FERPA: who at the school should approve (§8)?
-9. **Hosting accounts:** whose name and card? The staging site needs its own (low-capped) API key.
+**Decided (10 Nov 2026):**
+- Specialists and staff attach to a **class**, scoped by groups and domains.
+- Student tutors **can grade, view and coach** their assigned students, and see their scores.
+- Students **see their own estimated and projected scores** (always labelled as estimates).
+- **Desmos:** use the embedded calculator.
+- Coursebook runs **in-house for The 1600 Project first, then becomes a paid product** (see §13).
+
+**Still open:**
+
+1. **Students 18 and older:** do guardians still get summaries if the student opts out?
+2. **Baseline required:** OK that a student without a score can use the site, with "Baseline missing" shown until they take the diagnostic?
+3. **Question source:** do you have licensed question sets to import, or will the bank start from staff worksheets and reviewed AI drafts?
+4. **School agreement** for FERPA: who at the school should approve (§8)?
+5. **Hosting accounts:** whose name and card? The staging site needs its own (low-capped) API key.
 
 ---
 
-## 13. Suggested additions (approve or cut each one)
+## 13. In-house first, paid product later
+
+Coursebook starts as The 1600 Project's own tool and is meant to be sold later. That doesn't add features to Phase 3, but it changes a few design choices now, so they don't need redoing later:
+
+- **Every Phase 3 table belongs to a program** (`programId`), and nothing is hard-coded to The 1600 Project: its name, targets (1200 and 1300), test dates and calendar are program settings. A second school later is a new program, and its data stays separate.
+- **Scope checks go through one helper** (F1), which also checks the program, so one school can never see another's data.
+- **Content rights matter more once you charge:** the no-official-content rule, the rights checkbox on uploads, and the `source` and `licenseNote` on every bank question (F3) are what you'd show a school or a publisher if asked.
+- **AI costs are already recorded per user and feature,** which is what pricing will need later.
+
+⚠ **Before charging anyone (not part of Phase 3):**
+- **Terms to re-check for commercial use:** Desmos API, Anthropic, and the free tiers in §11.
+- **Selling to schools:** they'll usually ask for a signed data-privacy agreement, and some US states have student-privacy laws for paid ed-tech (for example California's SOPIPA). Plan a legal review.
+- **Paid-product features:** billing, a terms of service and privacy policy written for schools, and support.
+- **Separate the 1600 Project's data:** keep it in its own program, and get its approval before using its numbers (for example average gains) in marketing.
+
+---
+
+## 14. Suggested additions (approve or cut each one)
 
 These aren't in the main list. Each is independent unless noted.
 
