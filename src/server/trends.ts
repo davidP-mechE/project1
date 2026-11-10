@@ -136,3 +136,12 @@ export async function programTrends(userId: string, programId: string, now = new
     .sort((x, y) => x.label.localeCompare(y.label));
   return { program: p, months, classes: classSeries, teachers: teacherBars };
 }
+
+/** Accuracy per domain (0–100) over these students' answers in the last `days` days, in the given subjects (null = all). */
+export async function domainAccuracyFor(studentIds: string[], subjects: Set<string> | null, days = 90, now = new Date()) {
+  const rows = await domainRows(studentIds, new Date(now.getTime() - days * 86_400_000));
+  return DOMAINS.filter((d) => !subjects || subjects.has(d.id)).map((d) => {
+    const mine = rows.filter((r) => r.domain === d.id);
+    return { domain: d.id, name: domainName(d.id), answers: mine.length, accuracy: mine.length ? Math.round(mine.reduce((s, r) => s + r.v, 0) / mine.length) : null };
+  });
+}

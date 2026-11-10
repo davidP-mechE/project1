@@ -30,6 +30,11 @@ export default async function ClassScoresPage({ params, searchParams }: PageProp
   return (
     <div className="mx-auto flex max-w-5xl flex-col gap-6">
       <ClassNav c={c} active="scores" />
+      <p className="-mt-2 text-sm">
+        <Link href={`/print/class/${classId}`} className="font-medium text-primary underline-offset-2 hover:underline">
+          Print class summary
+        </Link>
+      </p>
       {g.groups.length > 0 && (
         <nav aria-label="Filter by group" className="flex flex-wrap gap-2 text-sm">
           <Link href={`/teach/${classId}/scores`} className={cn("rounded-full border px-3 py-1", !groupId ? "border-primary bg-primary/10 font-medium" : "border-border")} aria-current={!groupId ? "page" : undefined}>

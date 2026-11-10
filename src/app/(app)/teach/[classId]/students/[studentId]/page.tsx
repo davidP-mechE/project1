@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Card, PageHeader } from "@/components/ui/misc";
+import { ButtonLink } from "@/components/ui/button";
 import { Alert } from "@/components/ui/alert";
 import { ScoreChart, ScoreTable } from "@/components/scores/score-chart";
 import { ScoreForm, ScoreRowActions } from "@/components/scores/score-forms";
@@ -51,6 +52,11 @@ export default async function StudentPage({ params }: PageProps<"/teach/[classId
       <PageHeader
         title={s.student.name || "Student"}
         description={[s.baseline ? `Baseline ${s.baseline.total}` : s.baselinePending ? "Diagnostic pending" : "No baseline yet", s.latest ? `latest ${s.latest.total}` : null, s.target ? `goal ${s.target}` : null, s.testDate ? `SAT on ${s.testDate.toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" })}` : null].filter(Boolean).join(" · ")}
+        actions={
+          <ButtonLink href={`/print/report/${classId}/${studentId}`} variant="secondary" size="sm">
+            Print progress report
+          </ButtonLink>
+        }
       />
       {s.stall.stalled && <Alert tone="warning">{s.stall.reason}.</Alert>}
       <div className="grid gap-4 sm:grid-cols-[1fr_1fr]">

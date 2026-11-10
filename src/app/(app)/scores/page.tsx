@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Card, PageHeader } from "@/components/ui/misc";
+import { ButtonLink } from "@/components/ui/button";
 import { ProgramTag } from "@/components/brand/seal";
 import { Alert } from "@/components/ui/alert";
 import { ScoreChart, ScoreTable } from "@/components/scores/score-chart";
@@ -38,7 +39,7 @@ export default async function ScoresPage() {
           ))}
         </div>
       )}
-      <PageHeader title="SAT scores" description="Your official, practice and diagnostic scores, and how far you've come." />
+      <PageHeader title="SAT scores" description="Your official, practice and diagnostic scores, and how far you've come." actions={h.scores.length > 0 ? <ButtonLink href="/print/report/me" variant="secondary" size="sm">Print my progress report</ButtonLink> : undefined} />
       {h.scores.length === 0 ? (
         <Card className="flex flex-col gap-4">
           <h2 className="text-lg font-semibold">Start with your baseline</h2>
