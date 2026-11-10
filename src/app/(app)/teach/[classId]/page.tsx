@@ -8,7 +8,7 @@ import { dueText, pct } from "@/components/classes/format";
 import { cn } from "@/lib/utils";
 import { NotFoundError } from "@/server/courses";
 import { classProgress, getClassForTeacher, type Cell } from "@/server/classes";
-import { requireUser } from "@/server/session";
+import { requireUser, viewerZone } from "@/server/session";
 
 export const metadata: Metadata = { title: "Class progress" };
 
@@ -31,6 +31,7 @@ function CellView({ cell, questions }: { cell: Cell; questions: boolean }) {
 /** The teacher's overview: every student × every assignment, with class averages. */
 export default async function ClassProgressPage({ params }: PageProps<"/teach/[classId]">) {
   const user = await requireUser();
+  const zone = await viewerZone();
   const { classId } = await params;
   let c, grid;
   try {
@@ -76,7 +77,7 @@ export default async function ClassProgressPage({ params }: PageProps<"/teach/[c
                       <Link href={`/teach/${c.id}/assignments/${a.id}`} className="line-clamp-2 hover:underline">
                         {a.title}
                       </Link>
-                      <span className={cn("block text-xs font-normal", a.dueAt && a.dueAt < now ? "text-danger" : "text-muted")}>{a.dueAt ? dueText(a.dueAt, now) : a.kind === "LESSONS" ? "Lessons" : "Questions"}</span>
+                      <span className={cn("block text-xs font-normal", a.dueAt && a.dueAt < now ? "text-danger" : "text-muted")}>{a.dueAt ? dueText(a.dueAt, now, zone) : a.kind === "LESSONS" ? "Lessons" : "Questions"}</span>
                     </th>
                   ))}
                 </tr>

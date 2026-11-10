@@ -1,3 +1,4 @@
+import { formatInZone } from "@/lib/dates";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { PillNav } from "@/components/review/filters";
@@ -6,7 +7,7 @@ import { buttonClasses } from "@/components/ui/button";
 import { EmptyState, PageHeader } from "@/components/ui/misc";
 import { cn } from "@/lib/utils";
 import { getErrorLog } from "@/server/review";
-import { requireUser } from "@/server/session";
+import { requireUser, viewerZone } from "@/server/session";
 
 export const metadata: Metadata = { title: "Error log" };
 
@@ -16,11 +17,12 @@ const STATUSES = [
   { id: "all", label: "All" },
 ] as const;
 
-const date = (d: Date) => d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+const date = (d: Date, zone: string) => formatInZone(d, zone, "day");
 
 /** Every question the student got wrong, by course and skill, with what they answered and the right answer. */
 export default async function ErrorLogPage({ searchParams }: PageProps<"/errors">) {
   const user = await requireUser();
+  const zone = await viewerZone();
   const sp = await searchParams;
   const status = STATUSES.find((s) => s.id === sp.status)?.id ?? "open";
   const everything = await getErrorLog(user.id, { status: "all" });
@@ -83,7 +85,7 @@ export default async function ErrorLogPage({ searchParams }: PageProps<"/errors"
                             <span className="min-w-0">
                               <Markdown className="[&_p]:m-0">{e.prompt}</Markdown>
                               <span className="mt-1 block text-xs text-muted">
-                                Missed {e.missed}× · last {date(e.lastMissedAt)} · {e.where}
+                                Missed {e.missed}× · last {date(e.lastMissedAt, zone)} · {e.where}
                               </span>
                             </span>
                             <span className={cn("shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold", e.fixed ? "bg-success-bg text-success" : "bg-danger-bg text-danger")}>

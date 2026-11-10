@@ -1,3 +1,5 @@
+import { formatInZone } from "@/lib/dates";
+import { viewerZone } from "@/server/session";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { PlanSelect, RetryButton } from "@/components/admin/admin-controls";
@@ -77,6 +79,7 @@ const td = "px-4 py-2 align-top";
 
 export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
   await requireAdmin();
+  const zone = await viewerZone();
   const sp = await searchParams;
   const q = typeof sp.q === "string" ? sp.q : "";
   const [overview, spend, usage, failures, users, problems] = await Promise.all([getOverview(), getAiSpend(), getFeatureUsage(), getFailures(), listUsers(q), listProblems()]);
@@ -97,7 +100,7 @@ export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
                 <span className="min-w-0">
                   <span className="rounded bg-danger-bg px-1.5 py-0.5 text-xs font-semibold text-danger">{e.kind}</span> <span className="font-medium">{e.message}</span>
                   <span className="block text-xs text-muted">
-                    {e.path || "–"} · {e.count}× · last {e.lastAt.toLocaleString("en-US")} · id {e.id}
+                    {e.path || "–"} · {e.count}× · last {formatInZone(e.lastAt, zone, "full")} · id {e.id}
                   </span>
                 </span>
                 <ResolveButton kind="error" id={e.id} />
@@ -108,7 +111,7 @@ export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
                 <span className="min-w-0">
                   <span className="rounded bg-warning-bg px-1.5 py-0.5 text-xs font-semibold text-warning">report</span> <span className="font-medium">{r.note || "(no note)"}</span>
                   <span className="block text-xs text-muted">
-                    {r.path} · {r.createdAt.toLocaleString("en-US")} · {r.errorIds.length ? `errors: ${r.errorIds.join(", ")}` : "no errors recorded"} · {r.userAgent.slice(0, 80)}
+                    {r.path} · {formatInZone(r.createdAt, zone, "full")} · {r.errorIds.length ? `errors: ${r.errorIds.join(", ")}` : "no errors recorded"} · {r.userAgent.slice(0, 80)}
                   </span>
                 </span>
                 <ResolveButton kind="report" id={r.id} />

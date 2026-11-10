@@ -1,3 +1,4 @@
+import { formatInZone } from "@/lib/dates";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import Link from "next/link";
@@ -22,7 +23,7 @@ import { rangeText, type SourceKindName } from "@/lib/source-label";
 import { claudeEnabled } from "@/server/env";
 import { getCourseCost, getCourseLessons, getGenerationProgress } from "@/server/generation/lessons";
 import { getGenerationEstimate } from "@/server/outline";
-import { requireUser } from "@/server/session";
+import { requireUser, viewerZone } from "@/server/session";
 import { getStudyOutline } from "@/server/study";
 import { getUnitScores } from "@/server/dashboard";
 import { getCourseAssessments } from "@/server/assessments";
@@ -53,6 +54,7 @@ function pageList(pages: number[]): string {
 
 export default async function CoursePage({ params }: PageProps<"/courses/[courseId]">) {
   const user = await requireUser();
+  const zone = await viewerZone();
   const { courseId } = await params;
   const course = await getCourseOr404(user.id, courseId);
   await markCourseOpened(user.id, courseId);
@@ -98,7 +100,7 @@ export default async function CoursePage({ params }: PageProps<"/courses/[course
                 <Link href={a.kind === "QUESTIONS" ? `/classes/assignments/${a.id}` : "/classes"} className="font-medium hover:underline">
                   {a.title}
                 </Link>
-                <span className="text-xs text-muted">{dueText(a.dueAt)}</span>
+                <span className="text-xs text-muted">{dueText(a.dueAt, undefined, zone)}</span>
               </li>
             ))}
           </ul>
@@ -182,7 +184,7 @@ export default async function CoursePage({ params }: PageProps<"/courses/[course
             <dt className="text-muted">Uploaded</dt>
             <dd className="font-medium">
               <time dateTime={book.createdAt.toISOString()}>
-                {book.createdAt.toLocaleDateString("en-US", { dateStyle: "medium" })}
+                {formatInZone(book.createdAt, zone, "medium")}
               </time>
             </dd>
           </div>

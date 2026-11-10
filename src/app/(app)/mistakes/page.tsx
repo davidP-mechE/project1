@@ -4,13 +4,14 @@ import { MistakeReview, type Practice } from "@/components/sat/mistake-review";
 import { myMistakes, practiceFor } from "@/server/mistakes";
 import { domainName } from "@/lib/sat/domains";
 import { env } from "@/server/env";
-import { requireUser } from "@/server/session";
+import { requireUser, viewerZone } from "@/server/session";
 
 export const metadata: Metadata = { title: "Mistake log" };
 
 /** Every SAT question the student got wrong comes back here until they get it right twice in a row. */
 export default async function MistakesPage() {
   const user = await requireUser();
+  const zone = await viewerZone();
   const m = await myMistakes(user.id);
   const next = m.due[0] ? await practiceFor(user.id, m.due[0].id) : null;
   let practice: Practice | null = null;
@@ -28,7 +29,7 @@ export default async function MistakesPage() {
       {m.total === 0 ? (
         <EmptyState title="No mistakes yet">When you get an SAT question wrong in an assignment, a diagnostic or a practice test, it comes back here to practise until you&apos;ve got it.</EmptyState>
       ) : practice ? (
-        <MistakeReview key={practice.mistakeId} p={practice} desmosKey={env.DESMOS_API_KEY ?? null} />
+        <MistakeReview key={practice.mistakeId} zone={zone} p={practice} desmosKey={env.DESMOS_API_KEY ?? null} />
       ) : (
         <EmptyState title="All caught up">Nothing to review right now. {m.upcoming[0] ? `The next one is due ${m.upcoming[0].due.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric", timeZone: "UTC" })}.` : "Every mistake is cleared!"}</EmptyState>
       )}

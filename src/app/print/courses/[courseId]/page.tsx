@@ -1,3 +1,4 @@
+import { formatInZone } from "@/lib/dates";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { PrintToolbar } from "@/components/export/print-toolbar";
@@ -6,7 +7,7 @@ import { pagesLabel, rangeLabel, type ExportQuestion } from "@/lib/export/types"
 import type { SourceKindName } from "@/lib/source-label";
 import { NotFoundError } from "@/server/courses";
 import { getCourseExport } from "@/server/export";
-import { requireUser } from "@/server/session";
+import { requireUser, viewerZone } from "@/server/session";
 import { track } from "@/server/analytics";
 
 export const metadata: Metadata = { title: "Study guide" };
@@ -20,6 +21,7 @@ const letter = (i: number) => String.fromCharCode(65 + i);
  */
 export default async function PrintCoursePage({ params, searchParams }: PageProps<"/print/courses/[courseId]">) {
   const user = await requireUser();
+  const zone = await viewerZone();
   const { courseId } = await params;
   const sp = await searchParams;
   const answers = sp.answers !== "0";
@@ -40,7 +42,7 @@ export default async function PrintCoursePage({ params, searchParams }: PageProp
           <p className="text-sm uppercase tracking-widest text-neutral-500">Study guide</p>
           <h1 className="mt-2 text-4xl font-bold">{c.title}</h1>
           <p className="mt-3 text-sm text-neutral-600">
-            Made with Coursebook from “{c.bookFilename}” on {new Date().toLocaleDateString("en-US", { dateStyle: "long" })}. Page numbers refer to the original book.
+            Made with Coursebook from “{c.bookFilename}” on {formatInZone(new Date(), zone, "long")}. Page numbers refer to the original book.
           </p>
         </header>
         <nav className="mb-10">

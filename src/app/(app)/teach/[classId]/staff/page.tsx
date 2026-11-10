@@ -1,3 +1,4 @@
+import { formatInZone } from "@/lib/dates";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Card } from "@/components/ui/misc";
@@ -6,15 +7,16 @@ import { AddStaffForm, InviteActions, StaffRowActions } from "@/components/class
 import { NotFoundError } from "@/server/courses";
 import { getClassForTeacher } from "@/server/classes";
 import { listStaff } from "@/server/staff";
-import { requireUser } from "@/server/session";
+import { requireUser, viewerZone } from "@/server/session";
 
 export const metadata: Metadata = { title: "Staff" };
 
-const when = (d: Date | null) => (d ? d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "Never");
+const when = (d: Date | null, zone: string) => (d ? formatInZone(d, zone, "medium") : "Never");
 
 /** Everyone who teaches, assists or observes this class, with their role and scope. */
 export default async function StaffPage({ params }: PageProps<"/teach/[classId]/staff">) {
   const user = await requireUser();
+  const zone = await viewerZone();
   const { classId } = await params;
   let c, s;
   try {
@@ -55,7 +57,7 @@ export default async function StaffPage({ params }: PageProps<"/teach/[classId]/
                     {p.canManageStaff && p.role === "TEACHER" && <span className="block text-xs text-muted">Can manage staff</span>}
                   </td>
                   <td className="py-3 pr-3">{p.scopeText}</td>
-                  {s.manage && <td className="py-3 pr-3 whitespace-nowrap">{when(p.lastLoginAt)}</td>}
+                  {s.manage && <td className="py-3 pr-3 whitespace-nowrap">{when(p.lastLoginAt, zone)}</td>}
                   {s.manage && (
                     <td className="py-3">
                       {!p.isProgramAdmin && (
@@ -82,7 +84,7 @@ export default async function StaffPage({ params }: PageProps<"/teach/[classId]/
                 <li key={i.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
                   <span>
                     {i.email} · {ROLE_LABEL[i.role]} · {i.scopeText}
-                    <span className={i.expired ? "block text-xs text-danger" : "block text-xs text-muted"}>{i.expired ? `Expired ${when(i.expiresAt)}` : `Link works until ${when(i.expiresAt)}`}</span>
+                    <span className={i.expired ? "block text-xs text-danger" : "block text-xs text-muted"}>{i.expired ? `Expired ${when(i.expiresAt, zone)}` : `Link works until ${when(i.expiresAt, zone)}`}</span>
                   </span>
                   <InviteActions classId={classId} inviteId={i.id} />
                 </li>

@@ -1,3 +1,4 @@
+import { formatInZone } from "@/lib/dates";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Card } from "@/components/ui/misc";
@@ -14,18 +15,18 @@ import {
 import { NotFoundError } from "@/server/courses";
 import { getClassForTeacher } from "@/server/classes";
 import { GuardianSummariesToggle, RosterImport } from "@/components/classes/cohort-forms";
-import { requireUser } from "@/server/session";
+import { requireUser, viewerZone } from "@/server/session";
 
 export const metadata: Metadata = { title: "Students" };
 
-const day = (d: Date) =>
-  d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+const day = (d: Date, zone: string) => formatInZone(d, zone, "day");
 
 /** Who's in the class, how to get students in, and the class's settings. */
 export default async function StudentsPage({
   params,
 }: PageProps<"/teach/[classId]/students">) {
   const user = await requireUser();
+  const zone = await viewerZone();
   const { classId } = await params;
   let c;
   try {
@@ -85,7 +86,7 @@ export default async function StudentsPage({
                   <span className="text-muted">{m.user.email}</span>
                 </span>
                 <span className="flex items-center gap-3 text-xs text-muted">
-                  Joined {day(m.joinedAt)}
+                  Joined {day(m.joinedAt, zone)}
                   {manage && (
                     <RemoveStudentButton
                       classId={c.id}
@@ -108,7 +109,7 @@ export default async function StudentsPage({
                   className="flex items-center justify-between gap-2 py-2"
                 >
                   <span className="text-muted">
-                    {i.email} · sent {day(i.createdAt)}
+                    {i.email} · sent {day(i.createdAt, zone)}
                   </span>
                   <CancelInviteButton classId={c.id} inviteId={i.id} />
                 </li>

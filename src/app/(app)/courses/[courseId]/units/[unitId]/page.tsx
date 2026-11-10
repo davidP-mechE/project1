@@ -9,12 +9,13 @@ import { getUnitView } from "@/server/assessments";
 import { getCourseOr404 } from "@/server/course-page";
 import { rangeText } from "@/lib/source-label";
 import { NotFoundError } from "@/server/courses";
-import { requireUser } from "@/server/session";
+import { requireUser, viewerZone } from "@/server/session";
 
 export const metadata: Metadata = { title: "Unit" };
 
 export default async function UnitPage({ params }: PageProps<"/courses/[courseId]/units/[unitId]">) {
   const user = await requireUser();
+  const zone = await viewerZone();
   const { courseId, unitId } = await params;
   const course = await getCourseOr404(user.id, courseId);
   let v;
@@ -45,6 +46,7 @@ export default async function UnitPage({ params }: PageProps<"/courses/[courseId
         </Card>
       )}
       <TestCard
+        zone={zone}
         courseId={courseId}
         kind="UNIT_TEST"
         takeHref={`/courses/${courseId}/units/${unitId}/test`}

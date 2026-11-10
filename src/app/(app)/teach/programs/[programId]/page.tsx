@@ -1,3 +1,4 @@
+import { formatInZone } from "@/lib/dates";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -9,15 +10,16 @@ import { CalendarForm } from "@/components/classes/assistant-forms";
 import { NotFoundError } from "@/server/courses";
 import { ClassError } from "@/server/access";
 import { getProgram } from "@/server/programs";
-import { requireUser } from "@/server/session";
+import { requireUser, viewerZone } from "@/server/session";
 
 export const metadata: Metadata = { title: "Program" };
 
-const when = (d: Date) => d.toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" });
+const when = (d: Date, zone: string) => `${formatInZone(d, zone, "medium")}, ${formatInZone(d, zone, "time")}`;
 
 /** The program admin's page: settings, handing over the admin role, and the audit log. */
 export default async function ProgramPage({ params }: PageProps<"/teach/programs/[programId]">) {
   const user = await requireUser();
+  const zone = await viewerZone();
   const { programId } = await params;
   let data;
   try {
@@ -90,7 +92,7 @@ export default async function ProgramPage({ params }: PageProps<"/teach/programs
                   <span className="font-medium">{l.actorName}</span>: {l.summary}
                 </span>
                 <time className="text-xs text-muted" dateTime={l.createdAt.toISOString()}>
-                  {when(l.createdAt)}
+                  {when(l.createdAt, zone)}
                 </time>
               </li>
             ))}

@@ -1,3 +1,4 @@
+import { formatInZone } from "@/lib/dates";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { BookLoader } from "@/components/ui/book-loader";
@@ -19,7 +20,7 @@ import { getCourseOr404 } from "@/server/course-page";
 import { NotFoundError, markCourseOpened } from "@/server/courses";
 import { claudeEnabled, env } from "@/server/env";
 import { getLessonView } from "@/server/generation/lessons";
-import { requireUser } from "@/server/session";
+import { requireUser, viewerZone } from "@/server/session";
 import { getLatestAttempts, getLessonProgress, getStudyOutline, markLessonViewed } from "@/server/study";
 import { getLessonNotes } from "@/server/notes";
 import { rangeText, sourceNoun } from "@/lib/source-label";
@@ -37,6 +38,7 @@ export async function generateMetadata({ params }: PageProps<"/courses/[courseId
 
 export default async function LessonPage({ params, searchParams }: PageProps<"/courses/[courseId]/lessons/[lessonId]">) {
   const user = await requireUser();
+  const zone = await viewerZone();
   const { courseId, lessonId } = await params;
   const bookParam = Number((await searchParams).book);
   const initialBookPage = Number.isInteger(bookParam) && bookParam > 0 ? bookParam : null;
@@ -199,7 +201,7 @@ export default async function LessonPage({ params, searchParams }: PageProps<"/c
           )}
           <p className="text-xs text-muted">
             {lesson.model === "demo" ? "Demo lesson (not written by Claude) from" : "Written by Claude from"} {pages} of the {sourceNoun(kind)}
-            {lesson.generatedAt && ` on ${lesson.generatedAt.toLocaleDateString("en-US", { dateStyle: "medium" })}`}. Check
+            {lesson.generatedAt && ` on ${formatInZone(lesson.generatedAt, zone, "medium")}`}. Check
             important details against the original: <PageRefs bookId={bookId} pages={[lesson.pageStart]} kind={kind} />
           </p>
           <LessonNotes courseId={courseId} initialNote={notes.note} />

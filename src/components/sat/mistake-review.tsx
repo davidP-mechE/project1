@@ -1,5 +1,7 @@
 "use client";
 
+import { formatInZone } from "@/lib/dates";
+
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { Markdown } from "@/components/lesson/markdown";
@@ -18,7 +20,7 @@ export type Practice =
 const letter = (i: number) => String.fromCharCode(65 + i);
 
 /** One mistake to practise: answer it (checked here) or retry it on College Board and say how it went. */
-export function MistakeReview({ p, desmosKey }: { p: Practice; desmosKey: string | null }) {
+export function MistakeReview({ p, desmosKey, zone }: { p: Practice; desmosKey: string | null; zone: string }) {
   const router = useRouter();
   const [choice, setChoice] = useState<number | null>(null);
   const [text, setText] = useState("");
@@ -89,7 +91,7 @@ export function MistakeReview({ p, desmosKey }: { p: Practice; desmosKey: string
       {error && <Alert tone="error">{error}</Alert>}
       {result && (
         <Alert tone={result.correct ? "success" : "warning"}>
-          <p className="font-medium">{result.correct ? (result.retired ? "Right again: this one's cleared from your log." : "Right!") : "Not quite."} Next review: {new Date(result.due).toLocaleDateString(undefined, { weekday: "long", month: "short", day: "numeric" })}.</p>
+          <p className="font-medium">{result.correct ? (result.retired ? "Right again: this one's cleared from your log." : "Right!") : "Not quite."} Next review: {formatInZone(result.due, zone, "weekday")}.</p>
           {result.feedback && (
             <p className="mt-1">
               Answer: {result.feedback.correctChoice !== null ? letter(result.feedback.correctChoice) : result.feedback.answer}. {result.feedback.explanation}

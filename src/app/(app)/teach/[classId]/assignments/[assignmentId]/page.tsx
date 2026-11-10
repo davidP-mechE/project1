@@ -1,3 +1,4 @@
+import { formatInZone } from "@/lib/dates";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
@@ -10,7 +11,7 @@ import { RegradeButton } from "@/components/classes/regrade-button";
 import { domainName } from "@/lib/sat/domains";
 import { NotFoundError } from "@/server/courses";
 import { assignmentReport } from "@/server/classes";
-import { requireUser } from "@/server/session";
+import { requireUser, viewerZone } from "@/server/session";
 
 export const metadata: Metadata = { title: "Assignment report" };
 
@@ -19,6 +20,7 @@ const letter = (i: number) => String.fromCharCode(65 + i);
 /** One assignment: every student's result; for question sets, how the class did on each question and what each student answered. */
 export default async function AssignmentReportPage({ params }: PageProps<"/teach/[classId]/assignments/[assignmentId]">) {
   const user = await requireUser();
+  const zone = await viewerZone();
   const { classId, assignmentId } = await params;
   let r;
   try {
@@ -44,7 +46,7 @@ export default async function AssignmentReportPage({ params }: PageProps<"/teach
         description={[
           questions ? `${a.itemIds.length} questions from ${a.worksheet?.title ?? "a worksheet"}` : `${a.lessonIds.length || "All"} lessons from ${a.classCourse?.title ?? "a course"}`,
           a.timeLimitMin ? `timed, ${a.timeLimitMin} min` : null,
-          dueText(a.dueAt),
+          dueText(a.dueAt, undefined, zone),
         ]
           .filter(Boolean)
           .join(" · ")}
@@ -94,7 +96,7 @@ export default async function AssignmentReportPage({ params }: PageProps<"/teach
                     {s.done}/{s.total || "?"}
                   </td>
                   {questions && <td className="py-2 pr-4 tabular-nums">{pct(s.score)}</td>}
-                  <td className="py-2 text-muted">{s.lastActive ? s.lastActive.toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "—"}</td>
+                  <td className="py-2 text-muted">{s.lastActive ? formatInZone(s.lastActive, zone, "day") : "—"}</td>
                 </tr>
               ))}
             </tbody>

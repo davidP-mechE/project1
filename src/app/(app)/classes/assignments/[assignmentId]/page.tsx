@@ -7,7 +7,7 @@ import { QuestionSet } from "@/components/classes/question-set";
 import { dueText } from "@/components/classes/format";
 import { NotFoundError } from "@/server/courses";
 import { ClassError, getQuestionAssignment, startLessons } from "@/server/classes";
-import { requireUser } from "@/server/session";
+import { requireUser, viewerZone } from "@/server/session";
 import { getExternalAssignment } from "@/server/external";
 import { ExternalSet } from "@/components/classes/external-forms";
 import { diagnosticState } from "@/server/diagnostics";
@@ -19,6 +19,7 @@ export const metadata: Metadata = { title: "Assignment" };
 /** A question set from a class. (A lessons assignment opens the student's copy of the course instead.) */
 export default async function AssignmentPage({ params }: PageProps<"/classes/assignments/[assignmentId]">) {
   const user = await requireUser();
+  const zone = await viewerZone();
   const { assignmentId } = await params;
   const diag = await diagnosticState(user.id, assignmentId).catch((err) => {
     if (err instanceof NotFoundError) return null;
@@ -34,8 +35,8 @@ export default async function AssignmentPage({ params }: PageProps<"/classes/ass
             ← {diag.className}
           </Link>
         </p>
-        <PageHeader title={diag.title} description={diag.closesAt ? `Closes ${dueText(diag.closesAt)}` : "Diagnostic"} />
-        <DiagnosticTaker view={view} desmosKey={env.DESMOS_API_KEY ?? null} />
+        <PageHeader title={diag.title} description={diag.closesAt ? `Closes ${dueText(diag.closesAt, undefined, zone)}` : "Diagnostic"} />
+        <DiagnosticTaker zone={zone} view={view} desmosKey={env.DESMOS_API_KEY ?? null} />
       </div>
     );
   }
@@ -52,7 +53,7 @@ export default async function AssignmentPage({ params }: PageProps<"/classes/ass
             ← {ext.assignment.className}
           </Link>
         </p>
-        <PageHeader title={ext.assignment.title} description={`${ext.items.length} College Board questions · ${done} recorded · ${dueText(ext.assignment.dueAt)}`} />
+        <PageHeader title={ext.assignment.title} description={`${ext.items.length} College Board questions · ${done} recorded · ${dueText(ext.assignment.dueAt, undefined, zone)}`} />
         {ext.assignment.note && <Alert tone="info">{ext.assignment.note}</Alert>}
         <p className="text-sm text-muted">These questions are on the College Board&apos;s Question Bank. Open each one, answer it there, then come back and record how it went. Wrong ones go into your mistake log.</p>
         <ExternalSet assignmentId={ext.assignment.id} items={ext.items.map((i) => ({ key: i.key, number: i.number, questionId: i.questionId, url: i.url, domain: i.domain, result: i.result ? { result: i.result.result, reason: i.result.reason } : null }))} />
@@ -79,7 +80,7 @@ export default async function AssignmentPage({ params }: PageProps<"/classes/ass
           ← {data.className}
         </Link>
       </p>
-      <PageHeader title={data.title} description={`${data.questions.length} questions · ${dueText(data.dueAt)}${data.course ? ` · ${data.course.title}` : ""}`} />
+      <PageHeader title={data.title} description={`${data.questions.length} questions · ${dueText(data.dueAt, undefined, zone)}${data.course ? ` · ${data.course.title}` : ""}`} />
       {data.note && <Alert tone="info">{data.note}</Alert>}
       <QuestionSet
         data={{

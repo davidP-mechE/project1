@@ -11,13 +11,14 @@ import { dueText } from "@/components/classes/format";
 import { NotFoundError } from "@/server/courses";
 import { assignableCourses, listTeaching } from "@/server/classes";
 import { getWorksheet } from "@/server/worksheets";
-import { requireUser } from "@/server/session";
+import { requireUser, viewerZone } from "@/server/session";
 
 export const metadata: Metadata = { title: "Worksheet" };
 
 /** A worksheet: the questions Claude found (check and edit them), and assigning them to classes. */
 export default async function WorksheetPage({ params }: PageProps<"/teach/worksheets/[worksheetId]">) {
   const user = await requireUser();
+  const zone = await viewerZone();
   const { worksheetId } = await params;
   let ws;
   try {
@@ -83,7 +84,7 @@ export default async function WorksheetPage({ params }: PageProps<"/teach/worksh
                       {a.title}
                     </Link>{" "}
                     <span className="text-muted">
-                      · {a.class.name} · {a.itemIds.length} questions · {dueText(a.dueAt)}
+                      · {a.class.name} · {a.itemIds.length} questions · {dueText(a.dueAt, undefined, zone)}
                     </span>
                   </li>
                 ))}

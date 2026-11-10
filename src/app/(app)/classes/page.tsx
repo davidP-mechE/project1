@@ -11,7 +11,7 @@ import { StartLessonsButton } from "@/components/classes/start-lessons-button";
 import { dueText, pct, STATUS_LABEL } from "@/components/classes/format";
 import { cn } from "@/lib/utils";
 import { myClasses } from "@/server/classes";
-import { requireUser } from "@/server/session";
+import { requireUser, viewerZone } from "@/server/session";
 import { ProgramTag } from "@/components/brand/seal";
 
 export const metadata: Metadata = { title: "Classes" };
@@ -19,6 +19,7 @@ export const metadata: Metadata = { title: "Classes" };
 /** The student's classes: join one with a code; see what's assigned, when it's due, and how they did. */
 export default async function ClassesPage() {
   const user = await requireUser();
+  const zone = await viewerZone();
   const [classes, attendance] = await Promise.all([myClasses(user.id), myAttendance(user.id)]);
   const extras = new Map(
     await Promise.all(
@@ -81,7 +82,7 @@ export default async function ClassesPage() {
                       </div>
                       <div className="flex items-center gap-3">
                         <div className="text-right text-xs">
-                          <p className={cn(overdue ? "font-semibold text-danger" : "text-muted")}>{dueText(a.dueAt, now)}</p>
+                          <p className={cn(overdue ? "font-semibold text-danger" : "text-muted")}>{dueText(a.dueAt, now, zone)}</p>
                           <p className={cn(a.cell.status === "done" ? "text-success" : "text-muted")}>
                             {STATUS_LABEL[a.cell.status]}
                             {a.kind === "LESSONS" ? ` · ${a.cell.done}/${a.cell.total || "?"}` : a.cell.score !== null && (a.cell.status === "done" || !a.timeLimitMin) ? ` · ${pct(a.cell.score)}` : ""}

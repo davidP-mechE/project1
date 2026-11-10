@@ -1,3 +1,4 @@
+import { formatInZone } from "@/lib/dates";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -7,16 +8,17 @@ import { DeleteSessionButton, SessionForm } from "@/components/classes/cohort-fo
 import { NotFoundError } from "@/server/courses";
 import { getClassForTeacher } from "@/server/classes";
 import { attendanceVsGains, listSessions } from "@/server/cohort";
-import { requireUser } from "@/server/session";
+import { requireUser, viewerZone } from "@/server/session";
 
 export const metadata: Metadata = { title: "Attendance" };
 
-const when = (d: Date) => d.toLocaleString("en-US", { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+const when = (d: Date, zone: string) => formatInZone(d, zone, "full");
 const pct = (x: number | null) => (x === null ? "–" : `${Math.round(x * 100)}%`);
 
 /** Sessions, taking attendance, and attendance next to score gains. */
 export default async function AttendancePage({ params }: PageProps<"/teach/[classId]/attendance">) {
   const user = await requireUser();
+  const zone = await viewerZone();
   const { classId } = await params;
   let c, s, gains;
   try {
@@ -33,7 +35,7 @@ export default async function AttendancePage({ params }: PageProps<"/teach/[clas
   const row = (x: (typeof s.sessions)[number]) => (
     <li key={x.id} className="flex flex-wrap items-center justify-between gap-2 py-2.5 text-sm">
       <Link href={`/teach/${classId}/attendance/${x.id}`} className="font-medium text-primary underline-offset-2 hover:underline">
-        {when(x.startsAt)}
+        {when(x.startsAt, zone)}
         {x.title && ` · ${x.title}`}
       </Link>
       <span className="flex items-center gap-2 text-muted">

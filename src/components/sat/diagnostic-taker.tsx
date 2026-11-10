@@ -1,5 +1,7 @@
 "use client";
 
+import { formatInZone } from "@/lib/dates";
+
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { Markdown } from "@/components/lesson/markdown";
@@ -22,10 +24,10 @@ export type DiagnosticView =
 /** Wall-clock time, read only in event handlers and effects. */
 const clock = () => Date.now();
 const letter = (i: number) => String.fromCharCode(65 + i);
-const when = (d: string) => new Date(d).toLocaleString(undefined, { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+const when = (d: string, zone: string) => formatInZone(d, zone, "full");
 
 /** Taking a diagnostic: timed modules with the clock on the server; module 2 depends on module 1. */
-export function DiagnosticTaker({ view, desmosKey }: { view: DiagnosticView; desmosKey: string | null }) {
+export function DiagnosticTaker({ view, desmosKey, zone }: { view: DiagnosticView; desmosKey: string | null; zone: string }) {
   const router = useRouter();
   const [pending, start] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -42,7 +44,7 @@ export function DiagnosticTaker({ view, desmosKey }: { view: DiagnosticView; des
           <li>You get one attempt{view.attemptsAllowed > 1 ? ` (your teacher allowed ${view.attemptsAllowed})` : ""}. Results show at the end; answers and explanations after it closes.</li>
           <li>Your score is an estimate, not an official SAT score.</li>
         </ul>
-        {!view.open && <Alert tone="info">{view.opensAt && new Date(view.opensAt) > new Date() ? `Opens ${when(view.opensAt)}.` : "This diagnostic has closed."}</Alert>}
+        {!view.open && <Alert tone="info">{view.opensAt && new Date(view.opensAt) > new Date() ? `Opens ${when(view.opensAt, zone)}.` : "This diagnostic has closed."}</Alert>}
         {error && <Alert tone="error">{error}</Alert>}
         {view.canStart && (
           <div>
@@ -65,7 +67,7 @@ export function DiagnosticTaker({ view, desmosKey }: { view: DiagnosticView; des
     );
   }
   if (view.phase === "taking") return <ModuleView key={view.module.id} view={view} desmosKey={desmosKey} />;
-  return <Results view={view} />;
+  return <Results view={view} zone={zone} />;
 }
 
 function ModuleView({ view, desmosKey }: { view: Extract<DiagnosticView, { phase: "taking" }>; desmosKey: string | null }) {
@@ -174,7 +176,7 @@ function GridIn({ label, initial, onSave }: { label: string; initial: string; on
   );
 }
 
-function Results({ view }: { view: Extract<DiagnosticView, { phase: "done" }> }) {
+function Results({ view, zone }: { view: Extract<DiagnosticView, { phase: "done" }>; zone: string }) {
   return (
     <div className="flex flex-col gap-4">
       <Card className="flex flex-col gap-4">
@@ -234,7 +236,7 @@ function Results({ view }: { view: Extract<DiagnosticView, { phase: "done" }> })
           ))}
         </section>
       ) : (
-        view.closesAt && <Alert tone="info">Answers and explanations appear after the diagnostic closes ({when(view.closesAt)}), so no one sees them while others are still taking it.</Alert>
+        view.closesAt && <Alert tone="info">Answers and explanations appear after the diagnostic closes ({when(view.closesAt, zone)}), so no one sees them while others are still taking it.</Alert>
       )}
     </div>
   );
