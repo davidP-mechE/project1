@@ -703,6 +703,40 @@ test("the full student journey works, is accessible, and respects the CSP", asyn
   await page.goto("/settings");
   await expect(page.getByRole("heading", { name: "Notifications" })).toBeVisible();
   await expect(page.getByLabel("Your name")).toHaveValue(/Alex/);
+
+  // ── Final 2: calendar, trends, reports, badges ──
+  await page.goto("/calendar");
+  await expect(page.getByRole("heading", { name: "Calendar", level: 1 })).toBeVisible();
+  await expect(page.getByLabel("Your private calendar link")).toHaveValue(/\/api\/calendar\/[\w-]+\.ics$/);
+  const feed = await page.request.get(await page.getByLabel("Your private calendar link").inputValue());
+  expect(feed.status()).toBe(200);
+  expect(await feed.text()).toContain("BEGIN:VCALENDAR");
+  await a11y(page, "calendar");
+  await shot(page, "calendar");
+  await page.goto("/calendar?view=agenda");
+  await a11y(page, "calendar agenda");
+  await page.goto(`${classUrl}/trends`);
+  await expect(page.getByRole("heading", { name: "Groups over time" })).toBeVisible();
+  await a11y(page, "class trends");
+  await shot(page, "class-trends");
+  await page.goto(`${programUrl}/dashboard`);
+  await expect(page.getByRole("heading", { name: "Teachers" })).toBeVisible();
+  await shot(page, "program-comparisons");
+  await page.goto(`${classUrl}/scores`);
+  await page.getByRole("link", { name: "Print class summary" }).click();
+  await page.waitForURL(/\/print\/class\//);
+  await expect(page.getByRole("heading", { name: "SAT Math, Period 2" })).toBeVisible();
+  await a11y(page, "class summary (print)");
+  await shotTheme(page, "class-summary-print", "light");
+  await sp3.goto("/scores");
+  await sp3.getByRole("link", { name: "Print my progress report" }).click();
+  await sp3.waitForURL(/\/print\/report\/me/);
+  await expect(sp3.getByText("Progress report", { exact: true })).toBeVisible();
+  await a11y(sp3, "progress report (print)");
+  await shotTheme(sp3, "progress-report-print", "light");
+  await sp3.goto("/calendar?view=agenda");
+  await a11y(sp3, "student calendar");
+  await shot(sp3, "student-calendar");
   await sp3.goto("/mistakes");
   await a11y(sp3, "mistake log");
   await shot(sp3, "mistake-log");
@@ -712,7 +746,7 @@ test("the full student journey works, is accessible, and respects the CSP", asyn
   const phone = await context.browser()!.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, storageState: await context.storageState() });
   const p2 = await phone.newPage();
   watch(p2);
-  for (const url of ["/dashboard", courseUrl, `${courseUrl}/export`, `${courseUrl}/practice`, deckUrl, "/slides", "/skills", "/errors", "/mastery", "/hub", "/review", "/settings", "/admin", "/privacy", "/teach", classUrl, `${classUrl}/students`, `${classUrl}/staff`, `${classUrl}/groups`, `${classUrl}/review`, `${classUrl}/scores`, `${classUrl}/attendance`, `${classUrl}/alerts`, `${classUrl}/curriculum`, `${classUrl}/assistant`, `${classUrl}/assign`, programUrl, `${programUrl}/dashboard`, "/teach/diagnostics", "/teach/review", "/teach/worksheets", "/classes"]) {
+  for (const url of ["/dashboard", "/calendar", "/messages", "/notifications", `${classUrl}/trends`, `${classUrl}/announcements`, courseUrl, `${courseUrl}/export`, `${courseUrl}/practice`, deckUrl, "/slides", "/skills", "/errors", "/mastery", "/hub", "/review", "/settings", "/admin", "/privacy", "/teach", classUrl, `${classUrl}/students`, `${classUrl}/staff`, `${classUrl}/groups`, `${classUrl}/review`, `${classUrl}/scores`, `${classUrl}/attendance`, `${classUrl}/alerts`, `${classUrl}/curriculum`, `${classUrl}/assistant`, `${classUrl}/assign`, programUrl, `${programUrl}/dashboard`, "/teach/diagnostics", "/teach/review", "/teach/worksheets", "/classes"]) {
     await p2.goto(url);
     await p2.waitForLoadState("networkidle").catch(() => {});
     expect(await p2.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), `no sideways scroll on ${url}`).toBe(true);
@@ -726,6 +760,15 @@ test("the full student journey works, is accessible, and respects the CSP", asyn
   await p2.waitForURL(/\/slides$/);
   await expect(p2.getByRole("dialog", { name: "Menu" })).toBeHidden();
   await phone.close();
+
+  // ── A new semester: fresh copies of the classes, the old ones archived ──
+  await page.goto(programUrl);
+  await page.getByLabel("Semester name").fill("Spring 2027");
+  page.once("dialog", (d) => void d.accept());
+  await page.getByRole("button", { name: "Start the new semester" }).click();
+  await expect(page.getByText(/Started\. New classes: SAT Math, Period 2 \(Spring 2027\)/)).toBeVisible();
+  await a11y(page, "new semester");
+  await shot(page, "new-semester");
 
   // Clean up the test account.
   await sql(`DELETE FROM "user" WHERE email = ANY($1)`, [[email, specEmail]]);

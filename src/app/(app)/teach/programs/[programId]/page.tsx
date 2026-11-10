@@ -4,7 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Card, PageHeader } from "@/components/ui/misc";
 import { ButtonLink } from "@/components/ui/button";
-import { ProgramPublicPageForm, ProgramSettingsForm, TransferAdminForm } from "@/components/classes/staff-forms";
+import { NewSemesterForm, ProgramPublicPageForm, ProgramSettingsForm, TransferAdminForm } from "@/components/classes/staff-forms";
 import { ProgramBadge } from "@/components/brand/seal";
 import { CalendarForm } from "@/components/classes/assistant-forms";
 import { NotFoundError } from "@/server/courses";
@@ -71,6 +71,11 @@ export default async function ProgramPage({ params }: PageProps<"/teach/programs
         <h2 className="mb-1 text-lg font-semibold">School calendar</h2>
         <p className="mb-4 text-sm text-muted">Curriculum units are laid out on school weeks from the term start, skipping these days.</p>
         <CalendarForm programId={program.id} termStart={program.termStart?.toISOString().slice(0, 10) ?? null} termEnd={program.termEnd?.toISOString().slice(0, 10) ?? null} closedDates={program.closedDates.map((d) => d.toISOString().slice(0, 10))} />
+      </Card>
+      <Card>
+        <h2 className="mb-1 text-lg font-semibold">Start a new semester</h2>
+        <p className="mb-4 text-sm text-muted">Copy this semester&apos;s classes into fresh ones and archive the old ones.</p>
+        <NewSemesterForm programId={program.id} classes={program.classes.filter((c) => !c.archivedAt).map((c) => ({ id: c.id, name: c.name, students: c._count.members }))} />
       </Card>
       <Card>
         <h2 className="mb-1 text-lg font-semibold">Hand over the admin role</h2>

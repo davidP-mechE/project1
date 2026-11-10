@@ -26,7 +26,7 @@ export default defineConfig({
   outputDir: path.join(OUT, "results"),
   fullyParallel: false,
   workers: 1,
-  timeout: 5 * 60_000,
+  timeout: 10 * 60_000,
   expect: { timeout: 30_000 },
   reporter: [["list"]],
   use: {

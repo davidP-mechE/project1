@@ -21,6 +21,9 @@ Usually one person is both.
 - **Program dashboard:** the button on the program page. Shows the average gain against the +300 goal, who's on track, who's stalling, and who has no baseline.
 - **Messages:** students can message their own tutors; tutors can message the students in their scope, one at a time or a whole class or group (each student gets a private copy). As program admin you can read every conversation (Messages → Everyone in the program); you can't reply in other people's. Students are told this on the messages page.
 - **Announcements:** each class has an Announcements tab. Posts go to the whole class or one group and show on students' Today page, pinned first.
+- **Calendar:** everyone's due dates, diagnostic windows, sessions and curriculum units, in their own timezone, with a private link for Google or Apple Calendar (resettable).
+- **Trends and reports:** each class has a Trends tab (groups and domains over time); the program dashboard compares classes and teachers. Printable progress reports and class summaries are on the Scores pages ("Save as PDF" in the print dialog).
+- **Badges:** streaks, a cleared mistake log, domains mastered, gains and perfect attendance. Students see their own; staff see them on a student's page. No leaderboards.
 - **Notifications:** the bell in the sidebar. Everyone chooses what shows there and what's emailed in Settings → Notifications. Emails say who wrote, never the message.
 - **Review queue:** Teaching → Review queue. Claude never publishes anything by itself, so drafted questions, drafted lessons and AI grades wait here for a person.
 - **Error emails:** if the site emails you "Coursebook error: …", open Admin → Errors and problem reports.
@@ -65,9 +68,11 @@ If the admin leaves without handing over, the site admin can make someone else t
 
 ## 4. A new semester
 
-At the end of a term:
-1. **Archive** the old classes (class → Students → Class settings → *Archive*). Students can't see archived classes. Their scores, answers and history stay.
-2. Create the new classes and share the new class codes, or import a roster (class → Students → *Import a roster*, a CSV with name, email, group, target).
+At the end of a term, use **Program page → Start a new semester**:
+1. Name the semester (for example *Spring 2027*) and tick the classes to carry forward.
+2. Each one gets a fresh copy: same teacher, same staff with the same roles and scopes, the same groups (empty), and a **new join code**. The old classes are archived (read-only). Scores, answers, attendance and mistake logs stay with the students.
+3. Optionally tick *Email last semester's students an invite*; otherwise share the new codes, or import a roster (class → Students → *Import a roster*, a CSV with name, email, group, target).
+4. Add courses again from each new class's Assign tab (they aren't copied). The rollover is recorded in the audit log.
 3. Update the **school calendar** (program page) and import or reuse the **curriculum** (class → Curriculum → *Start from the SAT template*, or paste your syllabus).
 4. Update the **official SAT dates** in the program settings.
 5. Worksheets, the question bank and diagnostics belong to you, not to a class, so they carry over.
