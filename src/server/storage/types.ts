@@ -44,6 +44,10 @@ export const storageKeys = {
   bookOriginal: (userId: string, bookId: string) => `users/${userId}/books/${bookId}/original.pdf`,
   /** An uploaded PowerPoint deck, before the worker turns it into original.pdf. */
   slidesSource: (userId: string, bookId: string) => `users/${userId}/books/${bookId}/source.pptx`,
+  /** A teacher's worksheet PDF. */
+  worksheet: (userId: string, worksheetId: string) => `users/${userId}/worksheets/${worksheetId}.pdf`,
+  /** Snapshot of a course shared with a class (one folder per snapshot). */
+  classCoursePrefix: (classCourseId: string, stamp: number) => `classes/${classCourseId}/${stamp}/`,
   /** One deck of a slide collage, as uploaded. */
   deckSource: (userId: string, bookId: string, deckId: string, pptx: boolean) => `users/${userId}/books/${bookId}/decks/${deckId}.${pptx ? "pptx" : "pdf"}`,
   /** A collage's merged PDF (a new name each time decks are added, so a half-finished merge never replaces the old one). */

@@ -33,6 +33,7 @@ import { markLessonFailed, runFlashcardsJob, runLessonJob, runQuestionsJob } fro
 import { batchJobFailed, pollBatch, pollDelayMs, submitAssessmentBatch, submitLessonBatch } from "@/server/generation/batch";
 import { markAssessmentFailed, runAssessmentJob } from "@/server/generation/assessments";
 import { renderPagePng } from "@/server/processing/page-images";
+import { markWorksheetFailed, runWorksheetJob } from "@/server/worksheets";
 import { OcrPool } from "@/server/processing/ocr";
 import { runProcessBookJob } from "@/server/processing/run-job";
 import { db } from "@/server/db";
@@ -104,6 +105,21 @@ const generator = new Worker<GeneratePayload>(
         if ((!ai || ai.kind === "retryable") && !lastAttempt) throw err;
         await batchJobFailed(data); // write them one at a time instead
         throw new UnrecoverableError(ai?.userMessage ?? "Couldn't send the batch.");
+      }
+      return;
+    }
+
+    // A teacher's worksheet: Claude lists its questions.
+    if (data.kind === "worksheet") {
+      const lastAttempt = job.attemptsMade + 1 >= (job.opts.attempts ?? 1);
+      try {
+        console.info(`[worksheet] ${data.worksheetId}: ${await runWorksheetJob(data, deps)}`);
+      } catch (err) {
+        const ai = err instanceof AiError ? err : null;
+        console.error(`[worksheet] ${data.worksheetId} attempt ${job.attemptsMade + 1} failed:`, err instanceof Error ? err.message : err);
+        if ((!ai || ai.kind === "retryable") && !lastAttempt) throw err;
+        await markWorksheetFailed(data.worksheetId, ai?.userMessage ?? "Something went wrong reading this worksheet. Try again.");
+        throw new UnrecoverableError("worksheet failed");
       }
       return;
     }

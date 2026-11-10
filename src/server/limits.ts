@@ -64,7 +64,8 @@ export async function getUsage(userId: string, now = new Date()): Promise<{ plan
     aiUsdThisMonth(userId, now),
     lessonsWrittenThisMonth(userId, now),
     // Courses added from the Hub share the provided files, so they don't count toward books or storage.
-    db.book.aggregate({ where: { userId, OR: [{ course: null }, { course: { catalogEntryId: null } }] }, _count: { _all: true }, _sum: { sizeBytes: true } }),
+    // Hub and class copies are provided to the student, so they don't count towards their books or storage.
+    db.book.aggregate({ where: { userId, OR: [{ course: null }, { course: { catalogEntryId: null, classCourseId: null } }] }, _count: { _all: true }, _sum: { sizeBytes: true } }),
   ]);
   return {
     plan,

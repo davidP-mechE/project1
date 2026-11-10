@@ -11,6 +11,12 @@ export const RATE_RULES = {
   testSubmit: { name: "test-submit", max: 20, windowSeconds: 60 * 60 },
   /** Review: asking Claude for more questions on a skill (each request writes 5). */
   skillQuestions: { name: "skill-questions", max: 30, windowSeconds: 60 * 60 },
+  /** Trying class join codes (stops guessing codes). */
+  classJoin: { name: "class-join", max: 10, windowSeconds: 60 * 60 },
+  /** Class invitation emails a teacher can send. */
+  classInvite: { name: "class-invite", max: 100, windowSeconds: 24 * 60 * 60 },
+  /** Worksheet uploads (each is read by Claude). */
+  worksheetUpload: { name: "worksheet-upload", max: 20, windowSeconds: 60 * 60 },
 } satisfies Record<string, RateRule>;
 
 /** Which window `now` falls in, and how long until it ends. */

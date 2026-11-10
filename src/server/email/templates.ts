@@ -86,3 +86,14 @@ ${lines.map((l) => `<p style="color:#333;line-height:1.5;margin:0 0 8px">${escap
     html,
   };
 }
+
+export function classInviteMessage(input: { to: string; teacherName: string; className: string; code: string; url: string }): EmailMessage {
+  const intro = `${input.teacherName} invited you to join "${input.className}" on Coursebook, where you'll find the lessons and worksheets they assign.`;
+  const outro = `No account yet? Sign up with this email address, then open the link again. Or enter the class code ${input.code} under Classes.`;
+  return {
+    to: input.to,
+    subject: `Join ${input.className} on Coursebook`,
+    text: `${intro}\n\n${input.url}\n\n${outro}`,
+    html: layout(`Join ${input.className}`, intro, "Join the class", input.url, outro),
+  };
+}

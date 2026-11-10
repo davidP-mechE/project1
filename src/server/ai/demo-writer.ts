@@ -3,6 +3,7 @@ import type { LessonPromptInput } from "@/lib/ai/prompts";
 import { pageText } from "@/lib/ai/source";
 import type { LessonWriter, WriterResult } from "./writer";
 import type { AssessmentDraft, AssessmentPromptInput } from "@/lib/ai/assessment";
+import type { WorksheetDraft, WorksheetPage } from "@/lib/ai/worksheet";
 
 /**
  * DEMO MODE (FAKE_CLAUDE=true, development only): builds placeholder lessons
@@ -132,6 +133,28 @@ export class DemoWriter implements LessonWriter {
         ? ["> **Demo summary** (not written by Claude).", "", ...input.lessons.map((l) => `- **${l.title}**: ${l.content.objectives[0] ?? "see the lesson"} (p. ${l.pageStart})`)].join("\n")
         : "";
     return { value: { summary, questions: questions.slice(0, input.questionCount) }, calls: [{ value: null, model: "demo", usage: noUsage }] };
+  }
+
+  /** Demo: numbered lines ("3. …") become questions; "A) …" lines under one become its choices (the first is "right"). */
+  async readWorksheet(_title: string, pages: WorksheetPage[]): Promise<WriterResult<WorksheetDraft>> {
+    await wait(800);
+    const items: WorksheetDraft["items"] = [];
+    for (const p of pages) {
+      for (const line of p.text.split(/\n/).map((l) => l.trim())) {
+        const q = /^(\d+[a-z]?)[.)]\s+(.{3,})$/.exec(line);
+        const c = /^\(?([A-D])[.)]\s+(.+)$/.exec(line);
+        if (q) {
+          items.push({ label: q[1], type: "short_answer", prompt: `${q[2]} (demo)`, choices: [], correctChoice: -1, answer: "Demo answer", answerFromWorksheet: false, explanation: "Demo mode: answers aren't worked out.", steps: [], pageRefs: [p.pageNumber], topic: "Demo skill" });
+        } else if (c && items.length > 0) {
+          const last = items[items.length - 1];
+          last.type = "multiple_choice";
+          last.choices.push(c[2]);
+          last.correctChoice = 0;
+          last.answer = last.choices[0];
+        }
+      }
+    }
+    return { value: { readable: items.length > 0, problem: items.length ? "" : "Demo mode found no numbered questions.", hasAnswerKey: false, items }, calls: [{ value: null, model: "demo", usage: noUsage }] };
   }
 
   async repairPage(): Promise<WriterResult<string>> {

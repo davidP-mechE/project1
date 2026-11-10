@@ -103,7 +103,7 @@ async function ownedSlidesCourse(userId: string, courseId: string) {
 export async function addDecks(userId: string, courseId: string, input: { files: DeckFile[]; rightsConfirmed: boolean }) {
   const course = await ownedSlidesCourse(userId, courseId);
   // A course added from the Hub shares the provided course's files; it can't be changed.
-  if (course.catalogEntryId) throw new CollageError("Courses added from the Hub can't have slides added. Upload your decks as a new course instead.");
+  if (course.catalogEntryId || course.classCourseId) throw new CollageError("Courses added from the Hub or a class can't have slides added. Upload your decks as a new course instead.");
   if (course.book.status !== "READY") throw new CollageError("Wait until these slides have finished processing, then add more.");
   const kept = course.book.decks.filter((d) => d.status !== "FAILED" && d.status !== "AWAITING_UPLOAD");
   if (course.book.decks.some((d) => d.status === "UPLOADED" || d.status === "MERGED")) {

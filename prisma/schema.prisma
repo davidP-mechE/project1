@@ -67,6 +67,11 @@ model User {
   studyDays          StudyDay[]
   studyPlans         StudyPlan[]
   analyticsEvents    AnalyticsEvent[]
+  teaching           Class[]             @relation("teacher")
+  classMemberships   ClassMember[]
+  worksheets         Worksheet[]
+  assignmentAnswers  AssignmentAnswer[]
+  assignmentStarts   AssignmentStart[]
 
   @@map("user")
 }
@@ -244,6 +249,10 @@ model Course {
   // Added from the Hub: the provided course it was copied from.
   catalogEntryId  String?
   catalogEntry    CatalogEntry?  @relation("enrollments", fields: [catalogEntryId], references: [id], onDelete: SetNull)
+  // A student's copy of a course their teacher assigned in a class.
+  classCourseId   String?
+  classCourse     ClassCourse?   @relation("classCopies", fields: [classCourseId], references: [id], onDelete: SetNull)
+  sharedInClasses ClassCourse[]  @relation("classSource")
   // This course is the source of a Hub entry (admins only).
   publishedAs     CatalogEntry?  @relation("source")
   createdAt       DateTime       @default(now())
@@ -375,6 +384,8 @@ enum LessonStatus {
 
 model Lesson {
   id                String       @id @default(cuid())
+  // In a copied course (Hub or class): the lesson it was copied from, so a teacher's assignment finds it.
+  sourceLessonId    String?
   unitId            String
   unit              Unit         @relation(fields: [unitId], references: [id], onDelete: Cascade)
   courseId          String
@@ -416,6 +427,7 @@ model Lesson {
   @@index([unitId, order])
   @@index([tsv], type: Gin)
   @@index([courseId])
+  @@index([sourceLessonId])
 }
 
 enum QuestionScope {
@@ -837,6 +849,7 @@ model AssessmentAttempt {
 // ─── Claude API usage (for cost tracking and limits) ─────────────────────
 
 enum UsageFeature {
+  WORKSHEET
   LESSON
   FLASHCARDS
   QUESTIONS
@@ -970,4 +983,188 @@ model CatalogEntry {
   enrollments Course[] @relation("enrollments")
 
   @@index([published, subject])
+}
+
+// ─── Classes (teachers and students) ─────────────────────────────────────
+// Anyone can teach: create a class, invite students (by email or join code),
+// and assign their own courses, or chosen lessons, with due dates. Each student
+// gets their own copy of an assigned course (like the Hub), so their progress,
+// notes and answers are theirs; the teacher sees progress on assigned work only.
+
+model Class {
+  id          String        @id @default(cuid())
+  teacherId   String
+  teacher     User          @relation("teacher", fields: [teacherId], references: [id], onDelete: Cascade)
+  name        String
+  joinCode    String        @unique
+  archivedAt  DateTime?
+  createdAt   DateTime      @default(now())
+  members     ClassMember[]
+  invites     ClassInvite[]
+  courses     ClassCourse[]
+  assignments Assignment[]
+
+  @@index([teacherId])
+}
+
+model ClassMember {
+  id       String   @id @default(cuid())
+  classId  String
+  class    Class    @relation(fields: [classId], references: [id], onDelete: Cascade)
+  userId   String
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  joinedAt DateTime @default(now())
+
+  @@unique([classId, userId])
+  @@index([userId])
+}
+
+model ClassInvite {
+  id        String   @id @default(cuid())
+  classId   String
+  class     Class    @relation(fields: [classId], references: [id], onDelete: Cascade)
+  email     String
+  createdAt DateTime @default(now())
+
+  @@unique([classId, email])
+}
+
+/// A teacher's course shared with a class. Its files are copied to classes/<id>/ so
+/// students' copies keep working even if the teacher changes or deletes the course.
+model ClassCourse {
+  id             String       @id @default(cuid())
+  classId        String
+  class          Class        @relation(fields: [classId], references: [id], onDelete: Cascade)
+  sourceCourseId String?
+  sourceCourse   Course?      @relation("classSource", fields: [sourceCourseId], references: [id], onDelete: SetNull)
+  title          String
+  /// The snapshot, taken when a student first opens the course (null until then).
+  fileKey        String?
+  coverKey       String?
+  figuresPrefix  String?
+  /// The teacher's file the snapshot was taken from (a new snapshot is taken if it changes, e.g. slides added).
+  snapshotOf     String?
+  createdAt      DateTime     @default(now())
+  copies         Course[]     @relation("classCopies")
+  assignments    Assignment[]
+
+  @@unique([classId, sourceCourseId])
+}
+
+enum AssignmentKind {
+  LESSONS // lessons from a course (or the whole course)
+  QUESTIONS // questions from a worksheet the teacher uploaded
+}
+
+model Assignment {
+  id            String             @id @default(cuid())
+  classId       String
+  class         Class              @relation(fields: [classId], references: [id], onDelete: Cascade)
+  kind          AssignmentKind     @default(LESSONS)
+  /// The course it's for: LESSONS come from it; QUESTIONS are filed under it (optional).
+  classCourseId String?
+  classCourse   ClassCourse?       @relation(fields: [classCourseId], references: [id], onDelete: SetNull)
+  title         String
+  note          String?
+  /// LESSONS: the teacher's lesson ids; empty means the whole course.
+  lessonIds     String[]
+  /// QUESTIONS: the worksheet and which of its questions, in order.
+  worksheetId   String?
+  worksheet     Worksheet?         @relation(fields: [worksheetId], references: [id], onDelete: SetNull)
+  itemIds       String[]
+  /// Optional time limit for a question set, like a timed practice section.
+  timeLimitMin  Int?
+  dueAt         DateTime?
+  createdAt     DateTime           @default(now())
+  answers       AssignmentAnswer[]
+  starts        AssignmentStart[]
+
+  @@index([classId, dueAt])
+}
+
+enum WorksheetStatus {
+  UPLOADING
+  READING
+  READY
+  FAILED
+}
+
+/// A PDF of questions a teacher uploaded (a worksheet, problem set, practice test).
+/// Claude reads it and lists its questions; the teacher reviews them and makes assignments.
+model Worksheet {
+  id           String          @id @default(cuid())
+  ownerId      String
+  owner        User            @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  title        String
+  fileKey      String
+  sizeBytes    BigInt
+  pageCount    Int?
+  status       WorksheetStatus @default(UPLOADING)
+  error        String?
+  /// Claude found answers in the PDF (an answer key, or worked solutions).
+  hasAnswerKey Boolean         @default(false)
+  createdAt    DateTime        @default(now())
+  items        WorksheetItem[]
+  assignments  Assignment[]
+
+  @@index([ownerId, createdAt])
+}
+
+model WorksheetItem {
+  id            String             @id @default(cuid())
+  worksheetId   String
+  worksheet     Worksheet          @relation(fields: [worksheetId], references: [id], onDelete: Cascade)
+  order         Int
+  /// The number printed on the worksheet ("3", "4b").
+  label         String
+  type          QuestionType
+  prompt        String
+  choices       String[]
+  correctChoice Int?
+  answer        String
+  explanation   String
+  steps         String[]
+  pageRefs      Int[]
+  /// Skill or topic, for the score report by skill.
+  topic         String
+  /// Where the answer came from: WORKSHEET (its answer key), CLAUDE (worked out; check it) or TEACHER.
+  answerSource  String             @default("WORKSHEET")
+  answers       AssignmentAnswer[]
+
+  @@index([worksheetId, order])
+}
+
+/// A student's answer to a worksheet question in an assignment. The latest one counts.
+model AssignmentAnswer {
+  id           String        @id @default(cuid())
+  assignmentId String
+  assignment   Assignment    @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  itemId       String
+  item         WorksheetItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  userId       String
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  choice       Int?
+  response     String?
+  correct      Boolean
+  score        Float
+  verdict      String
+  feedback     String        @default("")
+  gradedBy     String
+  createdAt    DateTime      @default(now())
+
+  @@index([assignmentId, userId])
+  @@index([itemId])
+}
+
+/// When a student started (and handed in) a question set; timed sets use it for the clock.
+model AssignmentStart {
+  id           String     @id @default(cuid())
+  assignmentId String
+  assignment   Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  userId       String
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  startedAt    DateTime   @default(now())
+  submittedAt  DateTime?
+
+  @@unique([assignmentId, userId])
 }

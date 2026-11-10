@@ -20,6 +20,7 @@ import {
 } from "@/lib/ai/prompts";
 import type { TokenUsage } from "@/lib/ai/models";
 import type { Quality } from "@/lib/course/settings";
+import { WORKSHEET_SYSTEM_PROMPT, WorksheetDraftSchema, worksheetUserText, type WorksheetDraft, type WorksheetPage } from "@/lib/ai/worksheet";
 import {
   ASSESSMENT_SYSTEM_PROMPT,
   AssessmentDraftSchema,
@@ -59,6 +60,8 @@ export interface LessonWriter {
     kind?: "book" | "slides",
     quality?: Quality,
   ): Promise<WriterResult<string>>;
+  /** List the questions on a teacher's worksheet (pages as images and text), with answers. */
+  readWorksheet(title: string, pages: WorksheetPage[]): Promise<WriterResult<WorksheetDraft>>;
   /** A unit summary + unit test, or the final exam, from finished lessons. */
   writeAssessment(
     input: AssessmentPromptInput,
@@ -349,6 +352,48 @@ export class ClaudeWriter implements LessonWriter {
 
   writeAssessment(input: AssessmentPromptInput) {
     return this.run<AssessmentDraft>({ kind: "assessment", input });
+  }
+
+  async readWorksheet(title: string, pages: WorksheetPage[]): Promise<WriterResult<WorksheetDraft>> {
+    const calls: Call<unknown>[] = [];
+    const content: Anthropic.ContentBlockParam[] = [
+      ...pages.flatMap((p): Anthropic.ContentBlockParam[] =>
+        p.png ? [{ type: "image", source: { type: "base64", media_type: "image/png", data: p.png.toString("base64") } }] : [],
+      ),
+      { type: "text", text: worksheetUserText(title, pages) },
+    ];
+    for (const model of [this.config.model, this.config.fallbackModel]) {
+      let response: Anthropic.Message;
+      try {
+        response = await this.client.messages
+          .stream({
+            model,
+            max_tokens: 32_000,
+            system: [text(WORKSHEET_SYSTEM_PROMPT, true)],
+            messages: [{ role: "user", content }],
+            output_config: { format: zodOutputFormat(WorksheetDraftSchema), effort: this.config.effort },
+          })
+          .finalMessage();
+      } catch (err) {
+        throw classify(err, calls);
+      }
+      calls.push({ value: null, model: response.model ?? model, usage: usageOf(response.usage) });
+      if (response.stop_reason === "refusal" && model !== this.config.fallbackModel) continue;
+      if (response.stop_reason === "refusal") throw new AiError("refused", "Claude declined to read this worksheet.", "refusal", calls);
+      if (response.stop_reason === "max_tokens") {
+        throw new AiError("too_long", "This worksheet has too many questions to read at once. Split it into smaller PDFs and upload them one by one.", "max_tokens", calls);
+      }
+      const reply = response.content
+        .filter((b): b is Anthropic.TextBlock => b.type === "text")
+        .map((b) => b.text)
+        .join("");
+      try {
+        return { value: zodOutputFormat(WorksheetDraftSchema).parse(reply), calls };
+      } catch (err) {
+        throw new AiError("retryable", "Claude's reply couldn't be read. We'll try again.", `unparseable worksheet reply: ${String(err).slice(0, 200)}`, calls);
+      }
+    }
+    throw new AiError("refused", "Claude declined to read this worksheet.", "refusal", calls);
   }
 
   async repairPage(
