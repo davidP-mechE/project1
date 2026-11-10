@@ -35,6 +35,22 @@ export const MissedSchema = z
   .refine((m) => !m.skill || DOMAINS.find((d) => d.id === m.domain)!.skills.includes(m.skill), "Unknown skill");
 export type Missed = z.infer<typeof MissedSchema>;
 
+/** One question from a College Board review: numbers, labels and right/wrong only. */
+export const ReviewQuestionSchema = z
+  .object({
+    section: z.enum(["MATH", "RW"]),
+    module: z.union([z.literal(1), z.literal(2)]),
+    number: z.number().int().min(1).max(30),
+    domain: z.string().refine(isDomain, "Unknown domain"),
+    skill: z.string().max(120).nullable(),
+    correct: z.boolean(),
+  })
+  .strict()
+  .refine((m) => DOMAINS.find((d) => d.id === m.domain)!.section === m.section, "The domain must be in that section");
+
+/** Knowledge and Skills bands (1–7) per domain, from a College Board score report. */
+export const DomainBandsSchema = z.record(z.string().refine(isDomain, "Unknown domain"), z.number().int().min(1).max(7));
+
 const scaled = (min: number, max: number) => z.number().int().min(min).max(max).refine((n) => n % 10 === 0, "Scores go up in steps of 10");
 
 /** A score as entered. `.strict()` refuses any field that isn't listed, so question text can't be sent. */
@@ -48,6 +64,8 @@ export const ScoreInputSchema = z
     math: scaled(200, 800).nullable().optional(),
     isBaseline: z.boolean().optional(),
     missed: z.array(MissedSchema).max(98).optional(),
+    domainBands: DomainBandsSchema.optional(),
+    review: z.array(ReviewQuestionSchema).max(120).optional(),
   })
   .strict()
   .refine((s) => s.rw == null || s.math == null || s.rw + s.math === s.total, { message: "The two section scores must add up to the total.", path: ["total"] });

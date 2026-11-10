@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Card, PageHeader } from "@/components/ui/misc";
 import { ButtonLink } from "@/components/ui/button";
 import { ProgramTag } from "@/components/brand/seal";
+import { WeakSpots } from "@/components/scores/cb-import-form";
+import { myWeakSpots } from "@/server/cb-results";
 import { Alert } from "@/components/ui/alert";
 import { ScoreChart, ScoreTable } from "@/components/scores/score-chart";
 import { BaselinePendingButton, GoalForm, ScoreForm, ScoreRowActions } from "@/components/scores/score-forms";
@@ -25,6 +27,7 @@ export default async function ScoresPage() {
     db.program.findMany({ where: { classes: { some: { members: { some: { userId: user.id } } } } }, select: { id: true, name: true, badge: true, targets: true, testDates: true } }),
     planFor(user.id),
   ]);
+  const weak = await myWeakSpots(user.id);
   const mistakesDue = await db.mistakeItem.count({ where: { studentId: user.id, retiredAt: null, due: { lte: new Date() } } });
   const officialDates = [...new Set(programs.flatMap((p) => p.testDates.map((d) => d.toISOString().slice(0, 10))))].filter((d) => d >= new Date().toISOString().slice(0, 10)).sort();
   const targets = [...new Set(programs.flatMap((p) => p.targets))].sort((a, b) => a - b);
@@ -88,6 +91,11 @@ export default async function ScoresPage() {
             <h2 className="mb-3 text-lg font-semibold">Your progress</h2>
             <ScoreChart points={h.scores} targets={goals} projection={h.projection} />
             {h.stall.stalled && <Alert tone="warning" className="mt-3">{h.stall.reason}. Talk to your tutor about what to focus on next.</Alert>}
+          </Card>
+          <Card>
+            <h2 className="mb-1 text-lg font-semibold">Where to focus</h2>
+            <p className="mb-4 text-sm text-muted">Your weakest content areas first, from your College Board reports and question reviews and your practice here.</p>
+            <WeakSpots data={weak} />
           </Card>
           <Card>
             <h2 className="mb-3 text-lg font-semibold">All scores</h2>

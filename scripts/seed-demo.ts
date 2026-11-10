@@ -156,7 +156,11 @@ async function main() {
   const scoreRows = [];
   for (const s of students) {
     const base = round10(clamp(normal(levelAt(s.id, start.getTime()), 25), 400, 1600));
-    scoreRows.push({ studentId: s.id, source: "PSAT" as const, takenOn: new Date(start.getTime() + 10 * DAY), total: base, rw: round10(base / 2 + normal(0, 15)), math: 0, isBaseline: true, enteredById: s.id, verifiedById: admin.id, verifiedAt: start });
+    // The PSAT report's Knowledge and Skills bands (1–7): each student has two weaker areas.
+    const weak = new Set([pick(QUESTIONS).domain, pick(QUESTIONS).domain]);
+    const level = clamp(Math.round((base - 600) / 120), 1, 7);
+    const domainBands = Object.fromEntries([...new Set(QUESTIONS.map((q) => q.domain))].map((d) => [d, clamp(level + (weak.has(d) ? -2 : Math.round(normal(0, 0.7))), 1, 7)]));
+    scoreRows.push({ studentId: s.id, source: "PSAT" as const, takenOn: new Date(start.getTime() + 10 * DAY), total: base, rw: round10(base / 2 + normal(0, 15)), math: 0, isBaseline: true, domainBands, enteredById: s.id, verifiedById: admin.id, verifiedAt: start });
     for (let m = 2; m <= 12; m += 2 + Math.floor(rand() * 2)) {
       const t = start.getTime() + m * 30 * DAY;
       if (t > now.getTime()) break;

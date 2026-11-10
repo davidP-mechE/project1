@@ -54,3 +54,9 @@ export async function assignExternalAction(classId: string, input: { title: stri
 export async function recordExternalAction(assignmentId: string, itemKey: string, input: unknown) {
   return run((u) => external.recordExternal(u, id.parse(assignmentId), z.string().max(40).parse(itemKey), input), [`/classes/assignments/${assignmentId}`, "/classes"]);
 }
+
+export async function importScoreReportsAction(classId: string, text: string, dryRun: boolean) {
+  const { importScoreReports } = await import("../cb-results");
+  const t = z.string().max(600_000).parse(text);
+  return run(async (u) => importScoreReports(u, id.parse(classId), t, { dryRun }), dryRun ? [] : [`/teach/${classId}/scores`, `/teach/${classId}/skills`]);
+}

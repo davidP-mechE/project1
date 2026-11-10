@@ -6,6 +6,7 @@ import { pct } from "@/components/classes/format";
 import { NotFoundError } from "@/server/courses";
 import { getClassForTeacher, skillsReport } from "@/server/classes";
 import { requireUser } from "@/server/session";
+import { classWeakSpots } from "@/server/cb-results";
 
 export const metadata: Metadata = { title: "Skills" };
 
@@ -13,9 +14,9 @@ export const metadata: Metadata = { title: "Skills" };
 export default async function SkillsPage({ params }: PageProps<"/teach/[classId]/skills">) {
   const user = await requireUser();
   const { classId } = await params;
-  let c, skills;
+  let c, skills, weak;
   try {
-    [c, skills] = await Promise.all([getClassForTeacher(user.id, classId), skillsReport(user.id, classId)]);
+    [c, skills, weak] = await Promise.all([getClassForTeacher(user.id, classId), skillsReport(user.id, classId), classWeakSpots(user.id, classId)]);
   } catch (err) {
     if (err instanceof NotFoundError) notFound();
     throw err;
@@ -23,6 +24,35 @@ export default async function SkillsPage({ params }: PageProps<"/teach/[classId]
   return (
     <div className="mx-auto flex max-w-4xl flex-col gap-6">
       <ClassNav c={c} active="skills" />
+      <Card>
+        <h2 className="mb-1 text-lg font-semibold">Weakest content areas across the class</h2>
+        <p className="mb-4 text-sm text-muted">
+          How many students have each area among their two weakest, from College Board score reports, question reviews and practice here ({weak.withEvidence} of {weak.students} students have results). Average band is the College Board Knowledge and Skills band (1–7).
+        </p>
+        <table className="w-full text-left text-sm">
+          <caption className="sr-only">Content areas by how many students find them hardest</caption>
+          <thead className="text-xs text-muted">
+            <tr>
+              <th scope="col" className="py-1 pr-3 font-medium">Area</th>
+              <th scope="col" className="py-1 pr-3 text-right font-medium">Weakest for</th>
+              <th scope="col" className="py-1 text-right font-medium">Average band</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-border">
+            {weak.rows.map((r) => (
+              <tr key={r.domain}>
+                <th scope="row" className="py-1.5 pr-3 font-normal">
+                  {r.name} <span className="text-xs text-muted">({r.section === "MATH" ? "Math" : "R&W"})</span>
+                </th>
+                <td className="py-1.5 pr-3 text-right tabular-nums">
+                  {r.weakestFor} student{r.weakestFor === 1 ? "" : "s"}
+                </td>
+                <td className="py-1.5 text-right tabular-nums">{r.averageBand === null ? "–" : `${r.averageBand} (${r.bandCount})`}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </Card>
       {skills.length === 0 ? (
         <EmptyState title="No answers yet">Skills come from worksheet questions. Once students answer some, you&apos;ll see the class&apos;s weakest skills here.</EmptyState>
       ) : (

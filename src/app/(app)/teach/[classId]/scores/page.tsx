@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { CbImportForm } from "@/components/scores/cb-import-form";
 import { notFound } from "next/navigation";
 import { Card, EmptyState } from "@/components/ui/misc";
 import { Alert } from "@/components/ui/alert";
@@ -35,6 +36,14 @@ export default async function ClassScoresPage({ params, searchParams }: PageProp
           Print class summary
         </Link>
       </p>
+      {s.access.role !== "VIEWER" && (
+        <details className="rounded-2xl border border-border bg-surface p-5">
+          <summary className="cursor-pointer text-lg font-semibold">Import College Board score reports</summary>
+          <div className="mt-4">
+            <CbImportForm classId={classId} />
+          </div>
+        </details>
+      )}
       {g.groups.length > 0 && (
         <nav aria-label="Filter by group" className="flex flex-wrap gap-2 text-sm">
           <Link href={`/teach/${classId}/scores`} className={cn("rounded-full border px-3 py-1", !groupId ? "border-primary bg-primary/10 font-medium" : "border-border")} aria-current={!groupId ? "page" : undefined}>

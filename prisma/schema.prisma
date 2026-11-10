@@ -1452,6 +1452,10 @@ model ScoreRecord {
   isBaseline   Boolean     @default(false)
   /// Missed questions on an outside test: [{ section, module, number, domain, skill?, reason? }]. No content.
   missed       Json        @default("[]")
+  /// College Board "Knowledge and Skills" bands from the score report: { domainId: 1–7 }.
+  domainBands  Json        @default("{}")
+  /// A question-by-question review (Bluebook / My Practice): [{ section, module, number, domain, skill, correct }]. No content.
+  review       Json        @default("[]")
   enteredById  String
   verifiedById String?
   verifiedAt   DateTime?

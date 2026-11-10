@@ -276,6 +276,20 @@ test("each role's journey: admin sets up, student works, specialist grades withi
   await expect(sp.getByText("Diagnostic", { exact: false }).first()).toBeVisible();
   await expect(sp.getByText("Baseline", { exact: true }).first()).toBeVisible();
   await a11y(sp, "student: scores");
+  // The student adds a Bluebook practice test and pastes its question review from My Practice.
+  await sp.getByRole("combobox", { name: /^Test/ }).selectOption("PRACTICE_BLUEBOOK");
+  await sp.getByLabel("Date taken").fill("2026-11-01");
+  await sp.getByLabel("Test name (optional)").fill("Bluebook Practice Test 4");
+  await sp.getByLabel("Total score").fill("1050");
+  await sp.getByText("Paste the question review from Bluebook or My Practice (optional)").click();
+  await sp.getByLabel("Question review").fill(["Question\tSection\tModule\tContent Domain\tSkill\tResult", "1\tMath\t1\tGeometry and Trigonometry\tCircles\tIncorrect", "2\tMath\t1\tGeometry and Trigonometry\tCircles\tIncorrect", "3\tMath\t1\tAlgebra\tLinear functions\tCorrect", "4\tReading and Writing\t1\tCraft and Structure\tWords in context\tCorrect"].join("\n"));
+  await expect(sp.getByText("Read 4 questions: 2 missed.")).toBeVisible();
+  await a11y(sp, "student: score form with review");
+  await sp.getByRole("button", { name: "Save score" }).click();
+  await expect(sp.getByText("Saved.")).toBeVisible();
+  await expect(sp.getByRole("heading", { name: "Where to focus" })).toBeVisible();
+  await expect(sp.getByText("Circles").first()).toBeVisible();
+  await shot(sp, "student-where-to-focus");
   await sp.goto("/dashboard");
   await expect(sp.getByRole("heading", { name: "Welcome to Roles Class" })).toBeVisible();
   await shot(sp, "student-scores");
@@ -307,11 +321,29 @@ test("each role's journey: admin sets up, student works, specialist grades withi
   await ap.goto(`${classUrl}/review`);
   await expect(ap.getByText(/Sol Student · Words set/)).toBeVisible();
 
+  // The admin imports the class's PSAT score reports from a spreadsheet: check, then add.
+  await ap.goto(`${classUrl}/scores`);
+  await ap.getByText("Import College Board score reports").click();
+  await ap.getByLabel("Or paste it").fill(`Email,Test,Test date,Total score,Reading and Writing,Math,Algebra,Geometry and Trigonometry,Craft and Structure\n${emails.student},PSAT/NMSQT,10/15/2026,1010,520,490,4,2,5\nnobody@example.com,PSAT/NMSQT,10/15/2026,900,450,450,,,`);
+  await ap.getByRole("button", { name: "Check" }).click();
+  await expect(ap.getByRole("cell", { name: /^ready/ })).toBeVisible();
+  await expect(ap.getByRole("cell", { name: /^not in class/ })).toBeVisible();
+  await a11y(ap, "admin: College Board import");
+  await ap.getByRole("button", { name: "Add 1 score report" }).click();
+  await expect(ap.getByText("Added 1 score report.")).toBeVisible();
+  await shot(ap, "admin-cb-import");
+  await ap.goto(`${classUrl}/skills`);
+  await expect(ap.getByRole("heading", { name: "Weakest content areas across the class" })).toBeVisible();
+  await a11y(ap, "admin: class weak areas");
+  await shot(ap, "admin-class-weak-areas");
+
   // The admin's view of the student and the diagnostic, and the printable report.
   const [{ id: studentId }] = await sql(`SELECT id FROM "user" WHERE email = $1`, [emails.student]);
   await ap.goto(`${classUrl}/students/${studentId}`);
   await expect(ap.getByRole("heading", { name: "Sol Student", level: 1 })).toBeVisible();
   await expect(ap.getByRole("img", { name: /Latest score: \d+ of 1600/ })).toBeVisible();
+  await expect(ap.getByRole("heading", { name: "Weak spots" })).toBeVisible();
+  await expect(ap.getByText(/College Board band 2\/7/)).toBeVisible();
   await a11y(ap, "admin: student page");
   await shot(ap, "admin-student");
   const [{ id: diagAssignment }] = await sql(`SELECT a.id FROM "Assignment" a JOIN "Class" c ON c.id = a."classId" WHERE c."joinCode" = $1 AND a.kind = 'DIAGNOSTIC'`, [code]);

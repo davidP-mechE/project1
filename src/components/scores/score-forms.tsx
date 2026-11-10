@@ -8,6 +8,7 @@ import { Field } from "@/components/ui/field";
 import { addScoreAction, deleteScoreAction, setProfileAction, verifyScoreAction } from "@/server/actions/scores";
 import { DOMAINS, SECTIONS } from "@/lib/sat/domains";
 import { MISS_REASONS, REASON_LABEL, SCORE_SOURCES, SOURCE_LABEL } from "@/lib/sat/scores";
+import { parseQuestionReview } from "@/lib/sat/cb-import";
 
 const select = "h-11 rounded-lg border border-border bg-surface px-3 text-sm";
 type Miss = { section: "MATH" | "RW"; module: 1 | 2; number: string; domain: string; reason: string };
@@ -26,6 +27,9 @@ export function ScoreForm({ target, first }: { target?: { classId: string; stude
   const [rw, setRw] = useState("");
   const [math, setMath] = useState("");
   const [misses, setMisses] = useState<Miss[]>([]);
+  const [bands, setBands] = useState<Record<string, string>>({});
+  const [reviewText, setReviewText] = useState("");
+  const review = reviewText.trim() ? parseQuestionReview(reviewText) : null;
   const [msg, setMsg] = useState<{ tone: "success" | "error"; text: string } | null>(null);
   const [pending, start] = useTransition();
   const num = (s: string) => (s.trim() === "" ? null : Number(s));
@@ -46,6 +50,8 @@ export function ScoreForm({ target, first }: { target?: { classId: string; stude
               math: num(math),
               ...(first ? { isBaseline: true } : {}),
               missed: misses.map((m) => ({ section: m.section, module: m.module, number: Number(m.number), domain: m.domain, ...(m.reason ? { reason: m.reason } : {}) })),
+              ...(Object.values(bands).some(Boolean) ? { domainBands: Object.fromEntries(Object.entries(bands).filter(([, v]) => v).map(([d, v]) => [d, Number(v)])) } : {}),
+              ...(review?.questions.length ? { review: review.questions } : {}),
             },
             target,
           );
@@ -55,6 +61,8 @@ export function ScoreForm({ target, first }: { target?: { classId: string; stude
           setRw("");
           setMath("");
           setMisses([]);
+          setBands({});
+          setReviewText("");
           router.refresh();
         });
       }}
@@ -76,6 +84,55 @@ export function ScoreForm({ target, first }: { target?: { classId: string; stude
         <Field label="Reading and Writing (optional)" inputMode="numeric" value={rw} onChange={(e) => setRw(e.target.value)} placeholder="200–800" />
         <Field label="Math (optional)" inputMode="numeric" value={math} onChange={(e) => setMath(e.target.value)} placeholder="200–800" />
       </div>
+      {source !== "DIAGNOSTIC" && (
+        <details className="rounded-lg border border-border p-3">
+          <summary className="cursor-pointer text-sm font-medium">From the College Board score report: Knowledge and Skills (optional)</summary>
+          <p className="mt-2 text-xs text-muted">Your College Board score report shows how you did in each content area as a row of boxes (1 to 7 filled). Pick the number for each area; it shows your tutors where to focus.</p>
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            {DOMAINS.map((d) => (
+              <label key={d.id} className="flex items-center justify-between gap-2 text-sm">
+                <span>
+                  {d.name} <span className="text-xs text-muted">({d.section === "MATH" ? "Math" : "R&W"})</span>
+                </span>
+                <select className="h-9 rounded-lg border border-border bg-surface px-2 text-sm" value={bands[d.id] ?? ""} onChange={(e) => setBands({ ...bands, [d.id]: e.target.value })}>
+                  <option value="">–</option>
+                  {[1, 2, 3, 4, 5, 6, 7].map((n) => (
+                    <option key={n} value={n}>
+                      {n} of 7
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ))}
+          </div>
+        </details>
+      )}
+      {source.startsWith("PRACTICE") && (
+        <details className="rounded-lg border border-border p-3">
+          <summary className="cursor-pointer text-sm font-medium">Paste the question review from Bluebook or My Practice (optional)</summary>
+          <p className="mt-2 text-xs text-muted">
+            In College Board&apos;s My Practice, open the test&apos;s question review, select the table (question, section, module, content domain, skill, and your result or answer) and paste it here. Only those columns are read; any question text is ignored and never saved. Missed questions go into your mistake log.
+          </p>
+          <label htmlFor="review-paste" className="sr-only">
+            Question review
+          </label>
+          <textarea id="review-paste" value={reviewText} onChange={(e) => setReviewText(e.target.value)} rows={5} className="mt-2 w-full rounded-lg border border-border bg-surface p-2 font-mono text-xs" placeholder={"Question\tSection\tModule\tContent Domain\tSkill\tResult\n1\tMath\t1\tAlgebra\tLinear functions\tCorrect"} />
+          {review && (
+            <div role="status" className="mt-2 text-xs">
+              <p className="font-medium">
+                Read {review.questions.length} question{review.questions.length === 1 ? "" : "s"}: {review.questions.filter((q) => !q.correct).length} missed.
+                {review.ignoredColumns.length > 0 && <span className="font-normal text-muted"> Ignored columns: {review.ignoredColumns.slice(0, 4).join(", ")}.</span>}
+              </p>
+              {review.skipped.length > 0 && (
+                <p className="text-warning">
+                  Skipped {review.skipped.length} row{review.skipped.length === 1 ? "" : "s"}: {review.skipped.slice(0, 3).map((r) => `line ${r.line} (${r.reason})`).join("; ")}
+                  {review.skipped.length > 3 ? "…" : ""}
+                </p>
+              )}
+            </div>
+          )}
+        </details>
+      )}
       {source !== "DIAGNOSTIC" && (
         <fieldset className="flex flex-col gap-2">
           <legend className="text-sm font-medium">Missed questions (optional)</legend>

@@ -10,6 +10,8 @@ import { NotFoundError } from "@/server/courses";
 import { studentScoresForStaff } from "@/server/scores";
 import { requireUser, viewerZone } from "@/server/session";
 import { studentBadges } from "@/server/badges";
+import { studentWeakSpots } from "@/server/cb-results";
+import { WeakSpots } from "@/components/scores/cb-import-form";
 import { BadgeList } from "@/components/badges";
 import { ScoreGauge } from "@/components/scores/score-gauge";
 import { db } from "@/server/db";
@@ -41,6 +43,7 @@ export default async function StudentPage({ params }: PageProps<"/teach/[classId
     studentBadges(user.id, classId, studentId),
     viewerZone(),
   ]);
+  const weak = await studentWeakSpots(user.id, classId, studentId);
   const sections = { rw: s.scores.some((x) => x.rw !== null) || !s.access.subjects, math: s.scores.some((x) => x.math !== null) || !s.access.subjects };
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-6">
@@ -82,6 +85,11 @@ export default async function StudentPage({ params }: PageProps<"/teach/[classId
           <ScoreTable scores={s.scores} showSections={sections} actions={s.canEdit ? (id, verified) => <ScoreRowActions scoreId={id} verified={verified} canDelete verify={{ classId, studentId }} /> : undefined} />
         )}
         {s.access.subjects && <p className="mt-3 text-xs text-muted">You see the total and the sections you cover.</p>}
+      </Card>
+      <Card>
+        <h2 className="mb-1 text-lg font-semibold">Weak spots</h2>
+        <p className="mb-4 text-sm text-muted">Weakest content areas first{s.access.subjects ? " (in your subjects)" : ""}, from College Board score reports and question reviews and practice here.</p>
+        <WeakSpots data={weak} />
       </Card>
       <Card>
         <h2 className="mb-3 text-lg font-semibold">Open mistakes</h2>

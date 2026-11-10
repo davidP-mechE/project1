@@ -66,6 +66,8 @@ The final review of Coursebook and The 1600 Project's setup on it, most serious 
     - "Ask about your class" questions aren't saved.
     - The worker's Dockerfile doesn't install `pg_dump`, so nightly backups need it on the host (deployment was out of scope).
 
+15a. **College Board imports read columns by name.** College Board's export layouts change from year to year, so the class import matches headers by name (Email, Test, Test date, Total score, section scores, and the eight content-area names). It lists any column it ignores. Check the first real export with *Check* before *Add*. Knowledge and Skills bands are entered as 1–7 (the boxes on the report). The question-review paste reads tables copied from My Practice or Bluebook. If College Board changes that table, some rows may be skipped, and the form says which and why.
+
 ## Low
 
 15. **Students see the Teaching section in the sidebar.** That's how anyone starts teaching a class, but it can confuse students. Consider hiding it until someone creates or joins a class as staff.

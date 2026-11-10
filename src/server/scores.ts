@@ -7,6 +7,7 @@ import { audit } from "./programs";
 import { addMistakes } from "./mistakes";
 import { domainById } from "@/lib/sat/domains";
 import { checkTakenOn, programStats, projectScore, ScoreInputSchema, stalling, type Missed, type ScoreInput } from "@/lib/sat/scores";
+import { missedFrom, type ReviewQuestion } from "@/lib/sat/cb-import";
 
 /**
  * Score tracking: a required baseline, official and practice scores (totals,
@@ -42,7 +43,16 @@ function parseInput(raw: unknown, now: Date): ScoreInput {
   if (!parsed.success) throw new ClassError(parsed.error.issues[0]?.message.startsWith("Unrecognized") ? "Only scores and missed question numbers can be entered, not question content." : (parsed.error.issues[0]?.message ?? "Please check the scores."));
   const bad = checkTakenOn(parsed.data.takenOn, now);
   if (bad) throw new ClassError(bad);
-  return parsed.data;
+  // A College Board question review also lists the misses: add them (once each).
+  const missed = [...(parsed.data.missed ?? [])];
+  const have = new Set(missed.map((m) => `${m.section}${m.module}-${m.number}`));
+  for (const m of missedFrom((parsed.data.review ?? []) as ReviewQuestion[])) if (!have.has(`${m.section}${m.module}-${m.number}`)) missed.push(m);
+  return { ...parsed.data, missed };
+}
+
+/** Sections a score's details touch: misses, review questions and domain bands. */
+function sectionsIn(input: ScoreInput) {
+  return new Set([...(input.missed ?? []).map((m) => m.section), ...(input.review ?? []).map((q) => q.section), ...Object.keys(input.domainBands ?? {}).map((d) => domainById(d)!.section)]);
 }
 
 /** Which section scores a person may see for a student: both, or only the ones in their subjects. */
@@ -70,7 +80,7 @@ function shape(r: { id: string; source: string; takenOn: Date; testName: string 
 }
 
 /** Staff access to one student in a class: "not found" unless the student is in their scope. */
-async function staffForStudent(actorId: string, classId: string, studentId: string, ability: "view" | "teach" = "view") {
+export async function staffForStudent(actorId: string, classId: string, studentId: string, ability: "view" | "teach" = "view") {
   const access = await classAccess(actorId, classId, ability);
   const ok = await db.classMember.count({ where: { ...memberWhere(access), userId: studentId } });
   if (!ok) throw new NotFoundError("Student not found");
@@ -130,16 +140,16 @@ export async function addScore(actorId: string, studentId: string, raw: unknown,
     const access = await staffForStudent(actorId, opts.classId, studentId, "teach");
     verifiedById = actorId;
     programId = access.programId;
-    // A subject-limited specialist can only record misses in their subjects.
+    // A subject-limited specialist can only record details in their subjects.
     const visible = visibleSections(access);
-    if ((input.missed ?? []).some((m) => !visible[m.section])) throw new ClassError("You can only record missed questions in your subjects.", 403);
+    if ([...sectionsIn(input)].some((sec) => !visible[sec as "MATH" | "RW"])) throw new ClassError("You can only record College Board details in your subjects.", 403);
   }
   const hasAny = await db.scoreRecord.count({ where: { studentId } });
   const isBaseline = input.isBaseline ?? hasAny === 0;
   const row = await db.$transaction(async (tx) => {
     if (isBaseline) await tx.scoreRecord.updateMany({ where: { studentId, isBaseline: true }, data: { isBaseline: false } });
     const created = await tx.scoreRecord.create({
-      data: { studentId, source: input.source, takenOn: input.takenOn, testName: input.testName || null, total: input.total, rw: input.rw ?? null, math: input.math ?? null, isBaseline, missed: (input.missed ?? []) as Prisma.InputJsonValue, enteredById: actorId, verifiedById, verifiedAt: verifiedById ? now : null },
+      data: { studentId, source: input.source, takenOn: input.takenOn, testName: input.testName || null, total: input.total, rw: input.rw ?? null, math: input.math ?? null, isBaseline, missed: (input.missed ?? []) as Prisma.InputJsonValue, domainBands: (input.domainBands ?? {}) as Prisma.InputJsonValue, review: (input.review ?? []) as Prisma.InputJsonValue, enteredById: actorId, verifiedById, verifiedAt: verifiedById ? now : null },
     });
     await tx.studentProfile.upsert({ where: { userId: studentId }, create: { userId: studentId, baselinePending: false }, update: { baselinePending: false } });
     if (programId) await audit(tx, { programId, actorId, action: "score.add", targetType: "score", targetId: created.id, summary: `Entered a ${input.source.toLowerCase().replace("_", " ")} score for a student` });
@@ -177,11 +187,23 @@ async function editable(actorId: string, scoreId: string, classId?: string) {
 export async function updateScore(actorId: string, scoreId: string, raw: unknown, opts: { classId?: string } = {}, now = new Date()) {
   const { s, access } = await editable(actorId, scoreId, opts.classId);
   const input = parseInput(raw, now);
+  if (access && [...sectionsIn(input)].some((sec) => !visibleSections(access)[sec as "MATH" | "RW"])) throw new ClassError("You can only record College Board details in your subjects.", 403);
+  // A subject-limited editor doesn't see the other section's details, so keep them as they were.
+  if (access) {
+    const vis = visibleSections(access);
+    const hidden = (sec: string) => !vis[sec as "MATH" | "RW"];
+    input.missed = [...(Array.isArray(s.missed) ? (s.missed as Missed[]) : []).filter((m) => hidden(m.section)), ...(input.missed ?? [])];
+    if (input.review) input.review = [...(Array.isArray(s.review) ? (s.review as ReviewQuestion[]) : []).filter((q) => hidden(q.section)), ...input.review];
+    if (input.domainBands) {
+      const old = (s.domainBands ?? {}) as Record<string, number>;
+      input.domainBands = { ...Object.fromEntries(Object.entries(old).filter(([d]) => hidden(domainById(d)?.section ?? ""))), ...input.domainBands };
+    }
+  }
   await db.$transaction(async (tx) => {
     if (input.isBaseline) await tx.scoreRecord.updateMany({ where: { studentId: s.studentId, isBaseline: true, id: { not: s.id } }, data: { isBaseline: false } });
     await tx.scoreRecord.update({
       where: { id: s.id },
-      data: { source: input.source, takenOn: input.takenOn, testName: input.testName || null, total: input.total, rw: input.rw ?? null, math: input.math ?? null, isBaseline: input.isBaseline ?? s.isBaseline, missed: (input.missed ?? []) as Prisma.InputJsonValue },
+      data: { source: input.source, takenOn: input.takenOn, testName: input.testName || null, total: input.total, rw: input.rw ?? null, math: input.math ?? null, isBaseline: input.isBaseline ?? s.isBaseline, missed: (input.missed ?? []) as Prisma.InputJsonValue, ...(input.domainBands ? { domainBands: input.domainBands as Prisma.InputJsonValue } : {}), ...(input.review ? { review: input.review as Prisma.InputJsonValue } : {}) },
     });
     if (access) await audit(tx, { programId: access.programId, actorId, action: "score.edit", targetType: "score", targetId: s.id, summary: "Edited a student's score", before: { total: s.total, rw: s.rw, math: s.math }, after: { total: input.total, rw: input.rw ?? null, math: input.math ?? null } });
   });

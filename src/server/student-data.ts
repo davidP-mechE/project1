@@ -17,7 +17,7 @@ export async function studentRecords(studentId: string, opts: { classIds?: strin
   const [user, profile, scores, answers, external, diagnostics, attendance, mistakes, guardians, memberships] = await Promise.all([
     db.user.findUniqueOrThrow({ where: { id: studentId }, select: { name: true, email: true, createdAt: true, timezone: true } }),
     db.studentProfile.findUnique({ where: { userId: studentId }, select: { targetScore: true, testDate: true } }),
-    db.scoreRecord.findMany({ where: { studentId }, orderBy: { takenOn: "asc" }, select: { source: true, takenOn: true, testName: true, total: true, rw: true, math: true, isBaseline: true, missed: true, verifiedAt: true } }),
+    db.scoreRecord.findMany({ where: { studentId }, orderBy: { takenOn: "asc" }, select: { source: true, takenOn: true, testName: true, total: true, rw: true, math: true, isBaseline: true, missed: true, domainBands: true, review: true, verifiedAt: true } }),
     db.assignmentAnswer.findMany({ where: { userId: studentId, assignment: classFilter }, orderBy: { createdAt: "asc" }, select: { createdAt: true, correct: true, score: true, verdict: true, gradedBy: true, assignment: { select: { title: true, class: { select: { name: true } } } }, item: { select: { label: true, domain: true, skill: true } } } }),
     db.externalResult.findMany({ where: { userId: studentId, assignment: classFilter }, select: { itemKey: true, result: true, reason: true, createdAt: true, assignment: { select: { title: true } } } }),
     db.diagnosticAttempt.findMany({ where: { userId: studentId, assignment: classFilter }, select: { attemptNo: true, startedAt: true, finishedAt: true, results: true, assignment: { select: { title: true } } } }),
