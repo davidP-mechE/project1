@@ -33,7 +33,8 @@ import { markLessonFailed, runFlashcardsJob, runLessonJob, runQuestionsJob } fro
 import { batchJobFailed, pollBatch, pollDelayMs, submitAssessmentBatch, submitLessonBatch } from "@/server/generation/batch";
 import { markAssessmentFailed, runAssessmentJob } from "@/server/generation/assessments";
 import { renderPagePng } from "@/server/processing/page-images";
-import { markWorksheetFailed, runWorksheetJob } from "@/server/worksheets";
+import { markWorksheetFailed } from "@/server/worksheets";
+import { runWorksheetJob } from "@/server/worksheet-job";
 import { OcrPool } from "@/server/processing/ocr";
 import { runProcessBookJob } from "@/server/processing/run-job";
 import { db } from "@/server/db";

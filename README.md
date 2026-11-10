@@ -432,6 +432,28 @@ Output tokens (the lesson text plus Claude's thinking) are most of the cost. If 
 
 While studying: multiple choice and exact matches are free; a written answer graded by Claude ≈ $0.01–0.02 (Claude Opus 5.5 at low effort, ~2–4K tokens in); a tutor question ≈ $0.02–0.05 (up to ~6K tokens of book passages plus the conversation). Embeddings are free (computed locally).
 
+## Classes and worksheets (teachers)
+
+Anyone can teach: **Teaching → My classes** in the sidebar.
+
+- **Classes and students** (`src/server/classes.ts`): a class has a 7-character join code (no 0/O or 1/I). Students enter it under **Classes**, or open the invite link (`/join/CODE`); new students sign up and land back on the link. Teachers can also invite by email (each gets the link), copy the code or link, make a new code, remove students, rename or archive the class. Joining with a code is rate-limited, so codes can't be guessed.
+- **Assigning lessons**: one of your courses, or chosen lessons from it, with a due date and a note. Each student gets **their own copy** of the course the first time they start (like the Hub: their notes, answers and flashcards are theirs), made from a per-class snapshot of the course's files, so it keeps working if you change or delete the course. Class copies don't count against students' plans.
+- **Worksheets** (`src/server/worksheets.ts`, `src/lib/ai/worksheet.ts`): upload a PDF of questions (up to 20 pages). The worker shows Claude every page as an image plus its text, and Claude lists each question (keeping its number, choices, math as LaTeX, figures described) with its answer: from the worksheet's answer key when it has one, otherwise worked out and marked **"check it"**. Fix anything with **Edit**; your answer becomes the key. Then **Assign questions**: all of them, or pick by number ("1-10, 14") to split a worksheet into several assignments; send one to several classes at once; file it under a course (students see it on that course's page); add a due date and, optionally, a **time limit**.
+- **Students answering**: multiple choice is checked instantly, written answers by Claude against the answer key (Claude Opus, low effort; it counts against the student's AI allowance like other grading). Untimed sets show results right away and can be retried (the latest answer counts). Timed sets start a clock kept on the server; results show when the student hands in or time runs out, and late answers are refused.
+- **Reports**: **Progress** is every student × every assignment (score or lessons done, late/overdue marked, class averages). Each assignment shows every student's status and score and, for questions, how the class did on each question: % correct, how many chose each option (common wrong answers stand out), and each student's answer. **Skills** lists the class's weakest skills from worksheet answers and who's under 60% on each.
+- Students see their classes and assignments under **Classes**, and the next ones due on **Today**.
+
+Privacy: teachers see students' names, emails and their work on assigned items only, never their own courses, notes or other answers.
+
+## Manual test checklist (classes and worksheets)
+
+1. **My classes → Create class**. On its Students page, copy the invite link and open it in a private window: sign up as a student, and you land back on the link; join.
+2. **Worksheets**: upload a real worksheet PDF with an answer key (with a real Claude key). Check the questions match the PDF (numbering, choices, math), and that answers from the key are marked "Answer from the worksheet". Upload one without a key and check Claude's answers.
+3. Assign questions 1-5 to the class (untimed, due tomorrow) and 6-10 (timed, 5 minutes) as a second assignment.
+4. As the student: answer the first set (try a wrong answer, then again); start the timed one and let it run out: answers lock and results appear.
+5. **Assign lessons**: a few lessons from a course. As the student, **Start**: your own copy opens at the first lesson; finish one.
+6. As the teacher: **Progress** shows both students' scores and lessons; open an assignment to see each question's results; **Skills** shows the weakest skills.
+
 ## Manual test checklist (slide collages)
 
 1. **Slides → Upload slides**: choose 3 decks (mix PDF and .pptx). Reorder them with the arrows, name the course, upload. The outline has one unit per deck, in your order, with the cover and "Questions?" slides skipped.

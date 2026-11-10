@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { GoogleButton, OrDivider } from "./google-button";
 
-export function SignupForm({ googleEnabled }: { googleEnabled: boolean }) {
+export function SignupForm({ googleEnabled, next = "/library" }: { googleEnabled: boolean; next?: string }) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -29,7 +29,7 @@ export function SignupForm({ googleEnabled }: { googleEnabled: boolean }) {
       name: String(form.get("name")).trim(),
       email,
       password,
-      callbackURL: "/library", // where the verification link lands
+      callbackURL: next, // where the verification link lands (e.g. back to a class invite)
     });
     setBusy(false);
     if (error) {
@@ -47,7 +47,7 @@ export function SignupForm({ googleEnabled }: { googleEnabled: boolean }) {
     <>
       <h1 className="text-xl font-semibold">Create your account</h1>
       <p className="mt-1 text-sm text-muted">
-        Already have one? <Link href="/login" className="font-medium text-primary underline-offset-2 hover:underline">Log in</Link>
+        Already have one? <Link href={next === "/library" ? "/login" : `/login?next=${encodeURIComponent(next)}`} className="font-medium text-primary underline-offset-2 hover:underline">Log in</Link>
       </p>
       {googleEnabled && (
         <>

@@ -4,6 +4,8 @@ import Link from "next/link";
 import { CourseHeader } from "@/components/course/course-header";
 import { DecksCard } from "@/components/course/decks-card";
 import { getDecks } from "@/server/collage";
+import { assignmentsForCopy } from "@/server/classes";
+import { dueText } from "@/components/classes/format";
 import { GenerateButton } from "@/components/course/generate-button";
 import { GenerationProgress } from "@/components/course/generation-progress";
 import { ProcessingStatus } from "@/components/course/processing-status";
@@ -75,6 +77,8 @@ export default async function CoursePage({ params }: PageProps<"/courses/[course
         generating ? getStudyOutline(user.id, courseId) : null,
       ])
     : [null, null, null, 0, null];
+  // A copy from a class: the class's work filed under this course.
+  const classWork = course.classCourseId ? await assignmentsForCopy(user.id, courseId) : [];
   // Slide courses list their decks and can take more (not Hub copies, which share their files).
   const decks = book.kind === "SLIDES" && outline ? await getDecks(user.id, courseId) : null;
   const [unitScores, assessments] = study ? await Promise.all([getUnitScores(user.id, courseId), getCourseAssessments(user.id, courseId)]) : [[], []];
@@ -84,6 +88,22 @@ export default async function CoursePage({ params }: PageProps<"/courses/[course
   return (
     <div className="mx-auto max-w-3xl">
       <CourseHeader course={course} />
+
+      {classWork.length > 0 && (
+        <Card className="mb-6">
+          <h2 className="mb-3 text-lg font-semibold">Class assignments</h2>
+          <ul className="flex flex-col divide-y divide-border text-sm">
+            {classWork.map((a) => (
+              <li key={a.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
+                <Link href={a.kind === "QUESTIONS" ? `/classes/assignments/${a.id}` : "/classes"} className="font-medium hover:underline">
+                  {a.title}
+                </Link>
+                <span className="text-xs text-muted">{dueText(a.dueAt)}</span>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      )}
 
       {course.status === "UPLOADING" && (
         <Alert tone="warning" className="mb-6">

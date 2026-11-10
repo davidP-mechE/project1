@@ -9,7 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { GoogleButton, OrDivider } from "./google-button";
 
-export function LoginForm({ googleEnabled, notice }: { googleEnabled: boolean; notice?: string }) {
+/** `next`: where to go after logging in (a path on this site, e.g. a class invite link). */
+export function LoginForm({ googleEnabled, notice, next = "/library" }: { googleEnabled: boolean; notice?: string; next?: string }) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(notice ?? null);
@@ -24,7 +25,7 @@ export function LoginForm({ googleEnabled, notice }: { googleEnabled: boolean; n
     const { error } = await authClient.signIn.email({
       email: String(form.get("email")),
       password: String(form.get("password")),
-      callbackURL: "/library",
+      callbackURL: next,
     });
     setBusy(false);
     if (error) {
@@ -37,7 +38,7 @@ export function LoginForm({ googleEnabled, notice }: { googleEnabled: boolean; n
       }
       return;
     }
-    router.push("/library");
+    router.push(next);
     router.refresh();
   }
 
@@ -45,7 +46,7 @@ export function LoginForm({ googleEnabled, notice }: { googleEnabled: boolean; n
     <>
       <h1 className="text-xl font-semibold">Log in</h1>
       <p className="mt-1 text-sm text-muted">
-        New here? <Link href="/signup" className="font-medium text-primary underline-offset-2 hover:underline">Create an account</Link>
+        New here? <Link href={next === "/library" ? "/signup" : `/signup?next=${encodeURIComponent(next)}`} className="font-medium text-primary underline-offset-2 hover:underline">Create an account</Link>
       </p>
       {googleEnabled && (
         <>

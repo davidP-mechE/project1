@@ -9,6 +9,8 @@ import { cn } from "@/lib/utils";
 import { getDashboard } from "@/server/dashboard";
 import { getGameSummary } from "@/server/gamification";
 import { requireUser } from "@/server/session";
+import { dueAssignments } from "@/server/classes";
+import { dueText } from "@/components/classes/format";
 
 export const metadata: Metadata = { title: "Today" };
 
@@ -58,7 +60,7 @@ function nextStep(d: Dashboard) {
 
 export default async function DashboardPage() {
   const user = await requireUser();
-  const [d, game] = await Promise.all([getDashboard(user.id), getGameSummary(user.id)]);
+  const [d, game, due] = await Promise.all([getDashboard(user.id), getGameSummary(user.id), dueAssignments(user.id)]);
   const first = d.name.split(" ")[0];
   const goalMet = d.goal.minutes >= d.goal.target;
   const cards = d.review.due + d.review.new;
@@ -238,6 +240,29 @@ export default async function DashboardPage() {
 
         {/* ── Side column ── */}
         <div className="flex flex-col gap-6">
+          {due.length > 0 && (
+            <Card className="stagger flex flex-col gap-3 p-5">
+              <div className="flex items-baseline justify-between gap-2">
+                <h2 className="text-xl font-semibold">Assigned to you</h2>
+                <Link href="/classes" className="text-sm text-muted hover:text-text hover:underline">
+                  All classes
+                </Link>
+              </div>
+              <ul className="flex flex-col gap-2">
+                {due.map((a) => (
+                  <li key={a.id}>
+                    <Link href={a.kind === "QUESTIONS" ? `/classes/assignments/${a.id}` : "/classes"} className="flex items-center justify-between gap-3 rounded-lg px-2 py-1.5 hover:bg-surface-2">
+                      <span className="min-w-0">
+                        <span className="block truncate text-sm font-semibold">{a.title}</span>
+                        <span className="block truncate text-xs text-muted">{a.className}</span>
+                      </span>
+                      <span className={cn("shrink-0 text-xs", a.dueAt && a.dueAt < new Date() ? "font-semibold text-danger" : "text-muted")}>{dueText(a.dueAt)}</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </Card>
+          )}
           <Card className="stagger flex flex-col gap-4 p-5">
             <div className="flex items-baseline justify-between">
               <h2 className="text-xl font-semibold">Daily quests</h2>

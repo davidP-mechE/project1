@@ -48,6 +48,25 @@ const ICONS: Record<string, ReactNode> = {
     </>
   ),
   admin: <path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z" />,
+  classes: (
+    <>
+      <path d="M3 8.5 12 4l9 4.5-9 4.5z" />
+      <path d="M7 10.5V15c0 1.4 2.2 2.5 5 2.5s5-1.1 5-2.5v-4.5" />
+      <path d="M21 8.5V14" />
+    </>
+  ),
+  teach: (
+    <>
+      <rect x="3" y="4" width="18" height="12" rx="1.5" />
+      <path d="M8 20h8M12 16v4M7 9h6M7 12h4" />
+    </>
+  ),
+  worksheet: (
+    <>
+      <path d="M6 3h9l4 4v14H6z" />
+      <path d="M15 3v4h4M9 11h7M9 15h7" />
+    </>
+  ),
   hub: (
     <>
       <circle cx="12" cy="12" r="9" />
@@ -109,6 +128,7 @@ function NavLinks({ isAdmin, dueCount, onNavigate }: { isAdmin: boolean; dueCoun
         { href: "/library", label: "Library", icon: "library" },
         { href: "/slides", label: "Slides", icon: "slides" },
         { href: "/hub", label: "Hub", icon: "hub" },
+        { href: "/classes", label: "Classes", icon: "classes" },
       ],
     },
     {
@@ -121,11 +141,21 @@ function NavLinks({ isAdmin, dueCount, onNavigate }: { isAdmin: boolean; dueCoun
       ],
     },
     {
+      label: "Teaching",
+      links: [
+        { href: "/teach", label: "My classes", icon: "teach" },
+        { href: "/teach/worksheets", label: "Worksheets", icon: "worksheet" },
+      ],
+    },
+    {
       label: "Account",
       links: [{ href: "/settings", label: "Settings", icon: "settings" }, ...(isAdmin ? [{ href: "/admin", label: "Admin", icon: "admin" as const }] : [])],
     },
   ];
-  const isActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
+  // The most specific link wins (e.g. /teach/worksheets, not /teach).
+  const matches = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
+  const activeHref = groups.flatMap((g) => g.links.map((l) => l.href)).filter(matches).sort((x, y) => y.length - x.length)[0];
+  const isActive = (href: string) => href === activeHref;
   return (
     <nav aria-label="Main" className="flex flex-col gap-4">
       {groups.map((g, i) => (

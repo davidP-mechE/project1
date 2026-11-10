@@ -5,7 +5,35 @@ import { Client } from "pg";
 import { writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { mkdirSync } from "node:fs";
+import { PDFDocument, StandardFonts } from "pdf-lib";
 import { LECTURE, makePptx } from "../helpers/slides";
+
+/** With E2E_SHOTS=<folder>, full-page screenshots of the new pages are saved there (light mode). */
+async function shot(page: Page, name: string) {
+  const dir = process.env.E2E_SHOTS;
+  if (!dir) return;
+  mkdirSync(dir, { recursive: true });
+  await page.evaluate(() => {
+    document.documentElement.classList.remove("dark");
+    document.documentElement.classList.add("light");
+    document.documentElement.style.colorScheme = "light";
+  });
+  await page.waitForTimeout(300);
+  await page.locator("main").screenshot({ path: path.join(dir, `${name}.png`) });
+}
+
+/** A small worksheet PDF: numbered questions, one with lettered choices. */
+async function worksheetPdf(): Promise<string> {
+  const doc = await PDFDocument.create();
+  const font = await doc.embedFont(StandardFonts.Helvetica);
+  const page = doc.addPage([612, 792]);
+  const lines = ["Week 3 practice: linear equations", "1. If 3x + 5 = 20, what is the value of x?", "A) 5", "B) 3", "C) 15", "D) 25", "2. Explain what a slope of 2 means for a line."];
+  lines.forEach((l, i) => page.drawText(l, { x: 60, y: 720 - i * 28, size: 13, font }));
+  const file = path.join(os.tmpdir(), `e2e-worksheet-${Date.now()}.pdf`);
+  writeFileSync(file, await doc.save());
+  return file;
+}
 
 /**
  * The journey that must never break: sign up → upload a textbook → it's read
@@ -341,11 +369,106 @@ test("the full student journey works, is accessible, and respects the CSP", asyn
   expect(page.url()).not.toBe(courseUrl);
   await expect(page.getByRole("heading", { name: "Credits" })).toBeVisible();
 
+  // ── Classes: a teacher assigns a worksheet and lessons; a student joins, answers; the teacher sees it ──
+  await page.goto("/teach");
+  await a11y(page, "teach (empty)");
+  await page.getByLabel("New class name").fill("SAT Math, Period 2");
+  await page.getByRole("button", { name: "Create class" }).click();
+  await page.waitForURL(/\/teach\/[^/]+\/students$/);
+  const classUrl = page.url().replace(/\/students$/, "");
+  const code = (await page.getByLabel(/^Class code /).textContent())!.trim();
+  await page.goto("/teach");
+  await shot(page, "my-classes");
+  await page.goto(`${classUrl}/students`);
+  await a11y(page, "class students");
+  await shot(page, "class-students");
+
+  await page.goto("/teach/worksheets");
+  await a11y(page, "worksheets");
+  await shot(page, "worksheets");
+  await page.getByLabel("Worksheet PDF").setInputFiles(await worksheetPdf());
+  await page.getByRole("checkbox", { name: /I wrote this worksheet/ }).check();
+  await page.getByRole("button", { name: "Upload and read questions" }).click();
+  await page.waitForURL(/\/teach\/worksheets\/[^/]+$/);
+  await expect(page.getByRole("heading", { name: "Assign questions" })).toBeVisible({ timeout: 60_000 });
+  await expect(page.getByText("2 questions from 1 page")).toBeVisible();
+  await a11y(page, "worksheet");
+  await shot(page, "worksheet-review");
+  await page.getByLabel("Assignment title").fill("Week 3 homework");
+  await page.getByRole("button", { name: "Assign 2 questions" }).click();
+  await expect(page.getByText(/Assigned to 1 class/)).toBeVisible();
+
+  await page.goto(`${classUrl}/assign`);
+  await page.getByRole("checkbox", { name: "The whole course" }).check();
+  await a11y(page, "assign lessons");
+  await shot(page, "assign-lessons");
+  await page.getByRole("button", { name: "Assign the course" }).click();
+  await page.waitForURL(new RegExp(`${classUrl.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`));
+
+  // A student signs up from the invite link and lands back on it.
+  const studentEmail = `e2e-student-${Date.now()}@example.com`;
+  const sctx = await context.browser()!.newContext();
+  const sp = await sctx.newPage();
+  watch(sp);
+  await sp.goto(`/join/${code}`);
+  await expect(sp.getByRole("heading", { name: "Join SAT Math, Period 2" })).toBeVisible();
+  await a11y(sp, "join (logged out)");
+  await shot(sp, "join-link");
+  await sp.getByRole("link", { name: "Create an account" }).click();
+  await sp.getByLabel("Name").fill("Sam Student");
+  await sp.getByLabel("Email").fill(studentEmail);
+  await sp.getByLabel("Password", { exact: true }).fill(password);
+  await sp.getByLabel("Confirm password").fill(password);
+  await Promise.all([sp.waitForResponse((r) => r.url().includes("/api/auth/sign-up")), sp.getByRole("button", { name: "Create account" }).click()]);
+  await sql(`UPDATE "user" SET "emailVerified" = true WHERE email = $1`, [studentEmail]);
+  await sp.goto(`/login?next=${encodeURIComponent(`/join/${code}`)}`);
+  await sp.getByLabel("Email").fill(studentEmail);
+  await sp.getByLabel("Password").fill(password);
+  await sp.getByRole("button", { name: "Log in" }).click();
+  await sp.waitForURL(new RegExp(`/join/${code}$`));
+  await sp.getByRole("button", { name: "Join SAT Math, Period 2" }).click();
+  await sp.waitForURL(/\/classes$/);
+  await expect(sp.getByRole("heading", { name: "SAT Math, Period 2" })).toBeVisible();
+  await a11y(sp, "classes (student)");
+  await shot(sp, "student-classes");
+
+  await sp.getByRole("link", { name: "Start" }).first().click();
+  await sp.waitForURL(/\/classes\/assignments\//);
+  await sp.getByText("5", { exact: true }).click(); // choice A) 5 (the demo answer key marks the first choice right)
+  await sp.getByRole("button", { name: "Check answer" }).first().click();
+  await expect(sp.getByText("Correct", { exact: true })).toBeVisible();
+  await sp.getByLabel("Your answer to question 2").fill("The line goes up 2 for every 1 to the right.");
+  await sp.getByRole("button", { name: "Check answer" }).click();
+  await expect(sp.getByText("2 of 2 answered")).toBeVisible();
+  await a11y(sp, "question set");
+  await shot(sp, "student-question-set");
+  await sp.goto("/dashboard");
+  await expect(sp.getByRole("heading", { name: "Assigned to you" })).toBeVisible(); // the course is still to do
+  await shot(sp, "dashboard-assigned");
+  await sp.goto("/classes");
+  await sp.getByRole("button", { name: "Start" }).click(); // the assigned course: makes the student's own copy
+  await sp.waitForURL(/\/courses\/[^/]+\/lessons\//, { timeout: 60_000 });
+  await sctx.close();
+
+  // The teacher sees it.
+  await page.goto(classUrl);
+  await expect(page.getByRole("rowheader", { name: "Sam Student" })).toBeVisible();
+  await expect(page.getByRole("cell", { name: /\d+%/ }).first()).toBeVisible();
+  await a11y(page, "class progress");
+  await shot(page, "class-progress");
+  await page.getByRole("link", { name: "Week 3 homework" }).click();
+  await expect(page.getByRole("heading", { name: "By question" })).toBeVisible();
+  await a11y(page, "assignment report");
+  await shot(page, "assignment-report");
+  await page.goto(`${classUrl}/skills`);
+  await a11y(page, "class skills");
+  await shot(page, "class-skills");
+
   // ── Phone width: no sideways scrolling on the main pages ──
   const phone = await context.browser()!.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, storageState: await context.storageState() });
   const p2 = await phone.newPage();
   watch(p2);
-  for (const url of ["/dashboard", courseUrl, `${courseUrl}/export`, `${courseUrl}/practice`, deckUrl, "/slides", "/skills", "/errors", "/mastery", "/hub", "/review", "/settings", "/admin", "/privacy"]) {
+  for (const url of ["/dashboard", courseUrl, `${courseUrl}/export`, `${courseUrl}/practice`, deckUrl, "/slides", "/skills", "/errors", "/mastery", "/hub", "/review", "/settings", "/admin", "/privacy", "/teach", classUrl, `${classUrl}/students`, "/teach/worksheets", "/classes"]) {
     await p2.goto(url);
     await p2.waitForLoadState("networkidle").catch(() => {});
     expect(await p2.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), `no sideways scroll on ${url}`).toBe(true);

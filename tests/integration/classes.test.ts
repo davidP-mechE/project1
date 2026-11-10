@@ -23,7 +23,7 @@ import {
   startLessons,
   startQuestions,
 } from "@/server/classes";
-import { runWorksheetJob } from "@/server/worksheets";
+import { runWorksheetJob } from "@/server/worksheet-job";
 import { DEFAULT_SETTINGS } from "@/lib/course/settings";
 import { createUser, resetDb } from "../helpers/db";
 import { FakeGrader, FakeWriter } from "../helpers/fake-claude";
