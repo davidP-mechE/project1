@@ -4,7 +4,7 @@ import { PageHeader } from "@/components/ui/misc";
 import { ProgramTag } from "@/components/brand/seal";
 import { db } from "@/server/db";
 
-export type ClassTab = "announcements" | "overview" | "students" | "assign" | "skills" | "groups" | "review" | "staff" | "scores" | "attendance" | "alerts" | "curriculum" | "assistant";
+export type ClassTab = "trends" | "announcements" | "overview" | "students" | "assign" | "skills" | "groups" | "review" | "staff" | "scores" | "attendance" | "alerts" | "curriculum" | "assistant";
 type Role = "ADMIN" | "TEACHER" | "SPECIALIST" | "VIEWER";
 
 export const ROLE_LABEL: Record<Role, string> = { ADMIN: "Program admin", TEACHER: "Teacher", SPECIALIST: "Specialist", VIEWER: "Viewer" };
@@ -23,6 +23,7 @@ export async function ClassNav({
     { id: "assign", label: "Assign", href: `/teach/${c.id}/assign`, show: role !== "VIEWER" },
     { id: "scores", label: "Scores", href: `/teach/${c.id}/scores`, show: true },
     { id: "skills", label: "Skills", href: `/teach/${c.id}/skills`, show: true },
+    { id: "trends", label: "Trends", href: `/teach/${c.id}/trends`, show: true },
     { id: "review", label: "Review AI grades", href: `/teach/${c.id}/review`, show: role !== "VIEWER" },
     { id: "curriculum", label: "Curriculum", href: `/teach/${c.id}/curriculum`, show: true },
     { id: "assistant", label: "Assistant", href: `/teach/${c.id}/assistant`, show: true },

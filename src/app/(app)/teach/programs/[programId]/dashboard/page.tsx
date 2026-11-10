@@ -3,6 +3,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Card, PageHeader } from "@/components/ui/misc";
 import { ProgramTag } from "@/components/brand/seal";
+import { BarList, TrendChart } from "@/components/charts/trend-chart";
+import { programTrends } from "@/server/trends";
 import { ScoreStats } from "@/components/scores/stats";
 import { NotFoundError } from "@/server/courses";
 import { programDashboard } from "@/server/scores";
@@ -17,9 +19,9 @@ export default async function ProgramDashboardPage({ params, searchParams }: Pag
   const sp = await searchParams;
   const classId = typeof sp.class === "string" ? sp.class : undefined;
   const teacherId = typeof sp.teacher === "string" ? sp.teacher : undefined;
-  let d;
+  let d, trends;
   try {
-    d = await programDashboard(user.id, programId, { classId, teacherId });
+    [d, trends] = await Promise.all([programDashboard(user.id, programId, { classId, teacherId }), programTrends(user.id, programId)]);
   } catch (err) {
     if (err instanceof NotFoundError) notFound();
     throw err;
@@ -100,6 +102,16 @@ export default async function ProgramDashboardPage({ params, searchParams }: Pag
             </li>
           ))}
         </ul>
+      </Card>
+      <Card>
+        <h2 className="text-lg font-semibold">Classes over time</h2>
+        <p className="mb-4 text-sm text-muted">Average total score by month, from every score added that month.</p>
+        <TrendChart title="Average score by class and month" months={trends.months} series={trends.classes} />
+      </Card>
+      <Card>
+        <h2 className="text-lg font-semibold">Teachers</h2>
+        <p className="mb-4 text-sm text-muted">Average gain (latest score minus baseline) of the students in each teacher&apos;s classes, alphabetical. In brackets: students with at least two scores.</p>
+        <BarList title="Average gain by teacher" bars={trends.teachers} unit=" pts" />
       </Card>
     </div>
   );
