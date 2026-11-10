@@ -16,6 +16,8 @@ import { studentPrograms } from "@/server/programs";
 import { studentAnnouncements } from "@/server/announcements";
 import { ProgramTag } from "@/components/brand/seal";
 import { formatInZone } from "@/lib/dates";
+import { awardBadges, myBadges } from "@/server/badges";
+import { BadgeList } from "@/components/badges";
 import { dueAssignments } from "@/server/classes";
 import { dueText } from "@/components/classes/format";
 
@@ -68,7 +70,8 @@ function nextStep(d: Dashboard) {
 export default async function DashboardPage() {
   const user = await requireUser();
   const tours = await toursToShow(user.id);
-  const [d, game, due, programs, news, zone] = await Promise.all([getDashboard(user.id), getGameSummary(user.id), dueAssignments(user.id), studentPrograms(user.id), studentAnnouncements(user.id), viewerZone()]);
+  await awardBadges(user.id).catch((err) => console.warn("[badges]", err instanceof Error ? err.message : err));
+  const [d, game, due, programs, news, zone, badges] = await Promise.all([getDashboard(user.id), getGameSummary(user.id), dueAssignments(user.id), studentPrograms(user.id), studentAnnouncements(user.id), viewerZone(), myBadges(user.id)]);
   const first = d.name.split(" ")[0];
   const goalMet = d.goal.minutes >= d.goal.target;
   const cards = d.review.due + d.review.new;
@@ -259,6 +262,14 @@ export default async function DashboardPage() {
 
         {/* ── Side column ── */}
         <div className="flex flex-col gap-6">
+          {badges.length > 0 && (
+            <section aria-labelledby="badges-title" className="flex flex-col gap-3">
+              <h2 id="badges-title" className="text-xl font-semibold">
+                Your badges
+              </h2>
+              <BadgeList badges={badges.slice(0, 6)} zone={zone} />
+            </section>
+          )}
           {news.length > 0 && (
             <section id="announcements" aria-labelledby="announcements-title" className="flex flex-col gap-3">
               <h2 id="announcements-title" className="text-xl font-semibold">

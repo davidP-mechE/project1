@@ -1,5 +1,6 @@
 import "server-only";
 import { refreshStaffNotices } from "./notifications";
+import { awardBadgesForActive } from "./badges";
 import { db } from "./db";
 import { env } from "./env";
 import { sendEmail } from "./email";
@@ -125,6 +126,7 @@ export async function writeWeeklySummaries(now = new Date(), opts: { force?: boo
 
 export async function runProgramJobs(now = new Date()) {
   const [digests, summaries, weekly] = await Promise.all([sendStaffDigests(now), sendGuardianSummaries(now), writeWeeklySummaries(now)]);
+  await awardBadgesForActive(now).catch((err) => recordError({ kind: "worker", message: `Badges failed: ${err instanceof Error ? err.message : String(err)}`, path: "worker:badges" }));
   await refreshStaffNotices(now).catch((err) => recordError({ kind: "worker", message: `Staff notices failed: ${err instanceof Error ? err.message : String(err)}`, path: "worker:notices" }));
   const backup = await runBackup(now).catch(async (err) => {
     await recordError({ kind: "worker", message: `Backup failed: ${err instanceof Error ? err.message : String(err)}`, path: "worker:backup" });

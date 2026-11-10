@@ -97,6 +97,7 @@ model User {
   messages           Message[]
   threadReads        ThreadRead[]
   announcements      Announcement[]
+  badges             Badge[]
 
   /// Set on every login, for the Staff page.
   lastLoginAt      DateTime?
@@ -1837,4 +1838,20 @@ model Notification {
 
   @@unique([userId, key])
   @@index([userId, readAt, updatedAt])
+}
+
+/// A badge a student earned. No leaderboards: badges are only ever shown to the
+/// student and to staff whose scope includes them.
+model Badge {
+  id       String   @id @default(cuid())
+  userId   String
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// STREAK_5, STREAK_10, STREAK_30, MISTAKES_CLEARED, DOMAIN_MASTERED, FIRST_DIAGNOSTIC, GAIN_100, GAIN_200, PERFECT_ATTENDANCE
+  kind     String
+  /// The domain or month, for kinds that can be earned more than once.
+  detail   String   @default("")
+  earnedAt DateTime @default(now())
+
+  @@unique([userId, kind, detail])
+  @@index([userId, earnedAt])
 }

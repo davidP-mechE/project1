@@ -7,7 +7,10 @@ import { ScoreChart, ScoreTable } from "@/components/scores/score-chart";
 import { ScoreForm, ScoreRowActions } from "@/components/scores/score-forms";
 import { NotFoundError } from "@/server/courses";
 import { studentScoresForStaff } from "@/server/scores";
-import { requireUser } from "@/server/session";
+import { requireUser, viewerZone } from "@/server/session";
+import { studentBadges } from "@/server/badges";
+import { BadgeList } from "@/components/badges";
+import { ScoreGauge } from "@/components/scores/score-gauge";
 import { db } from "@/server/db";
 import { planFor } from "@/server/pacing";
 import { openMistakesByDomain } from "@/server/mistakes";
@@ -30,7 +33,13 @@ export default async function StudentPage({ params }: PageProps<"/teach/[classId
     throw err;
   }
   // The student is in the caller's scope (checked above).
-  const [program, plan, mistakes] = await Promise.all([db.program.findUniqueOrThrow({ where: { id: s.access.programId }, select: { targets: true } }), planFor(studentId), openMistakesByDomain(studentId)]);
+  const [program, plan, mistakes, badges, zone] = await Promise.all([
+    db.program.findUniqueOrThrow({ where: { id: s.access.programId }, select: { targets: true } }),
+    planFor(studentId),
+    openMistakesByDomain(studentId),
+    studentBadges(user.id, classId, studentId),
+    viewerZone(),
+  ]);
   const sections = { rw: s.scores.some((x) => x.rw !== null) || !s.access.subjects, math: s.scores.some((x) => x.math !== null) || !s.access.subjects };
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-6">
@@ -44,6 +53,15 @@ export default async function StudentPage({ params }: PageProps<"/teach/[classId
         description={[s.baseline ? `Baseline ${s.baseline.total}` : s.baselinePending ? "Diagnostic pending" : "No baseline yet", s.latest ? `latest ${s.latest.total}` : null, s.target ? `goal ${s.target}` : null, s.testDate ? `SAT on ${s.testDate.toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" })}` : null].filter(Boolean).join(" · ")}
       />
       {s.stall.stalled && <Alert tone="warning">{s.stall.reason}.</Alert>}
+      <div className="grid gap-4 sm:grid-cols-[1fr_1fr]">
+        <Card>
+          <ScoreGauge score={s.latest?.total ?? null} baseline={s.baseline?.total} goal={s.target ?? program.targets.at(-1)} label="Latest score" />
+        </Card>
+        <Card>
+          <h2 className="mb-3 text-lg font-semibold">Badges</h2>
+          <BadgeList badges={badges} zone={zone} empty="None yet." />
+        </Card>
+      </div>
       {s.scores.length > 0 && (
         <Card>
           <h2 className="mb-3 text-lg font-semibold">Progress</h2>

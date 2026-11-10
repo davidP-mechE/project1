@@ -12,7 +12,13 @@ import { DOMAINS } from "@/lib/sat/domains";
 
 /** Accuracy per SAT domain over the last 90 days: assignments, diagnostics and College Board questions. */
 export async function domainAccuracy(studentId: string, now = new Date()) {
-  const since = new Date(now.getTime() - 90 * 86_400_000);
+  const tally = await domainTally(studentId, 90, now);
+  return Object.fromEntries(DOMAINS.map((d) => [d.id, tally.get(d.id) && tally.get(d.id)!.n >= 3 ? tally.get(d.id)!.sum / tally.get(d.id)!.n : null]));
+}
+
+/** Answers and points per SAT domain over the last `days` days. */
+export async function domainTally(studentId: string, days: number, now = new Date()) {
+  const since = new Date(now.getTime() - days * 86_400_000);
   const [assignment, diagnostic, external] = await Promise.all([
     db.assignmentAnswer.findMany({ where: { userId: studentId, createdAt: { gte: since }, item: { domain: { not: null } } }, select: { score: true, item: { select: { domain: true } } } }),
     db.diagnosticAnswer.findMany({ where: { attempt: { userId: studentId }, updatedAt: { gte: since } }, select: { correct: true, itemId: true } }),
@@ -34,7 +40,7 @@ export async function domainAccuracy(studentId: string, now = new Date()) {
     const items = Array.isArray(e.assignment.externalItems) ? (e.assignment.externalItems as { key: string; domain: string }[]) : [];
     add(items.find((i) => i.key === e.itemKey)?.domain, e.result === "CORRECT" ? 1 : 0);
   }
-  return Object.fromEntries(DOMAINS.map((d) => [d.id, tally.get(d.id) && tally.get(d.id)!.n >= 3 ? tally.get(d.id)!.sum / tally.get(d.id)!.n : null]));
+  return tally;
 }
 
 export async function planFor(studentId: string, now = new Date()) {
