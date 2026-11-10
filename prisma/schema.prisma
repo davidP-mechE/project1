@@ -76,9 +76,11 @@ model User {
   classStaff         ClassStaff[]        @relation("staffUser")
   groupMemberships   ClassGroupMember[]
 
-  scoreRecords    ScoreRecord[]    @relation("scores")
-  studentProfile  StudentProfile?
-  externalResults ExternalResult[]
+  scoreRecords       ScoreRecord[]       @relation("scores")
+  studentProfile     StudentProfile?
+  externalResults    ExternalResult[]
+  diagnosticAttempts DiagnosticAttempt[]
+  mistakes           MistakeItem[]
 
   /// Set on every login, for the Staff page.
   lastLoginAt      DateTime?
@@ -1006,21 +1008,24 @@ model CatalogEntry {
 
 /// A tutoring program (e.g. The 1600 Project): its classes, staff and settings.
 model Program {
-  id              String     @id @default(cuid())
+  id              String       @id @default(cuid())
   name            String
   adminId         String
-  admin           User       @relation("programAdmin", fields: [adminId], references: [id], onDelete: Cascade)
+  admin           User         @relation("programAdmin", fields: [adminId], references: [id], onDelete: Cascade)
   /// Subject template: only SAT for now.
-  subject         String     @default("SAT")
+  subject         String       @default("SAT")
   /// Score targets shown on dashboards (e.g. 1200, 1300).
-  targets         Int[]      @default([1200, 1300])
+  targets         Int[]        @default([1200, 1300])
   /// Days a staff invite link stays valid.
-  inviteDays      Int        @default(7)
+  inviteDays      Int          @default(7)
   /// Program-wide AI spending cap per day, in cents (null = no cap beyond each user's allowance).
   aiDailyCapCents Int?
   /// UTC day (YYYY-MM-DD) the admin was last emailed that the cap was reached, so it's once a day.
   aiCapAlertedOn  String?
-  createdAt       DateTime   @default(now())
+  /// Official SAT dates students can pick from (entered by the admin).
+  testDates       DateTime[]
+  diagnostics     Diagnostic[]
+  createdAt       DateTime     @default(now())
   classes         Class[]
   auditLogs       AuditLog[]
 
@@ -1182,36 +1187,44 @@ enum AssignmentKind {
   LESSONS // lessons from a course (or the whole course)
   QUESTIONS // questions from a worksheet the teacher uploaded
   EXTERNAL
+  DIAGNOSTIC
 }
 
 model Assignment {
-  id              String             @id @default(cuid())
-  classId         String
-  class           Class              @relation(fields: [classId], references: [id], onDelete: Cascade)
-  kind            AssignmentKind     @default(LESSONS)
+  id                 String              @id @default(cuid())
+  classId            String
+  class              Class               @relation(fields: [classId], references: [id], onDelete: Cascade)
+  kind               AssignmentKind      @default(LESSONS)
   /// The course it's for: LESSONS come from it; QUESTIONS are filed under it (optional).
-  classCourseId   String?
-  classCourse     ClassCourse?       @relation(fields: [classCourseId], references: [id], onDelete: SetNull)
-  title           String
-  note            String?
+  classCourseId      String?
+  classCourse        ClassCourse?        @relation(fields: [classCourseId], references: [id], onDelete: SetNull)
+  title              String
+  note               String?
   /// LESSONS: the teacher's lesson ids; empty means the whole course.
-  lessonIds       String[]
+  lessonIds          String[]
   /// QUESTIONS: the worksheet and which of its questions, in order.
-  worksheetId     String?
-  worksheet       Worksheet?         @relation(fields: [worksheetId], references: [id], onDelete: SetNull)
-  itemIds         String[]
+  worksheetId        String?
+  worksheet          Worksheet?          @relation(fields: [worksheetId], references: [id], onDelete: SetNull)
+  itemIds            String[]
   /// Optional time limit for a question set, like a timed practice section.
-  timeLimitMin    Int?
+  timeLimitMin       Int?
   /// Subject it covers (SAT: MATH or RW) and its domains; staff scopes filter on these. Null = untagged.
-  section         String?
-  domains         String[]
-  dueAt           DateTime?
-  createdAt       DateTime           @default(now())
-  answers         AssignmentAnswer[]
-  starts          AssignmentStart[]
+  section            String?
+  domains            String[]
+  dueAt              DateTime?
+  createdAt          DateTime            @default(now())
+  answers            AssignmentAnswer[]
+  starts             AssignmentStart[]
   /// EXTERNAL: College Board questions by link only: [{ key, questionId, url, section, domain }]. Never content.
-  externalItems   Json               @default("[]")
-  externalResults ExternalResult[]
+  externalItems      Json                @default("[]")
+  externalResults    ExternalResult[]
+  /// DIAGNOSTIC: which diagnostic, and when it can be taken.
+  diagnosticId       String?
+  diagnostic         Diagnostic?         @relation(fields: [diagnosticId], references: [id], onDelete: Restrict)
+  opensAt            DateTime?
+  closesAt           DateTime?
+  diagnosticAttempts DiagnosticAttempt[]
+  retakes            DiagnosticRetake[]
 
   @@index([classId, dueAt])
 }
@@ -1413,4 +1426,117 @@ model ExternalResult {
   createdAt    DateTime   @default(now())
 
   @@unique([assignmentId, userId, itemKey])
+}
+
+enum DiagnosticStatus {
+  DRAFT
+  PUBLISHED
+}
+
+/// An adaptive SAT-style diagnostic: per section, module 1 then a harder or easier module 2.
+model Diagnostic {
+  id          String             @id @default(cuid())
+  programId   String
+  program     Program            @relation(fields: [programId], references: [id], onDelete: Cascade)
+  createdById String
+  title       String
+  status      DiagnosticStatus   @default(DRAFT)
+  /// Highest estimated section score on each route, e.g. { "hardMax": 800, "easyMax": 640 }. An estimate, never official.
+  conversion  Json               @default("{\"hardMax\": 800, \"easyMax\": 640}")
+  createdAt   DateTime           @default(now())
+  modules     DiagnosticModule[]
+  assignments Assignment[]
+}
+
+/// One timed module. stage: M1, M2_HARD or M2_EASY. Questions are worksheet questions with confirmed tags.
+model DiagnosticModule {
+  id             String     @id @default(cuid())
+  diagnosticId   String
+  diagnostic     Diagnostic @relation(fields: [diagnosticId], references: [id], onDelete: Cascade)
+  section        String
+  stage          String
+  timeLimitSec   Int
+  itemIds        String[]
+  /// Module 1 correct answers needed for the harder module 2.
+  routeThreshold Int        @default(0)
+
+  @@unique([diagnosticId, section, stage])
+}
+
+/// One student's sitting of a diagnostic. The clock is kept here, on the server.
+model DiagnosticAttempt {
+  id              String             @id @default(cuid())
+  assignmentId    String
+  assignment      Assignment         @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  userId          String
+  user            User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  attemptNo       Int                @default(1)
+  /// The modules in the order taken (module ids), filled in as the route is chosen.
+  path            String[]
+  currentModuleId String?
+  moduleStartedAt DateTime?
+  startedAt       DateTime           @default(now())
+  finishedAt      DateTime?
+  /// { sections: [{ section, route, correct, total, estimate }], total } once finished.
+  results         Json?
+  answers         DiagnosticAnswer[]
+
+  @@unique([assignmentId, userId, attemptNo])
+}
+
+model DiagnosticAnswer {
+  id          String            @id @default(cuid())
+  attemptId   String
+  attempt     DiagnosticAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  moduleId    String
+  itemId      String
+  itemVersion Int               @default(1)
+  choice      Int?
+  response    String?
+  correct     Boolean
+  timeMs      Int               @default(0)
+  usedDesmos  Boolean           @default(false)
+  updatedAt   DateTime          @updatedAt
+
+  @@unique([attemptId, itemId])
+}
+
+/// A teacher allowed a student one more attempt.
+model DiagnosticRetake {
+  id           String     @id @default(cuid())
+  assignmentId String
+  assignment   Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  userId       String
+  grantedById  String
+  createdAt    DateTime   @default(now())
+
+  @@index([assignmentId, userId])
+}
+
+/// The mistake log: every wrong answer comes back on a schedule until it's right twice in a row.
+model MistakeItem {
+  id          String    @id @default(cuid())
+  studentId   String
+  student     User      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  /// ASSIGNMENT, DIAGNOSTIC, EXTERNAL (College Board link) or SCORE (a miss on an outside test).
+  sourceType  String
+  sourceId    String
+  /// The question to practise again (a worksheet question), if there is one.
+  itemId      String?
+  /// For College Board misses: the question to retry there.
+  externalUrl String?
+  externalId  String?
+  section     String?
+  domain      String?
+  skill       String?
+  reason      String?
+  label       String
+  due         DateTime
+  streak      Int       @default(0)
+  reviews     Int       @default(0)
+  retiredAt   DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@unique([studentId, sourceType, sourceId])
+  @@index([studentId, retiredAt, due])
 }

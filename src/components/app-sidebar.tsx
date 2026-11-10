@@ -143,6 +143,7 @@ function NavLinks({ isAdmin, dueCount, onNavigate }: { isAdmin: boolean; dueCoun
       links: [
         { href: "/skills", label: "Review", icon: "skills" },
         { href: "/review", label: "Spaced repetition", icon: "spaced", badge: dueCount },
+        { href: "/mistakes", label: "Mistake log", icon: "errors" },
         { href: "/errors", label: "Error log", icon: "errors" },
         { href: "/mastery", label: "Mastery", icon: "mastery" },
       ],
@@ -152,6 +153,7 @@ function NavLinks({ isAdmin, dueCount, onNavigate }: { isAdmin: boolean; dueCoun
       links: [
         { href: "/teach", label: "My classes", icon: "teach" },
         { href: "/teach/worksheets", label: "Worksheets", icon: "worksheet" },
+        { href: "/teach/diagnostics", label: "Diagnostics", icon: "scores" },
       ],
     },
     {

@@ -7,16 +7,19 @@
  * - 'wasm-unsafe-eval' lets the PDF viewer use its WebAssembly image decoders.
  * - Storage origins (S3/R2) are allowed for direct uploads and the PDF file.
  */
-export type CspOptions = { nonce: string; dev: boolean; https: boolean; storageOrigins: string[] };
+export type CspOptions = { nonce: string; dev: boolean; https: boolean; storageOrigins: string[]; desmos?: boolean };
 
-export function buildCsp({ nonce, dev, https, storageOrigins }: CspOptions): string {
-  const storage = storageOrigins.join(" ");
+/** The Desmos graphing calculator (only when a Desmos API key is set). Its script loads through our own code, which 'strict-dynamic' allows. */
+const DESMOS = "https://www.desmos.com";
+
+export function buildCsp({ nonce, dev, https, storageOrigins, desmos = false }: CspOptions): string {
+  const storage = [...storageOrigins, ...(desmos ? [DESMOS] : [])].join(" ");
   const directives: [string, string][] = [
     ["default-src", "'self'"],
     ["script-src", `'self' 'nonce-${nonce}' 'strict-dynamic' 'wasm-unsafe-eval'${dev ? " 'unsafe-eval'" : ""}`],
-    ["style-src", "'self' 'unsafe-inline'"],
+    ["style-src", `'self' 'unsafe-inline'${desmos ? ` ${DESMOS}` : ""}`],
     ["img-src", `'self' data: blob:${storage ? ` ${storage}` : ""}`],
-    ["font-src", "'self' data:"],
+    ["font-src", `'self' data:${desmos ? ` ${DESMOS}` : ""}`],
     ["connect-src", `'self'${storage ? ` ${storage}` : ""}`],
     ["worker-src", "'self' blob:"],
     ["frame-src", "'self'"],

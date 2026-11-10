@@ -6,6 +6,8 @@ import { ButtonLink } from "@/components/ui/button";
 import { ClassNav } from "@/components/classes/class-nav";
 import { AssignLessonsForm } from "@/components/classes/assign-lessons-form";
 import { ExternalAssignForm } from "@/components/classes/external-forms";
+import { AssignDiagnosticForm } from "@/components/sat/diagnostic-forms";
+import { db } from "@/server/db";
 import { NotFoundError } from "@/server/courses";
 import { assignableCourses, getClassForTeacher } from "@/server/classes";
 import { requireUser } from "@/server/session";
@@ -42,6 +44,11 @@ export default async function AssignPage({ params }: PageProps<"/teach/[classId]
           <AssignLessonsForm classId={c.id} courses={courses.map((x) => ({ id: x.id, title: x.title, units: x.units }))} />
         </Card>
       )}
+      <Card>
+        <h2 className="mb-1 text-lg font-semibold">Diagnostic</h2>
+        <p className="mb-4 text-sm text-muted">An adaptive, timed SAT-style diagnostic. Students get one attempt (you can allow retakes); the result becomes their baseline if they don&apos;t have one.</p>
+        <AssignDiagnosticForm classId={c.id} diagnostics={await db.diagnostic.findMany({ where: { programId: c.programId, status: "PUBLISHED" }, orderBy: { createdAt: "desc" }, select: { id: true, title: true } })} />
+      </Card>
       <Card>
         <h2 className="mb-1 text-lg font-semibold">College Board practice (by link)</h2>
         <p className="mb-4 text-sm text-muted">

@@ -6,6 +6,7 @@ import { db } from "./db";
 import { NotFoundError } from "./courses";
 import { classAccess, ClassError } from "./access";
 import { DOMAINS, isDomain, scopeCovers } from "@/lib/sat/domains";
+import { addMistakes } from "./mistakes";
 
 /**
  * Official College Board practice, by link only. A tutor attaches College
@@ -101,4 +102,8 @@ export async function recordExternal(userId: string, assignmentId: string, itemK
   if (!parsed.success) throw new ClassError("Choose correct, incorrect or skipped.");
   const data = { result: parsed.data.result, reason: parsed.data.result === "INCORRECT" ? (parsed.data.reason ?? null) : null, timeSec: parsed.data.timeSec ?? null };
   await db.externalResult.upsert({ where: { assignmentId_userId_itemKey: { assignmentId, userId, itemKey } }, create: { assignmentId, userId, itemKey, ...data }, update: { ...data, createdAt: new Date() } });
+  if (data.result === "INCORRECT") {
+    const item = externalItemsOf(a).find((i) => i.key === itemKey)!;
+    await addMistakes(userId, [{ sourceType: "EXTERNAL", sourceId: `${assignmentId}:${itemKey}`, externalUrl: item.url, externalId: item.questionId, section: item.section, domain: item.domain, reason: data.reason, label: `College Board question ${item.questionId}` }]);
+  }
 }

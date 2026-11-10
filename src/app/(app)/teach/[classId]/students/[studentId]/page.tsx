@@ -9,6 +9,9 @@ import { NotFoundError } from "@/server/courses";
 import { studentScoresForStaff } from "@/server/scores";
 import { requireUser } from "@/server/session";
 import { db } from "@/server/db";
+import { planFor } from "@/server/pacing";
+import { openMistakesByDomain } from "@/server/mistakes";
+import { PlanView } from "@/components/sat/plan-view";
 
 export const metadata: Metadata = { title: "Student" };
 
@@ -23,7 +26,8 @@ export default async function StudentPage({ params }: PageProps<"/teach/[classId
     if (err instanceof NotFoundError) notFound();
     throw err;
   }
-  const program = await db.program.findUniqueOrThrow({ where: { id: s.access.programId }, select: { targets: true } });
+  // The student is in the caller's scope (checked above).
+  const [program, plan, mistakes] = await Promise.all([db.program.findUniqueOrThrow({ where: { id: s.access.programId }, select: { targets: true } }), planFor(studentId), openMistakesByDomain(studentId)]);
   const sections = { rw: s.scores.some((x) => x.rw !== null) || !s.access.subjects, math: s.scores.some((x) => x.math !== null) || !s.access.subjects };
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-6">
@@ -52,6 +56,27 @@ export default async function StudentPage({ params }: PageProps<"/teach/[classId
         )}
         {s.access.subjects && <p className="mt-3 text-xs text-muted">You see the total and the sections you cover.</p>}
       </Card>
+      <Card>
+        <h2 className="mb-3 text-lg font-semibold">Open mistakes</h2>
+        {mistakes.length === 0 ? (
+          <p className="text-sm text-muted">None open.</p>
+        ) : (
+          <ul className="flex flex-col divide-y divide-border text-sm">
+            {mistakes.map((m) => (
+              <li key={m.domain ?? "none"} className="flex justify-between py-1.5">
+                <span>{m.name}</span>
+                <span className="tabular-nums text-muted">{m.open}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Card>
+      {plan && (
+        <Card>
+          <h2 className="mb-3 text-lg font-semibold">Plan to test day</h2>
+          <PlanView weeks={plan.weeks} testDate={plan.testDate} />
+        </Card>
+      )}
       {s.canEdit && (
         <Card>
           <h2 className="mb-4 text-lg font-semibold">Add a score for {s.student.name || "this student"}</h2>

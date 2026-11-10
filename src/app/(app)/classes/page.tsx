@@ -48,7 +48,7 @@ export default async function ClassesPage() {
                       <div className="min-w-0">
                         <p className="font-medium">{a.title}</p>
                         <p className="text-xs text-muted">
-                          {a.kind === "LESSONS" ? `${a.lessonIds.length || "All"} ${a.lessonIds.length === 1 ? "lesson" : "lessons"}` : a.kind === "EXTERNAL" ? `${a.cell.total} College Board ${a.cell.total === 1 ? "question" : "questions"}` : `${a.itemIds.length} ${a.itemIds.length === 1 ? "question" : "questions"}`}
+                          {a.kind === "LESSONS" ? `${a.lessonIds.length || "All"} ${a.lessonIds.length === 1 ? "lesson" : "lessons"}` : a.kind === "EXTERNAL" ? `${a.cell.total} College Board ${a.cell.total === 1 ? "question" : "questions"}` : a.kind === "DIAGNOSTIC" ? "Diagnostic (timed)" : `${a.itemIds.length} ${a.itemIds.length === 1 ? "question" : "questions"}`}
                           {a.timeLimitMin ? ` · timed, ${a.timeLimitMin} min` : ""}
                           {a.classCourse ? ` · ${a.classCourse.title}` : ""}
                         </p>

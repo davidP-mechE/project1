@@ -32,7 +32,7 @@ const VERDICT: Record<string, { label: string; tone: string }> = {
 };
 
 /** The clock for a timed set, ticking down to the server's end time. */
-function Countdown({ endsAt, onEnd }: { endsAt: string; onEnd: () => void }) {
+export function Countdown({ endsAt, onEnd }: { endsAt: string; onEnd: () => void }) {
   const [left, setLeft] = useState(() => new Date(endsAt).getTime() - Date.now());
   useEffect(() => {
     const t = setInterval(() => {

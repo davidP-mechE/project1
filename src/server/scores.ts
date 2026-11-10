@@ -4,6 +4,7 @@ import { db } from "./db";
 import { NotFoundError } from "./courses";
 import { assertStaffTwoFactor, can, classAccess, ClassError, memberWhere, type ClassAccess } from "./access";
 import { audit } from "./programs";
+import { addMistakes } from "./mistakes";
 import { domainById } from "@/lib/sat/domains";
 import { checkTakenOn, programStats, projectScore, ScoreInputSchema, stalling, type Missed, type ScoreInput } from "@/lib/sat/scores";
 
@@ -144,6 +145,13 @@ export async function addScore(actorId: string, studentId: string, raw: unknown,
     if (programId) await audit(tx, { programId, actorId, action: "score.add", targetType: "score", targetId: created.id, summary: `Entered a ${input.source.toLowerCase().replace("_", " ")} score for a student` });
     return created;
   });
+  // Missed questions on an outside test come back as practice on that skill.
+  const testName = input.testName || input.source.replace("PRACTICE_", "").replace("_", " ");
+  await addMistakes(
+    studentId,
+    (input.missed ?? []).map((m) => ({ sourceType: "SCORE" as const, sourceId: `${row.id}:${m.section}${m.module}-${m.number}`, section: m.section, domain: m.domain, skill: m.skill ?? null, reason: m.reason ?? null, label: `${testName}, ${m.section === "MATH" ? "Math" : "R&W"} module ${m.module} #${m.number}` })),
+    now,
+  );
   return row.id;
 }
 

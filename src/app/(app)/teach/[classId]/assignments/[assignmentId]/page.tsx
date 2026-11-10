@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { Markdown } from "@/components/lesson/markdown";
 import { Card, PageHeader, ProgressBar } from "@/components/ui/misc";
 import { DeleteAssignmentButton, DueDateForm } from "@/components/classes/teacher-forms";
@@ -30,6 +30,7 @@ export default async function AssignmentReportPage({ params }: PageProps<"/teach
   const a = r.assignment;
   if (a.classId !== classId) notFound();
   const names = new Map(r.students.map((s) => [s.student.id, s.student.name || s.student.email]));
+  if (a.kind === "DIAGNOSTIC") redirect(`/teach/${a.classId}/diagnostics/${a.id}`);
   const questions = a.kind === "QUESTIONS";
   return (
     <div className="mx-auto flex max-w-4xl flex-col gap-6">

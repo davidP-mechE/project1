@@ -337,11 +337,12 @@ export function ReviewGradeForm({ classId, answerId, score }: { classId: string;
 
 // ── Program ──
 
-export function ProgramSettingsForm({ program }: { program: { id: string; name: string; targets: number[]; inviteDays: number; aiDailyCapCents: number | null } }) {
+export function ProgramSettingsForm({ program }: { program: { id: string; name: string; targets: number[]; inviteDays: number; aiDailyCapCents: number | null; testDates: Date[] } }) {
   const router = useRouter();
   const [name, setName] = useState(program.name);
   const [targets, setTargets] = useState(program.targets.join(", "));
   const [days, setDays] = useState(String(program.inviteDays));
+  const [dates, setDates] = useState(program.testDates.map((d) => d.toISOString().slice(0, 10)).join("\n"));
   const [cap, setCap] = useState(program.aiDailyCapCents === null ? "" : (program.aiDailyCapCents / 100).toFixed(2));
   const [msg, setMsg] = useState<{ tone: "success" | "error"; text: string } | null>(null);
   const [pending, start] = useTransition();
@@ -356,6 +357,7 @@ export function ProgramSettingsForm({ program }: { program: { id: string; name: 
             targets: targets.split(/[\s,]+/).filter(Boolean).map(Number).filter(Number.isFinite),
             inviteDays: Number(days),
             aiDailyCapCents: cap.trim() === "" ? null : Math.round(Number(cap) * 100),
+            testDates: dates.split(/[\s,]+/).filter(Boolean),
           });
           setMsg(res.ok ? { tone: "success", text: "Saved." } : { tone: "error", text: res.error });
           router.refresh();
@@ -366,6 +368,11 @@ export function ProgramSettingsForm({ program }: { program: { id: string; name: 
       <Field label="Score targets" hint="e.g. 1200, 1300" value={targets} onChange={(e) => setTargets(e.target.value)} />
       <Field label="Staff invites last (days)" type="number" min={1} max={30} value={days} onChange={(e) => setDays(e.target.value)} />
       <Field label="Daily AI spending cap ($)" hint="Blank = no program cap (each person's own allowance still applies)." inputMode="decimal" value={cap} onChange={(e) => setCap(e.target.value)} />
+      <label className="flex flex-col gap-1.5 text-sm sm:col-span-2">
+        <span className="font-medium">Official SAT dates (one per line, like 2027-03-13)</span>
+        <textarea value={dates} onChange={(e) => setDates(e.target.value)} rows={3} className="rounded-lg border border-border bg-surface px-3 py-2 font-mono text-sm" />
+        <span className="text-xs text-muted">Students pick their test date from these (or enter their own); their plan counts back from it.</span>
+      </label>
       <div className="sm:col-span-2 flex flex-col gap-2">
         {msg && <Alert tone={msg.tone}>{msg.text}</Alert>}
         <div>

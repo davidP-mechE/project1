@@ -20,6 +20,7 @@ import { assignmentAccess, assignmentInScope, classAccess, ClassError, memberWhe
 import { scopeCovers, isSection, isDomain, workDomains } from "@/lib/sat/domains";
 import { ensureProgramFor } from "./programs";
 import { externalItemsOf } from "./external";
+import { addMistakes } from "./mistakes";
 import type { Prisma } from "@/generated/prisma/client";
 
 export { ClassError };
@@ -499,6 +500,11 @@ export async function answerQuestion(
     data: { assignmentId, itemId, userId, choice: g.choice, response: g.response, correct: g.result.correct, score: g.result.score, verdict: g.result.verdict, feedback: g.result.feedback, gradedBy: g.gradedBy, itemVersion: item.version },
   });
   await bumpActivity(userId, { questionsAnswered: 1, questionsCorrect: g.result.correct ? 1 : 0 });
+  // Wrong answers go into the mistake log (unchecked ones, with no grader, don't).
+  if (!g.result.correct && g.gradedBy !== "NONE") {
+    const tags = await db.worksheetItem.findUniqueOrThrow({ where: { id: itemId }, select: { label: true, section: true, domain: true, skill: true } });
+    await addMistakes(userId, [{ sourceType: "ASSIGNMENT", sourceId: `${assignmentId}:${itemId}`, itemId, section: tags.section, domain: tags.domain, skill: tags.skill, label: `${a.title}: question ${tags.label}` }], now);
+  }
   // In a timed set the result stays hidden until it's handed in.
   return a.timeLimitMin ? { saved: true as const } : { saved: true as const, ...g.result, gradedBy: g.gradedBy, answer: { correctChoice: item.correctChoice, answer: item.answer, explanation: item.explanation, steps: item.steps } };
 }
@@ -542,14 +548,15 @@ async function gradeItem(userId: string, item: ItemForGrading, input: { choice?:
 export type CellStatus = "not_started" | "in_progress" | "done";
 export type Cell = { status: CellStatus; done: number; total: number; score: number | null; late: boolean; lastActive: Date | null };
 
-type AssignmentRow = { id: string; kind: "LESSONS" | "QUESTIONS" | "EXTERNAL"; dueAt: Date | null; timeLimitMin: number | null; lessonIds: string[]; itemIds: string[]; classCourseId: string | null; externalItems?: Prisma.JsonValue };
+type AssignmentRow = { id: string; kind: "LESSONS" | "QUESTIONS" | "EXTERNAL" | "DIAGNOSTIC"; dueAt: Date | null; timeLimitMin: number | null; lessonIds: string[]; itemIds: string[]; classCourseId: string | null; externalItems?: Prisma.JsonValue };
 
 /** Every student's progress on every assignment of a class (students × assignments). */
 async function progressCells(classId: string, students: string[], assignments: AssignmentRow[], now: Date) {
   const cells = new Map<string, Cell>(); // `${studentId}:${assignmentId}`
   const classCourseIds = [...new Set(assignments.flatMap((a) => (a.kind === "LESSONS" && a.classCourseId ? [a.classCourseId] : [])))];
   const externalIds = assignments.filter((a) => a.kind === "EXTERNAL").map((a) => a.id);
-  const [copies, answers, starts, external] = await Promise.all([
+  const diagnosticIds = assignments.filter((a) => a.kind === "DIAGNOSTIC").map((a) => a.id);
+  const [copies, answers, starts, external, attempts] = await Promise.all([
     classCourseIds.length
       ? db.course.findMany({
           where: { userId: { in: students }, classCourseId: { in: classCourseIds } },
@@ -563,7 +570,9 @@ async function progressCells(classId: string, students: string[], assignments: A
     db.assignmentAnswer.findMany({ where: { assignment: { classId }, userId: { in: students } }, orderBy: { createdAt: "asc" }, select: { assignmentId: true, userId: true, itemId: true, score: true, createdAt: true } }),
     db.assignmentStart.findMany({ where: { assignment: { classId }, userId: { in: students } }, select: { assignmentId: true, userId: true, startedAt: true, submittedAt: true } }),
     externalIds.length ? db.externalResult.findMany({ where: { assignmentId: { in: externalIds }, userId: { in: students } }, select: { assignmentId: true, userId: true, itemKey: true, result: true, createdAt: true } }) : [],
+    diagnosticIds.length ? db.diagnosticAttempt.findMany({ where: { assignmentId: { in: diagnosticIds }, userId: { in: students } }, orderBy: { attemptNo: "asc" }, select: { assignmentId: true, userId: true, startedAt: true, finishedAt: true, results: true } }) : [],
   ]);
+  const attemptOf = new Map(attempts.map((x) => [`${x.userId}:${x.assignmentId}`, x])); // the latest attempt wins
   const externalOf = new Map<string, typeof external>();
   for (const r of external) externalOf.set(`${r.userId}:${r.assignmentId}`, [...(externalOf.get(`${r.userId}:${r.assignmentId}`) ?? []), r]);
   const copyOf = new Map(copies.map((c) => [`${c.userId}:${c.classCourseId}`, c]));
@@ -574,7 +583,20 @@ async function progressCells(classId: string, students: string[], assignments: A
   for (const studentId of students) {
     for (const a of assignments) {
       let cell: Cell;
-      if (a.kind === "EXTERNAL") {
+      if (a.kind === "DIAGNOSTIC") {
+        const at = attemptOf.get(`${studentId}:${a.id}`);
+        const res = at?.results as { sections?: { correct: number; total: number }[] } | null | undefined;
+        const right = res?.sections?.reduce((n, x) => n + x.correct, 0) ?? 0;
+        const total = res?.sections?.reduce((n, x) => n + x.total, 0) ?? 0;
+        cell = {
+          status: at?.finishedAt ? "done" : at ? "in_progress" : "not_started",
+          done: at?.finishedAt ? 1 : 0,
+          total: 1,
+          score: at?.finishedAt && total ? right / total : null,
+          late: Boolean(a.dueAt && (at?.finishedAt ? at.finishedAt > a.dueAt : now > a.dueAt)),
+          lastActive: at?.finishedAt ?? at?.startedAt ?? null,
+        };
+      } else if (a.kind === "EXTERNAL") {
         const keys = new Set(externalItemsOf({ externalItems: a.externalItems ?? [] }).map((i) => i.key));
         const got = (externalOf.get(`${studentId}:${a.id}`) ?? []).filter((r) => keys.has(r.itemKey));
         const last = got.reduce<Date | null>((m, r) => (!m || r.createdAt > m ? r.createdAt : m), null);

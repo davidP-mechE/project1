@@ -157,7 +157,7 @@ export function BaselinePendingButton() {
   );
 }
 
-export function GoalForm({ targetScore, testDate, targets }: { targetScore: number | null; testDate: string | null; targets: number[] }) {
+export function GoalForm({ targetScore, testDate, targets, officialDates = [] }: { targetScore: number | null; testDate: string | null; targets: number[]; officialDates?: string[] }) {
   const router = useRouter();
   const [target, setTarget] = useState(targetScore ? String(targetScore) : "");
   const [date, setDate] = useState(testDate ?? "");
@@ -186,6 +186,19 @@ export function GoalForm({ targetScore, testDate, targets }: { targetScore: numb
           ))}
         </select>
       </label>
+      {officialDates.length > 0 && (
+        <label className="flex flex-col gap-1.5 text-sm">
+          <span className="font-medium">Official SAT dates</span>
+          <select className={select} value={officialDates.includes(date) ? date : ""} onChange={(e) => e.target.value && setDate(e.target.value)}>
+            <option value="">Pick one…</option>
+            {officialDates.map((d) => (
+              <option key={d} value={d}>
+                {new Date(`${d}T12:00:00Z`).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric", timeZone: "UTC" })}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
       <Field label="My SAT date" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
       <Button type="submit" variant="secondary" disabled={pending}>
         Save

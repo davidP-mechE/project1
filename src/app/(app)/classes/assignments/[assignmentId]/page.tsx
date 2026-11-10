@@ -10,6 +10,9 @@ import { ClassError, getQuestionAssignment, startLessons } from "@/server/classe
 import { requireUser } from "@/server/session";
 import { getExternalAssignment } from "@/server/external";
 import { ExternalSet } from "@/components/classes/external-forms";
+import { diagnosticState } from "@/server/diagnostics";
+import { DiagnosticTaker, type DiagnosticView } from "@/components/sat/diagnostic-taker";
+import { env } from "@/server/env";
 
 export const metadata: Metadata = { title: "Assignment" };
 
@@ -17,6 +20,25 @@ export const metadata: Metadata = { title: "Assignment" };
 export default async function AssignmentPage({ params }: PageProps<"/classes/assignments/[assignmentId]">) {
   const user = await requireUser();
   const { assignmentId } = await params;
+  const diag = await diagnosticState(user.id, assignmentId).catch((err) => {
+    if (err instanceof NotFoundError) return null;
+    throw err;
+  });
+  if (diag) {
+    // Dates go to the client component as strings.
+    const view = JSON.parse(JSON.stringify(diag)) as DiagnosticView;
+    return (
+      <div className="mx-auto flex max-w-3xl flex-col gap-4">
+        <p className="text-sm">
+          <Link href="/classes" className="text-muted hover:text-text hover:underline">
+            ← {diag.className}
+          </Link>
+        </p>
+        <PageHeader title={diag.title} description={diag.closesAt ? `Closes ${dueText(diag.closesAt)}` : "Diagnostic"} />
+        <DiagnosticTaker view={view} desmosKey={env.DESMOS_API_KEY ?? null} />
+      </div>
+    );
+  }
   const ext = await getExternalAssignment(user.id, assignmentId).catch((err) => {
     if (err instanceof NotFoundError) return null;
     throw err;

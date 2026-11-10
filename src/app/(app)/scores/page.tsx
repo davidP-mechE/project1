@@ -6,17 +6,21 @@ import { BaselinePendingButton, GoalForm, ScoreForm, ScoreRowActions } from "@/c
 import { baselineStatus, myScores } from "@/server/scores";
 import { db } from "@/server/db";
 import { requireUser } from "@/server/session";
+import { planFor } from "@/server/pacing";
+import { PlanView } from "@/components/sat/plan-view";
 
 export const metadata: Metadata = { title: "SAT scores" };
 
 /** A student's SAT scores: baseline, history, estimated current range, goal and test date. */
 export default async function ScoresPage() {
   const user = await requireUser();
-  const [h, status, programs] = await Promise.all([
+  const [h, status, programs, plan] = await Promise.all([
     myScores(user.id),
     baselineStatus(user.id),
-    db.program.findMany({ where: { classes: { some: { members: { some: { userId: user.id } } } } }, select: { targets: true } }),
+    db.program.findMany({ where: { classes: { some: { members: { some: { userId: user.id } } } } }, select: { targets: true, testDates: true } }),
+    planFor(user.id),
   ]);
+  const officialDates = [...new Set(programs.flatMap((p) => p.testDates.map((d) => d.toISOString().slice(0, 10))))].filter((d) => d >= new Date().toISOString().slice(0, 10)).sort();
   const targets = [...new Set(programs.flatMap((p) => p.targets))].sort((a, b) => a - b);
   const goals = h.target ? [h.target] : targets;
   const gain = h.baseline && h.latest ? h.latest.total - h.baseline.total : null;
@@ -71,7 +75,11 @@ export default async function ScoresPage() {
       )}
       <Card>
         <h2 className="mb-4 text-lg font-semibold">Goal and test date</h2>
-        <GoalForm targetScore={h.target} testDate={h.testDate ? h.testDate.toISOString().slice(0, 10) : null} targets={targets} />
+        <GoalForm targetScore={h.target} testDate={h.testDate ? h.testDate.toISOString().slice(0, 10) : null} targets={targets} officialDates={officialDates} />
+      </Card>
+      <Card>
+        <h2 className="mb-3 text-lg font-semibold">Your plan to test day</h2>
+        {plan ? <PlanView weeks={plan.weeks} testDate={plan.testDate} /> : <p className="text-sm text-muted">Choose your SAT date above, and you&apos;ll get a week-by-week plan back from it.</p>}
       </Card>
     </div>
   );

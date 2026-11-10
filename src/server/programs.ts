@@ -95,7 +95,7 @@ export async function getProgram(userId: string, programId: string) {
   return { program: p, staff: staff.map((s) => s.user), log: log.map((l) => ({ ...l, actorName: l.actorId ? (actors.get(l.actorId) ?? "Deleted user") : "System" })) };
 }
 
-export async function updateProgram(userId: string, programId: string, patch: { name?: string; targets?: number[]; inviteDays?: number; aiDailyCapCents?: number | null }) {
+export async function updateProgram(userId: string, programId: string, patch: { name?: string; targets?: number[]; inviteDays?: number; aiDailyCapCents?: number | null; testDates?: string[] }) {
   const p = await adminProgram(userId, programId);
   const data: Prisma.ProgramUpdateInput = {};
   if (patch.name !== undefined) {
@@ -114,6 +114,13 @@ export async function updateProgram(userId: string, programId: string, patch: { 
   if (patch.aiDailyCapCents !== undefined) {
     if (patch.aiDailyCapCents !== null && (!Number.isInteger(patch.aiDailyCapCents) || patch.aiDailyCapCents < 0 || patch.aiDailyCapCents > 100_000)) throw new ClassError("The daily AI cap can be $0 to $1,000.");
     data.aiDailyCapCents = patch.aiDailyCapCents;
+  }
+  if (patch.testDates !== undefined) {
+    const dates = [...new Set(patch.testDates.map((d) => d.trim()).filter(Boolean))].slice(0, 20).map((d) => {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(d) || Number.isNaN(new Date(`${d}T12:00:00Z`).getTime())) throw new ClassError(`"${d}" isn't a date like 2027-03-13.`);
+      return new Date(`${d}T12:00:00Z`);
+    });
+    data.testDates = dates.sort((a, b) => a.getTime() - b.getTime());
   }
   await db.$transaction(async (tx) => {
     await tx.program.update({ where: { id: p.id }, data });
