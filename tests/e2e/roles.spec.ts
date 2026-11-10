@@ -307,6 +307,35 @@ test("each role's journey: admin sets up, student works, specialist grades withi
   await ap.goto(`${classUrl}/review`);
   await expect(ap.getByText(/Sol Student · Words set/)).toBeVisible();
 
+  // The admin's view of the student and the diagnostic, and the printable report.
+  const [{ id: studentId }] = await sql(`SELECT id FROM "user" WHERE email = $1`, [emails.student]);
+  await ap.goto(`${classUrl}/students/${studentId}`);
+  await expect(ap.getByRole("heading", { name: "Sol Student", level: 1 })).toBeVisible();
+  await expect(ap.getByRole("img", { name: /Latest score: \d+ of 1600/ })).toBeVisible();
+  await a11y(ap, "admin: student page");
+  await shot(ap, "admin-student");
+  const [{ id: diagAssignment }] = await sql(`SELECT a.id FROM "Assignment" a JOIN "Class" c ON c.id = a."classId" WHERE c."joinCode" = $1 AND a.kind = 'DIAGNOSTIC'`, [code]);
+  await ap.goto(`${classUrl}/diagnostics/${diagAssignment}`);
+  await expect(ap.getByRole("cell", { name: /Sol Student/ }).or(ap.getByRole("rowheader", { name: /Sol Student/ }))).toBeVisible();
+  await a11y(ap, "admin: diagnostic results");
+  await ap.goto(`/print/report/${classUrl.split("/").pop()}/${studentId}`);
+  await expect(ap.getByRole("heading", { name: "Sol Student", level: 1 })).toBeVisible();
+  await a11y(ap, "admin: printable report");
+  // The specialist can't print a report for a student outside their subjects' work… but Sol is in scope (Math), so it opens, Math only.
+  await mp.goto(`/print/report/${classUrl.split("/").pop()}/${studentId}`);
+  await expect(mp.getByText("Only the subjects you cover are shown.")).toBeVisible();
+  await expect(mp.getByText("Craft and Structure")).toHaveCount(0);
+
+  // Logged-out pages not covered elsewhere.
+  const anon = await browser.newContext();
+  const np = await anon.newPage();
+  watch(np);
+  await np.goto("/forgot-password");
+  await a11y(np, "forgot password");
+  await np.goto("/p/does-not-exist");
+  await expect(np.getByRole("heading", { name: /not found/i })).toBeVisible();
+  await anon.close();
+
   for (const c of [admin.ctx, math.ctx, student.ctx]) await c.close();
   await sql(`DELETE FROM "user" WHERE email = ANY($1)`, [Object.values(emails)]);
   expect(problems, `Problems found:\n${problems.join("\n")}`).toEqual([]);
