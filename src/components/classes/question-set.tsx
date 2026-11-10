@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { Markdown } from "@/components/lesson/markdown";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -61,6 +61,16 @@ function QuestionCard({ assignmentId, q, timed, locked, onSaved }: { assignmentI
   const [pending, setPending] = useState(false);
   const mcq = q.type === "MULTIPLE_CHOICE";
   const result = q.mine && q.mine.verdict ? q.mine : null;
+  // After checking an answer the button can disappear: move focus to the result
+  // so keyboard and screen-reader users land on the feedback, not the page top.
+  const resultRef = useRef<HTMLDivElement>(null);
+  const focusResult = useRef(false);
+  useEffect(() => {
+    if (focusResult.current && result) {
+      focusResult.current = false;
+      resultRef.current?.focus();
+    }
+  }, [result]);
 
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -76,6 +86,7 @@ function QuestionCard({ assignmentId, q, timed, locked, onSaved }: { assignmentI
       const data = await res.json().catch(() => ({}));
       if (!res.ok) return setError(data.error ?? "Your answer couldn't be saved. Try again.");
       const r = data.result as { correct?: boolean; score?: number; verdict?: string; feedback?: string; gradedBy?: string; answer?: Key };
+      if (r.verdict) focusResult.current = true;
       onSaved(q.id, { choice: mcq ? choice : null, response: mcq ? "" : text, ...(r.verdict ? { correct: r.correct, score: r.score, verdict: r.verdict, feedback: r.feedback, gradedBy: r.gradedBy } : {}) }, r.answer ?? null);
       if (r.correct) burst((e.target as HTMLElement).querySelector("button[type=submit]"), { count: 12, spread: 60 });
     } catch {
@@ -146,7 +157,7 @@ function QuestionCard({ assignmentId, q, timed, locked, onSaved }: { assignmentI
         )}
       </form>
       {result && (
-        <div role="status" className={cn("rounded-lg border p-3 text-sm", VERDICT[result.verdict!]?.tone)}>
+        <div ref={resultRef} tabIndex={-1} role="status" className={cn("rounded-lg border p-3 text-sm", VERDICT[result.verdict!]?.tone)}>
           <p className="font-semibold">{VERDICT[result.verdict!]?.label ?? result.verdict}</p>
           {result.feedback && <Markdown className="mt-1 text-text [&_p]:m-0">{result.feedback}</Markdown>}
         </div>

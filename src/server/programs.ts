@@ -76,7 +76,9 @@ async function adminProgram(userId: string, programId: string) {
 }
 
 /** The program page: settings, classes and staff (for the transfer list), and the audit log. Admin only. */
-export async function getProgram(userId: string, programId: string) {
+const LOG_PAGE = 50;
+
+export async function getProgram(userId: string, programId: string, opts: { logBefore?: string } = {}) {
   await adminProgram(userId, programId);
   const p = await db.program.findUniqueOrThrow({
     where: { id: programId },
@@ -90,9 +92,11 @@ export async function getProgram(userId: string, programId: string) {
     distinct: ["userId"],
     select: { user: { select: { id: true, name: true, email: true } } },
   });
-  const log = await db.auditLog.findMany({ where: { programId }, orderBy: { createdAt: "desc" }, take: 100 });
+  const rows = await db.auditLog.findMany({ where: { programId }, orderBy: [{ createdAt: "desc" }, { id: "desc" }], take: LOG_PAGE + 1, ...(opts.logBefore ? { cursor: { id: opts.logBefore }, skip: 1 } : {}) });
+  const log = rows.slice(0, LOG_PAGE);
+  const logOlder = rows.length > LOG_PAGE ? log.at(-1)!.id : null;
   const actors = new Map((await db.user.findMany({ where: { id: { in: [...new Set(log.flatMap((l) => (l.actorId ? [l.actorId] : [])))] } }, select: { id: true, name: true } })).map((u) => [u.id, u.name]));
-  return { program: p, staff: staff.map((s) => s.user), log: log.map((l) => ({ ...l, actorName: l.actorId ? (actors.get(l.actorId) ?? "Deleted user") : "System" })) };
+  return { program: p, staff: staff.map((s) => s.user), logOlder, log: log.map((l) => ({ ...l, actorName: l.actorId ? (actors.get(l.actorId) ?? "Deleted user") : "System" })) };
 }
 
 export type ProgramPatch = {

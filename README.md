@@ -591,6 +591,12 @@ Needs a real `ANTHROPIC_API_KEY`; each step costs a few cents.
 4. **Export** tab: download the Markdown, both CSVs (open them in a spreadsheet) and the Anki deck (File → Import in Anki: one subdeck per unit). **PDF study guide** opens the print dialog; Save as PDF and check math and page breaks.
 5. Phone width and dark mode on a test and its results.
 
+## Demo data and performance
+
+- `npm run seed:demo` makes a demo program ("Riverside SAT Program", public page `/p/demo`) with 30 invented students in two classes and a year of activity: scores, assignments and answers, attendance, mistake logs, sessions, a curriculum, announcements and messages. Every account is `@demo.example.com` with the password `coursebook-demo-2026`; running it again replaces them, and `npm run seed:demo -- --remove` deletes them. It refuses to run against production.
+- `DEMO_LOGINS=true` (with `STAFF_TWO_FACTOR=off`) shows one-click log-ins on `/login` for the demo admin, teacher, Math specialist and student. It's ignored when `APP_ENV=production`.
+- `npm run perf:check` times the heavy pages' server work (class scores, trends, reports, calendar, the program dashboard, Today) against the demo program, warm. Anything over 500 ms is marked SLOW.
+
 ## Manual test checklist (Phase 8)
 
 1. Generate a course (demo mode is fine) and open a lesson. Answer a question wrong twice. **Complete and continue**: you get a confetti burst.

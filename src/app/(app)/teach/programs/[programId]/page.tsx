@@ -17,13 +17,14 @@ export const metadata: Metadata = { title: "Program" };
 const when = (d: Date, zone: string) => `${formatInZone(d, zone, "medium")}, ${formatInZone(d, zone, "time")}`;
 
 /** The program admin's page: settings, handing over the admin role, and the audit log. */
-export default async function ProgramPage({ params }: PageProps<"/teach/programs/[programId]">) {
+export default async function ProgramPage({ params, searchParams }: PageProps<"/teach/programs/[programId]">) {
   const user = await requireUser();
   const zone = await viewerZone();
   const { programId } = await params;
   let data;
   try {
-    data = await getProgram(user.id, programId);
+    const { log: logBefore } = await searchParams;
+    data = await getProgram(user.id, programId, { logBefore: typeof logBefore === "string" ? logBefore : undefined });
   } catch (err) {
     if (err instanceof NotFoundError) notFound();
     if (err instanceof ClassError) {
@@ -85,7 +86,7 @@ export default async function ProgramPage({ params }: PageProps<"/teach/programs
         <TransferAdminForm programId={program.id} programName={program.name} staff={staff} />
       </Card>
       <Card>
-        <h2 className="mb-1 text-lg font-semibold">Audit log</h2>
+        <h2 id="audit" className="mb-1 scroll-mt-20 text-lg font-semibold">Audit log</h2>
         <p className="mb-4 text-sm text-muted">Every staff, role, scope, group and grade-override change. Entries can&apos;t be edited or deleted.</p>
         {log.length === 0 ? (
           <p className="text-sm text-muted">Nothing yet.</p>
@@ -102,6 +103,11 @@ export default async function ProgramPage({ params }: PageProps<"/teach/programs
               </li>
             ))}
           </ul>
+        )}
+        {data.logOlder && (
+          <Link href={`/teach/programs/${programId}?log=${data.logOlder}#audit`} className="mt-3 inline-block text-sm text-primary underline">
+            Older entries
+          </Link>
         )}
       </Card>
     </div>

@@ -11,9 +11,10 @@ export const metadata: Metadata = { title: "Worksheets" };
 const STATUS = { READING: "Reading…", READY: "Ready", FAILED: "Couldn't read", UPLOADING: "Uploading" } as const;
 
 /** The teacher's worksheets: upload a PDF, Claude lists its questions, then assign them. */
-export default async function WorksheetsPage() {
+export default async function WorksheetsPage({ searchParams }: PageProps<"/teach/worksheets">) {
   const user = await requireUser();
-  const worksheets = await listWorksheets(user.id);
+  const { before } = await searchParams;
+  const worksheets = await listWorksheets(user.id, { before: typeof before === "string" ? before : undefined });
   return (
     <div className="mx-auto flex max-w-4xl flex-col gap-6">
       <p className="text-sm">
@@ -47,6 +48,10 @@ export default async function WorksheetsPage() {
               </li>
             ))}
           </ul>
+          <div className="mt-3 flex justify-between text-sm">
+            {before ? <Link href="/teach/worksheets" className="text-primary underline">Newest</Link> : <span />}
+            {worksheets.older && <Link href={`/teach/worksheets?before=${worksheets.older}`} className="text-primary underline">Older worksheets</Link>}
+          </div>
         </Card>
       )}
     </div>

@@ -109,6 +109,8 @@ export function assertNotProductionDatabase(e: { APP_ENV?: string; DATABASE_URL?
 assertNotProductionDatabase({ APP_ENV: process.env.APP_ENV, DATABASE_URL: process.env.DATABASE_URL, PRODUCTION_DATABASE_URL: process.env.PRODUCTION_DATABASE_URL });
 export const isStaging = process.env.APP_ENV === "staging";
 
+/** One-click demo log-ins on /login (DEMO_LOGINS=true), for a demo or staging copy only: never when APP_ENV=production. */
+export const demoLoginsEnabled = process.env.DEMO_LOGINS === "true" && process.env.APP_ENV !== "production";
 export const googleAuthEnabled = Boolean(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET);
 
 // Demo mode is refused in production, except for the end-to-end tests, which

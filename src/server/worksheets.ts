@@ -68,12 +68,19 @@ export async function markWorksheetFailed(worksheetId: string, error: string) {
   return "failed" as const;
 }
 
-export async function listWorksheets(userId: string) {
-  return db.worksheet.findMany({
+const WORKSHEET_PAGE = 30;
+
+/** The person's worksheets, newest first, 30 a page (`before`: the last id shown). */
+export async function listWorksheets(userId: string, opts: { before?: string } = {}) {
+  const rows = await db.worksheet.findMany({
     where: { ownerId: userId, status: { not: "UPLOADING" } },
-    orderBy: { createdAt: "desc" },
+    orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+    take: WORKSHEET_PAGE + 1,
+    ...(opts.before ? { cursor: { id: opts.before }, skip: 1 } : {}),
     select: { id: true, title: true, status: true, error: true, pageCount: true, createdAt: true, hasAnswerKey: true, _count: { select: { items: true, assignments: true } } },
   });
+  const page = rows.slice(0, WORKSHEET_PAGE);
+  return Object.assign(page, { older: rows.length > WORKSHEET_PAGE ? page.at(-1)!.id : null });
 }
 
 /** A worksheet with its questions, for its owner. */

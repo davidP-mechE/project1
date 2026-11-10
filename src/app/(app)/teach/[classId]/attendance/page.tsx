@@ -16,20 +16,19 @@ const when = (d: Date, zone: string) => formatInZone(d, zone, "full");
 const pct = (x: number | null) => (x === null ? "–" : `${Math.round(x * 100)}%`);
 
 /** Sessions, taking attendance, and attendance next to score gains. */
-export default async function AttendancePage({ params }: PageProps<"/teach/[classId]/attendance">) {
+export default async function AttendancePage({ params, searchParams }: PageProps<"/teach/[classId]/attendance">) {
   const user = await requireUser();
   const zone = await viewerZone();
   const { classId } = await params;
+  const { before } = await searchParams;
   let c, s, gains;
   try {
-    [c, s, gains] = await Promise.all([getClassForTeacher(user.id, classId), listSessions(user.id, classId), attendanceVsGains(user.id, classId)]);
+    [c, s, gains] = await Promise.all([getClassForTeacher(user.id, classId), listSessions(user.id, classId, { before: typeof before === "string" ? before : undefined }), attendanceVsGains(user.id, classId)]);
   } catch (err) {
     if (err instanceof NotFoundError) notFound();
     throw err;
   }
-  const now = new Date();
-  const upcoming = s.sessions.filter((x) => x.endsAt >= now).reverse();
-  const past = s.sessions.filter((x) => x.endsAt < now);
+  const { upcoming, past } = s;
   const groupName = new Map(s.groups.map((g) => [g.id, g.name]));
   const visibleGroups = s.access.groupIds.length ? s.groups.filter((g) => s.access.groupIds.includes(g.id)) : s.groups;
   const row = (x: (typeof s.sessions)[number]) => (
@@ -55,11 +54,15 @@ export default async function AttendancePage({ params }: PageProps<"/teach/[clas
       )}
       <Card>
         <h2 className="mb-2 text-lg font-semibold">Upcoming</h2>
-        {upcoming.length ? <ul className="flex flex-col divide-y divide-border">{upcoming.slice(0, 10).map(row)}</ul> : <p className="text-sm text-muted">No sessions coming up.</p>}
+        {upcoming.length ? <ul className="flex flex-col divide-y divide-border">{upcoming.map(row)}</ul> : <p className="text-sm text-muted">No sessions coming up.</p>}
       </Card>
       <Card>
         <h2 className="mb-2 text-lg font-semibold">Past sessions</h2>
-        {past.length ? <ul className="flex flex-col divide-y divide-border">{past.slice(0, 30).map(row)}</ul> : <p className="text-sm text-muted">None yet.</p>}
+        {past.length ? <ul className="flex flex-col divide-y divide-border">{past.map(row)}</ul> : <p className="text-sm text-muted">None yet.</p>}
+        <div className="mt-3 flex justify-between text-sm">
+          {before ? <Link href={`/teach/${classId}/attendance`} className="text-primary underline">Newest</Link> : <span />}
+          {s.olderCursor && <Link href={`/teach/${classId}/attendance?before=${s.olderCursor}`} className="text-primary underline">Older sessions</Link>}
+        </div>
       </Card>
       {gains.length === 0 ? (
         <EmptyState title="No students yet">Attendance and score gains appear here once students join.</EmptyState>

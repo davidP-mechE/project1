@@ -93,6 +93,7 @@ export default async function ClassesPage() {
                         ) : (
                           <Link href={`/classes/assignments/${a.id}`} className={buttonClasses(a.cell.status === "done" ? "secondary" : "primary", "sm")}>
                             {a.cell.status === "done" ? "Review" : a.cell.status === "in_progress" ? "Continue" : "Start"}
+                            <span className="sr-only"> {a.title}</span>
                           </Link>
                         )}
                       </div>

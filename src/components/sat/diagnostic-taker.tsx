@@ -82,17 +82,20 @@ function ModuleView({ view, desmosKey }: { view: Extract<DiagnosticView, { phase
   const desmosUsed = useRef(new Set<string>());
   const answered = view.questions.filter((q) => saved[q.id]).length;
 
+  // The choice shows as picked straight away; if the server refuses it, it's put back.
   const save = async (q: Q, input: { choice?: number; response?: string }) => {
     const now = clock();
+    const before = saved[q.id];
+    setSaved((s) => ({ ...s, [q.id]: { choice: input.choice ?? null, response: input.response ?? null } }));
     const r = await answerDiagnosticAction(view.id, q.id, { ...input, timeMs: now - (last.current ?? now), usedDesmos: desmosUsed.current.has(q.id) });
     last.current = now;
     if (!r.ok) {
+      setSaved((s) => ({ ...s, [q.id]: before }));
       setError(r.error);
       router.refresh();
       return;
     }
     setError(null);
-    setSaved((s) => ({ ...s, [q.id]: { choice: input.choice ?? null, response: input.response ?? null } }));
   };
   const handIn = useCallback(() => {
     start(async () => {

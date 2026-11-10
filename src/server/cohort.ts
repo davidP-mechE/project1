@@ -23,11 +23,19 @@ function sessionWhere(a: ClassAccess) {
   return a.groupIds.length ? { classId: a.classId, OR: [{ groupId: null }, { groupId: { in: a.groupIds } }] } : { classId: a.classId };
 }
 
-export async function listSessions(userId: string, classId: string, opts: { take?: number } = {}) {
+const PAST_PAGE = 30;
+
+/** Upcoming sessions (the next 10) and past ones, newest first, 30 a page (`before`: the last id shown). */
+export async function listSessions(userId: string, classId: string, opts: { before?: string } = {}, now = new Date()) {
   const access = await classAccess(userId, classId);
-  const sessions = await db.classSession.findMany({ where: sessionWhere(access), orderBy: { startsAt: "desc" }, take: opts.take ?? 100, include: { _count: { select: { attendance: true } } } });
-  const groups = await db.classGroup.findMany({ where: { classId }, select: { id: true, name: true } });
-  return { access, sessions, groups, canMark: can(access, "grade") };
+  const include = { _count: { select: { attendance: true } } } as const;
+  const [upcoming, pastRows, groups] = await Promise.all([
+    db.classSession.findMany({ where: { ...sessionWhere(access), endsAt: { gte: now } }, orderBy: { startsAt: "asc" }, take: 10, include }),
+    db.classSession.findMany({ where: { ...sessionWhere(access), endsAt: { lt: now } }, orderBy: [{ startsAt: "desc" }, { id: "desc" }], take: PAST_PAGE + 1, ...(opts.before ? { cursor: { id: opts.before }, skip: 1 } : {}), include }),
+    db.classGroup.findMany({ where: { classId }, select: { id: true, name: true } }),
+  ]);
+  const past = pastRows.slice(0, PAST_PAGE);
+  return { access, upcoming, past, sessions: [...upcoming, ...past], olderCursor: pastRows.length > PAST_PAGE ? past.at(-1)!.id : null, groups, canMark: can(access, "grade") };
 }
 
 /** One session, or a weekly series of up to 20. */

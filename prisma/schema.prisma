@@ -1377,6 +1377,8 @@ model AssignmentAnswer {
 
   @@index([assignmentId, userId])
   @@index([itemId])
+  /// Domain accuracy, trends and badges read a student's answers by date.
+  @@index([userId, createdAt])
 }
 
 /// When a student started (and handed in) a question set; timed sets use it for the clock.
@@ -1483,6 +1485,7 @@ model ExternalResult {
   createdAt    DateTime   @default(now())
 
   @@unique([assignmentId, userId, itemKey])
+  @@index([userId, createdAt])
 }
 
 enum DiagnosticStatus {

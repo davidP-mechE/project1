@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { LoginForm } from "@/components/auth/login-form";
-import { googleAuthEnabled } from "@/server/env";
+import { demoLoginsEnabled, googleAuthEnabled } from "@/server/env";
 import { getSession } from "@/server/session";
 import { safeNext } from "@/lib/safe-next";
 
@@ -23,5 +23,5 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
       : typeof error === "string"
         ? "Sign-in with Google didn't work. Please try again or use email and password."
         : undefined;
-  return <LoginForm googleEnabled={googleAuthEnabled} notice={message} next={next} />;
+  return <LoginForm googleEnabled={googleAuthEnabled} notice={message} next={next} demo={demoLoginsEnabled} />;
 }

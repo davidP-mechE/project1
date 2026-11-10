@@ -83,6 +83,13 @@ export default async function AssignmentReportPage({ params }: PageProps<"/teach
               </tr>
             </thead>
             <tbody>
+              {r.students.length === 0 && (
+                <tr>
+                  <td colSpan={20} className="py-6 text-center text-sm text-muted">
+                    No students to show yet: nobody it&apos;s assigned to has joined, or they&apos;re outside your groups.
+                  </td>
+                </tr>
+              )}
               {r.students.map((s) => (
                 <tr key={s.student.id} className="border-b border-border last:border-0">
                   <th scope="row" className="py-2 pr-4 text-left font-medium">

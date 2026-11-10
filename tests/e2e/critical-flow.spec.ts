@@ -377,7 +377,9 @@ test("the full student journey works, is accessible, and respects the CSP", asyn
   expect(res?.headers()["x-content-type-options"]).toBe("nosniff");
 
   // ── Admin: hidden from students, available to admins ──
-  expect((await page.goto("/admin"))?.status()).toBe(404);
+  await page.goto("/admin");
+  await expect(page.getByRole("heading", { name: /not found/i })).toBeVisible(); // streamed behind a loading screen, so the content (not the status) is what's checked
+  await expect(page.getByText(/AI spending|Problem reports/)).toHaveCount(0);
   await sql(`UPDATE "user" SET role = 'ADMIN' WHERE email = $1`, [email]);
   await page.goto("/admin");
   await expect(page.getByRole("heading", { name: "Admin", level: 1 })).toBeVisible();
@@ -746,7 +748,7 @@ test("the full student journey works, is accessible, and respects the CSP", asyn
   const phone = await context.browser()!.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, storageState: await context.storageState() });
   const p2 = await phone.newPage();
   watch(p2);
-  for (const url of ["/dashboard", "/calendar", "/messages", "/notifications", `${classUrl}/trends`, `${classUrl}/announcements`, courseUrl, `${courseUrl}/export`, `${courseUrl}/practice`, deckUrl, "/slides", "/skills", "/errors", "/mastery", "/hub", "/review", "/settings", "/admin", "/privacy", "/teach", classUrl, `${classUrl}/students`, `${classUrl}/staff`, `${classUrl}/groups`, `${classUrl}/review`, `${classUrl}/scores`, `${classUrl}/attendance`, `${classUrl}/alerts`, `${classUrl}/curriculum`, `${classUrl}/assistant`, `${classUrl}/assign`, programUrl, `${programUrl}/dashboard`, "/teach/diagnostics", "/teach/review", "/teach/worksheets", "/classes"]) {
+  for (const url of ["/dashboard", "/calendar", "/calendar?view=agenda", "/messages", "/messages/new", "/notifications", "/library", "/scores", "/mistakes", "/help", "/p/1600", "/", `/print/class/${classUrl.split("/").pop()}`, `${classUrl}/trends`, `${classUrl}/announcements`, courseUrl, `${courseUrl}/export`, `${courseUrl}/practice`, deckUrl, "/slides", "/skills", "/errors", "/mastery", "/hub", "/review", "/settings", "/admin", "/privacy", "/teach", classUrl, `${classUrl}/students`, `${classUrl}/staff`, `${classUrl}/groups`, `${classUrl}/review`, `${classUrl}/scores`, `${classUrl}/attendance`, `${classUrl}/alerts`, `${classUrl}/curriculum`, `${classUrl}/assistant`, `${classUrl}/assign`, programUrl, `${programUrl}/dashboard`, "/teach/diagnostics", "/teach/review", "/teach/worksheets", "/classes"]) {
     await p2.goto(url);
     await p2.waitForLoadState("networkidle").catch(() => {});
     expect(await p2.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), `no sideways scroll on ${url}`).toBe(true);
