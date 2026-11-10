@@ -217,6 +217,7 @@ model Course {
   units      Unit[]
   lessons    Lesson[]
   jobs       Job[]
+  batches    GenerationBatch[]
   questions  Question[]
   flashcards Flashcard[]
 
@@ -801,6 +802,7 @@ model AssessmentAttempt {
 
 enum UsageFeature {
   LESSON
+  FLASHCARDS
   QUESTIONS
   ASSESSMENT
   PAGE_REPAIR
@@ -820,10 +822,38 @@ model UsageEvent {
   cacheReadTokens  Int          @default(0)
   cacheWriteTokens Int          @default(0)
   costMicroUsd     Int // millionths of a dollar
+  batch            Boolean      @default(false) // sent through the Message Batches API (half price)
   createdAt        DateTime     @default(now())
 
   @@index([userId, createdAt])
   @@index([courseId])
+}
+
+// ─── Claude Message Batches ──────────────────────────────────────────────
+// Whole-course generation is sent to Claude as one batch (half price, results
+// usually within an hour). One row per submitted batch; the worker polls it.
+
+enum GenerationBatchStatus {
+  SUBMITTED
+  PROCESSED
+  FAILED
+}
+
+model GenerationBatch {
+  id           String                @id // Claude's batch id (msgbatch_…)
+  courseId     String
+  userId       String
+  status       GenerationBatchStatus @default(SUBMITTED)
+  /// custom_id -> what the request was for ({ kind, lessonId | assessmentId, cacheKey? })
+  items        Json
+  /// custom_ids whose results have been saved (so a retried poll never saves twice)
+  processedIds String[]              @default([])
+  requestCount Int
+  createdAt    DateTime              @default(now())
+  endedAt      DateTime?
+  course       Course                @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@index([courseId, status])
 }
 
 // ─── Background jobs ─────────────────────────────────────────────────────

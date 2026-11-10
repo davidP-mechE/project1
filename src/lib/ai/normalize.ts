@@ -81,6 +81,15 @@ export function normalizeQuestions(questions: DraftQuestion[], r: Range, s: Cour
   return out;
 }
 
+/** Tidy flashcards: drop empty ones, keep the wanted number, keep page refs inside the lesson. */
+export function normalizeFlashcards(cards: LessonDraft["flashcards"], r: Range, s: CourseSettings): StoredFlashcard[] {
+  if (!has(s, "flashcards")) return [];
+  return cards
+    .filter((f) => nonEmpty(f.front) && nonEmpty(f.back))
+    .slice(0, s.flashcardsPerLesson)
+    .map((f) => ({ front: tidy(f.front), back: tidy(f.back), pageRefs: cleanPageRefs(f.pageRefs, r) }));
+}
+
 export type NormalizedLesson =
   | { usable: true; content: LessonContent; questions: StoredQuestion[]; flashcards: StoredFlashcard[]; dropped: number }
   | { usable: false; reason: string };
@@ -96,12 +105,7 @@ export function normalizeLessonDraft(draft: LessonDraft, r: Range, s: CourseSett
   if (!explanation) return { usable: false, reason: "No explanation was produced for these pages." };
 
   const questions = normalizeQuestions(draft.questions, r, s);
-  const flashcards: StoredFlashcard[] = has(s, "flashcards")
-    ? draft.flashcards
-        .filter((f) => nonEmpty(f.front) && nonEmpty(f.back))
-        .slice(0, s.flashcardsPerLesson)
-        .map((f) => ({ front: tidy(f.front), back: tidy(f.back), pageRefs: cleanPageRefs(f.pageRefs, r) }))
-    : [];
+  const flashcards = normalizeFlashcards(draft.flashcards, r, s);
 
   const content: LessonContent = {
     objectives: has(s, "objectives") ? draft.objectives.map(tidy).filter(Boolean).slice(0, 6) : [],

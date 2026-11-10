@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
 import { saveSettingsAction } from "@/server/actions/outline";
 import { CONTENT_TYPES, LEVELS, STYLES, type ContentType, type CourseSettings } from "@/lib/course/settings";
-import { estimateGeneration, type EstimateLesson } from "@/lib/usage/estimate";
+import { DEFAULT_PLAN, estimateGeneration, type EstimateLesson } from "@/lib/usage/estimate";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/misc";
@@ -47,7 +47,7 @@ function Choice({ name, value, checked, onChange, title, description }: { name: 
   );
 }
 
-export function SettingsForm({ courseId, initial, lessons, actions }: Props) {
+export function SettingsForm({ courseId, initial, lessons, actions, batch = true }: Props & { batch?: boolean }) {
   const router = useRouter();
   const [s, setS] = useState<CourseSettings>(initial);
   const [savedJson, setSavedJson] = useState(JSON.stringify(initial));
@@ -66,7 +66,7 @@ export function SettingsForm({ courseId, initial, lessons, actions }: Props) {
     () => (s.includeFrontBackMatter ? [...lessons.normal, ...lessons.frontBack] : lessons.normal),
     [s.includeFrontBackMatter, lessons],
   );
-  const estimate = useMemo(() => estimateGeneration(included, s), [included, s]);
+  const estimate = useMemo(() => estimateGeneration(included, s, { ...DEFAULT_PLAN, batch }), [included, s, batch]);
   const anyQuestions = s.contentTypes.some((t) => t === "multipleChoice" || t === "shortAnswer" || t === "stepProblems");
 
   function save() {
@@ -184,7 +184,7 @@ export function SettingsForm({ courseId, initial, lessons, actions }: Props) {
             </div>
             <div>
               <dt className="text-muted">Time</dt>
-              <dd className="text-lg font-semibold tabular-nums">≈ {estimate.minutes} min</dd>
+              <dd className="text-lg font-semibold tabular-nums">{estimate.batch ? "< 1 hour" : `≈ ${estimate.minutes} min`}</dd>
             </div>
           </dl>
           <p className="mt-3 text-xs text-muted">

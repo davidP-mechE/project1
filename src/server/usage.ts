@@ -20,8 +20,9 @@ export async function recordUsage(
       outputTokens: c.usage.outputTokens,
       cacheReadTokens: c.usage.cacheReadTokens ?? 0,
       cacheWriteTokens: c.usage.cacheWriteTokens ?? 0,
+      batch: Boolean(c.batch),
       costMicroUsd: Math.round(
-        costUsd(c.model, c.usage.inputTokens, c.usage.outputTokens, c.usage.cacheReadTokens ?? 0, c.usage.cacheWriteTokens ?? 0) * 1_000_000,
+        costUsd(c.model, c.usage.inputTokens, c.usage.outputTokens, c.usage.cacheReadTokens ?? 0, c.usage.cacheWriteTokens ?? 0, Boolean(c.batch)) * 1_000_000,
       ),
     })),
   });

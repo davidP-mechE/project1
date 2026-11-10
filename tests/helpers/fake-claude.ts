@@ -26,7 +26,7 @@ export function sampleDraft(start: number, end: number, overrides: Partial<Lesso
 
 import type { LessonPromptInput } from "@/lib/ai/prompts";
 import { AiError, type LessonWriter, type WriterResult } from "@/server/ai/writer";
-import type { QuestionsDraft } from "@/lib/ai/lesson-schema";
+import type { FlashcardsDraft, QuestionsDraft } from "@/lib/ai/lesson-schema";
 
 const usage = { inputTokens: 3000, outputTokens: 6000, cacheReadTokens: 1500, cacheWriteTokens: 0 };
 
@@ -44,8 +44,22 @@ export class FakeWriter implements LessonWriter {
     const next = this.nextLesson;
     this.nextLesson = null;
     if (next instanceof AiError) throw next;
-    const value = next ? next(input) : sampleDraft(input.pageStart, input.pageEnd);
+    const value = next ? next(input) : { ...sampleDraft(input.pageStart, input.pageEnd), flashcards: [] };
     return { value, calls: [{ value: null, model: "claude-sonnet-5-5", usage }] };
+  }
+
+  flashcardCalls: LessonPromptInput[] = [];
+  /** Set to make the next flashcard call fail. */
+  nextFlashcards: AiError | null = null;
+  async writeFlashcards(input: LessonPromptInput): Promise<WriterResult<FlashcardsDraft>> {
+    this.flashcardCalls.push(input);
+    const next = this.nextFlashcards;
+    this.nextFlashcards = null;
+    if (next) throw next;
+    return {
+      value: { flashcards: sampleDraft(input.pageStart, input.pageEnd).flashcards },
+      calls: [{ value: null, model: "claude-haiku-5-5", usage: { inputTokens: 3000, outputTokens: 400 } }],
+    };
   }
 
   async writeQuestions(input: LessonPromptInput & { avoid: string[] }): Promise<WriterResult<QuestionsDraft>> {

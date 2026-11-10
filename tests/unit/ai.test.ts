@@ -1,11 +1,12 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { describe, expect, it } from "vitest";
 import { cleanInlineCitations, cleanPageRefs, normalizeLessonDraft, normalizeQuestion } from "@/lib/ai/normalize";
-import { LESSON_SYSTEM_PROMPT, lessonUserMessage, questionsUserMessage } from "@/lib/ai/prompts";
+import { flashcardsUserMessage, LESSON_SYSTEM_PROMPT, lessonUserMessage, questionsUserMessage } from "@/lib/ai/prompts";
 import { assessSource, formatSourcePages, lessonCacheKey, needsRepair, type SourcePage } from "@/lib/ai/source";
 import { costUsd } from "@/lib/ai/models";
 import { DEFAULT_SETTINGS } from "@/lib/course/settings";
 import { AiError, ClaudeWriter } from "@/server/ai/writer";
+import { ClaudeBatchRunner } from "@/server/ai/batch";
 import { sampleDraft } from "../helpers/fake-claude";
 
 const page = (n: number, text: string, extra: Partial<SourcePage> = {}): SourcePage => ({
@@ -83,13 +84,13 @@ describe("prompts", () => {
     const m = lessonUserMessage(input);
     expect(m.indexOf("=== Page 4 ===")).toBeLessThan(m.indexOf("Student level"));
     expect(m).toContain("exactly 6, mixing these types: multiple_choice, short_answer, step_by_step");
-    expect(m).toContain("Flashcards: 8.");
+    expect(m).toContain("Flashcards: written separately; return an empty list.");
+    expect(flashcardsUserMessage(input)).toContain("8 cards");
     expect(m).toContain("Cite only pages 4–5.");
   });
   it("tells the model to leave out content types the student turned off", () => {
     const m = lessonUserMessage({ ...input, settings: { ...DEFAULT_SETTINGS, contentTypes: ["objectives"] } });
     expect(m).toContain("Practice questions: not wanted");
-    expect(m).toContain("Flashcards: not wanted");
     expect(m).toContain("Key terms: not wanted");
   });
   it("asks for new questions that avoid existing ones", () => {
@@ -146,8 +147,12 @@ describe("question and citation helpers", () => {
 
 describe("costUsd", () => {
   it("includes prompt-cache reads and writes", () => {
-    expect(costUsd("claude-sonnet-5-5", 0, 0, 1_000_000, 0)).toBeCloseTo(0.2);
+    expect(costUsd("claude-sonnet-5-5", 0, 0, 1_000_000, 0)).toBeCloseTo(0.1);
     expect(costUsd("claude-sonnet-5-5", 0, 0, 0, 1_000_000)).toBeCloseTo(2.5);
+    expect(costUsd("claude-haiku-5-5", 1_000_000, 1_000_000)).toBeCloseTo(0.6);
+  });
+  it("halves everything sent through the Batch API", () => {
+    expect(costUsd("claude-sonnet-5-5", 1_000_000, 1_000_000, 1_000_000, 1_000_000, true)).toBeCloseTo((2 + 10 + 0.1 + 2.5) / 2);
   });
   it("prices unknown models like Opus (never under-count)", () => expect(costUsd("mystery", 1_000_000, 0)).toBe(4));
 });
@@ -166,8 +171,8 @@ function fakeClient(responses: FakeResponse[]) {
     return {
       model: r.model ?? params.model,
       stop_reason: r.stop_reason,
-      parsed_output: r.parsed_output ?? null,
-      content: r.content ?? [],
+      // Structured replies arrive as JSON text, like the real API.
+      content: r.content ?? (r.parsed_output ? [{ type: "text", text: JSON.stringify(r.parsed_output) }] : []),
       usage: { input_tokens: 1000, output_tokens: 500, cache_read_input_tokens: 2000, cache_creation_input_tokens: 0 },
     };
   };
@@ -176,7 +181,14 @@ function fakeClient(responses: FakeResponse[]) {
   return { client, requests };
 }
 
-const config = { model: "claude-sonnet-5-5", fallbackModel: "claude-opus-5-5", visionModel: "claude-sonnet-5-5", effort: "medium" as const };
+const config = {
+  model: "claude-sonnet-5-5",
+  fallbackModel: "claude-opus-5-5",
+  flashcardModel: "claude-haiku-5-5",
+  flashcardEffort: "low" as const,
+  visionModel: "claude-haiku-5-5",
+  effort: "medium" as const,
+};
 const input = { courseTitle: "C", unitTitle: "U", lessonTitle: "L", pageStart: 4, pageEnd: 5, pages: [page(4, prose)], settings: DEFAULT_SETTINGS };
 
 describe("ClaudeWriter", () => {
@@ -224,6 +236,54 @@ describe("ClaudeWriter", () => {
     await expect(new ClaudeWriter(overloaded.client, config).writeLesson(input)).rejects.toMatchObject({ kind: "retryable" });
   });
 
+  it("writes flashcards on the small model at low effort, from the pages", async () => {
+    const { client, requests } = fakeClient([{ stop_reason: "end_turn", parsed_output: { flashcards: sampleDraft(4, 5).flashcards } }]);
+    const res = await new ClaudeWriter(client, config).writeFlashcards(input);
+    expect(res.value.flashcards).toHaveLength(2);
+    const req = requests[0] as { model: string; output_config: { effort: string }; messages: { content: { text: string }[] }[] };
+    expect(req.model).toBe("claude-haiku-5-5");
+    expect(req.output_config.effort).toBe("low");
+    expect(req.messages[0].content[0].text).toContain("=== Page 4 ===");
+    expect(req.messages[0].content[1].text).toContain("Write only flashcards");
+  });
+
+  it("caches the pages for new questions (sent again and again), not for a one-off lesson", async () => {
+    const { client, requests } = fakeClient([
+      { stop_reason: "end_turn", parsed_output: sampleDraft(4, 5) },
+      { stop_reason: "end_turn", parsed_output: { questions: sampleDraft(4, 5).questions } },
+    ]);
+    const writer = new ClaudeWriter(client, config);
+    await writer.writeLesson(input);
+    await writer.writeQuestions({ ...input, avoid: ["Old one"], focus: "Current" });
+    type Req = { messages: { content: { text: string; cache_control?: unknown }[] }[] };
+    const [lesson, questions] = requests as unknown as Req[];
+    expect(lesson.messages[0].content[0].cache_control).toBeUndefined();
+    expect(questions.messages[0].content[0].cache_control).toEqual({ type: "ephemeral" });
+    // The cached block is only the pages: the parts that change (skill, questions to avoid) come after it.
+    expect(questions.messages[0].content[0].text).toBe(lesson.messages[0].content[0].text);
+    expect(questions.messages[0].content[0].text).not.toContain("Old one");
+    expect(questions.messages[0].content[1].text).toContain("Old one");
+  });
+
+  it("asks for lessons without flashcards (they're a separate request)", async () => {
+    const { client, requests } = fakeClient([{ stop_reason: "end_turn", parsed_output: sampleDraft(4, 5) }]);
+    await new ClaudeWriter(client, config).writeLesson(input);
+    const task = (requests[0] as { messages: { content: { text: string }[] }[] }).messages[0].content[1].text;
+    expect(task).toContain("Flashcards: written separately; return an empty list.");
+  });
+
+  it("builds batch requests that can be read back, and treats an unreadable reply as retryable", () => {
+    const writer = new ClaudeWriter(fakeClient([]).client, config);
+    const job = { kind: "lesson" as const, input };
+    const params = writer.request(job);
+    expect(params).not.toHaveProperty("stream");
+    expect(JSON.parse(JSON.stringify(params)).output_config.format.type).toBe("json_schema");
+    const msg = (t: string, stop = "end_turn") => ({ stop_reason: stop, content: [{ type: "text", text: t }] }) as unknown as Anthropic.Message;
+    expect(writer.read<{ objectives: string[] }>("lesson", msg(JSON.stringify(sampleDraft(4, 5))), []).objectives).toHaveLength(2);
+    expect(() => writer.read("lesson", msg("not json"), [])).toThrow(expect.objectContaining({ kind: "retryable" }));
+    expect(() => writer.read("lesson", msg("", "refusal"), [])).toThrow(expect.objectContaining({ kind: "refused" }));
+  });
+
   it("repairs a page from an image and returns the text", async () => {
     const { client, requests } = fakeClient([{ stop_reason: "end_turn", content: [{ type: "text", text: "$$V = IR$$" }] }]);
     const res = await new ClaudeWriter(client, config).repairPage(Buffer.from("png"));
@@ -232,3 +292,70 @@ describe("ClaudeWriter", () => {
     expect(content.map((c) => c.type)).toEqual(["image", "text"]);
   });
 });
+
+describe("ClaudeBatchRunner", () => {
+  const draft = sampleDraft(4, 5);
+  const message = (text: string, stop = "end_turn", model = "claude-sonnet-5-5") => ({
+    model,
+    stop_reason: stop,
+    content: [{ type: "text", text }],
+    usage: { input_tokens: 4000, output_tokens: 9000, cache_read_input_tokens: 1200, cache_creation_input_tokens: 0 },
+  });
+  function fakeBatches() {
+    const created: { requests: { custom_id: string; params: Record<string, unknown> }[] }[] = [];
+    const client = {
+      messages: {
+        batches: {
+          create: async (body: (typeof created)[number]) => (created.push(body), { id: "msgbatch_1", processing_status: "in_progress" }),
+          retrieve: async () => ({ id: "msgbatch_1", processing_status: "ended" }),
+          results: async () =>
+            (async function* () {
+              yield { custom_id: "lesson-a", result: { type: "succeeded", message: message(JSON.stringify(draft)) } };
+              yield { custom_id: "cards-a", result: { type: "succeeded", message: message(JSON.stringify({ flashcards: draft.flashcards }), "end_turn", "claude-haiku-5-5") } };
+              yield { custom_id: "lesson-b", result: { type: "succeeded", message: message("", "refusal") } };
+              yield { custom_id: "lesson-c", result: { type: "errored", error: { type: "error", error: { type: "overloaded_error", message: "busy" } } } };
+              yield { custom_id: "lesson-d", result: { type: "expired" } };
+            })(),
+        },
+      },
+    } as unknown as Anthropic;
+    return { client, created };
+  }
+
+  it("sends each job's normal request (no streaming) under its custom id", async () => {
+    const { client, created } = fakeBatches();
+    const writer = new ClaudeWriter(client, config);
+    const id = await new ClaudeBatchRunner(client, writer).submit([
+      { customId: "lesson-a", job: { kind: "lesson", input } },
+      { customId: "cards-a", job: { kind: "flashcards", input } },
+    ]);
+    expect(id).toBe("msgbatch_1");
+    const [lesson, cards] = created[0].requests;
+    expect(lesson.custom_id).toBe("lesson-a");
+    expect(lesson.params).toMatchObject({ model: "claude-sonnet-5-5", max_tokens: 32_000 });
+    expect(lesson.params).not.toHaveProperty("stream");
+    expect(cards.params).toMatchObject({ model: "claude-haiku-5-5", output_config: { effort: "low" } });
+  });
+
+  it("reads results in any order: usable replies, refusals (billed), and errored or expired requests (not billed)", async () => {
+    const { client } = fakeBatches();
+    const runner = new ClaudeBatchRunner(client, new ClaudeWriter(client, config));
+    expect(await runner.isDone("msgbatch_1")).toBe(true);
+    const kinds: Record<string, "lesson" | "flashcards"> = { "lesson-a": "lesson", "cards-a": "flashcards", "lesson-b": "lesson", "lesson-c": "lesson", "lesson-d": "lesson" };
+    const out = [];
+    for await (const r of runner.results("msgbatch_1", (id) => kinds[id] ?? null)) out.push(r);
+    expect(out.map((r) => [r.customId, r.ok])).toEqual([
+      ["lesson-a", true],
+      ["cards-a", true],
+      ["lesson-b", false],
+      ["lesson-c", false],
+      ["lesson-d", false],
+    ]);
+    expect(out[0].calls).toEqual([{ value: null, model: "claude-sonnet-5-5", batch: true, usage: { inputTokens: 4000, outputTokens: 9000, cacheReadTokens: 1200, cacheWriteTokens: 0 } }]);
+    expect(out[1].ok && (out[1].value as { flashcards: unknown[] }).flashcards).toHaveLength(2);
+    expect(out[2]).toMatchObject({ ok: false, error: { kind: "refused" }, calls: [{ batch: true }] });
+    expect(out[3]).toMatchObject({ ok: false, error: null, detail: "errored: overloaded_error", calls: [] });
+    expect(out[4]).toMatchObject({ ok: false, error: null, detail: "expired", calls: [] });
+  });
+});
+

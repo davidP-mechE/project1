@@ -14,7 +14,7 @@ import { formatSourcePages, type SourcePage } from "./source";
  * cache key, so lessons are only regenerated when asked, but you can tell
  * which ones were written with the old prompt.
  */
-export const PROMPT_VERSION = "lesson-v1";
+export const PROMPT_VERSION = "lesson-v2"; // v2: flashcards are written by a separate (cheaper) request
 
 export const LESSON_SYSTEM_PROMPT = `You write lessons for Coursebook, an app that turns a textbook into a self-paced course for students studying on their own.
 
@@ -115,11 +115,8 @@ function settingsLines(s: CourseSettings, opts: { questionsOnly?: boolean } = {}
     lines.push(`- Practice questions: exactly ${s.questionsPerLesson}, mixing these types: ${names}.${stepNote}`);
   }
   if (!opts.questionsOnly) {
-    lines.push(
-      has(s, "flashcards") && s.flashcardsPerLesson > 0
-        ? `- Flashcards: ${s.flashcardsPerLesson}.`
-        : "- Flashcards: not wanted; return an empty list.",
-    );
+    // Flashcards come from their own, cheaper request (flashcardsUserMessage).
+    lines.push("- Flashcards: written separately; return an empty list.");
   }
   return lines;
 }
@@ -130,13 +127,21 @@ function header(input: LessonPromptInput): string {
   return `${input.sourceKind === "slides" ? "Slide deck" : "Textbook"}: "${input.courseTitle}"\nUnit: "${input.unitTitle}"\nLesson: "${input.lessonTitle}" (${range})`;
 }
 
-/** The user message for writing a full lesson: source pages first, then the task. */
-export function lessonUserMessage(input: LessonPromptInput): string {
+/**
+ * Every request about a lesson starts with the same block: the source pages.
+ * It's sent as its own content block so it can be cached: Review drills and
+ * "new questions" send the same pages again and again, and read them from
+ * the cache at a tenth of the price. Only what follows it varies.
+ */
+export function sourceBlock(input: Pick<LessonPromptInput, "pages">): string {
   return `<book_pages>
 ${formatSourcePages(input.pages)}
-</book_pages>
+</book_pages>`;
+}
 
-${header(input)}${slidesNote(input)}
+/** What to do with the pages: write the lesson. */
+export function lessonTask(input: LessonPromptInput): string {
+  return `${header(input)}${slidesNote(input)}
 
 Write this lesson from the pages above, following these settings:
 ${settingsLines(input.settings).join("\n")}
@@ -144,17 +149,31 @@ ${settingsLines(input.settings).join("\n")}
 Cite only pages ${input.pageStart}–${input.pageEnd}.`;
 }
 
-/** The user message for regenerating only the practice questions. */
-export function questionsUserMessage(input: LessonPromptInput & { avoid: string[] }): string {
+/** The user message for writing a full lesson: source pages first, then the task. */
+export function lessonUserMessage(input: LessonPromptInput): string {
+  return `${sourceBlock(input)}\n\n${lessonTask(input)}`;
+}
+
+/** What to do with the pages: write flashcards only (a short job for a small model). */
+export function flashcardsTask(input: LessonPromptInput): string {
+  return `${header(input)}${slidesNote(input)}
+
+Write only flashcards for this lesson from the pages above: ${input.settings.flashcardsPerLesson} cards, for a student at ${LEVELS[input.settings.level].toLowerCase()} level, on the ideas most worth remembering (key terms, definitions, formulas, relationships). Each card lists the pages it comes from. If the pages don't contain enough readable text, return an empty list.
+
+Cite only pages ${input.pageStart}–${input.pageEnd}.`;
+}
+
+export function flashcardsUserMessage(input: LessonPromptInput): string {
+  return `${sourceBlock(input)}\n\n${flashcardsTask(input)}`;
+}
+
+/** What to do with the pages: write practice questions only (new questions, Review drills). */
+export function questionsTask(input: LessonPromptInput & { avoid: string[] }): string {
   const avoid =
     input.avoid.length > 0
       ? `\n\nThe student has already seen these questions. Write different ones (you may test the same ideas in new ways):\n${input.avoid.map((q) => `- ${q}`).join("\n")}`
       : "";
-  return `<book_pages>
-${formatSourcePages(input.pages)}
-</book_pages>
-
-${header(input)}${slidesNote(input)}
+  return `${header(input)}${slidesNote(input)}
 
 Write only practice questions for this lesson from the pages above. Set sourceCheck as usual.${
     input.focus
@@ -164,6 +183,11 @@ Write only practice questions for this lesson from the pages above. Set sourceCh
 ${settingsLines(input.settings, { questionsOnly: true }).join("\n")}
 
 Cite only pages ${input.pageStart}–${input.pageEnd}.${avoid}`;
+}
+
+/** The user message for regenerating only the practice questions. */
+export function questionsUserMessage(input: LessonPromptInput & { avoid: string[] }): string {
+  return `${sourceBlock(input)}\n\n${questionsTask(input)}`;
 }
 
 /** Instructions for re-reading an equation-heavy page from its image. */

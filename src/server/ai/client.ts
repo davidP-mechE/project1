@@ -5,11 +5,13 @@ import { DemoWriter } from "./demo-writer";
 import { ClaudeGrader, DemoGrader, type Grader } from "./grader";
 import { ClaudeTutor, DemoTutor, type TutorModel } from "./tutor";
 import { AiError, ClaudeWriter, type LessonWriter } from "./writer";
+import { ClaudeBatchRunner, InstantBatchRunner, type BatchRunner } from "./batch";
 
 let writer: LessonWriter | null = null;
 let grader: Grader | null = null;
 let tutor: TutorModel | null = null;
 let client: Anthropic | null = null;
+let batchRunner: BatchRunner | null = null;
 
 function anthropic(): Anthropic {
   if (!claudeEnabled || !env.ANTHROPIC_API_KEY) {
@@ -32,6 +34,8 @@ export function getWriter(): LessonWriter {
   writer ??= new ClaudeWriter(anthropic(), {
     model: env.CLAUDE_MODEL_GENERATION,
     fallbackModel: env.CLAUDE_MODEL_FALLBACK,
+    flashcardModel: env.CLAUDE_MODEL_FLASHCARDS,
+    flashcardEffort: env.CLAUDE_EFFORT_FLASHCARDS,
     visionModel: env.CLAUDE_MODEL_VISION,
     effort: env.CLAUDE_EFFORT_GENERATION,
   });
@@ -58,6 +62,14 @@ export function getTutor(): TutorModel | null {
   if (!claudeEnabled) return null;
   tutor ??= new ClaudeTutor(anthropic(), { model: env.CLAUDE_MODEL_TUTOR, effort: env.CLAUDE_EFFORT_TUTOR });
   return tutor;
+}
+
+/** Sends whole-course generation through the Message Batches API (instantly, with the demo writer, in demo mode). */
+export function getBatchRunner(): BatchRunner {
+  if (batchRunner) return batchRunner;
+  const w = getWriter();
+  batchRunner = w instanceof ClaudeWriter ? new ClaudeBatchRunner(anthropic(), w) : new InstantBatchRunner(w);
+  return batchRunner;
 }
 
 export const generationModel = () => ({

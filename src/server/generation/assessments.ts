@@ -5,9 +5,10 @@ import { enqueueGeneration } from "../queue";
 import { recordUsage } from "../usage";
 import { AiError, type LessonWriter } from "../ai/writer";
 import { assertAiBudget, ensureAiBudget } from "../limits";
-import { has, parseSettings } from "@/lib/course/settings";
+import { has, parseSettings, type CourseSettings } from "@/lib/course/settings";
 import { LessonContentSchema } from "@/lib/ai/lesson-schema";
-import { normalizeAssessment, questionCountFor, type AssessmentLesson } from "@/lib/ai/assessment";
+import { normalizeAssessment, questionCountFor, type AssessmentDraft, type AssessmentLesson, type AssessmentPromptInput } from "@/lib/ai/assessment";
+import { env } from "../env";
 
 /**
  * Unit tests (with unit summaries) and the final exam. A unit's test is
@@ -20,8 +21,12 @@ const ASSESSMENT_PRIORITY = 5_000; // after the lessons still waiting
 
 const isFinished = (s: string) => s === "READY" || s === "FLAGGED" || s === "FAILED";
 
-/** Queue every unit test / final exam that's now possible and doesn't exist yet. */
-export async function queueReadyAssessments(courseId: string) {
+/**
+ * Queue every unit test / final exam that's now possible and doesn't exist yet.
+ * They're written in the background, so by default they go out as one batch
+ * (half price); `batch: false` when the student is waiting for them.
+ */
+export async function queueReadyAssessments(courseId: string, opts: { batch?: boolean } = {}) {
   const course = await db.course.findUnique({ where: { id: courseId }, select: { settings: true } });
   if (!course) return 0;
   const settings = parseSettings(course.settings);
@@ -53,16 +58,35 @@ export async function queueReadyAssessments(courseId: string) {
       jobs.push({ payload: { kind: "assessment", assessmentId: a.id }, priority: ASSESSMENT_PRIORITY + 1_000 });
     }
   }
-  await enqueueGeneration(jobs);
+  const batch = (opts.batch ?? env.CLAUDE_BATCH_GENERATION) && jobs.length > 0;
+  if (batch) {
+    await enqueueGeneration([{ payload: { kind: "assessment-batch", courseId, assessmentIds: jobs.map((j) => j.payload.assessmentId) }, priority: ASSESSMENT_PRIORITY }]);
+  } else {
+    await enqueueGeneration(jobs);
+  }
   return jobs.length;
 }
 
-export async function runAssessmentJob(payload: { assessmentId: string }, deps: { writer: LessonWriter }) {
+/** A unit test / final exam that needs Claude: what to send, and what's needed to save the reply. */
+export type PreparedAssessment = {
+  a: { id: string; kind: "UNIT_TEST" | "FINAL_EXAM"; courseId: string; userId: string };
+  settings: CourseSettings;
+  input: AssessmentPromptInput;
+  wantsQuestions: boolean;
+  questionCount: number;
+  range: { pageStart: number; pageEnd: number };
+};
+
+/** Everything before calling Claude for a unit test / final exam. */
+export async function prepareAssessment(
+  assessmentId: string,
+  opts: { markGenerating?: boolean } = {},
+): Promise<{ outcome: "gone" | "failed" } | { prepared: PreparedAssessment }> {
   const a = await db.assessment.findUnique({
-    where: { id: payload.assessmentId },
+    where: { id: assessmentId },
     include: { course: { select: { id: true, title: true, userId: true, settings: true } }, unit: { select: { title: true } } },
   });
-  if (!a) return "gone";
+  if (!a) return { outcome: "gone" };
   const settings = parseSettings(a.course.settings);
   const lessons = await db.lesson.findMany({
     where: { courseId: a.courseId, skip: false, generatedAt: { not: null }, ...(a.unitId ? { unitId: a.unitId } : {}) },
@@ -76,34 +100,36 @@ export async function runAssessmentJob(payload: { assessmentId: string }, deps: 
   }
   if (usable.length === 0) {
     await markAssessmentFailed(a.id, "There are no written lessons to make this from yet.");
-    return "failed";
+    return { outcome: "failed" };
   }
-  await ensureAiBudget(a.course.userId);
-  await db.assessment.update({ where: { id: a.id }, data: { status: "GENERATING", error: null } });
-
+  if (opts.markGenerating !== false) await db.assessment.update({ where: { id: a.id }, data: { status: "GENERATING", error: null } });
   const wantsQuestions = a.kind === "FINAL_EXAM" || has(settings, "unitTests");
   const questionCount = wantsQuestions ? questionCountFor(a.kind, usable.length) : 0;
-  const ctx = { userId: a.course.userId, courseId: a.courseId, feature: "ASSESSMENT" as const };
-  let result;
-  try {
-    result = await deps.writer.writeAssessment({
-      kind: a.kind,
-      courseTitle: a.course.title,
-      unitTitle: a.unit?.title ?? null,
-      lessons: usable,
-      questionCount,
+  return {
+    prepared: {
+      a: { id: a.id, kind: a.kind, courseId: a.courseId, userId: a.course.userId },
       settings,
-      avoid: lessons.flatMap((l) => l.questions.map((q) => q.prompt)),
-    });
-  } catch (err) {
-    if (err instanceof AiError) await recordUsage(ctx, err.calls);
-    throw err;
-  }
-  await recordUsage(ctx, result.calls);
+      wantsQuestions,
+      questionCount,
+      range: { pageStart: Math.min(...usable.map((l) => l.pageStart)), pageEnd: Math.max(...usable.map((l) => l.pageEnd)) },
+      input: {
+        kind: a.kind,
+        courseTitle: a.course.title,
+        unitTitle: a.unit?.title ?? null,
+        lessons: usable,
+        questionCount,
+        settings,
+        avoid: lessons.flatMap((l) => l.questions.map((q) => q.prompt)),
+      },
+    },
+  };
+}
 
-  const range = { pageStart: Math.min(...usable.map((l) => l.pageStart)), pageEnd: Math.max(...usable.map((l) => l.pageEnd)) };
-  const n = normalizeAssessment(result.value, { kind: a.kind, range, settings, questionCount });
-  if (wantsQuestions && n.questions.length === 0) {
+/** Save a written unit test / final exam. */
+export async function applyAssessment(p: PreparedAssessment, draft: AssessmentDraft, model: string | null): Promise<"generated" | "failed"> {
+  const { a, settings } = p;
+  const n = normalizeAssessment(draft, { kind: a.kind, range: p.range, settings, questionCount: p.questionCount });
+  if (p.wantsQuestions && n.questions.length === 0) {
     await markAssessmentFailed(a.id, "Claude's questions couldn't be used. Try regenerating.");
     return "failed";
   }
@@ -117,7 +143,7 @@ export async function runAssessmentJob(payload: { assessmentId: string }, deps: 
       data: {
         status: "READY",
         summary: has(settings, "unitSummaries") ? n.summary || null : null,
-        model: result.calls.at(-1)?.model ?? null,
+        model,
         generatedAt: new Date(),
         error: null,
       },
@@ -125,6 +151,23 @@ export async function runAssessmentJob(payload: { assessmentId: string }, deps: 
   });
   if (a.kind === "UNIT_TEST") await queueReadyAssessments(a.courseId); // the final exam may be next
   return "generated";
+}
+
+export async function runAssessmentJob(payload: { assessmentId: string }, deps: { writer: LessonWriter }) {
+  const prep = await prepareAssessment(payload.assessmentId);
+  if ("outcome" in prep) return prep.outcome;
+  const p = prep.prepared;
+  await ensureAiBudget(p.a.userId);
+  const ctx = { userId: p.a.userId, courseId: p.a.courseId, feature: "ASSESSMENT" as const };
+  let result;
+  try {
+    result = await deps.writer.writeAssessment(p.input);
+  } catch (err) {
+    if (err instanceof AiError) await recordUsage(ctx, err.calls);
+    throw err;
+  }
+  await recordUsage(ctx, result.calls);
+  return applyAssessment(p, result.value, result.calls.at(-1)?.model ?? null);
 }
 
 export async function markAssessmentFailed(assessmentId: string, message: string) {
@@ -145,5 +188,5 @@ export async function regenerateAssessment(userId: string, assessmentId: string)
 export async function createMissingAssessments(userId: string, courseId: string) {
   const c = await db.course.findFirst({ where: { id: courseId, userId }, select: { id: true } });
   if (!c) throw new NotFoundError("Course not found");
-  return queueReadyAssessments(courseId);
+  return queueReadyAssessments(courseId, { batch: false }); // the student asked: write them now
 }

@@ -93,7 +93,7 @@ describe("generating a course", () => {
   it("queues included lessons in course order, writes them, and finishes the course", async () => {
     const { user, course: c, lessons } = await course();
     const res = await startGeneration(user.id, c.id);
-    expect(res).toEqual({ queued: 4, total: 4 });
+    expect(res).toEqual({ queued: 4, total: 4, batch: false });
     expect(queued.map((j) => j.payload.lessonId)).toEqual([lessons.basics.id, lessons.current.id, lessons.ohm.id, lessons.diagram.id]);
     expect(queued.map((j) => j.priority)).toEqual([10, 11, 12, 13]);
     expect((await db.course.findUniqueOrThrow({ where: { id: c.id } })).status).toBe("GENERATING");
@@ -167,9 +167,13 @@ describe("generating a course", () => {
     const events = await db.usageEvent.findMany({ where: { courseId: c.id } });
     expect(events.filter((e) => e.feature === "LESSON")).toHaveLength(3);
     expect(events.filter((e) => e.feature === "PAGE_REPAIR")).toHaveLength(1);
+    expect(events.filter((e) => e.feature === "FLASHCARDS").map((e) => e.model)).toEqual(Array(3).fill("claude-haiku-5-5"));
     const lesson = events.find((e) => e.feature === "LESSON")!;
-    // 3000 in × $2 + 6000 out × $10 + 1500 cache reads × $0.20, per million tokens
-    expect(lesson.costMicroUsd).toBe(66_300);
+    // 3000 in × $2 + 6000 out × $10 + 1500 cache reads × $0.10, per million tokens
+    expect(lesson.costMicroUsd).toBe(66_150);
+    expect(lesson.batch).toBe(false);
+    // Flashcards on Haiku: 3000 in × $0.10 + 400 out × $0.50
+    expect(events.find((e) => e.feature === "FLASHCARDS")!.costMicroUsd).toBe(500);
   });
 });
 

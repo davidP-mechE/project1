@@ -15,3 +15,4 @@ process.env.BETTER_AUTH_SECRET ||= "test-secret-test-secret-test-secret";
 // A dummy key so "is generation set up?" checks pass. Tests never call the real API:
 // they inject a fake writer (tests/helpers/fake-claude.ts).
 process.env.ANTHROPIC_API_KEY = "test-key-not-real";
+process.env.CLAUDE_BATCH_GENERATION = "false"; // the direct path; batch tests drive the batch path themselves

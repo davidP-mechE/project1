@@ -11,7 +11,7 @@
 import { readFileSync } from "node:fs";
 import Anthropic from "@anthropic-ai/sdk";
 import { costUsd } from "../src/lib/ai/models";
-import { normalizeLessonDraft } from "../src/lib/ai/normalize";
+import { normalizeFlashcards, normalizeLessonDraft } from "../src/lib/ai/normalize";
 import { DEFAULT_SETTINGS } from "../src/lib/course/settings";
 import { mathScore } from "../src/lib/pdf/math-score";
 import type { SourcePage } from "../src/lib/ai/source";
@@ -29,7 +29,9 @@ async function main() {
   const writer = new ClaudeWriter(new Anthropic(), {
     model,
     fallbackModel: process.env.CLAUDE_MODEL_FALLBACK ?? "claude-opus-5-5",
-    visionModel: process.env.CLAUDE_MODEL_VISION ?? "claude-sonnet-5-5",
+    flashcardModel: process.env.CLAUDE_MODEL_FLASHCARDS ?? "claude-haiku-5-5",
+    flashcardEffort: (process.env.CLAUDE_EFFORT_FLASHCARDS as "low") ?? "low",
+    visionModel: process.env.CLAUDE_MODEL_VISION ?? "claude-haiku-5-5",
     effort: (process.env.CLAUDE_EFFORT_GENERATION as "medium") ?? "medium",
   });
 
@@ -70,6 +72,23 @@ async function main() {
       console.log(`  objectives: ${n.content.objectives.length}, key terms: ${n.content.keyTerms.length}, questions: ${n.questions.length} (${n.dropped} dropped), flashcards: ${n.flashcards.length}`);
       console.log("\n--- explanation (first 900 characters) ---\n" + n.content.explanation.slice(0, 900) + "\n---");
       console.log("first question:", JSON.stringify(n.questions[0], null, 2));
+    }
+
+    // 1b) Its flashcards, written by the small model in their own request.
+    console.log("\nWriting the lesson's flashcards (small model)…");
+    const lessonInput = {
+      courseTitle: "Basic Circuits",
+      unitTitle: "1 Electric Charge and Current",
+      lessonTitle: "1.1 Charge",
+      pageStart: 4,
+      pageEnd: 5,
+      pages: [await pageAt(4), await pageAt(5)],
+      settings: DEFAULT_SETTINGS,
+    };
+    const cards = await writer.writeFlashcards(lessonInput);
+    report("flashcards", cards.calls);
+    for (const c of normalizeFlashcards(cards.value.flashcards, { pageStart: 4, pageEnd: 5 }, DEFAULT_SETTINGS)) {
+      console.log(`  - ${c.front} → ${c.back} (p. ${c.pageRefs.join(", ")})`);
     }
 
     // 2) Re-read the equation page (7) from its image.

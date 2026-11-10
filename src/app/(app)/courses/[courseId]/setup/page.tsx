@@ -4,7 +4,7 @@ import { SettingsForm } from "@/components/course/settings-form";
 import { Alert } from "@/components/ui/alert";
 import { getCourseOr404 } from "@/server/course-page";
 import { GenerateButton } from "@/components/course/generate-button";
-import { claudeEnabled } from "@/server/env";
+import { claudeEnabled, env } from "@/server/env";
 import { getEstimateInputs, getGenerationEstimate, getSettings, isOutlineEditable } from "@/server/outline";
 import { requireUser } from "@/server/session";
 
@@ -51,7 +51,7 @@ export default async function SetupPage({ params }: PageProps<"/courses/[courseI
   return (
     <div className="mx-auto max-w-5xl">
       <CourseHeader course={course} />
-      <SettingsForm courseId={courseId} initial={settings} lessons={lessons} actions={actions} />
+      <SettingsForm courseId={courseId} initial={settings} lessons={lessons} actions={actions} batch={env.CLAUDE_BATCH_GENERATION} />
     </div>
   );
 }
