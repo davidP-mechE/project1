@@ -143,6 +143,7 @@ function NavLinks({ isAdmin, dueCount, unread, onNavigate }: { isAdmin: boolean;
         { href: "/dashboard", label: "Today", icon: "home" },
         { href: "/notifications", label: "Notifications", icon: "bell", badge: unread.notices, badgeLabel: "unread" },
         { href: "/messages", label: "Messages", icon: "messages", badge: unread.threads, badgeLabel: "unread conversations" },
+        { href: "/calendar", label: "Calendar", icon: "calendar" },
       ],
     },
     {

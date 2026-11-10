@@ -77,3 +77,8 @@ export async function saveNotificationPrefsAction(prefs: unknown) {
     await notifications.saveNotificationPrefs(u, prefs);
   }, ["/settings"]);
 }
+
+export async function resetCalendarLinkAction() {
+  const { resetFeedToken } = await import("../calendar");
+  return run(async (u) => ({ token: await resetFeedToken(u) }), ["/calendar"]);
+}

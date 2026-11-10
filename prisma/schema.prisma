@@ -89,6 +89,8 @@ model User {
   toursSeen          String[]
   /// Per-type notification choices: { messages: { site, email }, ... }. Missing keys use the defaults in src/lib/notification-prefs.ts.
   notificationPrefs  Json                @default("{}")
+  /// Private calendar feed link (/api/calendar/<token>.ics). Reset from the calendar page to revoke the old one.
+  calendarToken      String?             @unique
   notifications      Notification[]
   threadsAsStudent   MessageThread[]     @relation("threadStudent")
   threadsAsStaff     MessageThread[]     @relation("threadStaff")
