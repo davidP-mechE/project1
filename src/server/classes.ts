@@ -21,6 +21,8 @@ import { scopeCovers, isSection, isDomain, workDomains } from "@/lib/sat/domains
 import { ensureProgramFor } from "./programs";
 import { externalItemsOf } from "./external";
 import { addMistakes } from "./mistakes";
+import { applyRosterDetails } from "./roster";
+import { assignedTo, cleanTargets, groupsByClass, isAssignedToStudent, studentsTargeted, type Targets } from "./targets";
 import type { Prisma } from "@/generated/prisma/client";
 
 export { ClassError };
@@ -191,10 +193,10 @@ export async function joinClass(userId: string, code: string) {
   if (already) return c.id;
   if (c._count.members >= MAX_STUDENTS) throw new ClassError("This class is full. Ask your teacher.");
   const user = await db.user.findUniqueOrThrow({ where: { id: userId }, select: { email: true } });
-  await db.$transaction([
-    db.classMember.create({ data: { classId: c.id, userId } }),
-    db.classInvite.deleteMany({ where: { classId: c.id, email: user.email.toLowerCase() } }),
-  ]);
+  await db.classMember.create({ data: { classId: c.id, userId } });
+  // A roster import may have set their group, goal and baseline.
+  await applyRosterDetails(c.id, userId, user.email);
+  await db.classInvite.deleteMany({ where: { classId: c.id, email: user.email.toLowerCase() } });
   return c.id;
 }
 
@@ -256,12 +258,13 @@ function parseDue(due: string | Date | null | undefined): Date | null {
   return d;
 }
 
-export type LessonAssignmentInput = { courseId: string; lessonIds: string[]; title?: string; note?: string; dueAt?: string | Date | null; section?: string | null; domains?: string[] };
+export type LessonAssignmentInput = { courseId: string; lessonIds: string[]; title?: string; note?: string; dueAt?: string | Date | null; section?: string | null; domains?: string[]; targets?: Partial<Targets> };
 
 /** Assign a course (no lessons chosen = the whole course), or chosen lessons from it. */
 export async function assignLessons(userId: string, classId: string, input: LessonAssignmentInput) {
   const access = await classAccess(userId, classId, "teach");
   const subject = subjectFor(access, input);
+  const targets = await cleanTargets(access, input.targets);
   const cc = await classCourseFor(userId, classId, input.courseId);
   const lessons = input.lessonIds.length
     ? await db.lesson.findMany({ where: { id: { in: input.lessonIds }, courseId: input.courseId, skip: false }, orderBy: [{ unit: { order: "asc" } }, { order: "asc" }], select: { id: true, title: true } })
@@ -271,7 +274,7 @@ export async function assignLessons(userId: string, classId: string, input: Less
     input.title?.trim().slice(0, 200) ||
     (lessons.length === 0 ? cc.title : lessons.length === 1 ? lessons[0].title : `${lessons[0].title} + ${lessons.length - 1} more`);
   return db.assignment.create({
-    data: { classId, kind: "LESSONS", classCourseId: cc.id, title, note: input.note?.trim().slice(0, 2000) || null, lessonIds: lessons.map((l) => l.id), dueAt: parseDue(input.dueAt), ...subject },
+    data: { classId, kind: "LESSONS", classCourseId: cc.id, title, note: input.note?.trim().slice(0, 2000) || null, lessonIds: lessons.map((l) => l.id), dueAt: parseDue(input.dueAt), ...subject, ...targets },
   });
 }
 
@@ -284,6 +287,8 @@ export type QuestionAssignmentInput = {
   note?: string;
   dueAt?: string | Date | null;
   timeLimitMin?: number | null;
+  /** Groups or students; only when assigning to one class. */
+  targets?: Partial<Targets>;
 };
 
 /** Assign questions from a worksheet to one or more classes, optionally filed under a course and timed. */
@@ -306,9 +311,11 @@ export async function assignQuestions(userId: string, input: QuestionAssignmentI
   const created = [];
   const accesses = [];
   for (const classId of classIds) accesses.push(await classAccess(userId, classId, "teach"));
+  if (classIds.length > 1 && (input.targets?.groupIds?.length || input.targets?.studentIds?.length)) throw new ClassError("Choose groups or students when assigning to one class at a time.");
   for (const access of accesses) {
     const classId = access.classId;
     const work = subjectFor(access, subject);
+    const targets = await cleanTargets(access, input.targets);
     const cc = input.courseId ? await classCourseFor(userId, classId, input.courseId) : null;
     created.push(
       await db.assignment.create({
@@ -323,6 +330,7 @@ export async function assignQuestions(userId: string, input: QuestionAssignmentI
           timeLimitMin: limit,
           dueAt,
           ...work,
+          ...targets,
         },
       }),
     );
@@ -378,6 +386,7 @@ async function studentAssignment(userId: string, assignmentId: string) {
   });
   if (!a) throw new NotFoundError("Assignment not found");
   await membership(userId, a.classId);
+  if (!(await isAssignedToStudent(a, userId))) throw new NotFoundError("Assignment not found");
   return a;
 }
 
@@ -545,7 +554,7 @@ async function gradeItem(userId: string, item: ItemForGrading, input: { choice?:
 
 // ─── Progress ────────────────────────────────────────────────────────────
 
-export type CellStatus = "not_started" | "in_progress" | "done";
+export type CellStatus = "not_started" | "in_progress" | "done" | "not_assigned";
 export type Cell = { status: CellStatus; done: number; total: number; score: number | null; late: boolean; lastActive: Date | null };
 
 type AssignmentRow = { id: string; kind: "LESSONS" | "QUESTIONS" | "EXTERNAL" | "DIAGNOSTIC"; dueAt: Date | null; timeLimitMin: number | null; lessonIds: string[]; itemIds: string[]; classCourseId: string | null; externalItems?: Prisma.JsonValue };
@@ -651,15 +660,19 @@ export async function classProgress(userId: string, classId: string, now = new D
       members: { where: memberWhere(access), orderBy: { user: { name: "asc" } }, select: { user: { select: { id: true, name: true, email: true } } } },
       assignments: {
         orderBy: [{ dueAt: { sort: "asc", nulls: "last" } }, { createdAt: "asc" }],
-        select: { id: true, kind: true, title: true, dueAt: true, timeLimitMin: true, lessonIds: true, itemIds: true, classCourseId: true, section: true, domains: true, externalItems: true, classCourse: { select: { title: true } } },
+        select: { id: true, kind: true, title: true, dueAt: true, timeLimitMin: true, lessonIds: true, itemIds: true, classCourseId: true, section: true, domains: true, externalItems: true, groupIds: true, studentIds: true, classCourse: { select: { title: true } } },
       },
     },
   });
   const students = c.members.map((m) => m.user);
   const assignments = c.assignments.filter((a) => assignmentInScope(access, a));
   const cells = await progressCells(classId, students.map((s) => s.id), assignments, now);
+  for (const a of assignments) {
+    const forThem = await studentsTargeted({ ...a, classId }, students.map((s) => s.id));
+    for (const st of students) if (!forThem.has(st.id)) cells.set(`${st.id}:${a.id}`, { status: "not_assigned", done: 0, total: 0, score: null, late: false, lastActive: null });
+  }
   const summary = assignments.map((a) => {
-    const row = students.map((s) => cells.get(`${s.id}:${a.id}`)!);
+    const row = students.map((s) => cells.get(`${s.id}:${a.id}`)!).filter((x) => x.status !== "not_assigned");
     const scored = row.filter((x) => x.score !== null);
     return {
       id: a.id,
@@ -677,7 +690,8 @@ export async function assignmentReport(userId: string, assignmentId: string, now
     where: { id: assignmentId },
     include: { class: { select: { id: true, name: true, members: { where: memberWhere(access), orderBy: { user: { name: "asc" } }, select: { user: { select: { id: true, name: true, email: true } } } } } }, classCourse: { select: { id: true, title: true } }, worksheet: { select: { id: true, title: true } } },
   });
-  const students = a.class.members.map((m) => m.user);
+  const forThem = await studentsTargeted(a, a.class.members.map((m) => m.user.id));
+  const students = a.class.members.map((m) => m.user).filter((u) => forThem.has(u.id));
   const cells = await progressCells(a.classId, students.map((s) => s.id), [a], now);
   const rows = students.map((s) => ({ student: s, ...cells.get(`${s.id}:${a.id}`)! }));
 
@@ -807,14 +821,17 @@ export async function myClasses(userId: string, now = new Date()) {
           teacher: { select: { name: true } },
           assignments: {
             orderBy: [{ dueAt: { sort: "asc", nulls: "last" } }, { createdAt: "asc" }],
-            select: { id: true, kind: true, title: true, note: true, dueAt: true, timeLimitMin: true, lessonIds: true, itemIds: true, classCourseId: true, externalItems: true, classCourse: { select: { title: true } } },
+            select: { id: true, kind: true, title: true, note: true, dueAt: true, timeLimitMin: true, lessonIds: true, itemIds: true, classCourseId: true, externalItems: true, groupIds: true, studentIds: true, classCourse: { select: { title: true } } },
           },
         },
       },
     },
   });
   const out = [];
-  for (const { class: c } of memberships) {
+  const groups = await groupsByClass(userId);
+  for (const { class: full } of memberships) {
+    // Only work assigned to this student (the whole class, their groups, or them).
+    const c = { ...full, assignments: full.assignments.filter((a) => assignedTo(a, userId, groups.get(full.id) ?? new Set())) };
     const cells = await progressCells(c.id, [userId], c.assignments, now);
     out.push({
       id: c.id,
@@ -839,11 +856,13 @@ export async function dueAssignments(userId: string, now = new Date(), limit = 5
 export async function assignmentsForCopy(userId: string, courseId: string) {
   const course = await db.course.findFirst({ where: { id: courseId, userId }, select: { classCourseId: true } });
   if (!course?.classCourseId) return [];
-  return db.assignment.findMany({
+  const rows = await db.assignment.findMany({
     where: { classCourseId: course.classCourseId, class: { members: { some: { userId } }, archivedAt: null } },
     orderBy: [{ dueAt: { sort: "asc", nulls: "last" } }],
-    select: { id: true, kind: true, title: true, dueAt: true, classId: true },
+    select: { id: true, kind: true, title: true, dueAt: true, classId: true, groupIds: true, studentIds: true },
   });
+  const groups = await groupsByClass(userId);
+  return rows.filter((a) => assignedTo(a, userId, groups.get(a.classId) ?? new Set()));
 }
 
 /** Whether a class course's snapshot files are still needed (for cleanup tools; nothing deletes them automatically). */

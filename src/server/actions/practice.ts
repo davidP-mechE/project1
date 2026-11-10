@@ -46,8 +46,8 @@ export async function publishDiagnosticAction(diagnosticId: string) {
 export async function deleteDiagnosticAction(diagnosticId: string) {
   return run((u) => diag.deleteDiagnostic(u, id.parse(diagnosticId)), ["/teach/diagnostics"]);
 }
-export async function assignDiagnosticAction(classId: string, input: { diagnosticId: string; title?: string; opensAt?: string | null; closesAt?: string | null }) {
-  const p = z.object({ diagnosticId: id, title: z.string().max(200).optional(), opensAt: z.string().max(40).nullable().optional(), closesAt: z.string().max(40).nullable().optional() }).parse(input);
+export async function assignDiagnosticAction(classId: string, input: { diagnosticId: string; title?: string; opensAt?: string | null; closesAt?: string | null; targets?: { groupIds: string[]; studentIds: string[] } }) {
+  const p = z.object({ diagnosticId: id, title: z.string().max(200).optional(), opensAt: z.string().max(40).nullable().optional(), closesAt: z.string().max(40).nullable().optional(), targets: z.object({ groupIds: z.array(id).max(40), studentIds: z.array(id).max(500) }).optional() }).parse(input);
   return run(async (u) => ({ assignmentId: (await diag.assignDiagnostic(u, id.parse(classId), p)).id }), [`/teach/${classId}`]);
 }
 export async function grantRetakeAction(classId: string, assignmentId: string, studentId: string) {

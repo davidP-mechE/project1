@@ -7,11 +7,13 @@ import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { assignLessonsAction } from "@/server/actions/classes";
 import { DOMAINS, SECTIONS } from "@/lib/sat/domains";
+import { TargetPicker, type TargetOptions, type TargetValue } from "./target-picker";
 
 type Course = { id: string; title: string; units: { id: string; title: string; lessons: { id: string; title: string; status: string }[] }[] };
 
 /** Pick a course, then the whole course or some of its lessons, a due date and a note. */
-export function AssignLessonsForm({ classId, courses }: { classId: string; courses: Course[] }) {
+export function AssignLessonsForm({ classId, courses, targetOptions }: { classId: string; courses: Course[]; targetOptions?: TargetOptions }) {
+  const [targets, setTargets] = useState<TargetValue>({ groupIds: [], studentIds: [] });
   const router = useRouter();
   const [courseId, setCourseId] = useState(courses[0]?.id ?? "");
   const [whole, setWhole] = useState(false);
@@ -32,7 +34,7 @@ export function AssignLessonsForm({ classId, courses }: { classId: string; cours
         e.preventDefault();
         if (!whole && picked.length === 0) return setError("Choose some lessons, or assign the whole course.");
         start(async () => {
-          const res = await assignLessonsAction(classId, { courseId, lessonIds: whole ? [] : picked, title: title || undefined, note: note || undefined, dueAt: due ? new Date(due).toISOString() : null, subject: subject || null });
+          const res = await assignLessonsAction(classId, { courseId, lessonIds: whole ? [] : picked, title: title || undefined, note: note || undefined, dueAt: due ? new Date(due).toISOString() : null, subject: subject || null, targets });
           if (!res.ok) return setError(res.error);
           router.push(`/teach/${classId}`);
         });
@@ -102,6 +104,7 @@ export function AssignLessonsForm({ classId, courses }: { classId: string; cours
           </select>
           <span className="text-xs text-muted">Specialists only see work in their subjects, so tag it if specialists help with this class.</span>
         </label>
+        {targetOptions && <TargetPicker options={targetOptions} value={targets} onChange={setTargets} />}
         <Field label="Title (optional)" value={title} onChange={(e) => setTitle(e.target.value)} maxLength={200} placeholder="Named after the lessons if left empty" />
         <label className="flex flex-col gap-1.5 text-sm">
           <span className="font-medium">Due (optional)</span>

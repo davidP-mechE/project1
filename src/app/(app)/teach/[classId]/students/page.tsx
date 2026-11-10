@@ -13,6 +13,7 @@ import {
 } from "@/components/classes/teacher-forms";
 import { NotFoundError } from "@/server/courses";
 import { getClassForTeacher } from "@/server/classes";
+import { GuardianSummariesToggle, RosterImport } from "@/components/classes/cohort-forms";
 import { requireUser } from "@/server/session";
 
 export const metadata: Metadata = { title: "Students" };
@@ -117,6 +118,34 @@ export default async function StudentsPage({
         )}
       </Card>
 
+      {manage && (
+        <Card>
+          <h2 className="mb-3 text-lg font-semibold">Import a roster</h2>
+          <RosterImport classId={c.id} />
+        </Card>
+      )}
+      {c.access.role !== "VIEWER" && (
+        <Card className="flex flex-col gap-3">
+          <h2 className="text-lg font-semibold">Export</h2>
+          <p className="text-sm text-muted">Every student{c.access.groupIds.length ? " in your groups" : ""} × every assignment you can see, with baseline and latest SAT score, as a spreadsheet (CSV).</p>
+          <div className="flex flex-wrap gap-2">
+            <a href={`/api/classes/${c.id}/export`} className="inline-flex h-8 items-center rounded-xl border border-border bg-surface px-3 text-sm font-semibold hover:bg-surface-2" download>
+              Download grades
+            </a>
+            {manage && (
+              <a href={`/api/classes/${c.id}/export?contacts=1`} className="inline-flex h-8 items-center rounded-xl border border-border bg-surface px-3 text-sm font-semibold hover:bg-surface-2" download>
+                With email addresses
+              </a>
+            )}
+          </div>
+        </Card>
+      )}
+      {manage && (
+        <Card className="flex flex-col gap-3">
+          <h2 className="text-lg font-semibold">Weekly guardian emails</h2>
+          <GuardianSummariesToggle classId={c.id} on={c.guardianSummaries} />
+        </Card>
+      )}
       {manage && (
         <Card className="flex flex-col gap-4">
           <h2 className="text-lg font-semibold">Class settings</h2>

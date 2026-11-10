@@ -25,6 +25,7 @@ import { LocalEmbedder } from "@/server/embeddings/local";
 import { booksNeedingEmbeddings, embedBook } from "@/server/embeddings/book";
 import { Queue } from "bullmq";
 import { sendDueReminders } from "@/server/reminders";
+import { runProgramJobs } from "@/server/program-jobs";
 import { runMaintenance } from "@/server/maintenance";
 import { claudeEnabled } from "@/server/env";
 import { getBatchRunner, getWriter, generationModel } from "@/server/ai/client";
@@ -194,6 +195,11 @@ queryEmbedder.on("ready", async () => {
 const reminders = new Worker(
   REMINDERS_QUEUE,
   async (job) => {
+    if (job.name === "program") {
+      const r = await runProgramJobs();
+      if (r.digests + r.summaries > 0) console.info("[program jobs]", r);
+      return;
+    }
     if (job.name === "maintenance") {
       const r = await runMaintenance();
       if (r.uploads + r.rateRows + r.events + r.verifications > 0) console.info("[maintenance]", r);
@@ -209,6 +215,9 @@ const scheduled = new Queue(REMINDERS_QUEUE, { connection: redisConnection() });
 void scheduled
   .upsertJobScheduler("every-15-minutes", { every: 15 * 60_000 }, { name: "check", opts: { removeOnComplete: true, removeOnFail: 50 } })
   .catch((err) => console.error("[worker] couldn't schedule reminders:", err.message));
+void scheduled
+  .upsertJobScheduler("hourly-program-jobs", { every: 60 * 60_000 }, { name: "program", opts: { removeOnComplete: true, removeOnFail: 50 } })
+  .catch((err) => console.error("[worker] couldn't schedule program jobs:", err.message));
 void scheduled
   .upsertJobScheduler("hourly-maintenance", { every: 60 * 60_000 }, { name: "maintenance", opts: { removeOnComplete: true, removeOnFail: 50 } })
   .catch((err) => console.error("[worker] couldn't schedule maintenance:", err.message));

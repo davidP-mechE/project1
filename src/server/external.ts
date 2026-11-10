@@ -7,6 +7,7 @@ import { NotFoundError } from "./courses";
 import { classAccess, ClassError } from "./access";
 import { DOMAINS, isDomain, scopeCovers } from "@/lib/sat/domains";
 import { addMistakes } from "./mistakes";
+import { cleanTargets, isAssignedToStudent, type Targets } from "./targets";
 
 /**
  * Official College Board practice, by link only. A tutor attaches College
@@ -64,8 +65,9 @@ function cleanItems(raw: unknown): ExternalItem[] {
 }
 
 /** Assign College Board questions (by link) to a class; the subject follows their domains and must be in the caller's scope. */
-export async function assignExternal(userId: string, classId: string, input: { title: string; items: unknown; note?: string; dueAt?: string | null }) {
+export async function assignExternal(userId: string, classId: string, input: { title: string; items: unknown; note?: string; dueAt?: string | null; targets?: Partial<Targets> }) {
   const access = await classAccess(userId, classId, "teach");
+  const targets = await cleanTargets(access, input.targets);
   const items = cleanItems(input.items);
   const sections = new Set(items.map((i) => i.section));
   const work = { section: sections.size === 1 ? [...sections][0] : null, domains: [...new Set(items.map((i) => i.domain))] };
@@ -75,7 +77,7 @@ export async function assignExternal(userId: string, classId: string, input: { t
   const dueAt = input.dueAt ? new Date(input.dueAt) : null;
   if (dueAt && Number.isNaN(dueAt.getTime())) throw new ClassError("That due date isn't valid.");
   return db.assignment.create({
-    data: { classId, kind: "EXTERNAL", title, note: input.note?.trim().slice(0, 2000) || null, dueAt, externalItems: items as unknown as Prisma.InputJsonValue, section: work.section, domains: work.domains },
+    data: { classId, kind: "EXTERNAL", title, note: input.note?.trim().slice(0, 2000) || null, dueAt, externalItems: items as unknown as Prisma.InputJsonValue, section: work.section, domains: work.domains, ...targets },
   });
 }
 
@@ -84,7 +86,7 @@ export const externalItemsOf = (a: { externalItems: Prisma.JsonValue }) => (Arra
 /** A student's view: the questions (links) and what they've recorded. */
 export async function getExternalAssignment(userId: string, assignmentId: string) {
   const a = await db.assignment.findFirst({ where: { id: assignmentId, kind: "EXTERNAL", class: { members: { some: { userId } }, archivedAt: null } }, include: { class: { select: { id: true, name: true } } } });
-  if (!a) throw new NotFoundError("Assignment not found");
+  if (!a || !(await isAssignedToStudent(a, userId))) throw new NotFoundError("Assignment not found");
   const results = await db.externalResult.findMany({ where: { assignmentId, userId } });
   const mine = new Map(results.map((r) => [r.itemKey, r]));
   return {
@@ -95,8 +97,8 @@ export async function getExternalAssignment(userId: string, assignmentId: string
 
 /** The student records how a College Board question went (the latest entry counts). */
 export async function recordExternal(userId: string, assignmentId: string, itemKey: string, raw: unknown) {
-  const a = await db.assignment.findFirst({ where: { id: assignmentId, kind: "EXTERNAL", class: { members: { some: { userId } }, archivedAt: null } }, select: { externalItems: true } });
-  if (!a) throw new NotFoundError("Assignment not found");
+  const a = await db.assignment.findFirst({ where: { id: assignmentId, kind: "EXTERNAL", class: { members: { some: { userId } }, archivedAt: null } }, select: { externalItems: true, classId: true, groupIds: true, studentIds: true } });
+  if (!a || !(await isAssignedToStudent(a, userId))) throw new NotFoundError("Assignment not found");
   if (!externalItemsOf(a).some((i) => i.key === itemKey)) throw new NotFoundError("Question not found");
   const parsed = ResultInput.safeParse(raw);
   if (!parsed.success) throw new ClassError("Choose correct, incorrect or skipped.");

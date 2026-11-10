@@ -81,6 +81,10 @@ model User {
   externalResults    ExternalResult[]
   diagnosticAttempts DiagnosticAttempt[]
   mistakes           MistakeItem[]
+  attendance         AttendanceRecord[]
+  guardians          GuardianContact[]
+  /// Staff: a daily email of new alerts.
+  staffDigest        Boolean             @default(false)
 
   /// Set on every login, for the Staff page.
   lastLoginAt      DateTime?
@@ -1118,22 +1122,26 @@ model ClassGroupMember {
 }
 
 model Class {
-  id           String        @id @default(cuid())
-  programId    String
-  program      Program       @relation(fields: [programId], references: [id], onDelete: Cascade)
-  staff        ClassStaff[]
-  staffInvites StaffInvite[]
-  groups       ClassGroup[]
-  teacherId    String
-  teacher      User          @relation("teacher", fields: [teacherId], references: [id], onDelete: Cascade)
-  name         String
-  joinCode     String        @unique
-  archivedAt   DateTime?
-  createdAt    DateTime      @default(now())
-  members      ClassMember[]
-  invites      ClassInvite[]
-  courses      ClassCourse[]
-  assignments  Assignment[]
+  id                String         @id @default(cuid())
+  programId         String
+  program           Program        @relation(fields: [programId], references: [id], onDelete: Cascade)
+  staff             ClassStaff[]
+  staffInvites      StaffInvite[]
+  groups            ClassGroup[]
+  sessions          ClassSession[]
+  alertStates       AlertState[]
+  /// Weekly progress emails to guardians who agreed to receive them.
+  guardianSummaries Boolean        @default(false)
+  teacherId         String
+  teacher           User           @relation("teacher", fields: [teacherId], references: [id], onDelete: Cascade)
+  name              String
+  joinCode          String         @unique
+  archivedAt        DateTime?
+  createdAt         DateTime       @default(now())
+  members           ClassMember[]
+  invites           ClassInvite[]
+  courses           ClassCourse[]
+  assignments       Assignment[]
 
   @@index([teacherId])
   @@index([programId])
@@ -1152,11 +1160,17 @@ model ClassMember {
 }
 
 model ClassInvite {
-  id        String   @id @default(cuid())
-  classId   String
-  class     Class    @relation(fields: [classId], references: [id], onDelete: Cascade)
-  email     String
-  createdAt DateTime @default(now())
+  id            String    @id @default(cuid())
+  classId       String
+  class         Class     @relation(fields: [classId], references: [id], onDelete: Cascade)
+  email         String
+  createdAt     DateTime  @default(now())
+  /// From a roster import: applied when the student joins.
+  groupName     String?
+  targetScore   Int?
+  baselineTotal Int?
+  baselineOn    DateTime?
+  name          String?
 
   @@unique([classId, email])
 }
@@ -1223,6 +1237,9 @@ model Assignment {
   diagnostic         Diagnostic?         @relation(fields: [diagnosticId], references: [id], onDelete: Restrict)
   opensAt            DateTime?
   closesAt           DateTime?
+  /// Who it's for: empty lists mean the whole class; otherwise these groups and/or students.
+  groupIds           String[]
+  studentIds         String[]
   diagnosticAttempts DiagnosticAttempt[]
   retakes            DiagnosticRetake[]
 
@@ -1539,4 +1556,74 @@ model MistakeItem {
 
   @@unique([studentId, sourceType, sourceId])
   @@index([studentId, retiredAt, due])
+}
+
+/// A tutoring session (one-off or one of a weekly series), for attendance.
+model ClassSession {
+  id          String             @id @default(cuid())
+  classId     String
+  class       Class              @relation(fields: [classId], references: [id], onDelete: Cascade)
+  groupId     String?
+  title       String?
+  startsAt    DateTime
+  endsAt      DateTime
+  createdById String
+  createdAt   DateTime           @default(now())
+  attendance  AttendanceRecord[]
+
+  @@index([classId, startsAt])
+}
+
+/// PRESENT, LATE, ABSENT or EXCUSED.
+model AttendanceRecord {
+  sessionId  String
+  session    ClassSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  studentId  String
+  student    User         @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  status     String
+  markedById String
+  markedAt   DateTime     @default(now())
+
+  @@id([sessionId, studentId])
+  @@index([studentId])
+}
+
+/// A dismissed or snoozed alert (alerts themselves are worked out fresh each time).
+model AlertState {
+  id            String    @id @default(cuid())
+  classId       String
+  class         Class     @relation(fields: [classId], references: [id], onDelete: Cascade)
+  studentId     String
+  kind          String
+  dismissedById String
+  /// Hidden until this time; null = dismissed until the situation changes (a new alert of this kind).
+  until         DateTime?
+  createdAt     DateTime  @default(now())
+
+  @@unique([classId, studentId, kind])
+}
+
+/// A parent or guardian who agreed to a weekly progress email.
+model GuardianContact {
+  id             String    @id @default(cuid())
+  studentId      String
+  student        User      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  name           String
+  email          String
+  relationship   String    @default("")
+  /// When and by whom consent was recorded (required to send anything).
+  consentAt      DateTime
+  consentById    String
+  unsubscribedAt DateTime?
+  unsubToken     String    @unique
+  lastSentOn     String?
+  createdAt      DateTime  @default(now())
+
+  @@unique([studentId, email])
+}
+
+/// Keys of scheduled emails already sent (e.g. "digest:<user>:<day>"), so each goes once.
+model SentNotice {
+  key       String   @id
+  createdAt DateTime @default(now())
 }

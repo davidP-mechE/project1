@@ -11,20 +11,22 @@ import { db } from "@/server/db";
 import { NotFoundError } from "@/server/courses";
 import { assignableCourses, getClassForTeacher } from "@/server/classes";
 import { requireUser } from "@/server/session";
+import { listGroups } from "@/server/groups";
 
-export const metadata: Metadata = { title: "Assign lessons" };
+export const metadata: Metadata = { title: "Assign" };
 
 /** Assign one of the teacher's courses, or chosen lessons from it. Each student gets their own copy. */
 export default async function AssignPage({ params }: PageProps<"/teach/[classId]/assign">) {
   const user = await requireUser();
   const { classId } = await params;
-  let c, courses;
+  let c, courses, g;
   try {
-    [c, courses] = await Promise.all([getClassForTeacher(user.id, classId), assignableCourses(user.id)]);
+    [c, courses, g] = await Promise.all([getClassForTeacher(user.id, classId), assignableCourses(user.id), listGroups(user.id, classId)]);
   } catch (err) {
     if (err instanceof NotFoundError) notFound();
     throw err;
   }
+  const targetOptions = { groups: g.groups.map((x) => ({ id: x.id, name: x.name })), students: c.members.map((m) => ({ id: m.user.id, name: m.user.name })) };
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-6">
       <ClassNav c={c} active="assign" />
@@ -41,20 +43,20 @@ export default async function AssignPage({ params }: PageProps<"/teach/[classId]
             </Link>
             .
           </p>
-          <AssignLessonsForm classId={c.id} courses={courses.map((x) => ({ id: x.id, title: x.title, units: x.units }))} />
+          <AssignLessonsForm classId={c.id} courses={courses.map((x) => ({ id: x.id, title: x.title, units: x.units }))} targetOptions={targetOptions} />
         </Card>
       )}
       <Card>
         <h2 className="mb-1 text-lg font-semibold">Diagnostic</h2>
         <p className="mb-4 text-sm text-muted">An adaptive, timed SAT-style diagnostic. Students get one attempt (you can allow retakes); the result becomes their baseline if they don&apos;t have one.</p>
-        <AssignDiagnosticForm classId={c.id} diagnostics={await db.diagnostic.findMany({ where: { programId: c.programId, status: "PUBLISHED" }, orderBy: { createdAt: "desc" }, select: { id: true, title: true } })} />
+        <AssignDiagnosticForm classId={c.id} diagnostics={await db.diagnostic.findMany({ where: { programId: c.programId, status: "PUBLISHED" }, orderBy: { createdAt: "desc" }, select: { id: true, title: true } })} targetOptions={targetOptions} />
       </Card>
       <Card>
         <h2 className="mb-1 text-lg font-semibold">College Board practice (by link)</h2>
         <p className="mb-4 text-sm text-muted">
           Attach questions from the College Board&apos;s Student Question Bank by their link and question ID. Students open them on the College Board site and record how they did here. Coursebook never copies or stores the questions themselves.
         </p>
-        <ExternalAssignForm classId={c.id} />
+        <ExternalAssignForm classId={c.id} targetOptions={targetOptions} />
       </Card>
     </div>
   );

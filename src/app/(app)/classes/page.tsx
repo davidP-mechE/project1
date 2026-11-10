@@ -1,3 +1,4 @@
+import { myAttendance } from "@/server/cohort";
 import { BaselineBanner } from "@/components/scores/baseline-banner";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -15,7 +16,7 @@ export const metadata: Metadata = { title: "Classes" };
 /** The student's classes: join one with a code; see what's assigned, when it's due, and how they did. */
 export default async function ClassesPage() {
   const user = await requireUser();
-  const classes = await myClasses(user.id);
+  const [classes, attendance] = await Promise.all([myClasses(user.id), myAttendance(user.id)]);
   const now = new Date();
   return (
     <div className="mx-auto flex max-w-4xl flex-col gap-6">
@@ -34,6 +35,7 @@ export default async function ClassesPage() {
               <div>
                 <h2 className="text-xl font-semibold">{c.name}</h2>
                 {c.teacherName && <p className="text-sm text-muted">Teacher: {c.teacherName}</p>}
+                {attendance.get(c.id) && <p className="text-sm text-muted">Attendance: {attendance.get(c.id)!.attended} of {attendance.get(c.id)!.marked} sessions</p>}
               </div>
               <LeaveClassButton classId={c.id} name={c.name} />
             </div>

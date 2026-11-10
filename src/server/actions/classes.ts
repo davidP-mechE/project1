@@ -53,8 +53,8 @@ export async function removeStudentAction(classId: string, studentId: string) {
 
 // ── Teacher: assignments ──
 const due = z.string().max(40).nullable().optional();
-export async function assignLessonsAction(classId: string, input: { courseId: string; lessonIds: string[]; title?: string; note?: string; dueAt?: string | null; subject?: string | null }) {
-  const parsed = z.object({ courseId: id, lessonIds: z.array(id).max(500), title: z.string().max(200).optional(), note: z.string().max(2000).optional(), dueAt: due, subject: z.string().max(40).nullable().optional() }).parse(input);
+export async function assignLessonsAction(classId: string, input: { courseId: string; lessonIds: string[]; title?: string; note?: string; dueAt?: string | null; subject?: string | null; targets?: { groupIds: string[]; studentIds: string[] } }) {
+  const parsed = z.object({ courseId: id, lessonIds: z.array(id).max(500), title: z.string().max(200).optional(), note: z.string().max(2000).optional(), dueAt: due, subject: z.string().max(40).nullable().optional(), targets: z.object({ groupIds: z.array(id).max(40), studentIds: z.array(id).max(500) }).optional() }).parse(input);
   // "MATH"/"RW" is a whole section; anything else is one domain.
   const subject = parsed.subject === "MATH" || parsed.subject === "RW" ? { section: parsed.subject, domains: [] } : parsed.subject ? { section: null, domains: [parsed.subject] } : {};
   return run(async (u) => ({ assignmentId: (await classes.assignLessons(u, id.parse(classId), { ...parsed, ...subject })).id }), [`/teach/${classId}`]);

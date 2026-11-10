@@ -12,6 +12,8 @@ import { db } from "@/server/db";
 import { planFor } from "@/server/pacing";
 import { openMistakesByDomain } from "@/server/mistakes";
 import { PlanView } from "@/components/sat/plan-view";
+import { GuardianForm } from "@/components/classes/cohort-forms";
+import { guardiansOf } from "@/server/cohort";
 
 export const metadata: Metadata = { title: "Student" };
 
@@ -75,6 +77,13 @@ export default async function StudentPage({ params }: PageProps<"/teach/[classId
         <Card>
           <h2 className="mb-3 text-lg font-semibold">Plan to test day</h2>
           <PlanView weeks={plan.weeks} testDate={plan.testDate} />
+        </Card>
+      )}
+      {(s.access.role === "ADMIN" || s.access.role === "TEACHER") && (
+        <Card>
+          <h2 className="mb-1 text-lg font-semibold">Guardians</h2>
+          <p className="mb-3 text-sm text-muted">Weekly progress emails go only to guardians who agreed, and only when the class has them turned on.</p>
+          <GuardianForm classId={classId} studentId={studentId} guardians={await guardiansOf(user.id, studentId, classId)} />
         </Card>
       )}
       {s.canEdit && (

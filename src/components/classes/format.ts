@@ -7,4 +7,4 @@ export const dueText = (d: Date | string | null, now = new Date()) => {
   return `${due < now ? "Was due" : "Due"} ${day}, ${time}`;
 };
 export const pct = (n: number | null | undefined) => (n === null || n === undefined ? "—" : `${Math.round(n * 100)}%`);
-export const STATUS_LABEL = { not_started: "Not started", in_progress: "In progress", done: "Done" } as const;
+export const STATUS_LABEL = { not_started: "Not started", in_progress: "In progress", done: "Done", not_assigned: "Not assigned" } as const;

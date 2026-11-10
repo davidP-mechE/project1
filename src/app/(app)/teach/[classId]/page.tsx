@@ -13,7 +13,7 @@ import { requireUser } from "@/server/session";
 export const metadata: Metadata = { title: "Class progress" };
 
 function CellView({ cell, questions }: { cell: Cell; questions: boolean }) {
-  const label = cell.status === "done" ? (questions ? pct(cell.score) : "Done") : cell.status === "in_progress" ? (questions ? `${cell.done}/${cell.total}` : `${cell.done}/${cell.total}`) : "—";
+  const label = cell.status === "done" ? (questions ? pct(cell.score) : "Done") : cell.status === "in_progress" ? (questions ? `${cell.done}/${cell.total}` : `${cell.done}/${cell.total}`) : cell.status === "not_assigned" ? "n/a" : "—";
   return (
     <span
       className={cn(
@@ -89,7 +89,7 @@ export default async function ClassProgressPage({ params }: PageProps<"/teach/[c
                     </th>
                     {grid.assignments.map((a) => (
                       <td key={a.id} className="px-3 py-2.5">
-                        <CellView cell={grid.cells[`${s.id}:${a.id}`]} questions={a.kind === "QUESTIONS"} />
+                        <CellView cell={grid.cells[`${s.id}:${a.id}`]} questions={a.kind !== "LESSONS"} />
                       </td>
                     ))}
                   </tr>

@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { assignDiagnosticAction, createDiagnosticAction, deleteDiagnosticAction, grantRetakeAction, publishDiagnosticAction } from "@/server/actions/practice";
 
+import { TargetPicker, type TargetOptions, type TargetValue } from "@/components/classes/target-picker";
+
 const select = "h-11 rounded-lg border border-border bg-surface px-3 text-sm";
 
 /** Build a diagnostic from the program's tagged questions (the server picks them, spread across domains). */
@@ -108,7 +110,8 @@ export function PublishDiagnosticButtons({ diagnosticId, published, assigned }: 
   );
 }
 
-export function AssignDiagnosticForm({ classId, diagnostics }: { classId: string; diagnostics: { id: string; title: string }[] }) {
+export function AssignDiagnosticForm({ classId, diagnostics, targetOptions }: { classId: string; diagnostics: { id: string; title: string }[]; targetOptions?: TargetOptions }) {
+  const [targets, setTargets] = useState<TargetValue>({ groupIds: [], studentIds: [] });
   const router = useRouter();
   const [diagnosticId, setDiagnosticId] = useState(diagnostics[0]?.id ?? "");
   const [opensAt, setOpensAt] = useState("");
@@ -122,7 +125,7 @@ export function AssignDiagnosticForm({ classId, diagnostics }: { classId: string
       onSubmit={(e) => {
         e.preventDefault();
         start(async () => {
-          const r = await assignDiagnosticAction(classId, { diagnosticId, opensAt: opensAt ? new Date(opensAt).toISOString() : null, closesAt: closesAt ? new Date(closesAt).toISOString() : null });
+          const r = await assignDiagnosticAction(classId, { diagnosticId, opensAt: opensAt ? new Date(opensAt).toISOString() : null, closesAt: closesAt ? new Date(closesAt).toISOString() : null, targets });
           setMsg(r.ok ? { tone: "success", text: "Assigned." } : { tone: "error", text: r.error });
           if (r.ok) router.refresh();
         });
@@ -142,6 +145,7 @@ export function AssignDiagnosticForm({ classId, diagnostics }: { classId: string
         <Field label="Opens (optional)" type="datetime-local" value={opensAt} onChange={(e) => setOpensAt(e.target.value)} />
         <Field label="Closes (optional)" type="datetime-local" value={closesAt} onChange={(e) => setClosesAt(e.target.value)} hint="Answers and explanations show after it closes." />
       </div>
+      {targetOptions && <TargetPicker options={targetOptions} value={targets} onChange={setTargets} />}
       {msg && <Alert tone={msg.tone}>{msg.text}</Alert>}
       <div>
         <Button type="submit" disabled={pending}>

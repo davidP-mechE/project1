@@ -6,6 +6,7 @@ import { assertStaffTwoFactor, assignmentAccess, classAccess, ClassError, member
 import { audit } from "./programs";
 import { addMistakes } from "./mistakes";
 import { addScore } from "./scores";
+import { cleanTargets, studentsTargeted, isAssignedToStudent, type Targets } from "./targets";
 import { DOMAINS, domainsOf, isSection, scopeCovers, type SectionId } from "@/lib/sat/domains";
 import { DEFAULT_CONVERSION, defaultThreshold, estimateSection, gridInMatches, routeFor, type Conversion, type Route } from "@/lib/sat/practice";
 import { quickCheck } from "@/lib/grading/normalize";
@@ -149,8 +150,9 @@ export async function listDiagnostics(userId: string) {
 }
 
 /** Assign a published diagnostic to a class, with an optional window. Its subject is its sections. */
-export async function assignDiagnostic(userId: string, classId: string, input: { diagnosticId: string; title?: string; opensAt?: string | null; closesAt?: string | null }) {
+export async function assignDiagnostic(userId: string, classId: string, input: { diagnosticId: string; title?: string; opensAt?: string | null; closesAt?: string | null; targets?: Partial<Targets> }) {
   const access = await classAccess(userId, classId, "teach");
+  const targets = await cleanTargets(access, input.targets);
   const d = await db.diagnostic.findFirst({ where: { id: input.diagnosticId, programId: access.programId, status: "PUBLISHED" }, include: { modules: { select: { section: true } } } });
   if (!d) throw new ClassError("Choose a published diagnostic from this program.");
   const sections = [...new Set(d.modules.map((m) => m.section))];
@@ -160,7 +162,7 @@ export async function assignDiagnostic(userId: string, classId: string, input: {
   const closesAt = input.closesAt ? new Date(input.closesAt) : null;
   if ((opensAt && Number.isNaN(opensAt.getTime())) || (closesAt && Number.isNaN(closesAt.getTime()))) throw new ClassError("Those dates aren't valid.");
   if (opensAt && closesAt && closesAt <= opensAt) throw new ClassError("It has to close after it opens.");
-  return db.assignment.create({ data: { classId, kind: "DIAGNOSTIC", title: input.title?.trim().slice(0, 200) || d.title, diagnosticId: d.id, opensAt, closesAt, dueAt: closesAt, ...work } });
+  return db.assignment.create({ data: { classId, kind: "DIAGNOSTIC", title: input.title?.trim().slice(0, 200) || d.title, diagnosticId: d.id, opensAt, closesAt, dueAt: closesAt, ...work, ...targets } });
 }
 
 /** Let a student take a diagnostic again (one more attempt). */
@@ -182,7 +184,7 @@ async function studentDiagnostic(userId: string, assignmentId: string) {
     where: { id: assignmentId, kind: "DIAGNOSTIC", class: { members: { some: { userId } }, archivedAt: null } },
     include: { diagnostic: { include: { modules: true } }, class: { select: { name: true } } },
   });
-  if (!a || !a.diagnostic) throw new NotFoundError("Diagnostic not found");
+  if (!a || !a.diagnostic || !(await isAssignedToStudent(a, userId))) throw new NotFoundError("Diagnostic not found");
   return a as typeof a & { diagnostic: NonNullable<typeof a.diagnostic> };
 }
 
@@ -398,7 +400,8 @@ export async function diagnosticReport(userId: string, assignmentId: string) {
   const access = await assignmentAccess(userId, assignmentId);
   const a = await db.assignment.findUniqueOrThrow({ where: { id: assignmentId }, include: { diagnostic: { include: { modules: true } }, class: { select: { members: { where: memberWhere(access), orderBy: { user: { name: "asc" } }, select: { user: { select: { id: true, name: true } } } } } } } });
   if (!a.diagnostic) throw new NotFoundError("Assignment not found");
-  const students = a.class.members.map((m) => m.user);
+  const forThem = await studentsTargeted(a, a.class.members.map((m) => m.user.id));
+  const students = a.class.members.map((m) => m.user).filter((u) => forThem.has(u.id));
   const attempts = await db.diagnosticAttempt.findMany({ where: { assignmentId, userId: { in: students.map((s) => s.id) } }, orderBy: { attemptNo: "asc" }, include: { answers: true } });
   const allItems = await db.worksheetItem.findMany({ where: { id: { in: a.diagnostic.modules.flatMap((m) => m.itemIds) } }, select: { id: true, domain: true, desmosSolvable: true } });
   const itemOf = new Map(allItems.map((i) => [i.id, i]));

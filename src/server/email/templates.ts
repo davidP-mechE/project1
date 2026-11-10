@@ -127,3 +127,31 @@ export function aiCapMessage(input: { to: string; programName: string; capUsd: s
   const outro = "If this was expected, you can raise the cap on the program page. If not, check the usage: it could be a bug or someone overusing it.";
   return { to: input.to, subject: `${input.programName}: daily AI cap reached`, text: `${intro}\n\n${input.url}\n\n${outro}`, html: layout("Daily AI cap reached", intro, "Open the program", input.url, outro) };
 }
+
+/** Staff: the day's alerts across their classes (names and counts only). */
+export function staffDigestMessage(input: { to: string; lines: { className: string; count: number; examples: string[] }[]; url: string }): EmailMessage {
+  const total = input.lines.reduce((n, l) => n + l.count, 0);
+  const intro = `${total} ${total === 1 ? "alert" : "alerts"} across your classes today: ${input.lines.map((l) => `${l.className} (${l.count})`).join(", ")}.`;
+  const body = input.lines.map((l) => `${l.className}:\n${l.examples.map((e) => `- ${e}`).join("\n")}${l.count > l.examples.length ? `\n- and ${l.count - l.examples.length} more` : ""}`).join("\n\n");
+  const outro = "You can turn this email off in Settings → Notifications.";
+  return { to: input.to, subject: `Coursebook: ${total} ${total === 1 ? "alert" : "alerts"} today`, text: `${intro}\n\n${body}\n\n${input.url}\n\n${outro}`, html: layout("Today's alerts", `${intro} ${input.lines.map((l) => l.examples.join("; ")).join("; ")}`, "Open your classes", input.url, outro) };
+}
+
+/** A guardian's weekly summary: fixed wording from the data, with a one-click unsubscribe. */
+export function guardianSummaryMessage(input: { to: string; guardianName: string; studentName: string; doneThisWeek: number; overdue: string[]; attended: number; sessions: number; latestScore: string | null; focus: string | null; unsubscribeUrl: string }): EmailMessage {
+  const lines = [
+    `Assignments finished this week: ${input.doneThisWeek}.`,
+    input.overdue.length ? `Overdue: ${input.overdue.slice(0, 5).join(", ")}${input.overdue.length > 5 ? ` and ${input.overdue.length - 5} more` : ""}.` : "Nothing overdue.",
+    input.sessions ? `Sessions attended: ${input.attended} of ${input.sessions}.` : null,
+    input.latestScore ? `Latest SAT score: ${input.latestScore}.` : null,
+    input.focus ? `Suggested focus for next week: ${input.focus}.` : null,
+  ].filter(Boolean) as string[];
+  const intro = `Hi ${input.guardianName}, here's ${input.studentName}'s week in their SAT tutoring program. ${lines.join(" ")}`;
+  const outro = "You're receiving this because you agreed to weekly updates. To stop them, use the link below.";
+  return {
+    to: input.to,
+    subject: `${input.studentName}'s week in SAT tutoring`,
+    text: `Hi ${input.guardianName},\n\nHere's ${input.studentName}'s week in their SAT tutoring program.\n\n${lines.map((l) => `- ${l}`).join("\n")}\n\n${outro}\nUnsubscribe: ${input.unsubscribeUrl}`,
+    html: layout(`${input.studentName}'s week`, intro, "Unsubscribe", input.unsubscribeUrl, outro),
+  };
+}

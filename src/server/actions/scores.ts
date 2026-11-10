@@ -47,8 +47,8 @@ export async function setProfileAction(patch: { targetScore?: number | null; tes
   return run((u) => scores.setProfile(u, p), ["/scores", "/dashboard", "/classes"]);
 }
 
-export async function assignExternalAction(classId: string, input: { title: string; items: unknown; note?: string; dueAt?: string | null }) {
-  const p = z.object({ title: z.string().max(200), items: z.unknown(), note: z.string().max(2000).optional(), dueAt: z.string().max(40).nullable().optional() }).parse(input);
+export async function assignExternalAction(classId: string, input: { title: string; items: unknown; note?: string; dueAt?: string | null; targets?: { groupIds: string[]; studentIds: string[] } }) {
+  const p = z.object({ title: z.string().max(200), items: z.unknown(), note: z.string().max(2000).optional(), dueAt: z.string().max(40).nullable().optional(), targets: z.object({ groupIds: z.array(id).max(40), studentIds: z.array(id).max(500) }).optional() }).parse(input);
   return run(async (u) => ({ assignmentId: (await external.assignExternal(u, id.parse(classId), p)).id }), [`/teach/${classId}`]);
 }
 export async function recordExternalAction(assignmentId: string, itemKey: string, input: unknown) {

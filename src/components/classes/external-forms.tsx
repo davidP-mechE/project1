@@ -9,12 +9,14 @@ import { assignExternalAction, recordExternalAction } from "@/server/actions/sco
 import { DOMAINS, SECTIONS, domainName } from "@/lib/sat/domains";
 import { MISS_REASONS, REASON_LABEL } from "@/lib/sat/scores";
 import { cn } from "@/lib/utils";
+import { TargetPicker, type TargetOptions, type TargetValue } from "./target-picker";
 
 type Row = { questionId: string; url: string; domain: string };
 const small = "h-9 rounded-lg border border-border bg-surface px-2 text-sm";
 
 /** Attach College Board Question Bank questions by link and ID. Nothing from the question itself is saved. */
-export function ExternalAssignForm({ classId }: { classId: string }) {
+export function ExternalAssignForm({ classId, targetOptions }: { classId: string; targetOptions?: TargetOptions }) {
+  const [targets, setTargets] = useState<TargetValue>({ groupIds: [], studentIds: [] });
   const router = useRouter();
   const [title, setTitle] = useState("");
   const [due, setDue] = useState("");
@@ -28,7 +30,7 @@ export function ExternalAssignForm({ classId }: { classId: string }) {
       onSubmit={(e) => {
         e.preventDefault();
         start(async () => {
-          const res = await assignExternalAction(classId, { title, items: rows, dueAt: due ? new Date(due).toISOString() : null });
+          const res = await assignExternalAction(classId, { title, items: rows, dueAt: due ? new Date(due).toISOString() : null, targets });
           if (!res.ok) return setMsg({ tone: "error", text: res.error });
           setMsg({ tone: "success", text: `Assigned ${rows.length} College Board question${rows.length === 1 ? "" : "s"}.` });
           setTitle("");
@@ -41,6 +43,7 @@ export function ExternalAssignForm({ classId }: { classId: string }) {
         <Field label="Assignment title" value={title} onChange={(e) => setTitle(e.target.value)} required maxLength={200} placeholder="e.g. Question Bank: linear equations" />
         <Field label="Due (optional)" type="datetime-local" value={due} onChange={(e) => setDue(e.target.value)} />
       </div>
+      {targetOptions && <TargetPicker options={targetOptions} value={targets} onChange={setTargets} />}
       <fieldset className="flex flex-col gap-2">
         <legend className="text-sm font-medium">Questions</legend>
         {rows.map((r, i) => (
