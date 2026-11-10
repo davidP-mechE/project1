@@ -1,10 +1,12 @@
-# Phase 3 spec: Coursebook for The 1600 Project
+# Phase 3 spec: tutoring programs in Coursebook (first program: The 1600 Project)
 
-Status: **draft for approval. No Phase 3 code has been written.** Approve, cut or change each feature (and each item in *Suggested additions*) before building starts.
+Status: **approved for building (10 Nov 2026)**, with the changes in §0.1. *Suggested additions* (§14) are not approved yet and won't be built until you pick them.
 
 ## 0. Context
 
-**The program.** The 1600 Project is a school SAT prep program: one admin (the president), 2 teachers, possibly student tutors, and about 15–30 students to start. The school average is about 970. The goal is a **+300-point average gain**, with student targets of **1200** and **1300**.
+**The feature.** Phase 3 adds a general **tutoring programs** feature to Coursebook: anyone running a tutoring program can set one up, add staff and students, and track progress. SAT-specific parts (the domain list, score scales, diagnostics) are the first subject template; nothing is hard-coded to one program.
+
+**The first program.** The 1600 Project is **your own** SAT prep program (not run by the school): you as admin, 2 teachers, possibly student tutors, and about 15–30 students to start. The school average is about 970. The goal is a **+300-point average gain**, with student targets of **1200** and **1300**.
 
 **What already exists (Phases 1–12 plus this phase), and which Phase 3 builds on:**
 
@@ -21,12 +23,21 @@ Status: **draft for approval. No Phase 3 code has been written.** Approve, cut o
 
 **Terminology this spec uses.** Your messages say "course" for a group of students (for example "add specialists to a course"). In the app, a *course* is study material made from a book or slides, so this spec uses:
 
-- **Program:** The 1600 Project as a whole. One program for now, but the data model allows more later.
+- **Program:** a tutoring program as a whole (yours is The 1600 Project). It has one **program admin**, which can be transferred.
 - **Class:** a cohort run by one or more teachers, like today's classes (for example "SAT Fall 2026").
 - **Group:** a subset of a class (a score band, a weak domain, a session time).
 - **Course:** study material, as today.
 
-✅ **Decided:** a specialist is added to a **class** (with a scope of domains and/or groups), not to a course.
+✅ **Decided:** a specialist is added to a **class** (with a scope of domains and/or groups), not to a course. Where your notes say "add staff to a course", this spec means a class.
+
+### 0.1 Changes in this revision
+
+- The 1600 Project is your own program, and the feature is general: **Program** is a first-class model with its own admin (§2 F0).
+- **Specialists and staff roles** are rewritten to your final list (F1), including **transferring the admin role** and **teachers and specialists reviewing AI grades for their own groups**.
+- New: **official College Board practice by link only** (S6).
+- **Deployment** (§11): I explain the options and wait for your choice before signing up for or configuring any service; a staging copy; an AI spending cap; your program's data kept in its own setup, separate from a future commercial version.
+- New: **documentation and handoff** (§11.1): an admin guide and a privacy-review note.
+- **Groups** (C1) move into the foundations, because staff scopes use them.
 
 ### Rules that apply to every feature
 
@@ -46,18 +57,19 @@ Status: **draft for approval. No Phase 3 code has been written.** Approve, cut o
 
 | Step | Feature | Depends on | Risk |
 |---|---|---|---|
-| 1 | **F1** Roles, staff and scopes (including Specialists) | – | **High**: everything relies on it |
-| 2 | **F2** SAT domains and skills taxonomy | F1 | Low |
+| 1 | **F0** Programs and admin transfer; **F2** SAT domains and skills; **C1** groups | – | Low |
+| 1 | **F1** Roles, staff and scopes (Specialists, invites, Staff page, audit log) | F0, F2, C1 | **High**: everything relies on it |
 | 3 | **F3** Question bank and versioning | F2 | Medium |
 | 4 | **F4** Security baseline (2FA, audit log, rate limits) | F1 | Medium |
-| 5 | **S1** Baseline score at signup; **S2** outside score entry | F1, F2 | Low |
+| 5 | **S1** Baseline score; **S2** outside score entry; **S6** College Board practice by link | F1, F2 | Low |
 | 6 | **P1** Adaptive SAT-style diagnostics | F2, F3, S1 | **High**: scoring is an estimate |
 | 7 | **P2** Mistake log; **P3** Desmos; **P4** test date and pacing | F3, P1 | Medium (P3: Desmos licensing) |
 | 8 | **S3** Score history; **S4** program dashboard; **S5** projection and stalling | S1, S2, P1 | Medium (projection accuracy) |
-| 9 | **C1–C6** Groups, attendance, bulk actions, alerts, parent email | F1, S-series | Medium (parent email consent) |
+| 9 | **C2–C6** Assign to groups, attendance, bulk actions, alerts, parent email | F1, C1, S-series | Medium (parent email consent) |
 | 10 | **A1–A5** Curriculum import and AI assistant | F2, C1, S-series | Medium (AI quality and cost) |
 | 11 | **R1–R10** Reliability, security and support | runs alongside steps 1–10 | Low–medium |
-| 12 | **D1** Deployment | after step 4 (go live early, behind invite-only sign-up) | Low |
+| 12 | **D1** Deployment code (backups, staging guard, AI cap, health checks); the hosting setup itself waits for your choice of services | F4 | Low |
+| 13 | **H1** Admin guide; **H2** privacy-review note | everything | Low |
 
 I'd build in releases of 1–3 steps. Each release ends with its permission tests, the browser journey, and screenshots.
 
@@ -65,69 +77,70 @@ I'd build in releases of 1–3 steps. Each release ends with its permission test
 
 ## 2. Foundations
 
-### F1. Roles, staff and scopes (includes **Specialists**)
+### F0. Programs and the admin role
 
 **What it does.**
+- A **program** groups classes, staff and students (yours: The 1600 Project). Its settings hold the subject template (SAT for now), score targets (1200, 1300; editable), test dates, and the AI spending cap.
+- The **program admin** (you) has full access to everything in the program.
+- **Transferring the admin role:** you pick a staff member, type the program name to confirm, and they become admin. You stay on as a teacher unless you remove yourself. The new admin gets an email, and the transfer goes in the audit log. Only the current admin can transfer the role (and the site admin can, as a recovery path if the admin leaves without handing over).
+- Every class belongs to one program. Existing classes move into a program for their teacher when the migration runs.
 
-*Program-level roles:*
+**Data model.** `Program` (`id`, `name`, `adminId`, `subject` = `SAT`, `targets Int[]`, `aiDailyCapCents`, `createdAt`); `Class.programId`.
 
-| Role | Who | Access |
-|---|---|---|
-| **Admin** | You | Everything; the only role that adds or removes staff, unless you grant a teacher "Can manage staff" |
-| **Student** | Each student | Their own work only |
+**Roles.** The program admin, plus the site admin for recovery.
 
-*Class-level staff roles:*
+**Tests.** Only the admin can transfer; the new admin gets full access at once and the old admin loses admin-only actions on their next request; the transfer writes an audit row; nobody else can see another program's classes.
+
+### F1. Specialists and staff roles
+
+**What it does.** Staff are added **per class**, the class standing in for "course" in your notes.
 
 | Role | Access |
 |---|---|
+| **Program admin** | Everything in the program; the only one who adds or removes staff, unless they grant a teacher "Can manage staff" |
 | **Teacher** | Full access to the class and all its groups |
-| **Specialist** | Teaches and grades only inside their **scope**: chosen SAT sections or domains (for example only Math, or only Advanced Math) and/or chosen groups |
-| **Student tutor** | Views, coaches and **grades** (including overriding AI grades), but only for the students assigned to them. Sees those students' scores. Can't export, manage staff or message parents |
-| **Viewer** | Read-only reports (a counselor, an observer); no student contact details by default |
+| **Specialist** | Teaches and grades only inside the **scope** the admin assigns: SAT sections (Math, Reading and Writing), domains (for example only Advanced Math), and/or groups. Student tutors are added as specialists scoped to the group of students they tutor (decided: they can view, coach and grade) |
+| **Viewer** | Read-only reports, for observers like a counselor or another teacher. Can't grade, assign, message or change anything |
+| **Student** | Their own work only |
 
-*Adding staff:*
+*Adding and managing staff:*
 
-- You add someone to a class by email and pick a role and scope.
-  - **Existing account:** they get access right away, plus a notification email.
-  - **No account:** they get an invite link that signs them up and lands them in the class.
-- **Invites** expire (default 7 days; configurable) and can be resent or cancelled.
-- You can change anyone's role or scope, or remove them, at any time. Changes take effect on their next request: access is checked on every request from the database, so nothing is cached per session.
-- **Staff page per class:** each person's name, role, scope, invite status, and last login.
-- **Audit log:** an append-only record of every role, scope, staff or permission change: who, what, before and after, when. Shown on the Staff page and in Admin.
+- The admin adds someone to a class **by email address**, picking the role and (for a specialist) the scope.
+  - **The email has an account:** they get access right away and an email notification.
+  - **No account yet:** they get an invite link that signs them up and lands them in the class.
+- **Pending invites expire** after a set time (7 days by default; a program setting). The admin can resend (which gives a fresh link and a new expiry) or cancel them.
+- The admin can **change a person's role or scope, or remove them**, at any time. **Removal takes effect immediately:** access is checked against the database on every request, so nothing is cached in their session.
+- **Staff page per class:** everyone's name, role, scope, last login, and pending invites.
+- **Audit log:** every role, scope, staff, invite and admin-transfer change records who changed what and when, with before and after. It has no edit or delete path. The admin sees it on the Staff page.
+- **AI grade review:** teachers and specialists see a **"Review AI grades"** list of written answers Claude graded, for the groups and subjects in their scope. They can confirm or override each one. Overrides are recorded and recalculate the student's score.
 
-*Scope enforcement:*
+*Scope enforcement (on the server):*
 
-- Every query that returns student work filters by the caller's scope **in the server function**, through one shared `accessFor(user, class)` helper that every class, report, grading and export function uses.
-- A specialist assigned to Math can't list, open, grade or export Reading and Writing assignments, answers or skill reports. They can't see students outside their groups, even by guessing ids, and get a "not found" response.
+- One helper, `classAccess(user, classId)`, works out the caller's role and scope. Every class, report, grading, export and student page uses it, and filters rows by it in the database query, not in the UI.
+- A specialist assigned to Math can't list, open, grade or export Reading and Writing assignments, answers or skill reports.
+- A specialist scoped to a group can't see students outside it.
+- Anything out of scope returns "not found", so ids can't be probed.
 
 **Data model.**
 
-- `User.role`: `ADMIN | USER` (exists). Plus `User.accountType`: `STUDENT | STAFF`, set at sign-up or by invite.
-- `ClassStaff`:
-  - `classId`, `userId`
-  - `role`: `TEACHER | SPECIALIST | TUTOR | VIEWER`
-  - `scopeSections String[]`: `MATH`, `RW`
-  - `scopeDomains String[]`
-  - `scopeGroupIds String[]`
-  - `canManageStaff Boolean`
-  - `addedById`, `createdAt`
-- `StaffInvite`: `classId`, `email`, role and scope, a hashed token, `expiresAt`, `invitedById`, `acceptedAt`, `cancelledAt`.
-- `AuditLog`: `actorId`, `action`, `targetType`, `targetId`, `before Json`, `after Json`, `createdAt`. Append-only: no update or delete path in code, and the database user is denied UPDATE/DELETE on this table where the host allows it.
-- `TutorAssignment`: `classId`, `tutorId`, `studentId` (student tutors only).
-- `Class.teacherId` stays as the owner. Today's single-teacher classes migrate to `ClassStaff(TEACHER)`.
+- `ClassStaff`: `classId`, `userId`, `role` (`TEACHER | SPECIALIST | VIEWER`), `sections String[]`, `domains String[]`, `groupIds String[]`, `canManageStaff Boolean`, `addedById`, `createdAt`.
+- `StaffInvite`: `classId`, `email`, role and scope, `tokenHash`, `expiresAt`, `invitedById`, `acceptedAt`, `cancelledAt`.
+- `AuditLog`: `programId`, `actorId`, `action`, `targetType`, `targetId`, `before Json`, `after Json`, `createdAt`.
+- `Assignment.section` and `Assignment.domains` (which subject an assignment covers, so scope can filter it).
+- `Class.teacherId` stays as the creator; every class gets a `ClassStaff(TEACHER)` row for them.
+- `User.lastLoginAt`, for the Staff page.
 
-**Roles.** Admin, and teachers with `canManageStaff`, manage staff. Everyone else can only see the Staff page (viewers and specialists see names and roles only).
+**Roles.** The program admin, and teachers granted "Can manage staff", manage staff. Other staff can see who else is on the Staff page.
 
-**Tests.** A table-driven suite: every role × scope × action. Actions: list students, view a student, view an assignment (Math and R&W), grade, override a grade, export, message, manage staff. Specific cases:
+**Tests.** A table-driven suite, every role × action: list students, view a student, view an assignment (Math and R&W), view its report, grade or override, assign, export, manage staff, transfer admin. Specific cases:
 
-- A Math specialist can't see, grade or export R&W work.
-- A group-scoped specialist can't see students outside the group.
-- A viewer can't edit anything.
-- A tutor sees only their students.
-- Removing staff blocks their very next request.
-- An expired, cancelled or reused invite fails.
+- A Math specialist can't see or grade R&W work, and a group-scoped specialist can't see students outside the group.
+- A viewer can read reports but can't change anything.
+- Removing a staff member blocks their very next request.
+- Expired, cancelled and already-used invites fail; resending makes the old link stop working.
 - Every change writes exactly one audit row.
 - Only the admin (or a granted teacher) can add or remove staff.
+- Staff of one program can't reach another program's classes.
 
 ### F2. SAT domains and skills
 
@@ -317,6 +330,23 @@ Filters: class, group, and teacher.
 - The calculation is deterministic on fixtures.
 - Stalling is flagged in both directions (no gain, or a drop).
 - A student sees only their own projection, always labelled as an estimate.
+
+---
+
+### S6. Official College Board practice (link-out only)
+
+**What it does.**
+
+- When making an assignment, a tutor can attach **College Board Student Question Bank questions by link and question ID** (for example `a1b2c3d4`), each with its section and domain.
+- Students open each question **on the College Board site** (a new tab), then come back and record their result: correct, incorrect or skipped, an optional reason, and optionally the time taken.
+- These results count toward the assignment's progress, domain reports and the mistake log (an incorrect one comes back as "retry question `a1b2c3d4` on College Board" until it's marked correct).
+- **No question content is copied or stored:** there are no fields for question text, choices or answers, and the server rejects unknown fields. Links must point at the College Board's own site.
+
+**Data model.** `Assignment.externalItems Json` (`[{ id, questionId, url, section, domain }]`); `ExternalResult` (`assignmentId`, `userId`, `itemKey`, `result`, `reason?`, `timeSec?`, `createdAt`).
+
+**Roles.** Teachers, and specialists within their scope, attach links. Students record their own results. Staff see results in scope.
+
+**Tests.** Only College Board links are accepted; content fields are rejected; a student can't record results for someone else or for an assignment they aren't given; an out-of-scope specialist can't see the results.
 
 ---
 
@@ -807,6 +837,34 @@ Database migrations run automatically on deploy (`prisma migrate deploy`). Rollb
 6. Invite staff, and then students.
 
 **Before real students:** privacy review (§8), invite-only sign-up turned on, two-factor for staff, the legal pages filled in, and a restore test done once.
+
+**I won't sign up for or configure any service** until you've chosen. The options, side by side:
+
+| Need | Option A (recommended) | Option B | Option C |
+|---|---|---|---|
+| Web app + worker + Redis | Railway (~$5–20) | Render (~$7 per service + Redis; ~$20–30) | One small Linux server (Hetzner or DigitalOcean, ~$6–12) with docker-compose; cheapest, but you maintain it |
+| Database | Neon (free; branches for staging) | Supabase (free tier pauses after a week idle) | Postgres on Railway (~$5) or on the same server |
+| Email | Resend (free: 3,000 a month) | Brevo (free: 300 a day) | Your school or Gmail SMTP: free but strict sending limits |
+
+**AI spending cap.** The program's daily cap (F4) stops AI features for the day once reached and emails the admin. You can also set a monthly limit in the Anthropic console.
+
+**Staging copy.** A second deployment from the `staging` branch with its own database (a Neon branch) and **fake data only**. It refuses to start if its database address matches production's, and it uses demo mode or a separate low-capped API key. Push to `staging`, try it, then merge to `main` to go live.
+
+**Your program's data stays in its own setup.** The 1600 Project runs on **its own deployment and database**, owned by you. A future commercial version of Coursebook would be a separate deployment with its own database, accounts and keys, so no 1600 Project student data is ever in it. The program model (F0) also keeps programs apart inside any one deployment.
+
+### 11.1 Documentation and handoff (H1, H2)
+
+- **H1. Admin guide (`ADMIN_GUIDE.md`, linked from the admin pages).** Plain steps, written for a teacher or younger student who takes over after you graduate:
+  - how to deploy an update (and roll it back)
+  - how backups work, and how to restore one (with a practice run)
+  - adding, changing and removing staff
+  - transferring the admin role
+  - starting a new semester: archiving classes, new join codes, carrying over students and question banks
+  - what to do when an error alert arrives
+  - where the passwords and keys live, and handing them over
+- **H2. Privacy-review note (`PRIVACY_REVIEW.md`).** A checklist to go through with your school before real students use the site: FERPA, COPPA (students under 13), parental consent for students under 18, the privacy policy and terms of use pages (the site has templates to fill in), and what data is collected and where it's stored. Not legal advice.
+
+**Tests.** The guide's commands are the real script names (a test checks each one exists in `package.json`).
 
 ---
 
