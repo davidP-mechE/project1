@@ -6,6 +6,7 @@ import { Card, PageHeader, ProgressBar } from "@/components/ui/misc";
 import { DeleteAssignmentButton, DueDateForm } from "@/components/classes/teacher-forms";
 import { dueText, pct, STATUS_LABEL } from "@/components/classes/format";
 import { cn } from "@/lib/utils";
+import { RegradeButton } from "@/components/classes/regrade-button";
 import { NotFoundError } from "@/server/courses";
 import { assignmentReport } from "@/server/classes";
 import { requireUser } from "@/server/session";
@@ -115,6 +116,7 @@ export default async function AssignmentReportPage({ params }: PageProps<"/teach
                   {q.answered} answered · {pct(q.correctRate)} correct
                 </span>
               </div>
+              {q.olderAnswers > 0 && r.access.role !== "VIEWER" && <RegradeButton assignmentId={r.assignment.id} itemId={q.id} classId={r.assignment.classId} count={q.olderAnswers} version={q.version} />}
               <ProgressBar value={(q.correctRate ?? 0) * 100} label={`Question ${q.label}: ${pct(q.correctRate)} correct`} className="h-1.5" />
               <Markdown>{q.prompt}</Markdown>
               {q.choices.length > 0 ? (

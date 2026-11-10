@@ -13,6 +13,8 @@ import {
   type Usage,
 } from "@/lib/usage/limits";
 import { getGenerationEstimate } from "./outline";
+import { sendEmail } from "./email";
+import { aiCapMessage } from "./email/templates";
 import { AiError } from "./ai/writer";
 
 /**
@@ -80,11 +82,54 @@ export async function getUsage(userId: string, now = new Date()): Promise<{ plan
   };
 }
 
-/** Before anything calls Claude for this student: is there allowance left this month? */
+/** Before anything calls Claude for this student: is there allowance left this month, and in their programs today? */
 export async function assertAiBudget(userId: string, now = new Date()) {
   const [plan, aiUsd] = await Promise.all([planOf(userId), aiUsdThisMonth(userId, now)]);
   const check = checkAiBudget({ aiUsd }, limitsForPlan(plan), now);
   if (!check.ok) throw new LimitError(check.error);
+  await assertProgramAiCap(userId, now);
+}
+
+/** Everyone in a program: its admin, staff and students. */
+async function programPeople(programId: string) {
+  const [p, staff, members] = await Promise.all([
+    db.program.findUniqueOrThrow({ where: { id: programId }, select: { adminId: true } }),
+    db.classStaff.findMany({ where: { class: { programId } }, select: { userId: true } }),
+    db.classMember.findMany({ where: { class: { programId } }, select: { userId: true } }),
+  ]);
+  return [...new Set([p.adminId, ...staff.map((x) => x.userId), ...members.map((m) => m.userId)])];
+}
+
+/** Claude spend today (UTC) by everyone in a program, in dollars. */
+export async function programAiUsdToday(programId: string, now = new Date()) {
+  const day = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+  const agg = await db.usageEvent.aggregate({ where: { userId: { in: await programPeople(programId) }, createdAt: { gte: day } }, _sum: { costMicroUsd: true } });
+  return (agg._sum.costMicroUsd ?? 0) / 1_000_000;
+}
+
+/**
+ * A program's daily AI cap stops runaway spending (a bug, or someone hammering
+ * a feature): once everyone's spend today reaches it, AI features pause for the
+ * whole program until midnight UTC, and the admin is emailed once that day.
+ */
+export async function assertProgramAiCap(userId: string, now = new Date()) {
+  const programs = await db.program.findMany({
+    where: { aiDailyCapCents: { not: null }, OR: [{ adminId: userId }, { classes: { some: { OR: [{ staff: { some: { userId } } }, { members: { some: { userId } } }] } } }] },
+    select: { id: true, name: true, aiDailyCapCents: true, aiCapAlertedOn: true, admin: { select: { email: true } } },
+  });
+  for (const p of programs) {
+    const spent = await programAiUsdToday(p.id, now);
+    if (spent * 100 < p.aiDailyCapCents!) continue;
+    const today = now.toISOString().slice(0, 10);
+    const capUsd = `$${(p.aiDailyCapCents! / 100).toFixed(2)}`;
+    if (p.aiCapAlertedOn !== today) {
+      const claimed = await db.program.updateMany({ where: { id: p.id, OR: [{ aiCapAlertedOn: null }, { aiCapAlertedOn: { not: today } }] }, data: { aiCapAlertedOn: today } });
+      if (claimed.count) {
+        await sendEmail(aiCapMessage({ to: p.admin.email, programName: p.name, capUsd, url: `${env.APP_URL}/teach/programs/${p.id}` })).catch((err) => console.warn("[limits] cap email not sent:", err instanceof Error ? err.message : err));
+      }
+    }
+    throw new LimitError(`${p.name} has reached its daily AI limit (${capUsd}). AI features are paused until midnight UTC; your program admin has been told.`);
+  }
 }
 
 /** Before queueing lessons to be written: do their pages and estimated cost fit this month's allowance? */

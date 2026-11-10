@@ -465,6 +465,23 @@ Phase 3 (see `PHASE3_SPEC.md`) turns classes into a general tutoring-program fea
 - **No official content**: the worksheet reader refuses official College Board, SAT or Bluebook material, and points teachers to linking College Board questions instead.
 - **Deleting an account**: a program admin with other staff or students must hand the role over first.
 
+### Security
+
+- **Two-factor login** (**Settings → Two-factor login**): an authenticator-app code at login, with 10 single-use backup codes. It's **required for program admins and staff**. Until it's on, every teaching page sends them to set it up, and every server function that returns student data refuses (`assertStaffTwoFactor` in `src/server/access.ts`). Students can turn it on too. If a staff member loses their phone and backup codes, the program admin can **Reset two-factor** on the Staff page (logs them out; audited). `STAFF_TWO_FACTOR=off` turns enforcement off for local development and the browser test only.
+- **Rate limits**:
+  - **Login and sign-up:** 5 a minute.
+  - **Two-factor codes:** 5 a minute, and the plugin also locks after repeated failures.
+  - **Password reset:** 3 per 5 minutes.
+  - **Staff invites:** 40 a day.
+  - **Class invites:** 100 a day.
+  - **Join codes:** 10 an hour.
+  - **Worksheet uploads:** 20 an hour.
+  - **Answers checked by Claude:** an hourly limit.
+  - **AI:** each person has a monthly allowance, and the **program's daily AI cap** (program page) pauses AI for everyone in the program once the day's spend reaches it, emailing the admin once (`assertProgramAiCap` in `src/server/limits.ts`).
+- **Question versions**: editing a question students have already answered keeps the old version and makes a new one. Past answers keep their grades and record which version they answered. The assignment report flags them, and **Re-grade against the current version** is an explicit, audited step (multiple choice and exact matches are re-checked; other written answers go back to **Review AI grades**). Deleting an answered question archives it instead, so no grade disappears.
+
+Tests: `tests/integration/security.test.ts`.
+
 Every permission and scope rule has a test in `tests/integration/permissions.test.ts`. For example, a Math specialist can't see or grade Reading and Writing work, a group-scoped specialist can't see other students, and a removed staff member is locked out on their next request.
 
 ## Manual test checklist (classes and worksheets)

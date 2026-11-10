@@ -81,7 +81,7 @@ export async function getWorksheet(userId: string, worksheetId: string) {
   const ws = await db.worksheet.findFirst({
     where: { id: worksheetId, ownerId: userId },
     include: {
-      items: { orderBy: { order: "asc" } },
+      items: { where: { archivedAt: null }, orderBy: { order: "asc" }, include: { _count: { select: { answers: true, versions: true } } } },
       assignments: { orderBy: { createdAt: "desc" }, select: { id: true, title: true, itemIds: true, dueAt: true, class: { select: { id: true, name: true } } } },
     },
   });
@@ -99,9 +99,14 @@ export type ItemEdit = {
   topic: string;
 };
 
-/** The teacher fixes a question or its answer. Their answer is then the answer key. */
+/**
+ * The teacher fixes a question or its answer. Their answer is then the answer key.
+ * If students already answered this version, the old one is kept and the
+ * question gets a new version: past answers keep their grades (re-grading is a
+ * separate, explicit step).
+ */
 export async function updateWorksheetItem(userId: string, itemId: string, edit: ItemEdit) {
-  const item = await db.worksheetItem.findFirst({ where: { id: itemId, worksheet: { ownerId: userId } }, select: { id: true } });
+  const item = await db.worksheetItem.findFirst({ where: { id: itemId, worksheet: { ownerId: userId } } });
   if (!item) throw new NotFoundError("Question not found");
   const prompt = edit.prompt.trim();
   if (!prompt) throw new WorksheetError("The question can't be empty.");
@@ -112,9 +117,7 @@ export async function updateWorksheetItem(userId: string, itemId: string, edit: 
   } else if (!edit.answer.trim()) {
     throw new WorksheetError("Add the answer, so students' answers can be checked.");
   }
-  await db.worksheetItem.update({
-    where: { id: itemId },
-    data: {
+  const data = {
       type: edit.type,
       prompt: prompt.slice(0, 20_000),
       choices: edit.type === "MULTIPLE_CHOICE" ? choices : [],
@@ -124,14 +127,31 @@ export async function updateWorksheetItem(userId: string, itemId: string, edit: 
       steps: edit.type === "STEP_BY_STEP" ? undefined : [],
       topic: edit.topic.trim().slice(0, 60) || "General",
       answerSource: "TEACHER",
-    },
+  };
+  const answered = await db.assignmentAnswer.count({ where: { itemId, itemVersion: item.version } });
+  const changed =
+    data.type !== item.type ||
+    data.prompt !== item.prompt ||
+    data.answer !== item.answer ||
+    data.correctChoice !== item.correctChoice ||
+    data.explanation !== item.explanation ||
+    JSON.stringify(data.choices) !== JSON.stringify(item.choices);
+  await db.$transaction(async (tx) => {
+    if (answered > 0 && changed) {
+      await tx.worksheetItemVersion.create({
+        data: { itemId, version: item.version, type: item.type, prompt: item.prompt, choices: item.choices, correctChoice: item.correctChoice, answer: item.answer, explanation: item.explanation, steps: item.steps, editedById: userId },
+      });
+    }
+    await tx.worksheetItem.update({ where: { id: itemId }, data: { ...data, ...(answered > 0 && changed ? { version: item.version + 1 } : {}) } });
   });
 }
 
+/** Remove a question. If students answered it, it's archived instead, so their answers and grades stay. */
 export async function deleteWorksheetItem(userId: string, itemId: string) {
-  const item = await db.worksheetItem.findFirst({ where: { id: itemId, worksheet: { ownerId: userId } }, select: { id: true } });
+  const item = await db.worksheetItem.findFirst({ where: { id: itemId, worksheet: { ownerId: userId } }, select: { id: true, _count: { select: { answers: true } } } });
   if (!item) throw new NotFoundError("Question not found");
-  await db.worksheetItem.delete({ where: { id: itemId } });
+  if (item._count.answers > 0) await db.worksheetItem.update({ where: { id: itemId }, data: { archivedAt: new Date() } });
+  else await db.worksheetItem.delete({ where: { id: itemId } });
 }
 
 export async function renameWorksheet(userId: string, worksheetId: string, title: string) {

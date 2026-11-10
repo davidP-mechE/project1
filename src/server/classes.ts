@@ -19,6 +19,8 @@ import { checkResponse, quickCheck } from "@/lib/grading/normalize";
 import { assignmentAccess, assignmentInScope, classAccess, ClassError, memberWhere, type ClassAccess } from "./access";
 import { scopeCovers, isSection, isDomain, workDomains } from "@/lib/sat/domains";
 import { ensureProgramFor } from "./programs";
+import { externalItemsOf } from "./external";
+import type { Prisma } from "@/generated/prisma/client";
 
 export { ClassError };
 
@@ -285,7 +287,7 @@ export type QuestionAssignmentInput = {
 
 /** Assign questions from a worksheet to one or more classes, optionally filed under a course and timed. */
 export async function assignQuestions(userId: string, input: QuestionAssignmentInput) {
-  const ws = await db.worksheet.findFirst({ where: { id: input.worksheetId, ownerId: userId, status: "READY" }, select: { id: true, title: true, items: { orderBy: { order: "asc" }, select: { id: true, section: true, domain: true } } } });
+  const ws = await db.worksheet.findFirst({ where: { id: input.worksheetId, ownerId: userId, status: "READY" }, select: { id: true, title: true, items: { where: { archivedAt: null }, orderBy: { order: "asc" }, select: { id: true, section: true, domain: true } } } });
   if (!ws) throw new ClassError("Choose a worksheet that has finished reading.");
   const order = ws.items.map((i) => i.id);
   const chosen = input.itemIds.length ? order.filter((id) => input.itemIds.includes(id)) : order;
@@ -392,7 +394,7 @@ export async function startLessons(userId: string, assignmentId: string): Promis
   return { courseId, lessonId: next?.id ?? null };
 }
 
-type ItemForGrading = { id: string; type: "MULTIPLE_CHOICE" | "SHORT_ANSWER" | "STEP_BY_STEP"; prompt: string; choices: string[]; correctChoice: number | null; answer: string; explanation: string; steps: string[]; topic: string };
+type ItemForGrading = { id: string; type: "MULTIPLE_CHOICE" | "SHORT_ANSWER" | "STEP_BY_STEP"; prompt: string; choices: string[]; correctChoice: number | null; answer: string; explanation: string; steps: string[]; topic: string; version: number };
 
 /** Clock for a timed set: when it ends, and whether answers are still taken. */
 function timing(a: { timeLimitMin: number | null }, start: { startedAt: Date; submittedAt: Date | null } | null, now: Date) {
@@ -494,7 +496,7 @@ export async function answerQuestion(
 
   const g = await gradeItem(userId, item, input, deps);
   await db.assignmentAnswer.create({
-    data: { assignmentId, itemId, userId, choice: g.choice, response: g.response, correct: g.result.correct, score: g.result.score, verdict: g.result.verdict, feedback: g.result.feedback, gradedBy: g.gradedBy },
+    data: { assignmentId, itemId, userId, choice: g.choice, response: g.response, correct: g.result.correct, score: g.result.score, verdict: g.result.verdict, feedback: g.result.feedback, gradedBy: g.gradedBy, itemVersion: item.version },
   });
   await bumpActivity(userId, { questionsAnswered: 1, questionsCorrect: g.result.correct ? 1 : 0 });
   // In a timed set the result stays hidden until it's handed in.
@@ -540,13 +542,14 @@ async function gradeItem(userId: string, item: ItemForGrading, input: { choice?:
 export type CellStatus = "not_started" | "in_progress" | "done";
 export type Cell = { status: CellStatus; done: number; total: number; score: number | null; late: boolean; lastActive: Date | null };
 
-type AssignmentRow = { id: string; kind: "LESSONS" | "QUESTIONS"; dueAt: Date | null; timeLimitMin: number | null; lessonIds: string[]; itemIds: string[]; classCourseId: string | null };
+type AssignmentRow = { id: string; kind: "LESSONS" | "QUESTIONS" | "EXTERNAL"; dueAt: Date | null; timeLimitMin: number | null; lessonIds: string[]; itemIds: string[]; classCourseId: string | null; externalItems?: Prisma.JsonValue };
 
 /** Every student's progress on every assignment of a class (students × assignments). */
 async function progressCells(classId: string, students: string[], assignments: AssignmentRow[], now: Date) {
   const cells = new Map<string, Cell>(); // `${studentId}:${assignmentId}`
   const classCourseIds = [...new Set(assignments.flatMap((a) => (a.kind === "LESSONS" && a.classCourseId ? [a.classCourseId] : [])))];
-  const [copies, answers, starts] = await Promise.all([
+  const externalIds = assignments.filter((a) => a.kind === "EXTERNAL").map((a) => a.id);
+  const [copies, answers, starts, external] = await Promise.all([
     classCourseIds.length
       ? db.course.findMany({
           where: { userId: { in: students }, classCourseId: { in: classCourseIds } },
@@ -559,7 +562,10 @@ async function progressCells(classId: string, students: string[], assignments: A
       : [],
     db.assignmentAnswer.findMany({ where: { assignment: { classId }, userId: { in: students } }, orderBy: { createdAt: "asc" }, select: { assignmentId: true, userId: true, itemId: true, score: true, createdAt: true } }),
     db.assignmentStart.findMany({ where: { assignment: { classId }, userId: { in: students } }, select: { assignmentId: true, userId: true, startedAt: true, submittedAt: true } }),
+    externalIds.length ? db.externalResult.findMany({ where: { assignmentId: { in: externalIds }, userId: { in: students } }, select: { assignmentId: true, userId: true, itemKey: true, result: true, createdAt: true } }) : [],
   ]);
+  const externalOf = new Map<string, typeof external>();
+  for (const r of external) externalOf.set(`${r.userId}:${r.assignmentId}`, [...(externalOf.get(`${r.userId}:${r.assignmentId}`) ?? []), r]);
   const copyOf = new Map(copies.map((c) => [`${c.userId}:${c.classCourseId}`, c]));
   const latest = new Map<string, { score: number; at: Date }>(); // `${user}:${assignment}:${item}`
   for (const x of answers) latest.set(`${x.userId}:${x.assignmentId}:${x.itemId}`, { score: x.score, at: x.createdAt });
@@ -568,7 +574,20 @@ async function progressCells(classId: string, students: string[], assignments: A
   for (const studentId of students) {
     for (const a of assignments) {
       let cell: Cell;
-      if (a.kind === "LESSONS") {
+      if (a.kind === "EXTERNAL") {
+        const keys = new Set(externalItemsOf({ externalItems: a.externalItems ?? [] }).map((i) => i.key));
+        const got = (externalOf.get(`${studentId}:${a.id}`) ?? []).filter((r) => keys.has(r.itemKey));
+        const last = got.reduce<Date | null>((m, r) => (!m || r.createdAt > m ? r.createdAt : m), null);
+        const finished = keys.size > 0 && got.length >= keys.size;
+        cell = {
+          status: finished ? "done" : got.length ? "in_progress" : "not_started",
+          done: got.length,
+          total: keys.size,
+          score: got.length ? got.filter((r) => r.result === "CORRECT").length / keys.size : null,
+          late: Boolean(a.dueAt && (finished ? (last ?? now) > a.dueAt : now > a.dueAt)),
+          lastActive: last,
+        };
+      } else if (a.kind === "LESSONS") {
         const copy = a.classCourseId ? copyOf.get(`${studentId}:${a.classCourseId}`) : undefined;
         const lessons = copy ? copy.lessons.filter((l) => (a.lessonIds.length ? a.lessonIds.includes(l.sourceLessonId ?? "") : true)) : [];
         const total = a.lessonIds.length || lessons.length;
@@ -610,7 +629,7 @@ export async function classProgress(userId: string, classId: string, now = new D
       members: { where: memberWhere(access), orderBy: { user: { name: "asc" } }, select: { user: { select: { id: true, name: true, email: true } } } },
       assignments: {
         orderBy: [{ dueAt: { sort: "asc", nulls: "last" } }, { createdAt: "asc" }],
-        select: { id: true, kind: true, title: true, dueAt: true, timeLimitMin: true, lessonIds: true, itemIds: true, classCourseId: true, section: true, domains: true, classCourse: { select: { title: true } } },
+        select: { id: true, kind: true, title: true, dueAt: true, timeLimitMin: true, lessonIds: true, itemIds: true, classCourseId: true, section: true, domains: true, externalItems: true, classCourse: { select: { title: true } } },
       },
     },
   });
@@ -650,6 +669,9 @@ export async function assignmentReport(userId: string, assignmentId: string, now
     correctChoice: number | null;
     answer: string;
     answerSource: string;
+    version: number;
+    /** Latest answers given to an earlier version of the question (their grades are kept until re-graded). */
+    olderAnswers: number;
     answered: number;
     correctRate: number | null;
     choiceCounts: number[];
@@ -677,6 +699,8 @@ export async function assignmentReport(userId: string, assignmentId: string, now
           correctChoice: i.correctChoice,
           answer: i.answer,
           answerSource: i.answerSource,
+          version: i.version,
+          olderAnswers: got.filter((g) => g.itemVersion < i.version).length,
           answered: got.length,
           correctRate: got.length ? got.reduce((n, g) => n + g.score, 0) / got.length : null,
           choiceCounts,
@@ -743,7 +767,7 @@ export async function myClasses(userId: string, now = new Date()) {
           teacher: { select: { name: true } },
           assignments: {
             orderBy: [{ dueAt: { sort: "asc", nulls: "last" } }, { createdAt: "asc" }],
-            select: { id: true, kind: true, title: true, note: true, dueAt: true, timeLimitMin: true, lessonIds: true, itemIds: true, classCourseId: true, classCourse: { select: { title: true } } },
+            select: { id: true, kind: true, title: true, note: true, dueAt: true, timeLimitMin: true, lessonIds: true, itemIds: true, classCourseId: true, externalItems: true, classCourse: { select: { title: true } } },
           },
         },
       },

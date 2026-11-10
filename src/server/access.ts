@@ -26,6 +26,30 @@ export class ClassError extends Error {
   }
 }
 
+/** Staff must have two-factor login on before they can see student data. */
+export class TwoFactorRequiredError extends ClassError {
+  constructor() {
+    super("Turn on two-factor login (Settings → Two-factor login) before opening student data. It's required for program staff.", 403);
+  }
+}
+
+/** On unless STAFF_TWO_FACTOR=off (local development and the browser test). */
+export const staffTwoFactorRequired = () => process.env.STAFF_TWO_FACTOR !== "off";
+
+/** Is this person on a program's staff (or its admin) without two-factor login? */
+export async function needsStaffTwoFactor(userId: string) {
+  if (!staffTwoFactorRequired()) return false;
+  const u = await db.user.findUnique({ where: { id: userId }, select: { twoFactorEnabled: true } });
+  if (!u || u.twoFactorEnabled) return false;
+  return (await db.class.count({ where: { OR: [{ program: { adminId: userId } }, { staff: { some: { userId } } }] } })) > 0;
+}
+
+export async function assertStaffTwoFactor(userId: string) {
+  if (!staffTwoFactorRequired()) return;
+  const u = await db.user.findUnique({ where: { id: userId }, select: { twoFactorEnabled: true } });
+  if (!u?.twoFactorEnabled) throw new TwoFactorRequiredError();
+}
+
 export type ClassRole = "ADMIN" | "TEACHER" | "SPECIALIST" | "VIEWER";
 export type Ability = "view" | "teach" | "grade" | "manageClass" | "manageStaff" | "export";
 
@@ -100,6 +124,7 @@ export async function classAccess(userId: string, classId: string, ability: Abil
   } else {
     throw new NotFoundError("Class not found");
   }
+  await assertStaffTwoFactor(userId);
   requireAbility(access, ability);
   return access;
 }

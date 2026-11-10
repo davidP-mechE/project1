@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 import { TagEditor, type Tags } from "./tag-editor";
 
 type ItemType = "MULTIPLE_CHOICE" | "SHORT_ANSWER" | "STEP_BY_STEP";
-export type EditorItem = { id: string; label: string; type: ItemType; prompt: string; choices: string[]; correctChoice: number | null; answer: string; explanation: string; steps: string[]; topic: string; answerSource: string; tags: Tags };
+export type EditorItem = { id: string; label: string; type: ItemType; prompt: string; choices: string[]; correctChoice: number | null; answer: string; explanation: string; steps: string[]; topic: string; answerSource: string; tags: Tags; version: number; answered: number };
 
 const letter = (i: number) => String.fromCharCode(65 + i);
 const TYPE_LABEL: Record<ItemType, string> = { MULTIPLE_CHOICE: "Multiple choice", SHORT_ANSWER: "Short answer", STEP_BY_STEP: "Step by step" };
@@ -79,6 +79,7 @@ export function ItemCard({ worksheetId, item, number }: { worksheetId: string; i
       <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
         <span className="text-muted">
           {number}. #{item.label} · {TYPE_LABEL[item.type]} · {item.topic}
+          {item.version > 1 && ` · version ${item.version}`}
         </span>
         <span className={cn("rounded px-1.5 py-0.5 font-medium", source.tone)}>{source.label}</span>
       </div>
@@ -178,6 +179,7 @@ export function ItemCard({ worksheetId, item, number }: { worksheetId: string; i
             <span className="font-medium">Explanation (shown after answering)</span>
             <textarea value={form.explanation} onChange={(e) => setForm({ ...form, explanation: e.target.value })} rows={2} className="rounded-lg border border-border bg-surface px-3 py-2" />
           </label>
+          {item.answered > 0 && <Alert tone="info">Students have answered this question. Saving a change makes version {item.version + 1}; their earlier answers keep their grades unless you re-grade them from the assignment&apos;s report.</Alert>}
           <Field label="Skill" value={form.topic} onChange={(e) => setForm({ ...form, topic: e.target.value })} maxLength={60} />
           {error && <Alert tone="error">{error}</Alert>}
           <div className="flex gap-2">

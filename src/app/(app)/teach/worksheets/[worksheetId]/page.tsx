@@ -100,7 +100,7 @@ export default async function WorksheetPage({ params }: PageProps<"/teach/worksh
               <ConfirmAllTagsButton worksheetId={ws.id} count={ws.items.filter((i) => !i.tagsConfirmed).length} />
             </div>
             {ws.items.map((i, n) => (
-              <ItemCard key={i.id} worksheetId={ws.id} number={n + 1} item={{ id: i.id, label: i.label, type: i.type, prompt: i.prompt, choices: i.choices, correctChoice: i.correctChoice, answer: i.answer, explanation: i.explanation, steps: i.steps, topic: i.topic, answerSource: i.answerSource, tags: { domain: i.domain, skill: i.skill, difficulty: i.difficulty, desmosSolvable: i.desmosSolvable, tagsConfirmed: i.tagsConfirmed } }} />
+              <ItemCard key={i.id} worksheetId={ws.id} number={n + 1} item={{ id: i.id, label: i.label, type: i.type, prompt: i.prompt, choices: i.choices, correctChoice: i.correctChoice, answer: i.answer, explanation: i.explanation, steps: i.steps, topic: i.topic, answerSource: i.answerSource, tags: { domain: i.domain, skill: i.skill, difficulty: i.difficulty, desmosSolvable: i.desmosSolvable, tagsConfirmed: i.tagsConfirmed }, version: i.version, answered: i._count.answers }} />
             ))}
           </section>
         </>

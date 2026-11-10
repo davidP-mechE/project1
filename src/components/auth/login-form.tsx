@@ -22,7 +22,7 @@ export function LoginForm({ googleEnabled, notice, next = "/library" }: { google
     setBusy(true);
     setError(null);
     setInfo(null);
-    const { error } = await authClient.signIn.email({
+    const { data, error } = await authClient.signIn.email({
       email: String(form.get("email")),
       password: String(form.get("password")),
       callbackURL: next,
@@ -36,6 +36,11 @@ export function LoginForm({ googleEnabled, notice, next = "/library" }: { google
       } else {
         setError("That email and password don't match. Check them and try again.");
       }
+      return;
+    }
+    // Two-factor accounts confirm a code from their authenticator app next.
+    if (data && "twoFactorRedirect" in data && data.twoFactorRedirect) {
+      router.push(`/login/two-factor?next=${encodeURIComponent(next)}`);
       return;
     }
     router.push(next);

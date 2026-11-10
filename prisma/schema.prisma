@@ -76,8 +76,15 @@ model User {
   classStaff         ClassStaff[]        @relation("staffUser")
   groupMemberships   ClassGroupMember[]
 
+  scoreRecords    ScoreRecord[]    @relation("scores")
+  studentProfile  StudentProfile?
+  externalResults ExternalResult[]
+
   /// Set on every login, for the Staff page.
-  lastLoginAt DateTime?
+  lastLoginAt      DateTime?
+  /// Two-factor login (authenticator app); required for program admins and staff.
+  twoFactorEnabled Boolean?    @default(false)
+  twoFactors       TwoFactor[]
 
   @@map("user")
 }
@@ -1011,6 +1018,8 @@ model Program {
   inviteDays      Int        @default(7)
   /// Program-wide AI spending cap per day, in cents (null = no cap beyond each user's allowance).
   aiDailyCapCents Int?
+  /// UTC day (YYYY-MM-DD) the admin was last emailed that the cap was reached, so it's once a day.
+  aiCapAlertedOn  String?
   createdAt       DateTime   @default(now())
   classes         Class[]
   auditLogs       AuditLog[]
@@ -1172,33 +1181,37 @@ model ClassCourse {
 enum AssignmentKind {
   LESSONS // lessons from a course (or the whole course)
   QUESTIONS // questions from a worksheet the teacher uploaded
+  EXTERNAL
 }
 
 model Assignment {
-  id            String             @id @default(cuid())
-  classId       String
-  class         Class              @relation(fields: [classId], references: [id], onDelete: Cascade)
-  kind          AssignmentKind     @default(LESSONS)
+  id              String             @id @default(cuid())
+  classId         String
+  class           Class              @relation(fields: [classId], references: [id], onDelete: Cascade)
+  kind            AssignmentKind     @default(LESSONS)
   /// The course it's for: LESSONS come from it; QUESTIONS are filed under it (optional).
-  classCourseId String?
-  classCourse   ClassCourse?       @relation(fields: [classCourseId], references: [id], onDelete: SetNull)
-  title         String
-  note          String?
+  classCourseId   String?
+  classCourse     ClassCourse?       @relation(fields: [classCourseId], references: [id], onDelete: SetNull)
+  title           String
+  note            String?
   /// LESSONS: the teacher's lesson ids; empty means the whole course.
-  lessonIds     String[]
+  lessonIds       String[]
   /// QUESTIONS: the worksheet and which of its questions, in order.
-  worksheetId   String?
-  worksheet     Worksheet?         @relation(fields: [worksheetId], references: [id], onDelete: SetNull)
-  itemIds       String[]
+  worksheetId     String?
+  worksheet       Worksheet?         @relation(fields: [worksheetId], references: [id], onDelete: SetNull)
+  itemIds         String[]
   /// Optional time limit for a question set, like a timed practice section.
-  timeLimitMin  Int?
+  timeLimitMin    Int?
   /// Subject it covers (SAT: MATH or RW) and its domains; staff scopes filter on these. Null = untagged.
-  section       String?
-  domains       String[]
-  dueAt         DateTime?
-  createdAt     DateTime           @default(now())
-  answers       AssignmentAnswer[]
-  starts        AssignmentStart[]
+  section         String?
+  domains         String[]
+  dueAt           DateTime?
+  createdAt       DateTime           @default(now())
+  answers         AssignmentAnswer[]
+  starts          AssignmentStart[]
+  /// EXTERNAL: College Board questions by link only: [{ key, questionId, url, section, domain }]. Never content.
+  externalItems   Json               @default("[]")
+  externalResults ExternalResult[]
 
   @@index([classId, dueAt])
 }
@@ -1232,9 +1245,9 @@ model Worksheet {
 }
 
 model WorksheetItem {
-  id             String             @id @default(cuid())
+  id             String                 @id @default(cuid())
   worksheetId    String
-  worksheet      Worksheet          @relation(fields: [worksheetId], references: [id], onDelete: Cascade)
+  worksheet      Worksheet              @relation(fields: [worksheetId], references: [id], onDelete: Cascade)
   order          Int
   /// The number printed on the worksheet ("3", "4b").
   label          String
@@ -1249,14 +1262,19 @@ model WorksheetItem {
   /// Skill or topic, for the score report by skill.
   topic          String
   /// Where the answer came from: WORKSHEET (its answer key), CLAUDE (worked out; check it) or TEACHER.
-  answerSource   String             @default("WORKSHEET")
+  answerSource   String                 @default("WORKSHEET")
   /// SAT tags (src/lib/sat/domains.ts): suggested by Claude, confirmed by staff.
   section        String?
   domain         String?
   skill          String?
   difficulty     String?
-  desmosSolvable Boolean            @default(false)
-  tagsConfirmed  Boolean            @default(false)
+  desmosSolvable Boolean                @default(false)
+  tagsConfirmed  Boolean                @default(false)
+  /// Bumped each time the question or its answer is edited after students answered it.
+  version        Int                    @default(1)
+  /// Removed from the worksheet after students had answered it: kept so past answers and grades stay.
+  archivedAt     DateTime?
+  versions       WorksheetItemVersion[]
   answers        AssignmentAnswer[]
 
   @@index([worksheetId, order])
@@ -1283,6 +1301,8 @@ model AssignmentAnswer {
   reviewedAt   DateTime?
   /// Claude's score before an override.
   aiScore      Float?
+  /// The version of the question this answered (editing a question never changes past grades).
+  itemVersion  Int           @default(1)
   createdAt    DateTime      @default(now())
 
   @@index([assignmentId, userId])
@@ -1300,4 +1320,97 @@ model AssignmentStart {
   submittedAt  DateTime?
 
   @@unique([assignmentId, userId])
+}
+
+/// Better Auth's two-factor secrets (encrypted) and backup codes.
+model TwoFactor {
+  id                      String    @id
+  secret                  String
+  backupCodes             String
+  userId                  String
+  user                    User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  verified                Boolean?  @default(true)
+  failedVerificationCount Int?      @default(0)
+  lockedUntil             DateTime?
+
+  @@index([userId])
+  @@index([secret])
+  @@map("twoFactor")
+}
+
+/// An earlier version of a worksheet question, kept when it's edited after students answered it.
+model WorksheetItemVersion {
+  id            String        @id @default(cuid())
+  itemId        String
+  item          WorksheetItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  version       Int
+  type          QuestionType
+  prompt        String
+  choices       String[]
+  correctChoice Int?
+  answer        String
+  explanation   String
+  steps         String[]
+  editedById    String?
+  createdAt     DateTime      @default(now())
+
+  @@unique([itemId, version])
+}
+
+enum ScoreSource {
+  DIAGNOSTIC
+  PSAT
+  SAT
+  PRACTICE_BLUEBOOK
+  PRACTICE_OTHER
+}
+
+/// An SAT score: official, practice or our diagnostic. Totals, section scores and missed question numbers only.
+model ScoreRecord {
+  id           String      @id @default(cuid())
+  studentId    String
+  student      User        @relation("scores", fields: [studentId], references: [id], onDelete: Cascade)
+  source       ScoreSource
+  takenOn      DateTime
+  testName     String?
+  total        Int
+  rw           Int?
+  math         Int?
+  /// The score gains are measured from (one per student).
+  isBaseline   Boolean     @default(false)
+  /// Missed questions on an outside test: [{ section, module, number, domain, skill?, reason? }]. No content.
+  missed       Json        @default("[]")
+  enteredById  String
+  verifiedById String?
+  verifiedAt   DateTime?
+  createdAt    DateTime    @default(now())
+
+  @@index([studentId, takenOn])
+}
+
+/// A student's own SAT settings.
+model StudentProfile {
+  userId          String    @id
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  targetScore     Int?
+  testDate        DateTime?
+  /// No score yet: they chose to take the diagnostic first.
+  baselinePending Boolean   @default(false)
+  updatedAt       DateTime  @updatedAt
+}
+
+/// A student's result on a College Board question they opened by link (the latest counts).
+model ExternalResult {
+  id           String     @id @default(cuid())
+  assignmentId String
+  assignment   Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  userId       String
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  itemKey      String
+  result       String
+  reason       String?
+  timeSec      Int?
+  createdAt    DateTime   @default(now())
+
+  @@unique([assignmentId, userId, itemKey])
 }

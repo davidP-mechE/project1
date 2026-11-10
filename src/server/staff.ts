@@ -237,3 +237,21 @@ export async function acceptStaffInvite(userId: string, token: string, now = new
   });
   return inv.classId;
 }
+
+/**
+ * The program admin turns off a staff member's two-factor login (they lost
+ * their phone and their backup codes). They're logged out everywhere and must
+ * set it up again before seeing student data.
+ */
+export async function resetStaffTwoFactor(userId: string, classId: string, staffUserId: string) {
+  const access = await classAccess(userId, classId, "manageStaff");
+  if (!access.isProgramAdmin) throw new ClassError("Only the program admin can reset someone's two-factor login.", 403);
+  const row = await db.classStaff.findUnique({ where: { classId_userId: { classId, userId: staffUserId } }, include: { user: { select: { name: true, email: true } } } });
+  if (!row) throw new NotFoundError("Staff member not found");
+  await db.$transaction(async (tx) => {
+    await tx.twoFactor.deleteMany({ where: { userId: staffUserId } });
+    await tx.user.update({ where: { id: staffUserId }, data: { twoFactorEnabled: false } });
+    await tx.session.deleteMany({ where: { userId: staffUserId } });
+    await audit(tx, { programId: access.programId, actorId: userId, action: "staff.reset-2fa", targetType: "user", targetId: staffUserId, summary: `Reset two-factor login for ${row.user.name || row.user.email}` });
+  });
+}

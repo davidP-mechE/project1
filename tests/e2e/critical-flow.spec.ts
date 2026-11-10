@@ -517,12 +517,21 @@ test("the full student journey works, is accessible, and respects the CSP", asyn
   await expect(page.getByRole("heading", { name: "Nothing to review" })).toBeVisible();
 
   await page.goto("/teach");
-  await page.getByRole("link", { name: /tutoring program/ }).click();
+  await page.getByRole("link", { name: "Alex Student's tutoring program", exact: true }).click();
   await page.waitForURL(/\/teach\/programs\//);
   const programUrl = page.url();
   await expect(page.getByText(/Added Maya Math to SAT Math, Period 2 as Specialist \(Math\)/)).toBeVisible();
   await a11y(page, "program");
   await shot(page, "program");
+
+  // Two-factor setup (required for staff in production; the browser test turns enforcement off).
+  await page.goto("/settings?notice=two-factor");
+  await expect(page.getByText(/two-factor login is required/)).toBeVisible();
+  await page.getByLabel("Confirm your password").fill(password);
+  await page.getByRole("button", { name: "Set up" }).click();
+  await expect(page.getByRole("img", { name: /QR code/ })).toBeVisible();
+  await a11y(page, "two-factor setup");
+  await shot(page, "two-factor-setup");
 
   // ── Phone width: no sideways scrolling on the main pages ──
   const phone = await context.browser()!.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, storageState: await context.storageState() });

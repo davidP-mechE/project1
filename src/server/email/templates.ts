@@ -120,3 +120,10 @@ export function adminTransferMessage(input: { to: string; fromName: string; prog
   const outro = "The admin guide (linked from the program page) covers deploys, backups, staff and new semesters.";
   return { to: input.to, subject: `You're now the admin of ${input.programName}`, text: `${intro}\n\n${input.url}\n\n${outro}`, html: layout(`You're the admin of ${input.programName}`, intro, "Open the program", input.url, outro) };
 }
+
+/** The program's daily AI spending cap was reached. */
+export function aiCapMessage(input: { to: string; programName: string; capUsd: string; url: string }): EmailMessage {
+  const intro = `"${input.programName}" reached its daily AI spending cap of ${input.capUsd}. AI features (grading written answers, the tutor, generating lessons, reading worksheets) are paused for everyone in the program until midnight UTC.`;
+  const outro = "If this was expected, you can raise the cap on the program page. If not, check the usage: it could be a bug or someone overusing it.";
+  return { to: input.to, subject: `${input.programName}: daily AI cap reached`, text: `${intro}\n\n${input.url}\n\n${outro}`, html: layout("Daily AI cap reached", intro, "Open the program", input.url, outro) };
+}

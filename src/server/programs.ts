@@ -3,7 +3,7 @@ import type { Prisma } from "@/generated/prisma/client";
 import { db } from "./db";
 import { env } from "./env";
 import { NotFoundError } from "./courses";
-import { ClassError } from "./access";
+import { assertStaffTwoFactor, ClassError } from "./access";
 import { sendEmail } from "./email";
 import { adminTransferMessage } from "./email/templates";
 
@@ -71,6 +71,7 @@ async function adminProgram(userId: string, programId: string) {
     if (staff) throw new ClassError("Only the program admin can do that.", 403);
     throw new NotFoundError("Program not found");
   }
+  await assertStaffTwoFactor(userId);
   return p;
 }
 

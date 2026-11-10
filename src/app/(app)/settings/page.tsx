@@ -7,6 +7,8 @@ import { getPreferences } from "@/server/preferences";
 import { PageHeader } from "@/components/ui/misc";
 import { db } from "@/server/db";
 import { requireUser } from "@/server/session";
+import { TwoFactorSettings } from "@/components/settings/two-factor-settings";
+import { needsStaffTwoFactor } from "@/server/access";
 
 export const metadata: Metadata = { title: "Settings" };
 
@@ -18,9 +20,11 @@ export default async function SettingsPage({ searchParams }: PageProps<"/setting
     db.account.findFirst({ where: { userId: user.id, providerId: "credential" }, select: { id: true } }),
     getUsage(user.id),
   ]);
+  const [me, staffRequired] = await Promise.all([db.user.findUniqueOrThrow({ where: { id: user.id }, select: { twoFactorEnabled: true } }), needsStaffTwoFactor(user.id)]);
   return (
     <div className="mx-auto max-w-2xl">
       <PageHeader title="Settings" description="Your study preferences and account." />
+      <TwoFactorSettings enabled={Boolean(me.twoFactorEnabled)} required={staffRequired || notice === "two-factor"} hasPassword={Boolean(credential)} />
       <div className="mb-6">
         <StudyPreferences initial={prefs} zones={Intl.supportedValuesOf("timeZone")} />
       </div>

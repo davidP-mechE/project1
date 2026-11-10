@@ -2,6 +2,7 @@ import "server-only";
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { nextCookies } from "better-auth/next-js";
+import { twoFactor } from "better-auth/plugins";
 import { APIError } from "better-auth/api";
 import { db } from "./db";
 import { env, googleAuthEnabled } from "./env";
@@ -87,6 +88,10 @@ export const auth = betterAuth({
       "/sign-up/email": { window: 60, max: 5 },
       "/request-password-reset": { window: 300, max: 3 },
       "/send-verification-email": { window: 300, max: 3 },
+      // Two-factor codes: 5 tries a minute stops guessing (the plugin also locks after repeated failures).
+      "/two-factor/verify-totp": { window: 60, max: 5 },
+      "/two-factor/verify-backup-code": { window: 60, max: 5 },
+      "/two-factor/enable": { window: 300, max: 5 },
     },
   },
 
@@ -106,7 +111,11 @@ export const auth = betterAuth({
     },
   },
 
-  plugins: [nextCookies()],
+  plugins: [
+    // Authenticator-app codes, with backup codes. Required for staff (src/server/access.ts).
+    twoFactor({ issuer: "Coursebook", backupCodeOptions: { amount: 10, length: 10 } }),
+    nextCookies(),
+  ],
 });
 
 export type AuthSession = typeof auth.$Infer.Session;

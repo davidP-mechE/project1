@@ -13,6 +13,7 @@ import {
   deleteGroupAction,
   removeStaffAction,
   resendStaffInviteAction,
+  resetStaffTwoFactorAction,
   reviewGradeAction,
   transferAdminAction,
   updateGroupAction,
@@ -161,6 +162,19 @@ export function StaffRowActions({ classId, person, groups, isAdmin, isSelf }: { 
         >
           Remove
         </Button>
+        {isAdmin && !isSelf && (
+          <Button
+            size="sm"
+            variant="ghost"
+            disabled={pending}
+            onClick={() => {
+              if (!window.confirm(`Reset ${person.name}'s two-factor login? They'll be logged out and must set it up again. Only do this if you've confirmed it's really them.`)) return;
+              start(async () => done(await resetStaffTwoFactorAction(classId, person.userId)));
+            }}
+          >
+            Reset two-factor
+          </Button>
+        )}
       </div>
       {open && (
         <form

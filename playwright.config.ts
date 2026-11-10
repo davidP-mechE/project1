@@ -18,7 +18,7 @@ const BASE = `http://localhost:${PORT}`;
 // Test output and uploaded files live outside the project folder: the dev
 // server watches the project, and new files there can make it reload pages mid-test.
 const OUT = path.join(os.tmpdir(), "coursebook-e2e");
-const env = { FAKE_CLAUDE: "true", E2E_TEST: "true", APP_URL: BASE, PORT: String(PORT), LOCAL_STORAGE_DIR: path.join(OUT, "storage") };
+const env = { FAKE_CLAUDE: "true", E2E_TEST: "true", STAFF_TWO_FACTOR: "off", APP_URL: BASE, PORT: String(PORT), LOCAL_STORAGE_DIR: path.join(OUT, "storage") };
 
 export default defineConfig({
   testDir: "tests/e2e",

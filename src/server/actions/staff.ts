@@ -51,6 +51,9 @@ export async function updateStaffAction(classId: string, userId: string, input: 
 export async function removeStaffAction(classId: string, userId: string) {
   return run((u) => staff.removeStaff(u, id.parse(classId), id.parse(userId)), [`/teach/${classId}/staff`, "/teach"]);
 }
+export async function resetStaffTwoFactorAction(classId: string, userId: string) {
+  return run((u) => staff.resetStaffTwoFactor(u, id.parse(classId), id.parse(userId)), [`/teach/${classId}/staff`]);
+}
 export async function resendStaffInviteAction(classId: string, inviteId: string) {
   return run((u) => staff.resendStaffInvite(u, id.parse(classId), id.parse(inviteId)), [`/teach/${classId}/staff`]);
 }
@@ -85,6 +88,9 @@ export async function transferAdminAction(programId: string, toUserId: string, c
 }
 
 // ── AI grade review ──
+export async function regradeQuestionAction(classId: string, assignmentId: string, itemId: string) {
+  return run((u) => review.regradeQuestion(u, id.parse(assignmentId), id.parse(itemId)), [`/teach/${classId}/assignments/${assignmentId}`]);
+}
 export async function reviewGradeAction(classId: string, answerId: string, input: { score?: number; feedback?: string }) {
   return run((u) => review.reviewAiGrade(u, id.parse(answerId), z.object({ score: z.number().min(0).max(1).optional(), feedback: z.string().max(2000).optional() }).parse(input)), [`/teach/${classId}/review`]);
 }

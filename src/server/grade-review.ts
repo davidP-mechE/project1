@@ -3,6 +3,7 @@ import { db } from "./db";
 import { NotFoundError } from "./courses";
 import { assignmentInScope, classAccess, ClassError, itemInScope, memberWhere, studentInScope } from "./access";
 import { audit } from "./programs";
+import { quickCheck } from "@/lib/grading/normalize";
 
 /**
  * Teachers and specialists review the grades Claude gave written answers, for
@@ -89,4 +90,50 @@ export async function reviewAiGrade(userId: string, answerId: string, input: { s
       });
     }
   });
+}
+
+/**
+ * Re-grade answers given to an earlier version of a question against its
+ * current answer key, for the students in the caller's scope. Only answers that
+ * can be checked without Claude change (multiple choice, and written answers
+ * that now match the key exactly); others are left as they were and listed for
+ * review. It's an explicit step, recorded in the audit log.
+ */
+export async function regradeQuestion(userId: string, assignmentId: string, itemId: string) {
+  const a = await db.assignment.findUnique({ where: { id: assignmentId }, select: { classId: true, itemIds: true, section: true, domains: true } });
+  if (!a || !a.itemIds.includes(itemId)) throw new NotFoundError("Question not found");
+  let access;
+  try {
+    access = await classAccess(userId, a.classId, "grade");
+  } catch (err) {
+    if (err instanceof NotFoundError) throw new NotFoundError("Question not found");
+    throw err;
+  }
+  if (!assignmentInScope(access, a)) throw new NotFoundError("Question not found");
+  const item = await db.worksheetItem.findUniqueOrThrow({ where: { id: itemId } });
+  const students = (await db.classMember.findMany({ where: memberWhere(access), select: { userId: true } })).map((m) => m.userId);
+  const old = await db.assignmentAnswer.findMany({ where: { assignmentId, itemId, userId: { in: students }, itemVersion: { lt: item.version } } });
+  let changed = 0;
+  let needsReview = 0;
+  await db.$transaction(async (tx) => {
+    for (const ans of old) {
+      let result: { correct: boolean; score: number; verdict: string; feedback: string } | null = null;
+      if (item.type === "MULTIPLE_CHOICE" && ans.choice !== null) {
+        const ok = ans.choice === item.correctChoice;
+        result = { correct: ok, score: ok ? 1 : 0, verdict: ok ? "CORRECT" : "INCORRECT", feedback: ok ? "Correct! (re-graded after the question was updated)" : "Re-graded after the question was updated." };
+      } else if (ans.response && quickCheck(item.answer, ans.response) === "correct") {
+        result = { correct: true, score: 1, verdict: "CORRECT", feedback: "Correct! (re-graded after the question was updated)" };
+      }
+      if (result) {
+        if (result.score !== ans.score) changed++;
+        await tx.assignmentAnswer.update({ where: { id: ans.id }, data: { ...result, gradedBy: "LOCAL", itemVersion: item.version } });
+      } else {
+        needsReview++;
+        // Left as graded; it shows up again under Review AI grades if Claude graded it.
+        await tx.assignmentAnswer.update({ where: { id: ans.id }, data: { reviewedAt: null, reviewedById: null } });
+      }
+    }
+    await audit(tx, { programId: access.programId, actorId: userId, action: "question.regrade", targetType: "item", targetId: itemId, summary: `Re-graded question ${item.label} (version ${item.version}): ${old.length - needsReview} checked again, ${changed} grades changed, ${needsReview} left for review` });
+  });
+  return { checked: old.length - needsReview, changed, needsReview };
 }
