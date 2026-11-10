@@ -87,6 +87,14 @@ model User {
   staffDigest        Boolean             @default(false)
   /// First-login walkthroughs already seen (e.g. "student", "staff").
   toursSeen          String[]
+  /// Per-type notification choices: { messages: { site, email }, ... }. Missing keys use the defaults in src/lib/notification-prefs.ts.
+  notificationPrefs  Json                @default("{}")
+  notifications      Notification[]
+  threadsAsStudent   MessageThread[]     @relation("threadStudent")
+  threadsAsStaff     MessageThread[]     @relation("threadStaff")
+  messages           Message[]
+  threadReads        ThreadRead[]
+  announcements      Announcement[]
 
   /// Set on every login, for the Staff page.
   lastLoginAt      DateTime?
@@ -1038,6 +1046,14 @@ model Program {
   termStart       DateTime?
   termEnd         DateTime?
   closedDates     DateTime[]
+  /// Public identity (the program's own, not the site's): its address /p/<slug>, badge text and page copy.
+  slug            String?      @unique
+  badge           String?
+  isPublic        Boolean      @default(false)
+  publicBlurb     String?
+  /// Starting point and goal shown on the public page (e.g. a school average of 970 and a +300 gain).
+  schoolAverage   Int?
+  goalGain        Int?
   diagnostics     Diagnostic[]
   createdAt       DateTime     @default(now())
   classes         Class[]
@@ -1111,12 +1127,13 @@ model AuditLog {
 }
 
 model ClassGroup {
-  id        String             @id @default(cuid())
-  classId   String
-  class     Class              @relation(fields: [classId], references: [id], onDelete: Cascade)
-  name      String
-  createdAt DateTime           @default(now())
-  members   ClassGroupMember[]
+  id            String             @id @default(cuid())
+  classId       String
+  class         Class              @relation(fields: [classId], references: [id], onDelete: Cascade)
+  name          String
+  createdAt     DateTime           @default(now())
+  members       ClassGroupMember[]
+  announcements Announcement[]
 
   @@index([classId])
 }
@@ -1145,6 +1162,8 @@ model Class {
   curricula         Curriculum[]
   summaries         AssistantSummary[]
   draftLessons      DraftLesson[]
+  threads           MessageThread[]
+  announcements     Announcement[]
   teacherId         String
   teacher           User               @relation("teacher", fields: [teacherId], references: [id], onDelete: Cascade)
   name              String
@@ -1731,4 +1750,89 @@ model ProblemReport {
   note       String    @default("")
   createdAt  DateTime  @default(now())
   resolvedAt DateTime?
+}
+
+/// A conversation between one staff member and one student about one class.
+/// Who may start or read one is decided in src/server/messages.ts from the
+/// staff member's current scope; the program admin can read every thread.
+model MessageThread {
+  id            String       @id @default(cuid())
+  classId       String
+  class         Class        @relation(fields: [classId], references: [id], onDelete: Cascade)
+  studentId     String
+  student       User         @relation("threadStudent", fields: [studentId], references: [id], onDelete: Cascade)
+  staffId       String
+  staff         User         @relation("threadStaff", fields: [staffId], references: [id], onDelete: Cascade)
+  createdAt     DateTime     @default(now())
+  lastMessageAt DateTime     @default(now())
+  messages      Message[]
+  reads         ThreadRead[]
+
+  @@unique([classId, studentId, staffId])
+  @@index([staffId, lastMessageAt])
+  @@index([studentId, lastMessageAt])
+  @@index([classId, lastMessageAt])
+}
+
+model Message {
+  id        String        @id @default(cuid())
+  threadId  String
+  thread    MessageThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  body      String
+  /// Set when the message went to several students at once.
+  bulkId    String?
+  createdAt DateTime      @default(now())
+
+  @@index([threadId, createdAt])
+  @@index([authorId, createdAt])
+}
+
+model ThreadRead {
+  threadId   String
+  thread     MessageThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lastReadAt DateTime
+
+  @@id([threadId, userId])
+  @@index([userId])
+}
+
+/// A post to a whole class or one of its groups, shown on students' Today page.
+model Announcement {
+  id        String      @id @default(cuid())
+  classId   String
+  class     Class       @relation(fields: [classId], references: [id], onDelete: Cascade)
+  groupId   String?
+  group     ClassGroup? @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  authorId  String?
+  author    User?       @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  title     String
+  body      String
+  pinned    Boolean     @default(false)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  @@index([classId, createdAt])
+}
+
+/// The notification center. One row per thing to look at; a new message in
+/// the same thread updates its row (same key) instead of adding another.
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// MESSAGE, ANNOUNCEMENT, ALERT or REVIEW
+  kind      String
+  key       String
+  title     String
+  href      String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  readAt    DateTime?
+
+  @@unique([userId, key])
+  @@index([userId, readAt, updatedAt])
 }

@@ -9,6 +9,8 @@ import { z } from "zod";
 const schema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   APP_URL: z.url().default("http://localhost:3000"),
+  /** A program to feature on the public landing page (its /p/<slug> page must be public). Empty: none. */
+  FEATURED_PROGRAM_SLUG: z.string().max(64).optional(),
   DATABASE_URL: z.string().min(1),
   REDIS_URL: z.string().default("redis://localhost:6379"),
   // Background worker tuning

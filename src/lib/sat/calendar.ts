@@ -65,7 +65,7 @@ export function shiftUnits<T extends { order: number; startsOn: Date; endsOn: Da
   return [...keep, ...placed.map((p) => ({ ...p.u, startsOn: p.startsOn, endsOn: p.endsOn }))];
 }
 
-/** The 1600 Project's default SAT plan (used without any AI call). */
+/** The default SAT plan (used without any AI call). */
 export const SAT_TEMPLATE: { title: string; domains: string[]; weeks: number; notes: string }[] = [
   { title: "Diagnostic and orientation", domains: [], weeks: 1, notes: "Take the diagnostic; set goals and test dates; Bluebook and Desmos set-up." },
   { title: "Algebra", domains: ["algebra"], weeks: 2, notes: "Linear equations, functions, systems and inequalities." },

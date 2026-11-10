@@ -89,7 +89,9 @@ export async function listStaff(userId: string, classId: string, now = new Date(
 }
 
 async function sendInvite(invite: { id: string; email: string; role: string; classId: string }, token: string, byName: string, className: string, scope: string, days: number) {
-  await sendEmail(staffInviteMessage({ to: invite.email, byName, className, role: invite.role, scope, url: `${env.APP_URL}/staff-invite/${token}`, days })).catch((err) => {
+  // Name the program too ("SAT Fall (The 1600 Project)"): the site is Coursebook, the class belongs to a program on it.
+  const program = (await db.class.findUnique({ where: { id: invite.classId }, select: { program: { select: { name: true } } } }))?.program.name;
+  await sendEmail(staffInviteMessage({ to: invite.email, byName, className: program ? `${className} (${program})` : className, role: invite.role, scope, url: `${env.APP_URL}/staff-invite/${token}`, days })).catch((err) => {
     console.warn("[staff] invite email not sent:", err instanceof Error ? err.message : err);
   });
 }
@@ -106,7 +108,7 @@ export async function addStaff(userId: string, classId: string, rawEmail: string
   const limited = await rateLimit(RATE_RULES.staffInvite, userId);
   if (!limited.ok) throw new ClassError("You've added a lot of staff today. Please try again tomorrow.", 429);
   const [c, actor, existing] = await Promise.all([
-    db.class.findUniqueOrThrow({ where: { id: classId }, select: { name: true, programId: true, program: { select: { adminId: true, inviteDays: true } } } }),
+    db.class.findUniqueOrThrow({ where: { id: classId }, select: { name: true, programId: true, program: { select: { adminId: true, inviteDays: true, name: true } } } }),
     db.user.findUniqueOrThrow({ where: { id: userId }, select: { name: true } }),
     db.user.findFirst({ where: { email: { equals: email, mode: "insensitive" } }, select: { id: true, name: true, email: true } }),
   ]);
@@ -119,7 +121,7 @@ export async function addStaff(userId: string, classId: string, rawEmail: string
       await tx.classStaff.create({ data: { classId, userId: existing.id, addedById: userId, ...scope } });
       await audit(tx, { programId: c.programId, actorId: userId, action: "staff.add", targetType: "user", targetId: existing.id, summary: `Added ${existing.name || existing.email} to ${c.name} as ${summary}`, after: scope });
     });
-    await sendEmail(staffAddedMessage({ to: existing.email, byName: actor.name || "The program admin", className: c.name, role: scope.role, scope: summary, url: `${env.APP_URL}/teach/${classId}` })).catch((err) => {
+    await sendEmail(staffAddedMessage({ to: existing.email, byName: actor.name || "The program admin", className: `${c.name} (${c.program.name})`, role: scope.role, scope: summary, url: `${env.APP_URL}/teach/${classId}` })).catch((err) => {
       console.warn("[staff] notification not sent:", err instanceof Error ? err.message : err);
     });
     return { added: true };

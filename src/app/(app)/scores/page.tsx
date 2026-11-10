@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Card, PageHeader } from "@/components/ui/misc";
+import { ProgramTag } from "@/components/brand/seal";
 import { Alert } from "@/components/ui/alert";
 import { ScoreChart, ScoreTable } from "@/components/scores/score-chart";
 import { BaselinePendingButton, GoalForm, ScoreForm, ScoreRowActions } from "@/components/scores/score-forms";
@@ -20,7 +21,7 @@ export default async function ScoresPage() {
   const [h, status, programs, plan] = await Promise.all([
     myScores(user.id),
     baselineStatus(user.id),
-    db.program.findMany({ where: { classes: { some: { members: { some: { userId: user.id } } } } }, select: { targets: true, testDates: true } }),
+    db.program.findMany({ where: { classes: { some: { members: { some: { userId: user.id } } } } }, select: { id: true, name: true, badge: true, targets: true, testDates: true } }),
     planFor(user.id),
   ]);
   const mistakesDue = await db.mistakeItem.count({ where: { studentId: user.id, retiredAt: null, due: { lte: new Date() } } });
@@ -30,6 +31,13 @@ export default async function ScoresPage() {
   const gain = h.baseline && h.latest ? h.latest.total - h.baseline.total : null;
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-6">
+      {programs.length > 0 && (
+        <div className="flex flex-wrap gap-x-6 gap-y-2">
+          {programs.map((p) => (
+            <ProgramTag key={p.id} program={p} />
+          ))}
+        </div>
+      )}
       <PageHeader title="SAT scores" description="Your official, practice and diagnostic scores, and how far you've come." />
       {h.scores.length === 0 ? (
         <Card className="flex flex-col gap-4">

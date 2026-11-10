@@ -299,7 +299,7 @@ describe("permission matrix: staff", () => {
     const existing = await createUser("Existing tutor");
     expect(await addStaff(f.admin.id, f.c.id, existing.email.toUpperCase(), { role: "SPECIALIST", sections: ["RW"] })).toEqual({ added: true });
     expect((await classAccess(existing.id, f.c.id)).role).toBe("SPECIALIST");
-    expect(sent.at(-1)).toMatchObject({ to: existing.email, subject: "You've been added to SAT Fall" });
+    expect(sent.at(-1)).toMatchObject({ to: existing.email, subject: "You've been added to SAT Fall (Admin's tutoring program)" });
     expect(await addStaff(f.admin.id, f.c.id, "New.Person@School.org", { role: "VIEWER" })).toEqual({ invited: true });
     expect(sent.at(-1)!.to).toBe("new.person@school.org");
     expect(tokenFrom(sent.at(-1)!.text)).toHaveLength(43);

@@ -1,9 +1,12 @@
 /** Shared formatting for class pages. */
-export const dueText = (d: Date | string | null, now = new Date()) => {
+import { formatInZone } from "@/lib/dates";
+
+/** "Due Mon, Nov 9, 5:00 PM", in the viewer's zone (pass it; UTC otherwise). */
+export const dueText = (d: Date | string | null, now = new Date(), zone?: string | null) => {
   if (!d) return "No due date";
   const due = new Date(d);
-  const day = due.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
-  const time = due.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+  const day = formatInZone(due, zone, "short");
+  const time = formatInZone(due, zone, "time");
   return `${due < now ? "Was due" : "Due"} ${day}, ${time}`;
 };
 export const pct = (n: number | null | undefined) => (n === null || n === undefined ? "—" : `${Math.round(n * 100)}%`);

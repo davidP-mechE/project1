@@ -3,14 +3,13 @@ import { ThemeToggle } from "@/components/theme";
 import { SiteFooter } from "@/components/site-footer";
 import { ButtonLink } from "@/components/ui/button";
 import { Wordmark } from "@/components/brand/seal";
-import { BRAND } from "@/lib/brand";
 
 export default function MarketingLayout({ children }: LayoutProps<"/">) {
   return (
     <>
       <header className="dark-nav bg-nav">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4">
-          <Link href="/" aria-label={`${BRAND.name} home`}>
+          <Link href="/">
             <Wordmark />
           </Link>
           <nav aria-label="Site" className="flex items-center gap-1 sm:gap-2">

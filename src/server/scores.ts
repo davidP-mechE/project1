@@ -280,7 +280,7 @@ export async function classScores(actorId: string, classId: string, opts: { grou
 
 /** The program admin's dashboard: every student in every class (filter by class or teacher). */
 export async function programDashboard(actorId: string, programId: string, opts: { classId?: string; teacherId?: string } = {}, now = new Date()) {
-  const p = await db.program.findFirst({ where: { id: programId, adminId: actorId }, select: { id: true, name: true, targets: true, classes: { where: { archivedAt: null }, select: { id: true, name: true, staff: { where: { role: "TEACHER" }, select: { user: { select: { id: true, name: true } } } } } } } });
+  const p = await db.program.findFirst({ where: { id: programId, adminId: actorId }, select: { id: true, name: true, badge: true, targets: true, classes: { where: { archivedAt: null }, select: { id: true, name: true, staff: { where: { role: "TEACHER" }, select: { user: { select: { id: true, name: true } } } } } } } });
   if (!p) throw new NotFoundError("Program not found");
   await assertStaffTwoFactor(actorId);
   const classes = p.classes.filter((c) => (!opts.classId || c.id === opts.classId) && (!opts.teacherId || c.staff.some((s) => s.user.id === opts.teacherId)));
@@ -300,7 +300,7 @@ export async function programDashboard(actorId: string, programId: string, opts:
   const trend = [...months.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([month, g]) => ({ month, averageGain: Math.round(g.reduce((a, x) => a + x, 0) / g.length), scores: g.length }));
   const teachers = new Map(p.classes.flatMap((c) => c.staff.map((s) => [s.user.id, s.user.name] as const)));
   return {
-    program: { id: p.id, name: p.name, targets: p.targets },
+    program: { id: p.id, name: p.name, badge: p.badge, targets: p.targets },
     classes: p.classes.map((c) => ({ id: c.id, name: c.name })),
     teachers: [...teachers.entries()].map(([id, name]) => ({ id, name })),
     stats,

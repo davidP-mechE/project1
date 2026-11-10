@@ -20,6 +20,33 @@ function Section({ title, description, children }: { title: string; description?
   );
 }
 
+function ChangeName({ name }: { name: string }) {
+  const router = useRouter();
+  const [msg, setMsg] = useState<Msg>(null);
+  const [busy, setBusy] = useState(false);
+  return (
+    <Section title="Name" description="Shown to your tutors, classmates' tutors and in messages.">
+      <form
+        className="flex flex-col gap-4"
+        onSubmit={async (e) => {
+          e.preventDefault();
+          const next = String(new FormData(e.currentTarget).get("name")).trim();
+          if (!next) return setMsg({ tone: "error", text: "Enter your name." });
+          setBusy(true);
+          const { error } = await authClient.updateUser({ name: next.slice(0, 80) });
+          setBusy(false);
+          setMsg(error ? { tone: "error", text: error.message ?? "Couldn't change your name." } : { tone: "success", text: "Saved." });
+          if (!error) router.refresh();
+        }}
+      >
+        {msg && <Alert tone={msg.tone}>{msg.text}</Alert>}
+        <Field label="Your name" name="name" defaultValue={name} required maxLength={80} autoComplete="name" />
+        <div><Button type="submit" variant="secondary" disabled={busy}>{busy ? "Saving…" : "Save name"}</Button></div>
+      </form>
+    </Section>
+  );
+}
+
 function ChangeEmail({ email }: { email: string }) {
   const [msg, setMsg] = useState<Msg>(null);
   const [busy, setBusy] = useState(false);
@@ -150,10 +177,11 @@ function DeleteAccount({ hasPassword }: { hasPassword: boolean }) {
   );
 }
 
-export function AccountSettings({ email, hasPassword, notice }: { email: string; hasPassword: boolean; notice?: string }) {
+export function AccountSettings({ name, email, hasPassword, notice }: { name: string; email: string; hasPassword: boolean; notice?: string }) {
   return (
     <div className="flex flex-col gap-6">
       {notice && <Alert tone="success">{notice}</Alert>}
+      <ChangeName name={name} />
       <ChangeEmail email={email} />
       <ChangePassword hasPassword={hasPassword} />
       <DeleteAccount hasPassword={hasPassword} />

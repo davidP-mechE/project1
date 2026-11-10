@@ -8,7 +8,7 @@ import "@fontsource-variable/fraunces/soft.css";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: { default: BRAND.name, template: `%s · ${BRAND.short}` },
+  title: { default: BRAND.name, template: `%s · ${BRAND.name}` },
   description: "Turn a textbook PDF into a structured, self-paced course.",
 };
 

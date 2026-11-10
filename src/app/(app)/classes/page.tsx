@@ -12,6 +12,7 @@ import { dueText, pct, STATUS_LABEL } from "@/components/classes/format";
 import { cn } from "@/lib/utils";
 import { myClasses } from "@/server/classes";
 import { requireUser } from "@/server/session";
+import { ProgramTag } from "@/components/brand/seal";
 
 export const metadata: Metadata = { title: "Classes" };
 
@@ -40,7 +41,8 @@ export default async function ClassesPage() {
           <Card key={c.id}>
             <div className="mb-4 flex flex-wrap items-start justify-between gap-2">
               <div>
-                <h2 className="text-xl font-semibold">{c.name}</h2>
+                <ProgramTag program={c.program} className="mb-1" />
+                <h2 className="font-display text-xl font-semibold">{c.name}</h2>
                 {c.teacherName && <p className="text-sm text-muted">Teacher: {c.teacherName}</p>}
                 {attendance.get(c.id) && <p className="text-sm text-muted">Attendance: {attendance.get(c.id)!.attended} of {attendance.get(c.id)!.marked} sessions</p>}
                 {extras.get(c.id)?.plan?.current && <p className="text-sm">This week: <strong>{extras.get(c.id)!.plan!.current!.title}</strong></p>}

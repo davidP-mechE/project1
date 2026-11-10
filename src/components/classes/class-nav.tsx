@@ -1,14 +1,16 @@
 import Link from "next/link";
 import { PillNav } from "@/components/review/filters";
 import { PageHeader } from "@/components/ui/misc";
+import { ProgramTag } from "@/components/brand/seal";
+import { db } from "@/server/db";
 
-export type ClassTab = "overview" | "students" | "assign" | "skills" | "groups" | "review" | "staff" | "scores" | "attendance" | "alerts" | "curriculum" | "assistant";
+export type ClassTab = "announcements" | "overview" | "students" | "assign" | "skills" | "groups" | "review" | "staff" | "scores" | "attendance" | "alerts" | "curriculum" | "assistant";
 type Role = "ADMIN" | "TEACHER" | "SPECIALIST" | "VIEWER";
 
 export const ROLE_LABEL: Record<Role, string> = { ADMIN: "Program admin", TEACHER: "Teacher", SPECIALIST: "Specialist", VIEWER: "Viewer" };
 
-/** Title and tabs shared by a class's staff pages. Tabs follow the person's role (the server checks it again). */
-export function ClassNav({
+/** Title and tabs shared by a class's staff pages, under the program's name and badge. Tabs follow the person's role (the server checks it again). */
+export async function ClassNav({
   c,
   active,
 }: {
@@ -26,10 +28,12 @@ export function ClassNav({
     { id: "assistant", label: "Assistant", href: `/teach/${c.id}/assistant`, show: true },
     { id: "attendance", label: "Attendance", href: `/teach/${c.id}/attendance`, show: true },
     { id: "alerts", label: "Alerts", href: `/teach/${c.id}/alerts`, show: true },
+    { id: "announcements", label: "Announcements", href: `/teach/${c.id}/announcements`, show: true },
     { id: "students", label: "Students", href: `/teach/${c.id}/students`, show: true },
     { id: "groups", label: "Groups", href: `/teach/${c.id}/groups`, show: true },
     { id: "staff", label: "Staff", href: `/teach/${c.id}/staff`, show: true },
   ];
+  const program = (await db.class.findUnique({ where: { id: c.id }, select: { program: { select: { name: true, badge: true } } } }))?.program;
   const status = c.archivedAt ? "Archived: students can't see it." : `Class code ${c.joinCode}`;
   return (
     <div className="flex flex-col gap-4">
@@ -38,6 +42,7 @@ export function ClassNav({
           ← My classes
         </Link>
       </p>
+      {program && <ProgramTag program={program} />}
       <PageHeader title={c.name} description={`${status} · You: ${ROLE_LABEL[role]}`} />
       <PillNav label="Class pages" items={tabs.filter((t) => t.show).map((t) => ({ href: t.href, label: t.label, active: t.id === active }))} />
     </div>

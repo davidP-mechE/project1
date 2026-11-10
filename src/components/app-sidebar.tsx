@@ -7,11 +7,11 @@ import { setTimeZoneAction } from "@/server/actions/review";
 import { ThemeToggle } from "@/components/theme";
 import { UserMenu } from "@/components/user-menu";
 import { cn } from "@/lib/utils";
-import { Seal, Wordmark } from "@/components/brand/seal";
+import { CoursebookMark, Wordmark } from "@/components/brand/seal";
 import { BRAND } from "@/lib/brand";
 
 /**
- * The app's navigation: a night-sky sidebar on desktop; on phones, a top bar
+ * The app's navigation: an ink sidebar on desktop; on phones, a top bar
  * with the same links in a slide-out menu. Shows the streak and XP, and the
  * number of flashcards due on Review.
  */
@@ -21,6 +21,7 @@ type Props = {
   dueCount: number;
   timeZone: string;
   game: { streak: number; xp: number; level: number };
+  unread: { notices: number; threads: number };
 };
 
 const ICONS: Record<string, ReactNode> = {
@@ -47,6 +48,12 @@ const ICONS: Record<string, ReactNode> = {
     <>
       <circle cx="12" cy="12" r="3" />
       <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.6 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z" />
+    </>
+  ),
+  calendar: (
+    <>
+      <rect x="3" y="5" width="18" height="16" rx="2" />
+      <path d="M3 10h18M8 3v4M16 3v4" />
     </>
   ),
   admin: <path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z" />,
@@ -100,6 +107,13 @@ const ICONS: Record<string, ReactNode> = {
       <path d="M15 7h5v5" />
     </>
   ),
+  messages: <path d="M4 5h16v11H9l-5 4z" />,
+  bell: (
+    <>
+      <path d="M6 16V11a6 6 0 1 1 12 0v5l1.5 2h-15z" />
+      <path d="M10 20.5a2 2 0 0 0 4 0" />
+    </>
+  ),
   mastery: (
     <>
       <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" />
@@ -115,15 +129,22 @@ function Icon({ name }: { name: keyof typeof ICONS }) {
   );
 }
 
-/** The 1600 Project seal (kept as Logo for existing imports). */
+/** Coursebook's mark (kept as Logo for existing imports). */
 export function Logo({ className }: { className?: string }) {
-  return <Seal className={className} />;
+  return <CoursebookMark className={className} />;
 }
 
-function NavLinks({ isAdmin, dueCount, onNavigate }: { isAdmin: boolean; dueCount: number; onNavigate?: () => void }) {
+function NavLinks({ isAdmin, dueCount, unread, onNavigate }: { isAdmin: boolean; dueCount: number; unread: Props["unread"]; onNavigate?: () => void }) {
   const pathname = usePathname();
-  const groups: { label: string | null; links: { href: string; label: string; icon: keyof typeof ICONS; badge?: number }[] }[] = [
-    { label: null, links: [{ href: "/dashboard", label: "Today", icon: "home" }] },
+  const groups: { label: string | null; links: { href: string; label: string; icon: keyof typeof ICONS; badge?: number; badgeLabel?: string }[] }[] = [
+    {
+      label: null,
+      links: [
+        { href: "/dashboard", label: "Today", icon: "home" },
+        { href: "/notifications", label: "Notifications", icon: "bell", badge: unread.notices, badgeLabel: "unread" },
+        { href: "/messages", label: "Messages", icon: "messages", badge: unread.threads, badgeLabel: "unread conversations" },
+      ],
+    },
     {
       label: "Learning",
       links: [
@@ -138,7 +159,7 @@ function NavLinks({ isAdmin, dueCount, onNavigate }: { isAdmin: boolean; dueCoun
       label: "Practice",
       links: [
         { href: "/skills", label: "Review", icon: "skills" },
-        { href: "/review", label: "Spaced repetition", icon: "spaced", badge: dueCount },
+        { href: "/review", label: "Spaced repetition", icon: "spaced", badge: dueCount, badgeLabel: "cards to review" },
         { href: "/mistakes", label: "Mistake log", icon: "errors" },
         { href: "/errors", label: "Error log", icon: "errors" },
         { href: "/mastery", label: "Mastery", icon: "mastery" },
@@ -183,7 +204,7 @@ function NavLinks({ isAdmin, dueCount, onNavigate }: { isAdmin: boolean; dueCoun
                 <Icon name={l.icon} />
                 <span className="flex-1">{l.label}</span>
                 {l.badge ? (
-                  <span className="pop-in rounded-full bg-[#f4e4b0] px-2 text-xs font-bold leading-5 text-[#1b1f33]" aria-label={`${l.badge} cards to review`}>
+                  <span className="pop-in rounded-full bg-[#f4e4b0] px-2 text-xs font-bold leading-5 text-[#1b1f33]" aria-label={`${l.badge} ${l.badgeLabel ?? "new"}`}>
                     {l.badge > 99 ? "99+" : l.badge}
                   </span>
                 ) : null}
@@ -212,7 +233,7 @@ function Stats({ game }: { game: Props["game"] }) {
   );
 }
 
-export function AppSidebar({ user, dueCount, timeZone, game }: Props) {
+export function AppSidebar({ user, dueCount, timeZone, game, unread }: Props) {
   const pathname = usePathname();
   const drawer = useRef<HTMLDialogElement>(null);
 
@@ -228,7 +249,7 @@ export function AppSidebar({ user, dueCount, timeZone, game }: Props) {
   }, [pathname]);
 
   const brand = (
-    <Link href="/dashboard" className="flex items-center gap-2.5" aria-label={`${BRAND.name} home`}>
+    <Link href="/dashboard" className="flex items-center gap-2.5">
       <Wordmark />
     </Link>
   );
@@ -239,7 +260,7 @@ export function AppSidebar({ user, dueCount, timeZone, game }: Props) {
       <aside className="dark-nav fixed inset-y-0 left-0 z-20 hidden w-64 flex-col gap-6 overflow-y-auto bg-nav px-4 py-5 lg:flex">
         {brand}
         <Stats game={game} />
-        <NavLinks isAdmin={user.isAdmin} dueCount={dueCount} />
+        <NavLinks isAdmin={user.isAdmin} dueCount={dueCount} unread={unread} />
         <div className="mt-auto flex items-center justify-between gap-2 border-t border-white/10 pt-4">
           <UserMenu name={user.name} email={user.email} isAdmin={user.isAdmin} placement="up" showName />
           <ThemeToggle className="text-nav-muted hover:bg-nav-active hover:text-nav-text" />
@@ -248,14 +269,18 @@ export function AppSidebar({ user, dueCount, timeZone, game }: Props) {
 
       {/* Phones and tablets: top bar + slide-out menu */}
       <header className="sticky top-0 z-20 flex h-14 items-center justify-between gap-2 bg-nav px-4 lg:hidden">
-        <Link href="/dashboard" className="flex items-center gap-2" aria-label={`${BRAND.name} home`}>
-          <Seal className="size-8" />
-          <span className="font-display text-lg font-semibold text-nav-text">{BRAND.short}</span>
+        <Link href="/dashboard" className="flex items-center gap-2">
+          <CoursebookMark className="size-8" />
+          <span className="font-display text-lg font-semibold text-nav-text">{BRAND.name}</span>
         </Link>
         <div className="flex items-center gap-2">
           <span className="hidden min-[400px]:block">
             <Stats game={game} />
           </span>
+          <Link href="/notifications" className="relative inline-flex size-10 items-center justify-center rounded-xl text-nav-text hover:bg-nav-active" aria-label={unread.notices ? `Notifications, ${unread.notices} unread` : "Notifications"}>
+            <Icon name="bell" />
+            {unread.notices > 0 && <span aria-hidden className="absolute right-1.5 top-1.5 size-2.5 rounded-full bg-accent ring-2 ring-nav" />}
+          </Link>
           <button
             type="button"
             onClick={() => drawer.current?.showModal()}
@@ -284,7 +309,7 @@ export function AppSidebar({ user, dueCount, timeZone, game }: Props) {
             </button>
           </div>
           <Stats game={game} />
-          <NavLinks isAdmin={user.isAdmin} dueCount={dueCount} onNavigate={() => drawer.current?.close()} />
+          <NavLinks isAdmin={user.isAdmin} dueCount={dueCount} unread={unread} onNavigate={() => drawer.current?.close()} />
           <div className="mt-auto flex items-center justify-between gap-2 border-t border-white/10 pt-4">
             <UserMenu name={user.name} email={user.email} isAdmin={user.isAdmin} placement="up" showName />
             <ThemeToggle className="text-nav-muted hover:bg-nav-active hover:text-nav-text" />

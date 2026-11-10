@@ -18,3 +18,12 @@ export async function requireUser(): Promise<CurrentUser> {
   const { id, name, email, image } = session.user;
   return { id, name, email, image, role: (session.user as { role?: string }).role ?? "USER" };
 }
+
+/** The signed-in person's timezone (Settings → Studying), for formatting dates. Cached per request. */
+export const viewerZone = cache(async (): Promise<string> => {
+  const session = await getSession();
+  if (!session) return "UTC";
+  const { db } = await import("./db");
+  const u = await db.user.findUnique({ where: { id: session.user.id }, select: { timezone: true } });
+  return u?.timezone || "UTC";
+});

@@ -7,11 +7,11 @@ function escapeHtml(s: string) {
 
 function layout(title: string, intro: string, buttonLabel: string, url: string, outro: string) {
   const safeUrl = escapeHtml(url);
-  return `<!doctype html><html><body style="font-family:system-ui,sans-serif;background:#f6f7f9;padding:24px">
+  return `<!doctype html><html><body style="font-family:system-ui,sans-serif;background:#f7f2e7;padding:24px">
 <div style="max-width:480px;margin:auto;background:#fff;border-radius:12px;padding:32px">
 <h1 style="font-size:20px;margin:0 0 16px">${escapeHtml(title)}</h1>
 <p style="color:#333;line-height:1.5">${escapeHtml(intro)}</p>
-<p style="margin:24px 0"><a href="${safeUrl}" style="background:#4f46e5;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none;display:inline-block">${escapeHtml(buttonLabel)}</a></p>
+<p style="margin:24px 0"><a href="${safeUrl}" style="background:#14213d;color:#fbf5e6;padding:12px 20px;border-radius:8px;text-decoration:none;display:inline-block">${escapeHtml(buttonLabel)}</a></p>
 <p style="color:#666;font-size:13px;line-height:1.5">${escapeHtml(outro)}<br><br>Or paste this link into your browser:<br><span style="word-break:break-all">${safeUrl}</span></p>
 </div></body></html>`;
 }
@@ -72,11 +72,11 @@ export function reminderMessage(input: {
   const subject = input.streak > 0 && !input.studiedToday ? `Keep your ${input.streak}-day streak going` : "A few minutes of studying today?";
   const url = `${input.appUrl}/dashboard`;
   const outro = "You're getting this because you turned on daily reminders in Coursebook.";
-  const html = `<!doctype html><html><body style="font-family:system-ui,sans-serif;background:#f6f7f9;padding:24px">
+  const html = `<!doctype html><html><body style="font-family:system-ui,sans-serif;background:#f7f2e7;padding:24px">
 <div style="max-width:480px;margin:auto;background:#fff;border-radius:12px;padding:32px">
 <h1 style="font-size:20px;margin:0 0 16px">Hi ${escapeHtml(first)} 👋</h1>
 ${lines.map((l) => `<p style="color:#333;line-height:1.5;margin:0 0 8px">${escapeHtml(l)}</p>`).join("\n")}
-<p style="margin:24px 0"><a href="${escapeHtml(url)}" style="background:#4f46e5;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none;display:inline-block">Start studying</a></p>
+<p style="margin:24px 0"><a href="${escapeHtml(url)}" style="background:#14213d;color:#fbf5e6;padding:12px 20px;border-radius:8px;text-decoration:none;display:inline-block">Start studying</a></p>
 <p style="color:#666;font-size:13px;line-height:1.5">${escapeHtml(outro)} <a href="${escapeHtml(input.unsubscribeUrl)}" style="color:#666">Turn off reminders</a>.</p>
 </div></body></html>`;
   return {
@@ -168,4 +168,18 @@ export function problemReportMessage(input: { to: string; path: string; note: st
   const intro = `Someone reported a problem on ${input.path || "the site"}${input.note ? `: "${input.note}"` : "."}${input.errorIds.length ? ` Recent error ids: ${input.errorIds.join(", ")}.` : ""} Browser: ${input.userAgent}.`;
   const outro = "Reports are listed on the admin page.";
   return { to: input.to, subject: "Coursebook: a problem was reported", text: `${intro}\n\n${input.url}\n\n${outro}`, html: layout("A problem was reported", intro, "Open the admin page", input.url, outro) };
+}
+
+/** Someone sent a message. Names who and where, never the message itself. */
+export function newMessageMessage(input: { to: string; fromName: string; className: string; url: string; settingsUrl: string }): EmailMessage {
+  const intro = `${input.fromName} sent you a message about "${input.className}". Log in to read and reply.`;
+  const outro = `To stop these emails, change Settings → Notifications (${input.settingsUrl}).`;
+  return { to: input.to, subject: `New message from ${input.fromName}`, text: `${intro}\n\n${input.url}\n\n${outro}`, html: layout(`New message from ${input.fromName}`, intro, "Read the message", input.url, outro) };
+}
+
+/** A new announcement in a student's class. */
+export function announcementMessage(input: { to: string; className: string; title: string; url: string; settingsUrl: string }): EmailMessage {
+  const intro = `New in "${input.className}": ${input.title}`;
+  const outro = `To stop these emails, change Settings → Notifications (${input.settingsUrl}).`;
+  return { to: input.to, subject: `${input.className}: ${input.title}`, text: `${intro}\n\n${input.url}\n\n${outro}`, html: layout(input.title, intro, "Open Today", input.url, outro) };
 }

@@ -1,4 +1,4 @@
-# Admin guide: running Coursebook for The 1600 Project
+# Admin guide: running a program on Coursebook (The 1600 Project)
 
 This guide is for whoever runs the site: right now that's the program's president, and later a teacher or a younger student who takes over. You don't need to be a programmer for most of it. Where a step needs a terminal, the exact command is given.
 
@@ -14,10 +14,14 @@ Usually one person is both.
 
 - **Program page:** Teaching → My classes → your program's name. It has:
   - settings: score targets, how long staff invites last, the daily AI cap, official SAT dates
+  - **public page:** the program's own page at `/p/<address>` (for example `/p/1600`) with its badge, starting average, goal gain and a short description. It stays off until you choose an address and tick "Public page is live". To feature it on Coursebook's front page, set `FEATURED_PROGRAM_SLUG=1600` on your deployment (leave it empty to feature none).
   - the school calendar
   - handing over the admin role
   - the audit log
 - **Program dashboard:** the button on the program page. Shows the average gain against the +300 goal, who's on track, who's stalling, and who has no baseline.
+- **Messages:** students can message their own tutors; tutors can message the students in their scope, one at a time or a whole class or group (each student gets a private copy). As program admin you can read every conversation (Messages → Everyone in the program); you can't reply in other people's. Students are told this on the messages page.
+- **Announcements:** each class has an Announcements tab. Posts go to the whole class or one group and show on students' Today page, pinned first.
+- **Notifications:** the bell in the sidebar. Everyone chooses what shows there and what's emailed in Settings → Notifications. Emails say who wrote, never the message.
 - **Review queue:** Teaching → Review queue. Claude never publishes anything by itself, so drafted questions, drafted lessons and AI grades wait here for a person.
 - **Error emails:** if the site emails you "Coursebook error: …", open Admin → Errors and problem reports.
   - It shows what broke, on which page, and how often. Personal details are removed.

@@ -1,5 +1,5 @@
 /**
- * The 1600 Project's score display: a half-circle gauge from 400 to 1600, ink
+ * The SAT score display: a half-circle gauge from 400 to 1600, ink
  * for the score so far, gold ticks for the baseline and the goal. The number
  * underneath is the score; screen readers get the same as one sentence.
  */

@@ -447,7 +447,7 @@ Privacy: teachers see students' names, emails and their work on assigned items o
 
 ## Tutoring programs, staff and scopes
 
-Phase 3 (see `PHASE3_SPEC.md`) turns classes into a general tutoring-program feature. Your first class starts **your program** (for example The 1600 Project), and you're its **program admin**.
+Phase 3 (see `PHASE3_SPEC.md`) turns classes into a general tutoring-program feature. Your first class starts **your program** (for example a school's SAT program), and you're its **program admin**. Coursebook is the product; a program's name, badge and optional public page (`/p/<slug>`) are the program's own data, and `FEATURED_PROGRAM_SLUG` features one on the landing page.
 
 - **Programs** (`src/server/programs.ts`): a program holds classes, staff and settings (score targets, how long staff invites last, a daily AI spending cap). Its admin page (**Teaching → your program**) has the settings, **hand over the admin role** (to a staff member: type the program's name to confirm; you stay on as a teacher), and the **audit log**.
 - **Staff roles** per class (**Staff** tab, `src/server/staff.ts`):

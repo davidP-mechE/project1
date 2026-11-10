@@ -8,7 +8,7 @@ import { sendEmail } from "./email";
 import { adminTransferMessage } from "./email/templates";
 
 /**
- * Programs: a tutoring program (e.g. The 1600 Project) owns classes, staff and
+ * Programs: a tutoring program (such as a school's SAT program) owns classes, staff and
  * settings. It has exactly one admin, who can hand the role to someone else.
  */
 
@@ -95,7 +95,24 @@ export async function getProgram(userId: string, programId: string) {
   return { program: p, staff: staff.map((s) => s.user), log: log.map((l) => ({ ...l, actorName: l.actorId ? (actors.get(l.actorId) ?? "Deleted user") : "System" })) };
 }
 
-export async function updateProgram(userId: string, programId: string, patch: { name?: string; targets?: number[]; inviteDays?: number; aiDailyCapCents?: number | null; testDates?: string[] }) {
+export type ProgramPatch = {
+  name?: string;
+  targets?: number[];
+  inviteDays?: number;
+  aiDailyCapCents?: number | null;
+  testDates?: string[];
+  /** Public page: /p/<slug>, its badge text and copy. */
+  slug?: string | null;
+  badge?: string | null;
+  isPublic?: boolean;
+  publicBlurb?: string | null;
+  schoolAverage?: number | null;
+  goalGain?: number | null;
+};
+
+const RESERVED_SLUGS = new Set(["new", "admin", "api", "login", "signup", "help"]);
+
+export async function updateProgram(userId: string, programId: string, patch: ProgramPatch) {
   const p = await adminProgram(userId, programId);
   const data: Prisma.ProgramUpdateInput = {};
   if (patch.name !== undefined) {
@@ -121,6 +138,28 @@ export async function updateProgram(userId: string, programId: string, patch: { 
       return new Date(`${d}T12:00:00Z`);
     });
     data.testDates = dates.sort((a, b) => a.getTime() - b.getTime());
+  }
+  if (patch.slug !== undefined) {
+    const slug = patch.slug?.trim().toLowerCase() || null;
+    if (slug && (!/^[a-z0-9][a-z0-9-]{0,39}$/.test(slug) || RESERVED_SLUGS.has(slug))) throw new ClassError("The page address can use lowercase letters, numbers and dashes (up to 40).");
+    if (slug && (await db.program.count({ where: { slug, id: { not: p.id } } }))) throw new ClassError("Another program already uses that address.");
+    data.slug = slug;
+  }
+  if (patch.badge !== undefined) {
+    const b = patch.badge?.trim().toUpperCase() || null;
+    if (b && !/^[A-Z0-9]{1,4}$/.test(b)) throw new ClassError("The badge can be up to 4 letters or numbers.");
+    data.badge = b;
+  }
+  if (patch.publicBlurb !== undefined) data.publicBlurb = patch.publicBlurb?.trim().slice(0, 1000) || null;
+  for (const k of ["schoolAverage", "goalGain"] as const) {
+    const v = patch[k];
+    if (v === undefined) continue;
+    if (v !== null && (!Number.isInteger(v) || v < (k === "goalGain" ? 10 : 400) || v > (k === "goalGain" ? 1200 : 1600))) throw new ClassError(k === "goalGain" ? "The goal gain is 10 to 1,200 points." : "The starting average is 400 to 1600.");
+    data[k] = v;
+  }
+  if (patch.isPublic !== undefined) {
+    if (patch.isPublic && !(data.slug ?? p.slug)) throw new ClassError("Choose a page address before making the page public.");
+    data.isPublic = patch.isPublic;
   }
   await db.$transaction(async (tx) => {
     await tx.program.update({ where: { id: p.id }, data });
@@ -155,4 +194,30 @@ export async function transferAdmin(actorId: string, programId: string, input: {
   await sendEmail(adminTransferMessage({ to: to.email, fromName: from.name || "The previous admin", programName: p.name, url: `${env.APP_URL}/teach/programs/${programId}` })).catch((err) => {
     console.warn("[programs] transfer email not sent:", err instanceof Error ? err.message : err);
   });
+}
+
+/** A program's public page, by its address; null unless the admin made it public. Only public fields. */
+export async function publicProgram(slug: string) {
+  if (!/^[a-z0-9-]{1,40}$/.test(slug)) return null;
+  return db.program.findFirst({
+    where: { slug, isPublic: true },
+    select: { name: true, slug: true, badge: true, subject: true, publicBlurb: true, schoolAverage: true, goalGain: true, targets: true },
+  });
+}
+
+/** The programs a student is in (through their classes), with those class names. Empty for students in no program class. */
+export async function studentPrograms(userId: string) {
+  const rows = await db.classMember.findMany({
+    where: { userId, class: { archivedAt: null } },
+    select: { class: { select: { name: true, program: { select: { id: true, name: true, badge: true } } } } },
+    orderBy: { joinedAt: "asc" },
+  });
+  const out = new Map<string, { id: string; name: string; badge: string | null; classes: string[] }>();
+  for (const r of rows) {
+    const p = r.class.program;
+    const e = out.get(p.id) ?? { ...p, classes: [] };
+    e.classes.push(r.class.name);
+    out.set(p.id, e);
+  }
+  return [...out.values()];
 }

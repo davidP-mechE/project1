@@ -821,6 +821,7 @@ export async function myClasses(userId: string, now = new Date()) {
           id: true,
           name: true,
           teacher: { select: { name: true } },
+          program: { select: { name: true, badge: true } },
           assignments: {
             orderBy: [{ dueAt: { sort: "asc", nulls: "last" } }, { createdAt: "asc" }],
             select: { id: true, kind: true, title: true, note: true, dueAt: true, timeLimitMin: true, lessonIds: true, itemIds: true, classCourseId: true, externalItems: true, groupIds: true, studentIds: true, classCourse: { select: { title: true } } },
@@ -839,6 +840,7 @@ export async function myClasses(userId: string, now = new Date()) {
       id: c.id,
       name: c.name,
       teacherName: c.teacher.name,
+      program: c.program,
       assignments: c.assignments.map((a) => ({ ...a, cell: cells.get(`${userId}:${a.id}`)! })),
     });
   }

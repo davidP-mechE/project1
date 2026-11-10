@@ -385,6 +385,55 @@ export function ProgramSettingsForm({ program }: { program: { id: string; name: 
   );
 }
 
+/** The program's own public page (/p/<slug>): address, badge, copy and whether it's live. */
+export function ProgramPublicPageForm({ program }: { program: { id: string; slug: string | null; badge: string | null; isPublic: boolean; publicBlurb: string | null; schoolAverage: number | null; goalGain: number | null } }) {
+  const router = useRouter();
+  const [slug, setSlug] = useState(program.slug ?? "");
+  const [badge, setBadge] = useState(program.badge ?? "");
+  const [blurb, setBlurb] = useState(program.publicBlurb ?? "");
+  const [avg, setAvg] = useState(program.schoolAverage?.toString() ?? "");
+  const [gain, setGain] = useState(program.goalGain?.toString() ?? "");
+  const [isPublic, setIsPublic] = useState(program.isPublic);
+  const [msg, setMsg] = useState<{ tone: "success" | "error"; text: string } | null>(null);
+  const [pending, start] = useTransition();
+  const num = (v: string) => (v.trim() === "" ? null : Number(v));
+  return (
+    <form
+      className="grid gap-4 sm:grid-cols-2"
+      onSubmit={(e) => {
+        e.preventDefault();
+        start(async () => {
+          const res = await updateProgramAction(program.id, { slug: slug || null, badge: badge || null, publicBlurb: blurb || null, schoolAverage: num(avg), goalGain: num(gain), isPublic });
+          setMsg(res.ok ? { tone: "success", text: isPublic && slug ? `Saved. The page is live at /p/${slug.toLowerCase()}.` : "Saved." } : { tone: "error", text: res.error });
+          router.refresh();
+        });
+      }}
+    >
+      <Field label="Page address" hint="Lowercase letters, numbers, dashes: e.g. 1600 gives /p/1600." value={slug} onChange={(e) => setSlug(e.target.value)} maxLength={40} />
+      <Field label="Badge text" hint="Up to 4 letters or numbers, shown in the program's seal. Blank: from the name." value={badge} onChange={(e) => setBadge(e.target.value)} maxLength={4} />
+      <Field label="Starting average" hint="e.g. your school's average SAT score." inputMode="numeric" value={avg} onChange={(e) => setAvg(e.target.value)} />
+      <Field label="Goal gain (points)" hint="e.g. 300" inputMode="numeric" value={gain} onChange={(e) => setGain(e.target.value)} />
+      <label className="flex flex-col gap-1.5 text-sm sm:col-span-2">
+        <span className="font-medium">About the program</span>
+        <textarea value={blurb} onChange={(e) => setBlurb(e.target.value)} rows={3} maxLength={1000} className="rounded-lg border border-border bg-surface px-3 py-2 text-sm" />
+        <span className="text-xs text-muted">A short paragraph for the public page. No student names.</span>
+      </label>
+      <label className="flex items-center gap-2 text-sm sm:col-span-2">
+        <input type="checkbox" checked={isPublic} onChange={(e) => setIsPublic(e.target.checked)} className="size-4 accent-[var(--primary)]" />
+        Public page is live
+      </label>
+      <div className="flex flex-col gap-2 sm:col-span-2">
+        {msg && <Alert tone={msg.tone}>{msg.text}</Alert>}
+        <div>
+          <Button type="submit" disabled={pending}>
+            Save public page
+          </Button>
+        </div>
+      </div>
+    </form>
+  );
+}
+
 export function TransferAdminForm({ programId, programName, staff }: { programId: string; programName: string; staff: { id: string; name: string; email: string }[] }) {
   const router = useRouter();
   const [to, setTo] = useState(staff[0]?.id ?? "");

@@ -7,7 +7,7 @@ export function SiteFooter() {
     <footer className="mt-auto border-t border-border px-4 py-6 text-sm text-muted">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3">
         <p>
-          © {new Date().getFullYear()} {BRAND.name} · runs on {BRAND.product}
+          © {new Date().getFullYear()} {BRAND.name}
         </p>
         <nav aria-label="Footer" className="flex flex-wrap gap-4">
           <Link href="/help" className="hover:text-text">Help</Link>

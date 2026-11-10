@@ -3,7 +3,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Card, PageHeader } from "@/components/ui/misc";
 import { ButtonLink } from "@/components/ui/button";
-import { ProgramSettingsForm, TransferAdminForm } from "@/components/classes/staff-forms";
+import { ProgramPublicPageForm, ProgramSettingsForm, TransferAdminForm } from "@/components/classes/staff-forms";
+import { ProgramBadge } from "@/components/brand/seal";
 import { CalendarForm } from "@/components/classes/assistant-forms";
 import { NotFoundError } from "@/server/courses";
 import { ClassError } from "@/server/access";
@@ -40,6 +41,7 @@ export default async function ProgramPage({ params }: PageProps<"/teach/programs
           ← My classes
         </Link>
       </p>
+      <ProgramBadge program={program} className="size-14" />
       <PageHeader
         title={program.name}
         description={`You're the program admin · ${program.classes.length} ${program.classes.length === 1 ? "class" : "classes"}`}
@@ -48,6 +50,20 @@ export default async function ProgramPage({ params }: PageProps<"/teach/programs
       <Card>
         <h2 className="mb-4 text-lg font-semibold">Settings</h2>
         <ProgramSettingsForm program={program} />
+      </Card>
+      <Card>
+        <h2 className="mb-1 text-lg font-semibold">Public page</h2>
+        <p className="mb-4 text-sm text-muted">
+          An optional page about the program, with sign-up and log-in buttons.{" "}
+          {program.isPublic && program.slug ? (
+            <Link href={`/p/${program.slug}`} className="text-primary underline">
+              Open /p/{program.slug}
+            </Link>
+          ) : (
+            "It's off until you choose an address and make it live."
+          )}
+        </p>
+        <ProgramPublicPageForm program={program} />
       </Card>
       <Card>
         <h2 className="mb-1 text-lg font-semibold">School calendar</h2>

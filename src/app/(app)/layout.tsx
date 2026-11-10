@@ -7,13 +7,17 @@ import { isStaging } from "@/server/env";
 import { db } from "@/server/db";
 import { getReviewCounts } from "@/server/srs";
 import { getGameSummary } from "@/server/gamification";
+import { unreadCount } from "@/server/notifications";
+import { unreadThreadCount } from "@/server/messages";
 
 export default async function AppLayout({ children }: LayoutProps<"/">) {
   const user = await requireUser();
-  const [counts, prefs, game] = await Promise.all([
+  const [counts, prefs, game, notices, threads] = await Promise.all([
     getReviewCounts(user.id),
     db.user.findUnique({ where: { id: user.id }, select: { timezone: true } }),
     getGameSummary(user.id),
+    unreadCount(user.id),
+    unreadThreadCount(user.id),
   ]);
   return (
     <>
@@ -22,6 +26,7 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
         dueCount={counts.due + counts.new}
         timeZone={prefs?.timezone ?? "UTC"}
         game={{ streak: game.streak, xp: game.xp, level: game.level }}
+        unread={{ notices, threads }}
       />
       <ErrorCapture />
       {isStaging && (

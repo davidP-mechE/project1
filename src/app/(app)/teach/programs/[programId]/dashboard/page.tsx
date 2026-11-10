@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Card, PageHeader } from "@/components/ui/misc";
+import { ProgramTag } from "@/components/brand/seal";
 import { ScoreStats } from "@/components/scores/stats";
 import { NotFoundError } from "@/server/courses";
 import { programDashboard } from "@/server/scores";
@@ -30,6 +31,7 @@ export default async function ProgramDashboardPage({ params, searchParams }: Pag
           ← {d.program.name}
         </Link>
       </p>
+      <ProgramTag program={d.program} />
       <PageHeader title="Program dashboard" description={`${d.stats.students} students${classId || teacherId ? " (filtered)" : ""}`} />
       <form className="flex flex-wrap items-end gap-3 text-sm" method="get">
         <label className="flex flex-col gap-1">

@@ -12,7 +12,7 @@ Phase 3 is built (see `PHASE3_SPEC.md`). This phase makes the site feel finished
 | Charts over time | Program dashboard: gain by month; class Scores; Skills | Add **comparison charts**: groups, teachers and domains over time |
 | Printable reports | Printable course pages (`/print/courses/…`) | Add a **student progress report** and a **class summary** |
 | Semester rollover | Archiving one class at a time; score history kept | A **new semester** step for the whole program |
-| Landing page | A generic Coursebook landing page | Rewrite for **The 1600 Project** |
+| Landing page | A generic Coursebook landing page | Rewrite as a **Coursebook** landing page, with a "Programs on Coursebook" section; The 1600 Project gets its own public page |
 | Privacy and terms | Template pages | Mark clearly as **drafts** for you and your school |
 | Loading and error states | `loading.tsx` on some pages; a global error page | Add to every page group, plus empty states everywhere |
 | Accessibility | Automatic checks (axe) on most pages in light and dark mode; phone-width check on many pages | Every page, a keyboard-only walk-through, focus checks |
@@ -78,14 +78,17 @@ Phase 3 is built (see `PHASE3_SPEC.md`). This phase makes the site feel finished
 - Audited.
 
 **10. Public pages.**
-- **Landing page for The 1600 Project:** what it is, who it's for, how the site helps (scores, diagnostics, mistake log, tutors), with log in and sign up.
+- **Coursebook landing page:** courses from textbooks and slides, plus tutoring programs (classes, staff roles, scores, diagnostics, mistake log, messaging), with log in and sign up. A "Programs on Coursebook" section features one program when `FEATURED_PROGRAM_SLUG` is set (your school's deployment: `1600`; a commercial one: empty).
+- **A program's public page (`/p/<slug>`):** The 1600 Project's copy (a school average of about 970, the +300 goal, targets of 1200 and 1300, how it works) lives on its Program record, set by its admin, and shows with its seal, the gauge example, and sign-up and log-in buttons.
 - **Help and FAQ:** separate sections for students and for staff.
 - **Privacy Policy and Terms of Use:** a clear "Draft: to be completed with the school" banner on each, with the open items listed.
+
+**Brand rule (your correction):** Coursebook is the product and the site's name everywhere: tab titles, the logo and favicon, headers, footer and emails. The 1600 Project is one program on it. Its name, badge and public copy are program data, shown inside the app only where they apply (its classes, its dashboard, and its students' Today and SAT scores pages). Students in no program never see it.
 
 **11. Design system and restyle (after you choose).**
 - Tokens for color, type, spacing, radius and elevation in `globals.css`, plus shared components.
 - **Signature touches:**
-  - a 1600 Project wordmark and logo
+  - a Coursebook logo and wordmark (an open book in ink and gold); the "1600" seal is only The 1600 Project's program badge
   - a distinctive score display (a 400–1600 gauge with goal markers)
   - one chart style used everywhere
 - **Kept:** the navigation, page structure, readability on phones, and AA contrast.

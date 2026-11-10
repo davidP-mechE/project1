@@ -23,6 +23,22 @@ async function shot(page: Page, name: string) {
   await page.locator("main").screenshot({ path: path.join(dir, `${name}.png`) });
 }
 
+/** Full-page screenshot in a given theme (for the rebrand: landing, program page, sidebar, Today, scores). */
+async function shotTheme(page: Page, name: string, theme: "light" | "dark", target: "page" | "main" | "sidebar" = "page") {
+  const dir = process.env.E2E_SHOTS;
+  if (!dir) return;
+  mkdirSync(dir, { recursive: true });
+  await page.evaluate((t) => {
+    document.documentElement.classList.remove("light", "dark");
+    document.documentElement.classList.add(t);
+    document.documentElement.style.colorScheme = t;
+  }, theme);
+  await page.waitForTimeout(400);
+  const file = path.join(dir, `${name}-${theme}.png`);
+  if (target === "page") await page.screenshot({ path: file, fullPage: true });
+  else await page.locator(target === "main" ? "main" : "aside").screenshot({ path: file });
+}
+
 /** A small worksheet PDF: numbered questions, one with lettered choices. */
 async function worksheetPdf(): Promise<string> {
   const doc = await PDFDocument.create();
@@ -128,7 +144,12 @@ test("the full student journey works, is accessible, and respects the CSP", asyn
   watch(page);
 
   // ── Public pages ──
+  await sql(`UPDATE "Program" SET slug = NULL, "isPublic" = false WHERE slug = '1600'`);
   await page.goto("/");
+  await expect(page).toHaveTitle(/Coursebook/);
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("Turn your textbooks into courses");
+  await expect(page.getByText("The 1600 Project")).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "Coursebook" }).first()).toBeVisible();
   await a11y(page, "landing");
   for (const p of ["/terms", "/privacy", "/copyright"]) {
     await page.goto(p);
@@ -531,6 +552,47 @@ test("the full student journey works, is accessible, and respects the CSP", asyn
   await a11y(page, "program");
   await shot(page, "program");
 
+  // The program's own identity: The 1600 Project, with its public page at /p/1600.
+  await page.getByLabel("Program name").fill("The 1600 Project");
+  await page.getByRole("button", { name: "Save settings" }).click();
+  await expect(page.getByText("Saved.").first()).toBeVisible();
+  await page.getByLabel("Page address").fill("1600");
+  await page.getByLabel("Starting average").fill("970");
+  await page.getByLabel("Goal gain (points)").fill("300");
+  await page.getByLabel("About the program").fill("Free SAT tutoring after school, with student tutors and teachers.");
+  await page.getByLabel("Public page is live").check();
+  await page.getByRole("button", { name: "Save public page" }).click();
+  await expect(page.getByText("The page is live at /p/1600.")).toBeVisible();
+  await page.goto(classUrl);
+  await expect(page.getByText("The 1600 Project", { exact: true }).first()).toBeVisible();
+  const anon = await context.browser()!.newContext();
+  const ap = await anon.newPage();
+  watch(ap);
+  await ap.goto("/p/1600");
+  await expect(ap).toHaveTitle("The 1600 Project · Coursebook");
+  await expect(ap.getByText(/average SAT score is about 970/)).toBeVisible();
+  await expect(ap.getByRole("link", { name: "Sign up" }).first()).toBeVisible();
+  await a11y(ap, "program public page");
+  for (const t of ["light", "dark"] as const) await shotTheme(ap, "program-page", t);
+  await ap.goto("/");
+  await expect(ap.getByRole("heading", { name: "Programs on Coursebook" })).toBeVisible();
+  await expect(ap.getByRole("link", { name: /The 1600 Project/ })).toBeVisible();
+  await a11y(ap, "landing (featured program)");
+  for (const t of ["light", "dark"] as const) await shotTheme(ap, "landing", t);
+  await ap.goto("/p/nope");
+  await expect(ap.getByText(/not found|404/i).first()).toBeVisible();
+  await anon.close();
+
+  // Announcements: the teacher posts to the class.
+  await page.goto(`${classUrl}/announcements`);
+  await page.getByLabel("Title", { exact: true }).fill("Practice test Saturday");
+  await page.getByLabel("Announcement", { exact: true }).fill("Full practice test in room 204, 9am. Bring a calculator.");
+  await page.getByLabel("Pin to the top").check();
+  await page.getByRole("button", { name: "Post announcement" }).click();
+  await expect(page.getByRole("heading", { name: "Practice test Saturday" })).toBeVisible();
+  await a11y(page, "announcements");
+  await shot(page, "announcements");
+
   // Two-factor setup (required for staff in production; the browser test turns enforcement off).
   await page.goto("/settings?notice=two-factor");
   await expect(page.getByText(/two-factor login is required/)).toBeVisible();
@@ -604,8 +666,43 @@ test("the full student journey works, is accessible, and respects the CSP", asyn
   await sp3.getByLabel("Total score").fill("980");
   await sp3.getByRole("button", { name: "Save my baseline" }).click();
   await expect(sp3.getByText("Baseline", { exact: true }).first()).toBeVisible();
+  await expect(sp3.getByText("The 1600 Project", { exact: true }).first()).toBeVisible();
   await a11y(sp3, "student scores");
   await shot(sp3, "student-scores");
+  for (const t of ["light", "dark"] as const) await shotTheme(sp3, "student-sat-scores", t, "main");
+  await sp3.goto("/dashboard");
+  await expect(sp3.getByRole("heading", { name: "Practice test Saturday" })).toBeVisible();
+  await expect(sp3.getByText("The 1600 Project", { exact: true }).first()).toBeVisible();
+  await a11y(sp3, "student today");
+  for (const t of ["light", "dark"] as const) await shotTheme(sp3, "student-today", t, "main");
+  for (const t of ["light", "dark"] as const) await shotTheme(sp3, "sidebar", t, "sidebar");
+  // The student messages their teacher; the teacher gets a notification and replies.
+  await sp3.goto("/messages/new");
+  const tutor = sp3.getByRole("combobox", { name: /^Tutor/ });
+  await tutor.selectOption((await tutor.locator("option", { hasText: "Alex Student" }).first().getAttribute("value"))!);
+  await sp3.getByLabel("Message", { exact: true }).fill("Can we go over question 2 on Saturday?");
+  await sp3.getByRole("button", { name: "Send" }).click();
+  await sp3.waitForURL(/\/messages\/[^/]+$/);
+  await expect(sp3.getByText("Can we go over question 2 on Saturday?")).toBeVisible();
+  await a11y(sp3, "message thread");
+  await page.goto("/notifications");
+  await expect(page.getByText(/New message from Sam Student/)).toBeVisible();
+  await a11y(page, "notifications");
+  await shot(page, "notifications");
+  await page.getByText(/New message from Sam Student/).click();
+  await page.waitForURL(/\/messages\//);
+  await page.getByLabel("Reply", { exact: true }).fill("Yes, bring your answer sheet.");
+  await page.getByRole("button", { name: "Send" }).click();
+  await expect(page.getByText("Yes, bring your answer sheet.")).toBeVisible();
+  await shot(page, "messages-thread");
+  await page.goto("/messages");
+  await a11y(page, "messages");
+  await shot(page, "messages");
+  await page.goto("/messages/new");
+  await a11y(page, "new message (staff)");
+  await page.goto("/settings");
+  await expect(page.getByRole("heading", { name: "Notifications" })).toBeVisible();
+  await expect(page.getByLabel("Your name")).toHaveValue(/Alex/);
   await sp3.goto("/mistakes");
   await a11y(sp3, "mistake log");
   await shot(sp3, "mistake-log");

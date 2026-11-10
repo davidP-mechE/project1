@@ -79,8 +79,22 @@ export async function deleteGroupAction(classId: string, groupId: string) {
 export async function createProgramAction(name: string) {
   return run(async (u) => ({ programId: (await programs.createProgram(u, z.string().max(200).parse(name))).id }), ["/teach"]);
 }
-export async function updateProgramAction(programId: string, patch: { name?: string; targets?: number[]; inviteDays?: number; aiDailyCapCents?: number | null; testDates?: string[] }) {
-  const p = z.object({ name: z.string().max(200).optional(), targets: z.array(z.number()).max(4).optional(), inviteDays: z.number().int().optional(), aiDailyCapCents: z.number().int().nullable().optional(), testDates: z.array(z.string().max(20)).max(20).optional() }).parse(patch);
+export async function updateProgramAction(programId: string, patch: programs.ProgramPatch) {
+  const p = z
+    .object({
+      name: z.string().max(200).optional(),
+      targets: z.array(z.number()).max(4).optional(),
+      inviteDays: z.number().int().optional(),
+      aiDailyCapCents: z.number().int().nullable().optional(),
+      testDates: z.array(z.string().max(20)).max(20).optional(),
+      slug: z.string().max(60).nullable().optional(),
+      badge: z.string().max(10).nullable().optional(),
+      isPublic: z.boolean().optional(),
+      publicBlurb: z.string().max(2000).nullable().optional(),
+      schoolAverage: z.number().int().nullable().optional(),
+      goalGain: z.number().int().nullable().optional(),
+    })
+    .parse(patch);
   return run((u) => programs.updateProgram(u, id.parse(programId), p), [`/teach/programs/${programId}`]);
 }
 export async function transferAdminAction(programId: string, toUserId: string, confirmName: string) {
