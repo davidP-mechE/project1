@@ -77,6 +77,12 @@ export default async function ScoresPage() {
         <h2 className="mb-4 text-lg font-semibold">Goal and test date</h2>
         <GoalForm targetScore={h.target} testDate={h.testDate ? h.testDate.toISOString().slice(0, 10) : null} targets={targets} officialDates={officialDates} />
       </Card>
+      <p className="text-sm text-muted">
+        <a href="/api/me/sat-export" download className="underline">
+          Download all your tutoring records
+        </a>{" "}
+        (scores, answers, attendance and mistake log, as a file).
+      </p>
       <Card>
         <h2 className="mb-3 text-lg font-semibold">Your plan to test day</h2>
         {plan ? <PlanView weeks={plan.weeks} testDate={plan.testDate} /> : <p className="text-sm text-muted">Choose your SAT date above, and you&apos;ll get a week-by-week plan back from it.</p>}

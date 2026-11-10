@@ -85,6 +85,28 @@ if (!parsed.success) {
 
 export const env = parsed.data;
 
+/**
+ * The staging copy must never run against the real database: with
+ * APP_ENV=staging, it refuses to start if DATABASE_URL points at the same
+ * host and database as PRODUCTION_DATABASE_URL.
+ */
+export function assertNotProductionDatabase(e: { APP_ENV?: string; DATABASE_URL?: string; PRODUCTION_DATABASE_URL?: string }) {
+  if (e.APP_ENV !== "staging" || !e.PRODUCTION_DATABASE_URL || !e.DATABASE_URL) return;
+  const where = (u: string) => {
+    try {
+      const x = new URL(u);
+      return `${x.hostname}:${x.port || "5432"}${x.pathname}`;
+    } catch {
+      return u;
+    }
+  };
+  if (where(e.DATABASE_URL) === where(e.PRODUCTION_DATABASE_URL)) {
+    throw new Error("APP_ENV=staging but DATABASE_URL is the production database. Staging must use its own database with fake data.");
+  }
+}
+assertNotProductionDatabase({ APP_ENV: process.env.APP_ENV, DATABASE_URL: process.env.DATABASE_URL, PRODUCTION_DATABASE_URL: process.env.PRODUCTION_DATABASE_URL });
+export const isStaging = process.env.APP_ENV === "staging";
+
 export const googleAuthEnabled = Boolean(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET);
 
 // Demo mode is refused in production, except for the end-to-end tests, which

@@ -155,3 +155,17 @@ export function guardianSummaryMessage(input: { to: string; guardianName: string
     html: layout(`${input.studentName}'s week`, intro, "Unsubscribe", input.unsubscribeUrl, outro),
   };
 }
+
+/** A new (or recurring) error on the site, for the site admins. */
+export function errorAlertMessage(input: { to: string; kind: string; message: string; path: string; count: number; url: string }): EmailMessage {
+  const intro = `A ${input.kind} error ${input.count > 1 ? `has happened ${input.count} times` : "just happened"}${input.path ? ` on ${input.path}` : ""}: "${input.message}".`;
+  const outro = "Details are on the admin page. The admin guide (ADMIN_GUIDE.md) says what to do.";
+  return { to: input.to, subject: `Coursebook error: ${input.message.slice(0, 60)}`, text: `${intro}\n\n${input.url}\n\n${outro}`, html: layout("Something broke", intro, "Open the admin page", input.url, outro) };
+}
+
+/** Someone pressed "Report a problem". */
+export function problemReportMessage(input: { to: string; path: string; note: string; errorIds: string[]; userAgent: string; url: string }): EmailMessage {
+  const intro = `Someone reported a problem on ${input.path || "the site"}${input.note ? `: "${input.note}"` : "."}${input.errorIds.length ? ` Recent error ids: ${input.errorIds.join(", ")}.` : ""} Browser: ${input.userAgent}.`;
+  const outro = "Reports are listed on the admin page.";
+  return { to: input.to, subject: "Coursebook: a problem was reported", text: `${intro}\n\n${input.url}\n\n${outro}`, html: layout("A problem was reported", intro, "Open the admin page", input.url, outro) };
+}

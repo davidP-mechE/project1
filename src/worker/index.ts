@@ -26,6 +26,7 @@ import { booksNeedingEmbeddings, embedBook } from "@/server/embeddings/book";
 import { Queue } from "bullmq";
 import { sendDueReminders } from "@/server/reminders";
 import { runProgramJobs } from "@/server/program-jobs";
+import { recordError } from "@/server/monitoring";
 import { runMaintenance } from "@/server/maintenance";
 import { claudeEnabled } from "@/server/env";
 import { getBatchRunner, getWriter, generationModel } from "@/server/ai/client";
@@ -225,6 +226,10 @@ void scheduled
 worker.on("active", (job) => console.info(`[worker] started job ${job.id} (book ${job.data.bookId})`));
 worker.on("completed", (job) => console.info(`[worker] finished job ${job.id}`));
 worker.on("error", (err) => console.error("[worker] error:", err.message));
+// Failed jobs go to the error log (and the site admins' inbox), by job type only.
+worker.on("failed", (job, err) => {
+  void recordError({ kind: "worker", message: err?.message ?? "Job failed", path: `worker:${job?.name ?? "job"}` }).catch(() => {});
+});
 
 async function shutdown(signal: string) {
   console.info(`[worker] ${signal} received, finishing current job…`);

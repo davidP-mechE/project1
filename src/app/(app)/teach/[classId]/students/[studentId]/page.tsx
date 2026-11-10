@@ -14,6 +14,7 @@ import { openMistakesByDomain } from "@/server/mistakes";
 import { PlanView } from "@/components/sat/plan-view";
 import { GuardianForm } from "@/components/classes/cohort-forms";
 import { guardiansOf } from "@/server/cohort";
+import { PurgeStudentForm } from "@/components/support/data-forms";
 
 export const metadata: Metadata = { title: "Student" };
 
@@ -84,6 +85,24 @@ export default async function StudentPage({ params }: PageProps<"/teach/[classId
           <h2 className="mb-1 text-lg font-semibold">Guardians</h2>
           <p className="mb-3 text-sm text-muted">Weekly progress emails go only to guardians who agreed, and only when the class has them turned on.</p>
           <GuardianForm classId={classId} studentId={studentId} guardians={await guardiansOf(user.id, studentId, classId)} />
+        </Card>
+      )}
+      {(s.access.role === "ADMIN" || s.access.role === "TEACHER") && (
+        <Card className="flex flex-col gap-3">
+          <h2 className="text-lg font-semibold">Records</h2>
+          <p className="text-sm text-muted">Download everything this program holds about {s.student.name || "this student"} (for a records request). Exports are logged.</p>
+          <div>
+            <a href={`/api/classes/${classId}/students/${studentId}/export`} download className="inline-flex h-8 items-center rounded-xl border border-border bg-surface px-3 text-sm font-semibold hover:bg-surface-2">
+              Download records (JSON)
+            </a>
+          </div>
+          {s.access.isProgramAdmin && (
+            <details className="rounded-lg border border-border p-3">
+              <summary className="cursor-pointer text-sm font-medium">Delete this student&apos;s data from the program</summary>
+              <p className="my-2 text-sm text-muted">Removes them from the program&apos;s classes and deletes their answers, diagnostics, attendance and (if they&apos;re in no other program) their scores, mistake log, goals and guardian contacts. It can&apos;t be undone.</p>
+              <PurgeStudentForm programId={s.access.programId} studentId={studentId} name={s.student.name} />
+            </details>
+          )}
         </Card>
       )}
       {s.canEdit && (

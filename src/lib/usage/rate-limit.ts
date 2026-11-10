@@ -21,6 +21,8 @@ export const RATE_RULES = {
   aiDraft: { name: "ai-draft", max: 30, windowSeconds: 24 * 60 * 60 },
   /** Questions to the class-data assistant. */
   aiAsk: { name: "ai-ask", max: 40, windowSeconds: 24 * 60 * 60 },
+  /** Browser errors and problem reports sent to the server. */
+  clientReport: { name: "client-report", max: 30, windowSeconds: 60 * 60 },
   /** Worksheet uploads (each is read by Claude). */
   worksheetUpload: { name: "worksheet-upload", max: 20, windowSeconds: 60 * 60 },
 } satisfies Record<string, RateRule>;

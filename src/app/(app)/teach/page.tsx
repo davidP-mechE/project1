@@ -5,6 +5,8 @@ import { Card, EmptyState, PageHeader } from "@/components/ui/misc";
 import { CreateClassForm } from "@/components/classes/teacher-forms";
 import { listTeaching } from "@/server/classes";
 import { myPrograms } from "@/server/programs";
+import { Walkthrough } from "@/components/support/walkthrough";
+import { toursToShow } from "@/server/tours";
 import { ROLE_LABEL } from "@/components/classes/class-nav";
 import { requireUser } from "@/server/session";
 
@@ -13,7 +15,7 @@ export const metadata: Metadata = { title: "My classes" };
 /** The classes this user teaches. Anyone can create one. */
 export default async function TeachPage() {
   const user = await requireUser();
-  const [classes, programs] = await Promise.all([listTeaching(user.id), myPrograms(user.id)]);
+  const [classes, programs, tours] = await Promise.all([listTeaching(user.id), myPrograms(user.id), toursToShow(user.id)]);
   return (
     <div className="mx-auto flex max-w-4xl flex-col gap-6">
       <PageHeader
@@ -25,6 +27,7 @@ export default async function TeachPage() {
           </ButtonLink>
         }
       />
+      {tours.staff && <Walkthrough tour="staff" />}
       {programs.length > 0 && (
         <Card>
           <h2 className="mb-2 text-lg font-semibold">Your programs</h2>

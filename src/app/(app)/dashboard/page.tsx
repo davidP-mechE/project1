@@ -1,4 +1,6 @@
 import { BaselineBanner } from "@/components/scores/baseline-banner";
+import { Walkthrough } from "@/components/support/walkthrough";
+import { toursToShow } from "@/server/tours";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { GoalRing, MinutesChart } from "@/components/dashboard/charts";
@@ -61,6 +63,7 @@ function nextStep(d: Dashboard) {
 
 export default async function DashboardPage() {
   const user = await requireUser();
+  const tours = await toursToShow(user.id);
   const [d, game, due] = await Promise.all([getDashboard(user.id), getGameSummary(user.id), dueAssignments(user.id)]);
   const first = d.name.split(" ")[0];
   const goalMet = d.goal.minutes >= d.goal.target;
@@ -72,6 +75,7 @@ export default async function DashboardPage() {
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-6">
       <BaselineBanner userId={user.id} />
+      {tours.student && <Walkthrough tour="student" />}
       <Celebrate goalMet={goalMet} streak={d.streak.current} today={d.today} />
 
       <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">

@@ -8,6 +8,8 @@ import { myClasses } from "./classes";
 import { domainAccuracy } from "./pacing";
 import { domainName } from "@/lib/sat/domains";
 import { generateSummary } from "./assistant";
+import { runBackup } from "./backups";
+import { recordError } from "./monitoring";
 
 /**
  * Scheduled program emails, run hourly by the worker. Each is sent at most
@@ -122,5 +124,10 @@ export async function writeWeeklySummaries(now = new Date(), opts: { force?: boo
 
 export async function runProgramJobs(now = new Date()) {
   const [digests, summaries, weekly] = await Promise.all([sendStaffDigests(now), sendGuardianSummaries(now), writeWeeklySummaries(now)]);
+  const backup = await runBackup(now).catch(async (err) => {
+    await recordError({ kind: "worker", message: `Backup failed: ${err instanceof Error ? err.message : String(err)}`, path: "worker:backup" });
+    return null;
+  });
+  if (backup) console.info(`[backup] saved ${backup.key} (${backup.bytes} bytes)`);
   return { digests, summaries: summaries + weekly };
 }

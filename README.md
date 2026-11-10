@@ -482,6 +482,44 @@ Phase 3 (see `PHASE3_SPEC.md`) turns classes into a general tutoring-program fea
 
 Tests: `tests/integration/security.test.ts`.
 
+### SAT scores, practice and the cohort
+
+- **Scores** (`src/server/scores.ts`, `src/lib/sat/scores.ts`). Students in a program are asked for a **baseline** (SAT, PSAT, a practice test, or "I'll take the diagnostic"). Scores are entered with section scores and the **numbers and topics** of missed questions only; the server refuses any other field, so test content can't be saved.
+  - **Students:** see their history chart (official tests filled, practice hollow, goal lines) and an **estimated range** (a trend, labelled as an estimate, never official). They also get a goal and test date, and a **weekly plan back from test day** (`src/server/pacing.ts`).
+  - **Staff:** see the class's **Scores** tab (gain, on track, distance to 1200 and 1300, stalling, missing baselines; viewers with fewer than 5 students see numbers only). Each student's page shows their scores, open mistakes, plan and guardians. The admin sees the **program dashboard**.
+- **College Board questions by link** (`src/server/external.ts`): attach Question Bank links and question IDs to an assignment; students answer on College Board and record right, wrong or skipped. Only `collegeboard.org` links are accepted, and no content is stored.
+- **Diagnostics** (`src/server/diagnostics.ts`). **Teaching → Diagnostics** builds an adaptive test from the program's tagged questions: per section, module 1, then a harder or easier module 2 depending on how module 1 went.
+  - **The clock** is kept on the server: late answers are refused, a reload doesn't reset it, and expired modules hand themselves in.
+  - **Attempts:** one per student unless a teacher allows a retake.
+  - **Results:** estimated section scores (saved as a DIAGNOSTIC score), plus results by domain and with or without Desmos. Answers and explanations appear after the diagnostic closes.
+  - **Grid-in answers** match by value (`3/4` = `.75`).
+- **Mistake log** (`/mistakes`, `src/server/mistakes.ts`): every wrong answer (assignments, diagnostics, College Board, misses entered from outside tests) comes back after 1, 3, 7 and 16 days until it's right twice in a row. Outside-test misses come back as a similar approved question on the same skill.
+- **Desmos:** with `DESMOS_API_KEY` the graphing calculator opens beside Math questions, and use is recorded. Without a key, it's a link to desmos.com.
+- **Cohort tools** (`src/server/cohort.ts`, `src/server/roster.ts`, `src/server/targets.ts`):
+  - **Assigning:** anything can go to the whole class, groups, or chosen students. A tutor limited to a group can only target it.
+  - **Attendance:** sessions (one-off or weekly) and a phone-friendly register, with attendance shown beside score gains (with a not-cause-and-effect note).
+  - **Alerts:** overdue work, dropping scores, inactive for 7 days, 2 absences in a row. They can be snoozed or dismissed, with an optional 7am email digest.
+  - **Roster CSV import:** previewed row by row; nothing is sent if any row is bad. Group, goal and baseline apply on joining.
+  - **Grade export:** CSV with formula-safe cells; emails only on request, for managers.
+  - **Guardian emails:** weekly, opt-in per class, only with recorded consent, with one-click unsubscribe.
+- **Curriculum and the assistant** (`src/server/curriculum.ts`, `src/server/assistant.ts`, `src/server/ai/assistant.ts`):
+  - **Curriculum:** paste a syllabus (Sonnet turns it into units) or start from the SAT template (no AI). Units are laid out on school weeks, skipping closed days, and stay drafts until published.
+  - **Pacing suggestions:** decided by rules, worded by Haiku. Accepting one adds a week and moves later units.
+  - **Drafts:** Claude drafts original questions (into a Worksheets draft that can't be assigned or used in diagnostics until each question is approved) and short lessons (hidden from students until approved).
+  - **Weekly summaries:** Claude sees stand-in labels, never names, and names are put back afterwards.
+  - **"Ask about your class":** read-only lookups that run as the asker, so their scope applies.
+  - **Review queue:** **Teaching → Review queue** lists everything waiting for a person.
+
+### Reliability and support
+
+- **Error monitoring** (`src/server/monitoring.ts`, `src/instrumentation.ts`): server, browser and worker errors are grouped with personal details removed, and site admins are emailed on a new one (then at most hourly). **Admin → Errors and problem reports.**
+- **Report a problem** (page footer): sends the page, the browser and recent error ids, never what's typed.
+- **First-login walkthroughs** for students (Today) and staff (My classes), shown once.
+- **Data requests:** students download their records (SAT scores page); staff download a student's records (logged); the program admin deletes a student's program data; the site admin deletes a whole account (Admin page).
+- **Backups:** nightly `pg_dump` to file storage with 30-day retention (`BACKUPS_ENABLED=true`, needs `postgresql-client`), plus `npm run backup:now`.
+- **Staging:** `APP_ENV=staging` shows a banner and refuses to start on the production database.
+- **Handoff:** `ADMIN_GUIDE.md` (deploys, backups, staff, handing over the admin role, a new semester) and `PRIVACY_REVIEW.md` (FERPA/COPPA checklist for the school).
+
 Every permission and scope rule has a test in `tests/integration/permissions.test.ts`. For example, a Math specialist can't see or grade Reading and Writing work, a group-scoped specialist can't see other students, and a removed staff member is locked out on their next request.
 
 ## Manual test checklist (classes and worksheets)

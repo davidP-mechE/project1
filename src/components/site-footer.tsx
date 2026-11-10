@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ReportProblemButton } from "@/components/support/report-problem";
 
 export function SiteFooter() {
   return (
@@ -9,6 +10,7 @@ export function SiteFooter() {
           <Link href="/terms" className="hover:text-text">Terms</Link>
           <Link href="/privacy" className="hover:text-text">Privacy</Link>
           <Link href="/copyright" className="hover:text-text">Copyright</Link>
+          <ReportProblemButton className="hover:text-text hover:underline" />
         </nav>
       </div>
     </footer>

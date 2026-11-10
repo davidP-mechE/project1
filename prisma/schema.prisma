@@ -85,6 +85,8 @@ model User {
   guardians          GuardianContact[]
   /// Staff: a daily email of new alerts.
   staffDigest        Boolean             @default(false)
+  /// First-login walkthroughs already seen (e.g. "student", "staff").
+  toursSeen          String[]
 
   /// Set on every login, for the Staff page.
   lastLoginAt      DateTime?
@@ -1702,4 +1704,31 @@ model AssistantSummary {
   createdAt   DateTime @default(now())
 
   @@unique([classId, groupId, weekOf])
+}
+
+/// A server or browser error, grouped by fingerprint. Messages are scrubbed of emails and long numbers; paths have no query string.
+model ErrorEvent {
+  id          String    @id @default(cuid())
+  fingerprint String    @unique
+  kind        String
+  message     String
+  path        String
+  digest      String?
+  count       Int       @default(1)
+  firstAt     DateTime  @default(now())
+  lastAt      DateTime  @default(now())
+  alertedAt   DateTime?
+  resolvedAt  DateTime?
+}
+
+/// "Report a problem": the page, the browser and recent error ids. No form contents.
+model ProblemReport {
+  id         String    @id @default(cuid())
+  userId     String?
+  path       String
+  userAgent  String
+  errorIds   String[]
+  note       String    @default("")
+  createdAt  DateTime  @default(now())
+  resolvedAt DateTime?
 }

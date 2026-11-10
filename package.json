@@ -21,7 +21,8 @@
     "admin:grant": "tsx --env-file-if-exists=.env scripts/make-admin.ts",
     "test:e2e": "playwright test --trace off",
     "cost:breakdown": "tsx --env-file-if-exists=.env scripts/cost-breakdown.ts",
-    "cost:estimate": "tsx scripts/cost-estimate.ts"
+    "cost:estimate": "tsx scripts/cost-estimate.ts",
+    "backup:now": "tsx --env-file-if-exists=.env --conditions=react-server scripts/backup-now.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.6.0",
