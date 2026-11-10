@@ -178,10 +178,10 @@ export function sampleWorksheet(): import("@/lib/ai/worksheet").WorksheetDraft {
     problem: "",
     hasAnswerKey: true,
     items: [
-      { label: "1", type: "multiple_choice", prompt: "If $3x + 5 = 20$, what is $x$?", choices: ["3", "5", "15", "25"], correctChoice: 1, answer: "5", answerFromWorksheet: true, explanation: "Subtract 5, then divide by 3.", steps: [], pageRefs: [1], topic: "Linear equations" },
-      { label: "2", type: "multiple_choice", prompt: "Which word best fits the blank?", choices: ["only one"], correctChoice: 3, answer: "concise", answerFromWorksheet: true, explanation: "", steps: [], pageRefs: [1, 99], topic: "Words in context" },
-      { label: "3", type: "short_answer", prompt: "Explain what a slope of 2 means.", choices: [], correctChoice: -1, answer: "y goes up by 2 when x goes up by 1.", answerFromWorksheet: false, explanation: "Slope is the rate of change.", steps: [], pageRefs: [2], topic: "Linear equations" },
-      { label: "4", type: "short_answer", prompt: "   ", choices: [], correctChoice: -1, answer: "", answerFromWorksheet: false, explanation: "", steps: [], pageRefs: [], topic: "" },
+      { label: "1", type: "multiple_choice", prompt: "If $3x + 5 = 20$, what is $x$?", choices: ["3", "5", "15", "25"], correctChoice: 1, answer: "5", answerFromWorksheet: true, explanation: "Subtract 5, then divide by 3.", steps: [], pageRefs: [1], topic: "Linear equations", satDomain: "algebra", satSkill: "linear equations in one variable", difficulty: "easy", desmosSolvable: false },
+      { label: "2", type: "multiple_choice", prompt: "Which word best fits the blank?", choices: ["only one"], correctChoice: 3, answer: "concise", answerFromWorksheet: true, explanation: "", steps: [], pageRefs: [1, 99], topic: "Words in context", satDomain: "craft-structure", satSkill: "Words in context", difficulty: "medium", desmosSolvable: true },
+      { label: "3", type: "short_answer", prompt: "Explain what a slope of 2 means.", choices: [], correctChoice: -1, answer: "y goes up by 2 when x goes up by 1.", answerFromWorksheet: false, explanation: "Slope is the rate of change.", steps: [], pageRefs: [2], topic: "Linear equations", satDomain: "nonsense", satSkill: "", difficulty: "hard", desmosSolvable: false },
+      { label: "4", type: "short_answer", prompt: "   ", choices: [], correctChoice: -1, answer: "", answerFromWorksheet: false, explanation: "", steps: [], pageRefs: [], topic: "", satDomain: "none", satSkill: "", difficulty: "easy", desmosSolvable: false },
     ],
   };
 }

@@ -445,6 +445,28 @@ Anyone can teach: **Teaching → My classes** in the sidebar.
 
 Privacy: teachers see students' names, emails and their work on assigned items only, never their own courses, notes or other answers.
 
+## Tutoring programs, staff and scopes
+
+Phase 3 (see `PHASE3_SPEC.md`) turns classes into a general tutoring-program feature. Your first class starts **your program** (for example The 1600 Project), and you're its **program admin**.
+
+- **Programs** (`src/server/programs.ts`): a program holds classes, staff and settings (score targets, how long staff invites last, a daily AI spending cap). Its admin page (**Teaching → your program**) has the settings, **hand over the admin role** (to a staff member: type the program's name to confirm; you stay on as a teacher), and the **audit log**.
+- **Staff roles** per class (**Staff** tab, `src/server/staff.ts`):
+  - **Teacher**: everything in the class.
+  - **Specialist**: sees, assigns and grades only their **scope**: SAT sections (Math, Reading and Writing), single domains (for example Advanced Math), and/or groups of students. Student tutors are specialists limited to the group they tutor.
+  - **Viewer**: read-only reports, names but no contact details.
+  - Add someone by email: an existing account gets access right away plus an email; anyone else gets an invite link that signs them up and lands them in the class. Invite links expire (7 days by default), can be resent (the old link stops working) or cancelled, and only work for the invited address.
+  - Only the program admin adds, changes or removes staff, unless they tick **Can add, change and remove staff** for a teacher.
+  - Removal and role changes apply on the person's next request: access is read from the database every time.
+- **Scope is enforced on the server** (`src/server/access.ts`): every teacher-side function calls `classAccess()` and filters students and assignments by the caller's scope in the database query. Anything out of scope is "not found", so ids can't be probed. Assignments carry a subject: question sets take it from their questions' tags, and lesson assignments from the subject picked when assigning. Untagged work is only visible to staff without a subject limit.
+- **SAT tags** (`src/lib/sat/domains.ts`): the 8 digital-SAT domains and their skills (names only). Claude suggests a domain, skill, difficulty and "Desmos helps" for each worksheet question; teachers confirm them (**Confirm tags**, or **Confirm all**) or change them. The Skills report groups by SAT skill.
+- **Groups** (**Groups** tab, `src/server/groups.ts`): teachers group students (score band, session, a tutor's students). Students don't see group names.
+- **Review AI grades** (`src/server/grade-review.ts`): teachers and specialists see the written answers Claude graded for their own students and subjects, and confirm or override each one. The student sees the reviewed grade; overrides go in the audit log.
+- **Audit log**: every staff add, invite, resend, cancel, accept, role or scope change, removal, group change, grade override and admin handover, with who did it and when. There's no code path that edits or deletes entries.
+- **No official content**: the worksheet reader refuses official College Board, SAT or Bluebook material, and points teachers to linking College Board questions instead.
+- **Deleting an account**: a program admin with other staff or students must hand the role over first.
+
+Every permission and scope rule has a test in `tests/integration/permissions.test.ts`. For example, a Math specialist can't see or grade Reading and Writing work, a group-scoped specialist can't see other students, and a removed staff member is locked out on their next request.
+
 ## Manual test checklist (classes and worksheets)
 
 1. **My classes → Create class**. On its Students page, copy the invite link and open it in a private window: sign up as a student, and you land back on the link; join.
@@ -453,6 +475,15 @@ Privacy: teachers see students' names, emails and their work on assigned items o
 4. As the student: answer the first set (try a wrong answer, then again); start the timed one and let it run out: answers lock and results appear.
 5. **Assign lessons**: a few lessons from a course. As the student, **Start**: your own copy opens at the first lesson; finish one.
 6. As the teacher: **Progress** shows both students' scores and lessons; open an assignment to see each question's results; **Skills** shows the weakest skills.
+
+## Manual test checklist (programs and staff)
+
+1. As the program admin, open a class's **Groups** tab and make "Group B" with two students.
+2. **Staff → Add someone**: add a second account of yours as a **Specialist** for **All of Math**. In a private window, log in as them: **Teaching** lists the class with "Specialist", and only Math-tagged assignments and their skills appear.
+3. Add a third address that has no account as a **Specialist** for **Reading and Writing**, limited to Group B. Open the invite email's link, sign up with that address, and accept: only Group B's students and R&W work show.
+4. Change the Math specialist to **Viewer**: their next page load has no **Assign** or **Review AI grades** tabs. **Remove** them: their next page load is "not found".
+5. On **Review AI grades**, override a grade: the student sees the new score, and the program's audit log shows the change.
+6. On the program page, hand the admin role to a teacher (type the program name). They can now add staff; you can't, but you're still a teacher.
 
 ## Manual test checklist (slide collages)
 

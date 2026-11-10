@@ -90,7 +90,7 @@ describe("classes", () => {
     const teacher = await createUser("Ms Rivera");
     const { c, students } = await classWithStudents(teacher.id);
     await expect(joinClass(students[0].id, "NOPE123")).rejects.toThrow("No class has that code");
-    await expect(joinClass(teacher.id, c.joinCode)).rejects.toThrow("You teach this class");
+    await expect(joinClass(teacher.id, c.joinCode)).rejects.toThrow("on this class's staff");
     const res = await inviteStudents(teacher.id, c.id, `new@school.org, ${students[0].email}; not-an-email`);
     expect(res).toEqual({ invited: ["new@school.org"], alreadyIn: [students[0].email.toLowerCase()], invalid: ["not-an-email"] });
     const view = await getClassForTeacher(teacher.id, c.id);
@@ -189,7 +189,11 @@ describe("classes", () => {
     expect(report.questions[0]).toMatchObject({ label: "1", answered: 2, correctRate: 0.5, choiceCounts: [0, 1, 0, 1] });
     expect(report.questions[1]).toMatchObject({ label: "3", answered: 1, answerSource: "CLAUDE" });
     const skills = await skillsReport(teacher.id, c.id);
-    expect(skills).toEqual([{ topic: "Linear equations", answers: 3, accuracy: 2 / 3, struggling: [] }]);
+    // Grouped by the confirmed-or-suggested SAT skill when there is one, else the worksheet's topic.
+    expect(skills).toEqual([
+      { topic: "Linear equations in one variable", answers: 2, accuracy: 0.5, struggling: [] },
+      { topic: "Linear equations", answers: 1, accuracy: 1, struggling: [] },
+    ]);
     await expect(assignmentReport(ana.id, a.id)).rejects.toBeInstanceOf(NotFoundError);
   });
 

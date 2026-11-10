@@ -16,6 +16,11 @@ import type { Grader } from "./ai/grader";
 import { RATE_RULES } from "@/lib/usage/rate-limit";
 import { gradeMultipleChoice, normalizeGrade, type GradeResult } from "@/lib/grading/grade";
 import { checkResponse, quickCheck } from "@/lib/grading/normalize";
+import { assignmentAccess, assignmentInScope, classAccess, ClassError, memberWhere, type ClassAccess } from "./access";
+import { scopeCovers, isSection, isDomain, workDomains } from "@/lib/sat/domains";
+import { ensureProgramFor } from "./programs";
+
+export { ClassError };
 
 /**
  * Classes: a teacher (any user) creates a class, invites students by email or
@@ -29,17 +34,10 @@ import { checkResponse, quickCheck } from "@/lib/grading/normalize";
  *    written answers by Claude against the answer key).
  * Teachers see progress on assigned work only, never a student's own courses.
  *
- * RULE: every function checks the caller is the class's teacher, or a member.
+ * RULE: every teacher-side function goes through classAccess() (src/server/access.ts)
+ * and filters students and assignments by the caller's scope; student-side
+ * functions check membership.
  */
-
-export class ClassError extends Error {
-  constructor(
-    message: string,
-    readonly status = 400,
-  ) {
-    super(message);
-  }
-}
 
 const MAX_CLASSES = 50;
 const MAX_STUDENTS = 300;
@@ -52,19 +50,24 @@ const joinUrl = (code: string) => `${env.APP_URL}/join/${code}`;
 
 // ─── Teacher: classes and students ───────────────────────────────────────
 
+/** The class, for someone allowed to change it and its students (program admin or teacher). */
 async function teacherClass(userId: string, classId: string) {
-  const c = await db.class.findFirst({ where: { id: classId, teacherId: userId } });
-  if (!c) throw new NotFoundError("Class not found");
-  return c;
+  await classAccess(userId, classId, "manageClass");
+  return db.class.findUniqueOrThrow({ where: { id: classId } });
 }
 
-export async function createClass(userId: string, name: string) {
+/**
+ * A new class in one of the caller's programs (they must be its admin). Someone
+ * with no program gets one, so any tutor can start.
+ */
+export async function createClass(userId: string, name: string, programId?: string) {
   const n = name.trim().slice(0, 120);
   if (!n) throw new ClassError("Give the class a name.");
-  if ((await db.class.count({ where: { teacherId: userId, archivedAt: null } })) >= MAX_CLASSES) throw new ClassError(`You can have up to ${MAX_CLASSES} classes. Archive old ones first.`);
+  const program = await ensureProgramFor(userId, programId);
+  if ((await db.class.count({ where: { programId: program.id, archivedAt: null } })) >= MAX_CLASSES) throw new ClassError(`A program can have up to ${MAX_CLASSES} classes. Archive old ones first.`);
   for (let i = 0; i < 5; i++) {
     try {
-      return await db.class.create({ data: { teacherId: userId, name: n, joinCode: newJoinCode() } });
+      return await db.class.create({ data: { programId: program.id, teacherId: userId, name: n, joinCode: newJoinCode(), staff: { create: { userId, role: "TEACHER", addedById: userId } } } });
     } catch (err) {
       if ((err as { code?: string }).code !== "P2002") throw err; // code already taken: try another
     }
@@ -85,29 +88,50 @@ export async function updateClass(userId: string, classId: string, patch: { name
   await db.class.update({ where: { id: classId }, data });
 }
 
+/** Classes the person is program admin or staff on, with their role in each. */
 export async function listTeaching(userId: string) {
-  return db.class.findMany({
-    where: { teacherId: userId },
+  const rows = await db.class.findMany({
+    where: { OR: [{ program: { adminId: userId } }, { staff: { some: { userId } } }] },
     orderBy: [{ archivedAt: { sort: "asc", nulls: "first" } }, { createdAt: "desc" }],
-    select: { id: true, name: true, joinCode: true, archivedAt: true, createdAt: true, _count: { select: { members: true, assignments: true } } },
+    select: {
+      id: true,
+      name: true,
+      joinCode: true,
+      archivedAt: true,
+      createdAt: true,
+      program: { select: { id: true, name: true, adminId: true } },
+      staff: { where: { userId }, select: { role: true } },
+      _count: { select: { members: true, assignments: true } },
+    },
   });
+  return rows.map(({ staff, ...c }) => ({ ...c, role: (c.program.adminId === userId ? "ADMIN" : staff[0]?.role ?? "VIEWER") as ClassAccess["role"] }));
 }
 
 /** Everything the teacher's class page shows except the progress report. */
 export async function getClassForTeacher(userId: string, classId: string) {
+  const access = await classAccess(userId, classId);
   const c = await db.class.findFirst({
-    where: { id: classId, teacherId: userId },
+    where: { id: classId },
     include: {
-      members: { orderBy: { joinedAt: "asc" }, select: { joinedAt: true, user: { select: { id: true, name: true, email: true } } } },
+      members: { where: memberWhere(access), orderBy: { joinedAt: "asc" }, select: { joinedAt: true, user: { select: { id: true, name: true, email: true } } } },
       invites: { orderBy: { createdAt: "desc" }, select: { id: true, email: true, createdAt: true } },
       assignments: {
         orderBy: [{ dueAt: { sort: "asc", nulls: "last" } }, { createdAt: "desc" }],
-        select: { id: true, kind: true, title: true, note: true, dueAt: true, timeLimitMin: true, lessonIds: true, itemIds: true, createdAt: true, classCourse: { select: { id: true, title: true } }, worksheet: { select: { id: true, title: true } } },
+        select: { id: true, kind: true, title: true, note: true, dueAt: true, timeLimitMin: true, lessonIds: true, itemIds: true, createdAt: true, section: true, domains: true, classCourse: { select: { id: true, title: true } }, worksheet: { select: { id: true, title: true } } },
       },
     },
   });
   if (!c) throw new NotFoundError("Class not found");
-  return { ...c, joinUrl: joinUrl(c.joinCode) };
+  const manage = access.role === "ADMIN" || access.role === "TEACHER";
+  return {
+    ...c,
+    // Viewers see names only, not contact details.
+    members: access.role === "VIEWER" ? c.members.map((m) => ({ ...m, user: { ...m.user, email: "" } })) : c.members,
+    invites: manage ? c.invites : [],
+    assignments: c.assignments.filter((a) => assignmentInScope(access, a)),
+    joinUrl: joinUrl(c.joinCode),
+    access,
+  };
 }
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -158,7 +182,8 @@ export async function joinClass(userId: string, code: string) {
   if (!limited.ok) throw new ClassError("Too many tries. Please wait a while and check the code with your teacher.", 429);
   const c = await db.class.findUnique({ where: { joinCode: normalizeCode(code) }, select: { id: true, teacherId: true, archivedAt: true, _count: { select: { members: true } } } });
   if (!c || c.archivedAt) throw new ClassError("No class has that code. Check it with your teacher.", 404);
-  if (c.teacherId === userId) throw new ClassError("You teach this class. Open it under Teaching.");
+  const staff = await db.class.count({ where: { id: c.id, OR: [{ program: { adminId: userId } }, { staff: { some: { userId } } }] } });
+  if (staff) throw new ClassError("You're on this class's staff. Open it under Teaching.");
   const already = await db.classMember.findUnique({ where: { classId_userId: { classId: c.id, userId } } });
   if (already) return c.id;
   if (c._count.members >= MAX_STUDENTS) throw new ClassError("This class is full. Ask your teacher.");
@@ -210,6 +235,17 @@ async function classCourseFor(userId: string, classId: string, courseId: string)
   });
 }
 
+/** The subject an assignment covers, checked against the caller's scope. */
+function subjectFor(access: ClassAccess, input: { section?: string | null; domains?: string[] }) {
+  const domains = [...new Set((input.domains ?? []).filter(isDomain))];
+  const section = isSection(input.section) ? input.section : null;
+  const work = { section, domains };
+  if (!scopeCovers(access.subjects, work)) {
+    throw new ClassError(workDomains(work).length ? "That subject is outside what you cover in this class." : "Choose the subject this covers (you can only assign work in your subjects).", 403);
+  }
+  return work;
+}
+
 function parseDue(due: string | Date | null | undefined): Date | null {
   if (!due) return null;
   const d = due instanceof Date ? due : new Date(due);
@@ -217,11 +253,12 @@ function parseDue(due: string | Date | null | undefined): Date | null {
   return d;
 }
 
-export type LessonAssignmentInput = { courseId: string; lessonIds: string[]; title?: string; note?: string; dueAt?: string | Date | null };
+export type LessonAssignmentInput = { courseId: string; lessonIds: string[]; title?: string; note?: string; dueAt?: string | Date | null; section?: string | null; domains?: string[] };
 
 /** Assign a course (no lessons chosen = the whole course), or chosen lessons from it. */
 export async function assignLessons(userId: string, classId: string, input: LessonAssignmentInput) {
-  await teacherClass(userId, classId);
+  const access = await classAccess(userId, classId, "teach");
+  const subject = subjectFor(access, input);
   const cc = await classCourseFor(userId, classId, input.courseId);
   const lessons = input.lessonIds.length
     ? await db.lesson.findMany({ where: { id: { in: input.lessonIds }, courseId: input.courseId, skip: false }, orderBy: [{ unit: { order: "asc" } }, { order: "asc" }], select: { id: true, title: true } })
@@ -231,7 +268,7 @@ export async function assignLessons(userId: string, classId: string, input: Less
     input.title?.trim().slice(0, 200) ||
     (lessons.length === 0 ? cc.title : lessons.length === 1 ? lessons[0].title : `${lessons[0].title} + ${lessons.length - 1} more`);
   return db.assignment.create({
-    data: { classId, kind: "LESSONS", classCourseId: cc.id, title, note: input.note?.trim().slice(0, 2000) || null, lessonIds: lessons.map((l) => l.id), dueAt: parseDue(input.dueAt) },
+    data: { classId, kind: "LESSONS", classCourseId: cc.id, title, note: input.note?.trim().slice(0, 2000) || null, lessonIds: lessons.map((l) => l.id), dueAt: parseDue(input.dueAt), ...subject },
   });
 }
 
@@ -248,7 +285,7 @@ export type QuestionAssignmentInput = {
 
 /** Assign questions from a worksheet to one or more classes, optionally filed under a course and timed. */
 export async function assignQuestions(userId: string, input: QuestionAssignmentInput) {
-  const ws = await db.worksheet.findFirst({ where: { id: input.worksheetId, ownerId: userId, status: "READY" }, select: { id: true, title: true, items: { orderBy: { order: "asc" }, select: { id: true } } } });
+  const ws = await db.worksheet.findFirst({ where: { id: input.worksheetId, ownerId: userId, status: "READY" }, select: { id: true, title: true, items: { orderBy: { order: "asc" }, select: { id: true, section: true, domain: true } } } });
   if (!ws) throw new ClassError("Choose a worksheet that has finished reading.");
   const order = ws.items.map((i) => i.id);
   const chosen = input.itemIds.length ? order.filter((id) => input.itemIds.includes(id)) : order;
@@ -259,9 +296,16 @@ export async function assignQuestions(userId: string, input: QuestionAssignmentI
   const limit = input.timeLimitMin ? Math.round(input.timeLimitMin) : null;
   if (limit !== null && (limit < 1 || limit > 300)) throw new ClassError("A time limit can be 1 to 300 minutes.");
   const dueAt = parseDue(input.dueAt);
+  // The subject follows the chosen questions' tags (one section; their domains).
+  const tagged = ws.items.filter((i) => chosen.includes(i.id));
+  const sections = new Set(tagged.map((i) => i.section));
+  const subject = sections.size === 1 && !sections.has(null) && tagged.every((i) => i.domain) ? { section: [...sections][0], domains: [...new Set(tagged.map((i) => i.domain!))] } : { section: null, domains: [] };
   const created = [];
-  for (const classId of classIds) {
-    await teacherClass(userId, classId);
+  const accesses = [];
+  for (const classId of classIds) accesses.push(await classAccess(userId, classId, "teach"));
+  for (const access of accesses) {
+    const classId = access.classId;
+    const work = subjectFor(access, subject);
     const cc = input.courseId ? await classCourseFor(userId, classId, input.courseId) : null;
     created.push(
       await db.assignment.create({
@@ -275,6 +319,7 @@ export async function assignQuestions(userId: string, input: QuestionAssignmentI
           itemIds: chosen,
           timeLimitMin: limit,
           dueAt,
+          ...work,
         },
       }),
     );
@@ -283,8 +328,8 @@ export async function assignQuestions(userId: string, input: QuestionAssignmentI
 }
 
 export async function updateAssignment(userId: string, assignmentId: string, patch: { title?: string; dueAt?: string | null; note?: string }) {
-  const a = await db.assignment.findFirst({ where: { id: assignmentId, class: { teacherId: userId } }, select: { id: true } });
-  if (!a) throw new NotFoundError("Assignment not found");
+  await assignmentAccess(userId, assignmentId, "teach");
+  const a = { id: assignmentId };
   await db.assignment.update({
     where: { id: a.id },
     data: {
@@ -297,8 +342,8 @@ export async function updateAssignment(userId: string, assignmentId: string, pat
 
 /** Delete an assignment (students' answers to it go too; their course copies stay). */
 export async function deleteAssignment(userId: string, assignmentId: string) {
-  const { count } = await db.assignment.deleteMany({ where: { id: assignmentId, class: { teacherId: userId } } });
-  if (count === 0) throw new NotFoundError("Assignment not found");
+  await assignmentAccess(userId, assignmentId, "teach");
+  await db.assignment.delete({ where: { id: assignmentId } });
 }
 
 // ─── Students: doing the work ────────────────────────────────────────────
@@ -558,20 +603,21 @@ async function progressCells(classId: string, students: string[], assignments: A
 
 /** The teacher's grid: every student × every assignment, with class averages. */
 export async function classProgress(userId: string, classId: string, now = new Date()) {
-  const c = await db.class.findFirst({
-    where: { id: classId, teacherId: userId },
+  const access = await classAccess(userId, classId);
+  const c = await db.class.findFirstOrThrow({
+    where: { id: classId },
     select: {
-      members: { orderBy: { user: { name: "asc" } }, select: { user: { select: { id: true, name: true, email: true } } } },
+      members: { where: memberWhere(access), orderBy: { user: { name: "asc" } }, select: { user: { select: { id: true, name: true, email: true } } } },
       assignments: {
         orderBy: [{ dueAt: { sort: "asc", nulls: "last" } }, { createdAt: "asc" }],
-        select: { id: true, kind: true, title: true, dueAt: true, timeLimitMin: true, lessonIds: true, itemIds: true, classCourseId: true, classCourse: { select: { title: true } } },
+        select: { id: true, kind: true, title: true, dueAt: true, timeLimitMin: true, lessonIds: true, itemIds: true, classCourseId: true, section: true, domains: true, classCourse: { select: { title: true } } },
       },
     },
   });
-  if (!c) throw new NotFoundError("Class not found");
   const students = c.members.map((m) => m.user);
-  const cells = await progressCells(classId, students.map((s) => s.id), c.assignments, now);
-  const summary = c.assignments.map((a) => {
+  const assignments = c.assignments.filter((a) => assignmentInScope(access, a));
+  const cells = await progressCells(classId, students.map((s) => s.id), assignments, now);
+  const summary = assignments.map((a) => {
     const row = students.map((s) => cells.get(`${s.id}:${a.id}`)!);
     const scored = row.filter((x) => x.score !== null);
     return {
@@ -580,16 +626,16 @@ export async function classProgress(userId: string, classId: string, now = new D
       average: scored.length ? scored.reduce((n, x) => n + x.score!, 0) / scored.length : null,
     };
   });
-  return { students, assignments: c.assignments, cells: Object.fromEntries(cells), summary };
+  return { students, assignments, cells: Object.fromEntries(cells), summary, access };
 }
 
 /** One assignment in detail: each student's result, and for question sets, how the class did on each question. */
 export async function assignmentReport(userId: string, assignmentId: string, now = new Date()) {
-  const a = await db.assignment.findFirst({
-    where: { id: assignmentId, class: { teacherId: userId } },
-    include: { class: { select: { id: true, name: true, members: { orderBy: { user: { name: "asc" } }, select: { user: { select: { id: true, name: true, email: true } } } } } }, classCourse: { select: { id: true, title: true } }, worksheet: { select: { id: true, title: true } } },
+  const access = await assignmentAccess(userId, assignmentId);
+  const a = await db.assignment.findUniqueOrThrow({
+    where: { id: assignmentId },
+    include: { class: { select: { id: true, name: true, members: { where: memberWhere(access), orderBy: { user: { name: "asc" } }, select: { user: { select: { id: true, name: true, email: true } } } } } }, classCourse: { select: { id: true, title: true } }, worksheet: { select: { id: true, title: true } } },
   });
-  if (!a) throw new NotFoundError("Assignment not found");
   const students = a.class.members.map((m) => m.user);
   const cells = await progressCells(a.classId, students.map((s) => s.id), [a], now);
   const rows = students.map((s) => ({ student: s, ...cells.get(`${s.id}:${a.id}`)! }));
@@ -639,20 +685,25 @@ export async function assignmentReport(userId: string, assignmentId: string, now
       ];
     });
   }
-  return { assignment: a, students: rows, questions };
+  return { assignment: a, students: rows, questions, access };
 }
 
 /** How the class does on each skill (worksheet question topics), overall and per student: who needs help with what. */
 export async function skillsReport(userId: string, classId: string) {
-  const c = await db.class.findFirst({ where: { id: classId, teacherId: userId }, select: { members: { select: { user: { select: { id: true, name: true } } } } } });
-  if (!c) throw new NotFoundError("Class not found");
+  const access = await classAccess(userId, classId);
+  const c = await db.class.findFirstOrThrow({ where: { id: classId }, select: { members: { where: memberWhere(access), select: { user: { select: { id: true, name: true } } } } } });
   const answers = await db.assignmentAnswer.findMany({
     where: { assignment: { classId }, userId: { in: c.members.map((m) => m.user.id) } },
     orderBy: { createdAt: "asc" },
-    select: { userId: true, assignmentId: true, itemId: true, score: true, item: { select: { topic: true } } },
+    select: { userId: true, assignmentId: true, itemId: true, score: true, assignment: { select: { section: true, domains: true } }, item: { select: { topic: true, skill: true, section: true, domain: true } } },
   });
   const latest = new Map<string, { userId: string; topic: string; score: number }>();
-  for (const x of answers) latest.set(`${x.userId}:${x.assignmentId}:${x.itemId}`, { userId: x.userId, topic: x.item.topic, score: x.score });
+  for (const x of answers) {
+    if (!assignmentInScope(access, x.assignment)) continue;
+    // A tagged question outside the caller's subjects is skipped even inside a mixed assignment.
+    if (x.item.domain && !scopeCovers(access.subjects, { section: x.item.section, domains: [x.item.domain] })) continue;
+    latest.set(`${x.userId}:${x.assignmentId}:${x.itemId}`, { userId: x.userId, topic: x.item.skill ?? x.item.topic, score: x.score });
+  }
   const topics = new Map<string, { n: number; sum: number; byStudent: Map<string, { n: number; sum: number }> }>();
   for (const x of latest.values()) {
     const t = topics.get(x.topic) ?? { n: 0, sum: 0, byStudent: new Map() };

@@ -6,6 +6,7 @@ import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { assignLessonsAction } from "@/server/actions/classes";
+import { DOMAINS, SECTIONS } from "@/lib/sat/domains";
 
 type Course = { id: string; title: string; units: { id: string; title: string; lessons: { id: string; title: string; status: string }[] }[] };
 
@@ -18,6 +19,7 @@ export function AssignLessonsForm({ classId, courses }: { classId: string; cours
   const [title, setTitle] = useState("");
   const [due, setDue] = useState("");
   const [note, setNote] = useState("");
+  const [subject, setSubject] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
   const course = useMemo(() => courses.find((c) => c.id === courseId), [courses, courseId]);
@@ -30,7 +32,7 @@ export function AssignLessonsForm({ classId, courses }: { classId: string; cours
         e.preventDefault();
         if (!whole && picked.length === 0) return setError("Choose some lessons, or assign the whole course.");
         start(async () => {
-          const res = await assignLessonsAction(classId, { courseId, lessonIds: whole ? [] : picked, title: title || undefined, note: note || undefined, dueAt: due ? new Date(due).toISOString() : null });
+          const res = await assignLessonsAction(classId, { courseId, lessonIds: whole ? [] : picked, title: title || undefined, note: note || undefined, dueAt: due ? new Date(due).toISOString() : null, subject: subject || null });
           if (!res.ok) return setError(res.error);
           router.push(`/teach/${classId}`);
         });
@@ -83,6 +85,23 @@ export function AssignLessonsForm({ classId, courses }: { classId: string; cours
       </fieldset>
 
       <div className="grid gap-4 sm:grid-cols-2">
+        <label className="flex flex-col gap-1.5 text-sm">
+          <span className="font-medium">SAT subject</span>
+          <select value={subject} onChange={(e) => setSubject(e.target.value)} className="h-11 rounded-lg border border-border bg-surface px-3">
+            <option value="">Not tagged</option>
+            {SECTIONS.map((s) => (
+              <optgroup key={s.id} label={s.name}>
+                <option value={s.id}>All of {s.name}</option>
+                {DOMAINS.filter((d) => d.section === s.id).map((d) => (
+                  <option key={d.id} value={d.id}>
+                    {d.name}
+                  </option>
+                ))}
+              </optgroup>
+            ))}
+          </select>
+          <span className="text-xs text-muted">Specialists only see work in their subjects, so tag it if specialists help with this class.</span>
+        </label>
         <Field label="Title (optional)" value={title} onChange={(e) => setTitle(e.target.value)} maxLength={200} placeholder="Named after the lessons if left empty" />
         <label className="flex flex-col gap-1.5 text-sm">
           <span className="font-medium">Due (optional)</span>

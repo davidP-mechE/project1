@@ -8,6 +8,7 @@ import { rateLimit } from "./rate-limit";
 import { checkPdfSignature, PDF_HEAD_BYTES, PDF_TAIL_BYTES } from "@/lib/pdf/validate";
 import { titleFromFilename, validateUploadRequest } from "@/lib/upload/limits";
 import { RATE_RULES } from "@/lib/usage/rate-limit";
+import { cleanTags } from "@/lib/sat/domains";
 
 /**
  * Worksheets: a teacher uploads a PDF of questions (homework, a problem set, a
@@ -157,4 +158,22 @@ export async function retryWorksheet(userId: string, worksheetId: string) {
   if (!(await storage.head(ws.fileKey))) throw new WorksheetError("The PDF is no longer stored. Upload it again.");
   await db.worksheet.update({ where: { id: ws.id }, data: { status: "READING", error: null } });
   await enqueueGeneration([{ payload: { kind: "worksheet", worksheetId: ws.id }, priority: 2 }]);
+}
+
+export type TagEdit = { domain: string | null; skill: string | null; difficulty: string | null; desmosSolvable: boolean };
+
+/** The teacher sets (and so confirms) a question's SAT tags. */
+export async function setItemTags(userId: string, itemId: string, edit: TagEdit) {
+  const item = await db.worksheetItem.findFirst({ where: { id: itemId, worksheet: { ownerId: userId } }, select: { id: true } });
+  if (!item) throw new NotFoundError("Question not found");
+  const t = cleanTags({ domain: edit.domain, skill: edit.skill, difficulty: edit.difficulty });
+  if (edit.domain && !t.domain) throw new WorksheetError("Choose a subject from the list.");
+  await db.worksheetItem.update({ where: { id: itemId }, data: { ...t, desmosSolvable: t.section === "MATH" && edit.desmosSolvable, tagsConfirmed: true } });
+}
+
+/** Accept every suggested tag on a worksheet at once. */
+export async function confirmAllTags(userId: string, worksheetId: string) {
+  const { count } = await db.worksheet.updateMany({ where: { id: worksheetId, ownerId: userId }, data: {} });
+  if (count === 0) throw new NotFoundError("Worksheet not found");
+  await db.worksheetItem.updateMany({ where: { worksheetId, tagsConfirmed: false }, data: { tagsConfirmed: true } });
 }

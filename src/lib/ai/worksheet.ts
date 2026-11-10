@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { cleanTags, DOMAINS } from "@/lib/sat/domains";
 
 /**
  * Reading a teacher's worksheet (a PDF of questions: homework, a problem set,
@@ -9,7 +10,9 @@ import { z } from "zod";
  * marked for the teacher to check).
  */
 
-export const WORKSHEET_PROMPT_VERSION = "worksheet-v1";
+export const WORKSHEET_PROMPT_VERSION = "worksheet-v2";
+
+const DOMAIN_LIST = DOMAINS.map((d) => `- ${d.id} (${d.section === "MATH" ? "Math" : "Reading and Writing"}: ${d.name}). Skills: ${d.skills.join("; ")}`).join("\n");
 export const MAX_WORKSHEET_PAGES = 20;
 export const MAX_WORKSHEET_ITEMS = 120;
 
@@ -34,6 +37,20 @@ You receive every page of one worksheet (a PDF of questions: homework, a problem
 - topic: the skill being practised, 2–5 words, like "Linear equations", "Ratios and rates", "Words in context", "Command of evidence", "Subject-verb agreement". Use the same name for questions practising the same skill.
 </types_and_answers>
 
+<sat_tags>
+Tag each question with the digital SAT content domain and skill it practises, so reports can be grouped and staff can be given subjects:
+${DOMAIN_LIST}
+- satDomain: one of the ids above, or "none" when the question isn't SAT-style Math or Reading and Writing.
+- satSkill: the skill name from that domain's list, exactly as written ("" when satDomain is "none").
+- difficulty: "easy", "medium" or "hard" for a typical SAT student.
+- desmosSolvable: true for a Math question a graphing calculator makes much faster (graphing to find intersections, zeros, regressions); otherwise false.
+The teacher confirms these tags, so make your best judgement.
+</sat_tags>
+
+<official_material>
+Coursebook never stores official College Board, SAT, PSAT or Bluebook test questions. If the pages are official College Board material (their branding, "© College Board" notices, or Bluebook or Question Bank screenshots), set readable to false and say in "problem" that official questions can't be stored, and that the teacher can attach links to College Board questions to an assignment instead.
+</official_material>
+
 If the pages aren't a worksheet with questions (or can't be read), set readable to false and say why in "problem", with an empty list.`;
 
 export const WorksheetDraftSchema = z.object({
@@ -53,6 +70,10 @@ export const WorksheetDraftSchema = z.object({
       steps: z.array(z.string()),
       pageRefs: z.array(z.number().int()),
       topic: z.string(),
+      satDomain: z.enum(["none", ...DOMAINS.map((d) => d.id)] as [string, ...string[]]),
+      satSkill: z.string(),
+      difficulty: z.enum(["easy", "medium", "hard"]),
+      desmosSolvable: z.boolean(),
     }),
   ),
 });
@@ -83,9 +104,21 @@ export type WorksheetItemData = {
   pageRefs: number[];
   topic: string;
   answerSource: "WORKSHEET" | "CLAUDE" | "TEACHER";
+  section: string | null;
+  domain: string | null;
+  skill: string | null;
+  difficulty: string | null;
+  desmosSolvable: boolean;
+  tagsConfirmed: boolean;
 };
 
 const tidy = (s: string) => s.replace(/\r/g, "").trim();
+
+/** Claude's suggested SAT tags, cleaned (unknown values dropped); staff confirm them later. */
+function tagsFrom(it: { satDomain?: string; satSkill?: string; difficulty?: string; desmosSolvable?: boolean }) {
+  const t = cleanTags({ domain: it.satDomain, skill: it.satSkill, difficulty: it.difficulty?.toUpperCase() });
+  return { ...t, desmosSolvable: t.section === "MATH" && Boolean(it.desmosSolvable), tagsConfirmed: false };
+}
 
 /** Check what Claude listed: drop empty questions, fix broken multiple choice, keep page refs on real pages. */
 export function normalizeWorksheet(draft: WorksheetDraft, pageCount: number): WorksheetItemData[] {
@@ -112,6 +145,7 @@ export function normalizeWorksheet(draft: WorksheetDraft, pageCount: number): Wo
       pageRefs: [...new Set(it.pageRefs.filter((p) => p >= 1 && p <= pageCount))].sort((a, b) => a - b),
       topic: tidy(it.topic).slice(0, 60) || "General",
       answerSource: it.answerFromWorksheet ? "WORKSHEET" : "CLAUDE",
+      ...tagsFrom(it),
     });
     if (out.length >= MAX_WORKSHEET_ITEMS) break;
   }

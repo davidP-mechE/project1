@@ -144,7 +144,7 @@ export class DemoWriter implements LessonWriter {
         const q = /^(\d+[a-z]?)[.)]\s+(.{3,})$/.exec(line);
         const c = /^\(?([A-D])[.)]\s+(.+)$/.exec(line);
         if (q) {
-          items.push({ label: q[1], type: "short_answer", prompt: `${q[2]} (demo)`, choices: [], correctChoice: -1, answer: "Demo answer", answerFromWorksheet: false, explanation: "Demo mode: answers aren't worked out.", steps: [], pageRefs: [p.pageNumber], topic: "Demo skill" });
+          items.push({ label: q[1], type: "short_answer", prompt: `${q[2]} (demo)`, choices: [], correctChoice: -1, answer: "Demo answer", answerFromWorksheet: false, explanation: "Demo mode: answers aren't worked out.", steps: [], pageRefs: [p.pageNumber], topic: "Demo skill", satDomain: "algebra", satSkill: "Linear equations in one variable", difficulty: "medium", desmosSolvable: false });
         } else if (c && items.length > 0) {
           const last = items[items.length - 1];
           last.type = "multiple_choice";

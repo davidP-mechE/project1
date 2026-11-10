@@ -72,6 +72,12 @@ model User {
   worksheets         Worksheet[]
   assignmentAnswers  AssignmentAnswer[]
   assignmentStarts   AssignmentStart[]
+  programsAdmin      Program[]           @relation("programAdmin")
+  classStaff         ClassStaff[]        @relation("staffUser")
+  groupMemberships   ClassGroupMember[]
+
+  /// Set on every login, for the Staff page.
+  lastLoginAt DateTime?
 
   @@map("user")
 }
@@ -991,20 +997,132 @@ model CatalogEntry {
 // gets their own copy of an assigned course (like the Hub), so their progress,
 // notes and answers are theirs; the teacher sees progress on assigned work only.
 
+/// A tutoring program (e.g. The 1600 Project): its classes, staff and settings.
+model Program {
+  id              String     @id @default(cuid())
+  name            String
+  adminId         String
+  admin           User       @relation("programAdmin", fields: [adminId], references: [id], onDelete: Cascade)
+  /// Subject template: only SAT for now.
+  subject         String     @default("SAT")
+  /// Score targets shown on dashboards (e.g. 1200, 1300).
+  targets         Int[]      @default([1200, 1300])
+  /// Days a staff invite link stays valid.
+  inviteDays      Int        @default(7)
+  /// Program-wide AI spending cap per day, in cents (null = no cap beyond each user's allowance).
+  aiDailyCapCents Int?
+  createdAt       DateTime   @default(now())
+  classes         Class[]
+  auditLogs       AuditLog[]
+
+  @@index([adminId])
+}
+
+/// Staff on a class. A specialist's scope: sections (MATH, RW), domains, groups; empty = no limit on that axis.
+model ClassStaff {
+  id             String    @id @default(cuid())
+  classId        String
+  class          Class     @relation(fields: [classId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User      @relation("staffUser", fields: [userId], references: [id], onDelete: Cascade)
+  role           StaffRole
+  sections       String[]
+  domains        String[]
+  groupIds       String[]
+  canManageStaff Boolean   @default(false)
+  addedById      String?
+  createdAt      DateTime  @default(now())
+
+  @@unique([classId, userId])
+  @@index([userId])
+}
+
+enum StaffRole {
+  TEACHER
+  SPECIALIST
+  VIEWER
+}
+
+model StaffInvite {
+  id             String    @id @default(cuid())
+  classId        String
+  class          Class     @relation(fields: [classId], references: [id], onDelete: Cascade)
+  email          String
+  role           StaffRole
+  sections       String[]
+  domains        String[]
+  groupIds       String[]
+  canManageStaff Boolean   @default(false)
+  /// sha256 of the link's token; the token itself is never stored.
+  tokenHash      String    @unique
+  expiresAt      DateTime
+  invitedById    String
+  acceptedAt     DateTime?
+  cancelledAt    DateTime?
+  createdAt      DateTime  @default(now())
+
+  @@index([classId])
+}
+
+/// Append-only record of staff, role, scope, admin and grade-override changes. Nothing updates or deletes rows.
+model AuditLog {
+  id         String   @id @default(cuid())
+  programId  String
+  program    Program  @relation(fields: [programId], references: [id], onDelete: Cascade)
+  actorId    String?
+  action     String
+  targetType String
+  targetId   String
+  /// Readable summary, e.g. "Specialist (Math) → Teacher". Never students' answers.
+  summary    String   @default("")
+  before     Json?
+  after      Json?
+  createdAt  DateTime @default(now())
+
+  @@index([programId, createdAt])
+}
+
+model ClassGroup {
+  id        String             @id @default(cuid())
+  classId   String
+  class     Class              @relation(fields: [classId], references: [id], onDelete: Cascade)
+  name      String
+  createdAt DateTime           @default(now())
+  members   ClassGroupMember[]
+
+  @@index([classId])
+}
+
+model ClassGroupMember {
+  groupId String
+  group   ClassGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  userId  String
+  user    User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([groupId, userId])
+  @@index([userId])
+}
+
 model Class {
-  id          String        @id @default(cuid())
-  teacherId   String
-  teacher     User          @relation("teacher", fields: [teacherId], references: [id], onDelete: Cascade)
-  name        String
-  joinCode    String        @unique
-  archivedAt  DateTime?
-  createdAt   DateTime      @default(now())
-  members     ClassMember[]
-  invites     ClassInvite[]
-  courses     ClassCourse[]
-  assignments Assignment[]
+  id           String        @id @default(cuid())
+  programId    String
+  program      Program       @relation(fields: [programId], references: [id], onDelete: Cascade)
+  staff        ClassStaff[]
+  staffInvites StaffInvite[]
+  groups       ClassGroup[]
+  teacherId    String
+  teacher      User          @relation("teacher", fields: [teacherId], references: [id], onDelete: Cascade)
+  name         String
+  joinCode     String        @unique
+  archivedAt   DateTime?
+  createdAt    DateTime      @default(now())
+  members      ClassMember[]
+  invites      ClassInvite[]
+  courses      ClassCourse[]
+  assignments  Assignment[]
 
   @@index([teacherId])
+  @@index([programId])
 }
 
 model ClassMember {
@@ -1074,6 +1192,9 @@ model Assignment {
   itemIds       String[]
   /// Optional time limit for a question set, like a timed practice section.
   timeLimitMin  Int?
+  /// Subject it covers (SAT: MATH or RW) and its domains; staff scopes filter on these. Null = untagged.
+  section       String?
+  domains       String[]
   dueAt         DateTime?
   createdAt     DateTime           @default(now())
   answers       AssignmentAnswer[]
@@ -1111,25 +1232,32 @@ model Worksheet {
 }
 
 model WorksheetItem {
-  id            String             @id @default(cuid())
-  worksheetId   String
-  worksheet     Worksheet          @relation(fields: [worksheetId], references: [id], onDelete: Cascade)
-  order         Int
+  id             String             @id @default(cuid())
+  worksheetId    String
+  worksheet      Worksheet          @relation(fields: [worksheetId], references: [id], onDelete: Cascade)
+  order          Int
   /// The number printed on the worksheet ("3", "4b").
-  label         String
-  type          QuestionType
-  prompt        String
-  choices       String[]
-  correctChoice Int?
-  answer        String
-  explanation   String
-  steps         String[]
-  pageRefs      Int[]
+  label          String
+  type           QuestionType
+  prompt         String
+  choices        String[]
+  correctChoice  Int?
+  answer         String
+  explanation    String
+  steps          String[]
+  pageRefs       Int[]
   /// Skill or topic, for the score report by skill.
-  topic         String
+  topic          String
   /// Where the answer came from: WORKSHEET (its answer key), CLAUDE (worked out; check it) or TEACHER.
-  answerSource  String             @default("WORKSHEET")
-  answers       AssignmentAnswer[]
+  answerSource   String             @default("WORKSHEET")
+  /// SAT tags (src/lib/sat/domains.ts): suggested by Claude, confirmed by staff.
+  section        String?
+  domain         String?
+  skill          String?
+  difficulty     String?
+  desmosSolvable Boolean            @default(false)
+  tagsConfirmed  Boolean            @default(false)
+  answers        AssignmentAnswer[]
 
   @@index([worksheetId, order])
 }
@@ -1150,6 +1278,11 @@ model AssignmentAnswer {
   verdict      String
   feedback     String        @default("")
   gradedBy     String
+  /// A teacher or specialist confirmed or overrode Claude's grade.
+  reviewedById String?
+  reviewedAt   DateTime?
+  /// Claude's score before an override.
+  aiScore      Float?
   createdAt    DateTime      @default(now())
 
   @@index([assignmentId, userId])

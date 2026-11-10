@@ -53,9 +53,11 @@ export async function removeStudentAction(classId: string, studentId: string) {
 
 // ── Teacher: assignments ──
 const due = z.string().max(40).nullable().optional();
-export async function assignLessonsAction(classId: string, input: { courseId: string; lessonIds: string[]; title?: string; note?: string; dueAt?: string | null }) {
-  const parsed = z.object({ courseId: id, lessonIds: z.array(id).max(500), title: z.string().max(200).optional(), note: z.string().max(2000).optional(), dueAt: due }).parse(input);
-  return run(async (u) => ({ assignmentId: (await classes.assignLessons(u, id.parse(classId), parsed)).id }), [`/teach/${classId}`]);
+export async function assignLessonsAction(classId: string, input: { courseId: string; lessonIds: string[]; title?: string; note?: string; dueAt?: string | null; subject?: string | null }) {
+  const parsed = z.object({ courseId: id, lessonIds: z.array(id).max(500), title: z.string().max(200).optional(), note: z.string().max(2000).optional(), dueAt: due, subject: z.string().max(40).nullable().optional() }).parse(input);
+  // "MATH"/"RW" is a whole section; anything else is one domain.
+  const subject = parsed.subject === "MATH" || parsed.subject === "RW" ? { section: parsed.subject, domains: [] } : parsed.subject ? { section: null, domains: [parsed.subject] } : {};
+  return run(async (u) => ({ assignmentId: (await classes.assignLessons(u, id.parse(classId), { ...parsed, ...subject })).id }), [`/teach/${classId}`]);
 }
 export async function assignQuestionsAction(input: classes.QuestionAssignmentInput) {
   const parsed = z
@@ -111,6 +113,13 @@ const itemEdit = z.object({
 });
 export async function updateItemAction(worksheetId: string, itemId: string, edit: worksheets.ItemEdit) {
   return run((u) => worksheets.updateWorksheetItem(u, id.parse(itemId), itemEdit.parse(edit)), [`/teach/worksheets/${worksheetId}`]);
+}
+const tagEdit = z.object({ domain: z.string().max(40).nullable(), skill: z.string().max(200).nullable(), difficulty: z.string().max(10).nullable(), desmosSolvable: z.boolean() });
+export async function setItemTagsAction(worksheetId: string, itemId: string, edit: worksheets.TagEdit) {
+  return run((u) => worksheets.setItemTags(u, id.parse(itemId), tagEdit.parse(edit)), [`/teach/worksheets/${worksheetId}`]);
+}
+export async function confirmAllTagsAction(worksheetId: string) {
+  return run((u) => worksheets.confirmAllTags(u, id.parse(worksheetId)), [`/teach/worksheets/${worksheetId}`]);
 }
 export async function deleteItemAction(worksheetId: string, itemId: string) {
   return run((u) => worksheets.deleteWorksheetItem(u, id.parse(itemId)), [`/teach/worksheets/${worksheetId}`]);

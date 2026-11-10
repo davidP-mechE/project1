@@ -392,6 +392,8 @@ test("the full student journey works, is accessible, and respects the CSP", asyn
   await page.waitForURL(/\/teach\/worksheets\/[^/]+$/);
   await expect(page.getByRole("heading", { name: "Assign questions" })).toBeVisible({ timeout: 60_000 });
   await expect(page.getByText("2 questions from 1 page")).toBeVisible();
+  await page.getByRole("button", { name: "Confirm all 2 suggested tags" }).click();
+  await expect(page.getByText("Suggested by Claude")).toHaveCount(0);
   await a11y(page, "worksheet");
   await shot(page, "worksheet-review");
   await page.getByLabel("Assignment title").fill("Week 3 homework");
@@ -464,11 +466,69 @@ test("the full student journey works, is accessible, and respects the CSP", asyn
   await a11y(page, "class skills");
   await shot(page, "class-skills");
 
+  // ── Staff: groups, a Math specialist, reviewing AI grades, the program page ──
+  await page.goto(`${classUrl}/groups`);
+  await page.getByLabel("Group name").fill("Tuesday session");
+  await page.getByRole("checkbox", { name: "Sam Student" }).check();
+  await page.getByRole("button", { name: "Create group" }).click();
+  await expect(page.getByRole("button", { name: "Save group" })).toBeVisible();
+  await a11y(page, "class groups");
+  await shot(page, "class-groups");
+
+  const specEmail = `e2e-spec-${Date.now()}@example.com`;
+  const xctx = await context.browser()!.newContext();
+  const xp = await xctx.newPage();
+  watch(xp);
+  await xp.goto("/signup");
+  await xp.getByLabel("Name").fill("Maya Math");
+  await xp.getByLabel("Email").fill(specEmail);
+  await xp.getByLabel("Password", { exact: true }).fill(password);
+  await xp.getByLabel("Confirm password").fill(password);
+  await Promise.all([xp.waitForResponse((r) => r.url().includes("/api/auth/sign-up")), xp.getByRole("button", { name: "Create account" }).click()]);
+  await sql(`UPDATE "user" SET "emailVerified" = true WHERE email = $1`, [specEmail]);
+  await xp.goto("/login");
+  await xp.getByLabel("Email").fill(specEmail);
+  await xp.getByLabel("Password").fill(password);
+  await xp.getByRole("button", { name: "Log in" }).click();
+  await xp.waitForURL(/library/);
+
+  await page.goto(`${classUrl}/staff`);
+  await page.getByLabel("Email address").fill(specEmail);
+  await page.getByRole("checkbox", { name: "All of Math" }).check();
+  await page.getByRole("button", { name: "Add to staff" }).click();
+  await expect(page.getByText(`Added ${specEmail}`)).toBeVisible();
+  await expect(page.getByRole("rowheader", { name: /Maya Math/ })).toBeVisible();
+  await a11y(page, "class staff");
+  await shot(page, "class-staff");
+
+  await xp.goto("/teach");
+  await xp.getByRole("link", { name: /SAT Math, Period 2/ }).click();
+  await expect(xp.getByText(/You: Specialist/)).toBeVisible();
+  await expect(xp.getByRole("link", { name: "Week 3 homework" })).toBeVisible(); // tagged Algebra, so in a Math specialist's scope
+  await a11y(xp, "specialist class view");
+  await shot(xp, "specialist-view");
+  await xctx.close();
+
+  await page.goto(`${classUrl}/review`);
+  await expect(page.getByText(/Sam Student · Week 3 homework/)).toBeVisible();
+  await a11y(page, "review AI grades");
+  await shot(page, "review-ai-grades");
+  await page.getByRole("button", { name: "Confirm grade" }).click();
+  await expect(page.getByRole("heading", { name: "Nothing to review" })).toBeVisible();
+
+  await page.goto("/teach");
+  await page.getByRole("link", { name: /tutoring program/ }).click();
+  await page.waitForURL(/\/teach\/programs\//);
+  const programUrl = page.url();
+  await expect(page.getByText(/Added Maya Math to SAT Math, Period 2 as Specialist \(Math\)/)).toBeVisible();
+  await a11y(page, "program");
+  await shot(page, "program");
+
   // ── Phone width: no sideways scrolling on the main pages ──
   const phone = await context.browser()!.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, storageState: await context.storageState() });
   const p2 = await phone.newPage();
   watch(p2);
-  for (const url of ["/dashboard", courseUrl, `${courseUrl}/export`, `${courseUrl}/practice`, deckUrl, "/slides", "/skills", "/errors", "/mastery", "/hub", "/review", "/settings", "/admin", "/privacy", "/teach", classUrl, `${classUrl}/students`, "/teach/worksheets", "/classes"]) {
+  for (const url of ["/dashboard", courseUrl, `${courseUrl}/export`, `${courseUrl}/practice`, deckUrl, "/slides", "/skills", "/errors", "/mastery", "/hub", "/review", "/settings", "/admin", "/privacy", "/teach", classUrl, `${classUrl}/students`, `${classUrl}/staff`, `${classUrl}/groups`, `${classUrl}/review`, programUrl, "/teach/worksheets", "/classes"]) {
     await p2.goto(url);
     await p2.waitForLoadState("networkidle").catch(() => {});
     expect(await p2.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), `no sideways scroll on ${url}`).toBe(true);
@@ -484,7 +544,7 @@ test("the full student journey works, is accessible, and respects the CSP", asyn
   await phone.close();
 
   // Clean up the test account.
-  await sql(`DELETE FROM "user" WHERE email = $1`, [email]);
+  await sql(`DELETE FROM "user" WHERE email = ANY($1)`, [[email, specEmail]]);
 
   const report = problems.map((p) => `[${p.kind}] ${p.page}: ${p.detail}`).join("\n");
   expect(problems, `Problems found:\n${report}`).toEqual([]);

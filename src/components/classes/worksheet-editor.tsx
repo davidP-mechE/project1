@@ -9,9 +9,10 @@ import { Card } from "@/components/ui/misc";
 import { Field } from "@/components/ui/field";
 import { assignQuestionsAction, deleteItemAction, retryWorksheetAction, updateItemAction } from "@/server/actions/classes";
 import { cn } from "@/lib/utils";
+import { TagEditor, type Tags } from "./tag-editor";
 
 type ItemType = "MULTIPLE_CHOICE" | "SHORT_ANSWER" | "STEP_BY_STEP";
-export type EditorItem = { id: string; label: string; type: ItemType; prompt: string; choices: string[]; correctChoice: number | null; answer: string; explanation: string; steps: string[]; topic: string; answerSource: string };
+export type EditorItem = { id: string; label: string; type: ItemType; prompt: string; choices: string[]; correctChoice: number | null; answer: string; explanation: string; steps: string[]; topic: string; answerSource: string; tags: Tags };
 
 const letter = (i: number) => String.fromCharCode(65 + i);
 const TYPE_LABEL: Record<ItemType, string> = { MULTIPLE_CHOICE: "Multiple choice", SHORT_ANSWER: "Short answer", STEP_BY_STEP: "Step by step" };
@@ -100,6 +101,7 @@ export function ItemCard({ worksheetId, item, number }: { worksheetId: string; i
             </div>
           )}
           {item.explanation && <p className="text-sm text-muted">{item.explanation}</p>}
+          <TagEditor worksheetId={worksheetId} itemId={item.id} tags={item.tags} />
           <div className="flex gap-2">
             <Button size="sm" variant="secondary" onClick={() => setEditing(true)}>
               Edit

@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { BookLoader } from "@/components/ui/book-loader";
 import { Alert } from "@/components/ui/alert";
 import { Card, PageHeader } from "@/components/ui/misc";
+import { ConfirmAllTagsButton } from "@/components/classes/tag-editor";
 import { AssignQuestionsForm, ItemCard, ReadingPoller, RetryWorksheetButton } from "@/components/classes/worksheet-editor";
 import { dueText } from "@/components/classes/format";
 import { NotFoundError } from "@/server/courses";
@@ -92,11 +93,14 @@ export default async function WorksheetPage({ params }: PageProps<"/teach/worksh
             />
           </Card>
           <section aria-labelledby="questions" className="flex flex-col gap-4">
-            <h2 id="questions" className="text-lg font-semibold">
-              Questions
-            </h2>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h2 id="questions" className="text-lg font-semibold">
+                Questions
+              </h2>
+              <ConfirmAllTagsButton worksheetId={ws.id} count={ws.items.filter((i) => !i.tagsConfirmed).length} />
+            </div>
             {ws.items.map((i, n) => (
-              <ItemCard key={i.id} worksheetId={ws.id} number={n + 1} item={{ id: i.id, label: i.label, type: i.type, prompt: i.prompt, choices: i.choices, correctChoice: i.correctChoice, answer: i.answer, explanation: i.explanation, steps: i.steps, topic: i.topic, answerSource: i.answerSource }} />
+              <ItemCard key={i.id} worksheetId={ws.id} number={n + 1} item={{ id: i.id, label: i.label, type: i.type, prompt: i.prompt, choices: i.choices, correctChoice: i.correctChoice, answer: i.answer, explanation: i.explanation, steps: i.steps, topic: i.topic, answerSource: i.answerSource, tags: { domain: i.domain, skill: i.skill, difficulty: i.difficulty, desmosSolvable: i.desmosSolvable, tagsConfirmed: i.tagsConfirmed } }} />
             ))}
           </section>
         </>

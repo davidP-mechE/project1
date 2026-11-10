@@ -97,3 +97,26 @@ export function classInviteMessage(input: { to: string; teacherName: string; cla
     html: layout(`Join ${input.className}`, intro, "Join the class", input.url, outro),
   };
 }
+
+const ROLE_WORDS: Record<string, string> = { TEACHER: "a teacher", SPECIALIST: "a specialist", VIEWER: "a viewer (read-only reports)" };
+
+/** A staff member was added to a class (they already have an account). */
+export function staffAddedMessage(input: { to: string; byName: string; className: string; role: string; scope: string; url: string }): EmailMessage {
+  const intro = `${input.byName} added you to "${input.className}" on Coursebook as ${ROLE_WORDS[input.role] ?? "staff"}${input.role === "SPECIALIST" ? ` (${input.scope})` : ""}.`;
+  const outro = "If you weren't expecting this, you can ignore it or ask the program admin to remove you.";
+  return { to: input.to, subject: `You've been added to ${input.className}`, text: `${intro}\n\n${input.url}\n\n${outro}`, html: layout(`You've been added to ${input.className}`, intro, "Open the class", input.url, outro) };
+}
+
+/** An invitation to join a class's staff (no account yet). */
+export function staffInviteMessage(input: { to: string; byName: string; className: string; role: string; scope: string; url: string; days: number }): EmailMessage {
+  const intro = `${input.byName} invited you to help with "${input.className}" on Coursebook as ${ROLE_WORDS[input.role] ?? "staff"}${input.role === "SPECIALIST" ? ` (${input.scope})` : ""}.`;
+  const outro = `Sign up with this email address (${input.to}) to accept. The link works for ${input.days} day${input.days === 1 ? "" : "s"}.`;
+  return { to: input.to, subject: `Help with ${input.className} on Coursebook`, text: `${intro}\n\n${input.url}\n\n${outro}`, html: layout(`Join ${input.className}'s staff`, intro, "Accept the invitation", input.url, outro) };
+}
+
+/** The program admin role was handed over. */
+export function adminTransferMessage(input: { to: string; fromName: string; programName: string; url: string }): EmailMessage {
+  const intro = `${input.fromName} made you the admin of "${input.programName}" on Coursebook. You can now add and remove staff, manage every class, and hand the role on later.`;
+  const outro = "The admin guide (linked from the program page) covers deploys, backups, staff and new semesters.";
+  return { to: input.to, subject: `You're now the admin of ${input.programName}`, text: `${intro}\n\n${input.url}\n\n${outro}`, html: layout(`You're the admin of ${input.programName}`, intro, "Open the program", input.url, outro) };
+}

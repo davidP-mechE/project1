@@ -15,6 +15,8 @@ export const RATE_RULES = {
   classJoin: { name: "class-join", max: 10, windowSeconds: 60 * 60 },
   /** Class invitation emails a teacher can send. */
   classInvite: { name: "class-invite", max: 100, windowSeconds: 24 * 60 * 60 },
+  /** Staff invitations and resends (each sends an email). */
+  staffInvite: { name: "staff-invite", max: 40, windowSeconds: 24 * 60 * 60 },
   /** Worksheet uploads (each is read by Claude). */
   worksheetUpload: { name: "worksheet-upload", max: 20, windowSeconds: 60 * 60 },
 } satisfies Record<string, RateRule>;
