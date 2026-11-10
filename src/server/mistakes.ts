@@ -62,7 +62,7 @@ async function similarItem(studentId: string, m: { domain: string | null; skill:
   const programs = await db.program.findMany({ where: { classes: { some: { members: { some: { userId: studentId } } } } }, select: { adminId: true, classes: { select: { staff: { select: { userId: true } } } } } });
   const owners = [...new Set(programs.flatMap((p) => [p.adminId, ...p.classes.flatMap((c) => c.staff.map((s) => s.userId))]))];
   if (!owners.length) return null;
-  const base = { worksheet: { ownerId: { in: owners } }, archivedAt: null, tagsConfirmed: true, type: { in: ["MULTIPLE_CHOICE" as const, "SHORT_ANSWER" as const] }, id: { not: m.itemId ?? "" } };
+  const base = { worksheet: { ownerId: { in: owners } }, archivedAt: null, tagsConfirmed: true, type: { in: ["MULTIPLE_CHOICE" as const, "SHORT_ANSWER" as const] }, id: { not: m.itemId ?? "" }, OR: [{ worksheet: { source: "UPLOAD" } }, { approvedAt: { not: null } }] };
   let pool = m.skill ? await db.worksheetItem.findMany({ where: { ...base, skill: m.skill }, select: { id: true }, orderBy: { id: "asc" }, take: 50 }) : [];
   if (!pool.length) pool = await db.worksheetItem.findMany({ where: { ...base, domain: m.domain }, select: { id: true }, orderBy: { id: "asc" }, take: 50 });
   if (!pool.length) return null;

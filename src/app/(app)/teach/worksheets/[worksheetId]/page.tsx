@@ -2,9 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { BookLoader } from "@/components/ui/book-loader";
-import { Alert } from "@/components/ui/alert";
 import { Card, PageHeader } from "@/components/ui/misc";
 import { ConfirmAllTagsButton } from "@/components/classes/tag-editor";
+import { ApproveDraftButtons } from "@/components/classes/assistant-forms";
+import { Alert } from "@/components/ui/alert";
 import { AssignQuestionsForm, ItemCard, ReadingPoller, RetryWorksheetButton } from "@/components/classes/worksheet-editor";
 import { dueText } from "@/components/classes/format";
 import { NotFoundError } from "@/server/courses";
@@ -27,6 +28,8 @@ export default async function WorksheetPage({ params }: PageProps<"/teach/worksh
   }
   const [classes, courses] = ws.status === "READY" ? await Promise.all([listTeaching(user.id), assignableCourses(user.id)]) : [[], []];
   const toCheck = ws.items.filter((i) => i.answerSource === "CLAUDE").length;
+  const draft = ws.source === "AI_DRAFT";
+  const unapproved = ws.items.filter((i) => !i.approvedAt).length;
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-6">
       <p className="text-sm">
@@ -36,13 +39,18 @@ export default async function WorksheetPage({ params }: PageProps<"/teach/worksh
       </p>
       <PageHeader
         title={ws.title}
-        description={ws.status === "READY" ? `${ws.items.length} questions from ${ws.pageCount} ${ws.pageCount === 1 ? "page" : "pages"}${ws.hasAnswerKey ? " · answer key found" : ""}` : undefined}
+        description={draft ? `${ws.items.length} questions drafted by Claude · ${unapproved} waiting for approval` : ws.status === "READY" ? `${ws.items.length} questions from ${ws.pageCount} ${ws.pageCount === 1 ? "page" : "pages"}${ws.hasAnswerKey ? " · answer key found" : ""}` : undefined}
         actions={
-          <a href={`/api/worksheets/${ws.id}/file`} target="_blank" rel="noopener" className="text-sm underline">
-            Open the PDF
-          </a>
+          draft ? (
+            unapproved > 0 && <ApproveDraftButtons worksheetId={ws.id} pendingCount={unapproved} />
+          ) : (
+            <a href={`/api/worksheets/${ws.id}/file`} target="_blank" rel="noopener" className="text-sm underline">
+              Open the PDF
+            </a>
+          )
         }
       />
+      {draft && unapproved > 0 && <Alert tone="warning">Claude wrote these. Check each question and its answer key, fix anything with Edit, then approve. Unapproved questions can&apos;t be assigned or used in diagnostics.</Alert>}
 
       {ws.status === "READING" && (
         <Card className="flex flex-col items-center gap-4 py-10 text-center">
@@ -100,7 +108,14 @@ export default async function WorksheetPage({ params }: PageProps<"/teach/worksh
               <ConfirmAllTagsButton worksheetId={ws.id} count={ws.items.filter((i) => !i.tagsConfirmed).length} />
             </div>
             {ws.items.map((i, n) => (
-              <ItemCard key={i.id} worksheetId={ws.id} number={n + 1} item={{ id: i.id, label: i.label, type: i.type, prompt: i.prompt, choices: i.choices, correctChoice: i.correctChoice, answer: i.answer, explanation: i.explanation, steps: i.steps, topic: i.topic, answerSource: i.answerSource, tags: { domain: i.domain, skill: i.skill, difficulty: i.difficulty, desmosSolvable: i.desmosSolvable, tagsConfirmed: i.tagsConfirmed }, version: i.version, answered: i._count.answers }} />
+              <div key={i.id} className="flex flex-col gap-2">
+              {draft && !i.approvedAt && (
+                <div className="flex justify-end">
+                  <ApproveDraftButtons worksheetId={ws.id} itemId={i.id} />
+                </div>
+              )}
+              <ItemCard worksheetId={ws.id} number={n + 1} item={{ id: i.id, label: i.label, type: i.type, prompt: i.prompt, choices: i.choices, correctChoice: i.correctChoice, answer: i.answer, explanation: i.explanation, steps: i.steps, topic: i.topic, answerSource: i.answerSource, tags: { domain: i.domain, skill: i.skill, difficulty: i.difficulty, desmosSolvable: i.desmosSolvable, tagsConfirmed: i.tagsConfirmed }, version: i.version, answered: i._count.answers }} />
+              </div>
             ))}
           </section>
         </>

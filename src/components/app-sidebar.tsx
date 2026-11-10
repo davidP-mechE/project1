@@ -154,6 +154,7 @@ function NavLinks({ isAdmin, dueCount, onNavigate }: { isAdmin: boolean; dueCoun
         { href: "/teach", label: "My classes", icon: "teach" },
         { href: "/teach/worksheets", label: "Worksheets", icon: "worksheet" },
         { href: "/teach/diagnostics", label: "Diagnostics", icon: "scores" },
+        { href: "/teach/review", label: "Review queue", icon: "errors" },
       ],
     },
     {

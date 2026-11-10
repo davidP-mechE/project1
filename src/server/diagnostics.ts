@@ -48,7 +48,7 @@ async function bankFor(programId: string, section: SectionId) {
   const p = await db.program.findUniqueOrThrow({ where: { id: programId }, select: { adminId: true, classes: { select: { staff: { select: { userId: true } } } } } });
   const owners = [...new Set([p.adminId, ...p.classes.flatMap((c) => c.staff.map((s) => s.userId))])];
   return db.worksheetItem.findMany({
-    where: { worksheet: { ownerId: { in: owners }, status: "READY" }, archivedAt: null, tagsConfirmed: true, section, type: { in: ["MULTIPLE_CHOICE", "SHORT_ANSWER"] } },
+    where: { worksheet: { ownerId: { in: owners }, status: "READY" }, archivedAt: null, tagsConfirmed: true, section, type: { in: ["MULTIPLE_CHOICE", "SHORT_ANSWER"] }, OR: [{ worksheet: { source: "UPLOAD" } }, { approvedAt: { not: null } }] },
     orderBy: [{ worksheetId: "asc" }, { order: "asc" }],
     select: { id: true, domain: true, difficulty: true },
   });

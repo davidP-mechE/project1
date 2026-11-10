@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { Card, PageHeader } from "@/components/ui/misc";
 import { ButtonLink } from "@/components/ui/button";
 import { ProgramSettingsForm, TransferAdminForm } from "@/components/classes/staff-forms";
+import { CalendarForm } from "@/components/classes/assistant-forms";
 import { NotFoundError } from "@/server/courses";
 import { ClassError } from "@/server/access";
 import { getProgram } from "@/server/programs";
@@ -47,6 +48,11 @@ export default async function ProgramPage({ params }: PageProps<"/teach/programs
       <Card>
         <h2 className="mb-4 text-lg font-semibold">Settings</h2>
         <ProgramSettingsForm program={program} />
+      </Card>
+      <Card>
+        <h2 className="mb-1 text-lg font-semibold">School calendar</h2>
+        <p className="mb-4 text-sm text-muted">Curriculum units are laid out on school weeks from the term start, skipping these days.</p>
+        <CalendarForm programId={program.id} termStart={program.termStart?.toISOString().slice(0, 10) ?? null} termEnd={program.termEnd?.toISOString().slice(0, 10) ?? null} closedDates={program.closedDates.map((d) => d.toISOString().slice(0, 10))} />
       </Card>
       <Card>
         <h2 className="mb-1 text-lg font-semibold">Hand over the admin role</h2>

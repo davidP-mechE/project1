@@ -293,12 +293,14 @@ export type QuestionAssignmentInput = {
 
 /** Assign questions from a worksheet to one or more classes, optionally filed under a course and timed. */
 export async function assignQuestions(userId: string, input: QuestionAssignmentInput) {
-  const ws = await db.worksheet.findFirst({ where: { id: input.worksheetId, ownerId: userId, status: "READY" }, select: { id: true, title: true, items: { where: { archivedAt: null }, orderBy: { order: "asc" }, select: { id: true, section: true, domain: true } } } });
+  const ws = await db.worksheet.findFirst({ where: { id: input.worksheetId, ownerId: userId, status: "READY" }, select: { id: true, title: true, source: true, items: { where: { archivedAt: null }, orderBy: { order: "asc" }, select: { id: true, section: true, domain: true, approvedAt: true } } } });
   if (!ws) throw new ClassError("Choose a worksheet that has finished reading.");
   const order = ws.items.map((i) => i.id);
   const chosen = input.itemIds.length ? order.filter((id) => input.itemIds.includes(id)) : order;
   if (chosen.length === 0) throw new ClassError("Choose at least one question.");
   if (input.itemIds.length && chosen.length !== new Set(input.itemIds).size) throw new ClassError("Some of those questions aren't on this worksheet.");
+  // Questions Claude drafted reach students only after a staff member approves them.
+  if (ws.source === "AI_DRAFT" && ws.items.some((i) => chosen.includes(i.id) && !i.approvedAt)) throw new ClassError("Approve these drafted questions before assigning them.");
   const classIds = [...new Set(input.classIds)];
   if (classIds.length === 0) throw new ClassError("Choose a class to assign it to.");
   const limit = input.timeLimitMin ? Math.round(input.timeLimitMin) : null;

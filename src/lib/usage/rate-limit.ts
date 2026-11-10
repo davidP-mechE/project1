@@ -17,6 +17,10 @@ export const RATE_RULES = {
   classInvite: { name: "class-invite", max: 100, windowSeconds: 24 * 60 * 60 },
   /** Staff invitations and resends (each sends an email). */
   staffInvite: { name: "staff-invite", max: 40, windowSeconds: 24 * 60 * 60 },
+  /** Assistant work that calls Claude on request: curriculum imports, drafts, summaries. */
+  aiDraft: { name: "ai-draft", max: 30, windowSeconds: 24 * 60 * 60 },
+  /** Questions to the class-data assistant. */
+  aiAsk: { name: "ai-ask", max: 40, windowSeconds: 24 * 60 * 60 },
   /** Worksheet uploads (each is read by Claude). */
   worksheetUpload: { name: "worksheet-upload", max: 20, windowSeconds: 60 * 60 },
 } satisfies Record<string, RateRule>;

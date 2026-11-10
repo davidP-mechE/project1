@@ -7,6 +7,7 @@ import { classAlerts } from "./cohort";
 import { myClasses } from "./classes";
 import { domainAccuracy } from "./pacing";
 import { domainName } from "@/lib/sat/domains";
+import { generateSummary } from "./assistant";
 
 /**
  * Scheduled program emails, run hourly by the worker. Each is sent at most
@@ -103,7 +104,23 @@ export async function sendGuardianSummaries(now = new Date(), opts: { force?: bo
   return sent;
 }
 
+/** Sunday 20:00 UTC: the assistant's weekly summary for each class with a published curriculum and some activity. */
+export async function writeWeeklySummaries(now = new Date(), opts: { force?: boolean } = {}) {
+  if (!opts.force && !(now.getUTCDay() === 0 && now.getUTCHours() === 20)) return 0;
+  const since = new Date(now.getTime() - 7 * 86_400_000);
+  const classes = await db.class.findMany({
+    where: { archivedAt: null, curricula: { some: { status: "ACTIVE" } }, assignments: { some: { answers: { some: { createdAt: { gte: since } } } } } },
+    select: { id: true, program: { select: { adminId: true } } },
+  });
+  let n = 0;
+  for (const c of classes) {
+    if (!(await once(`summary:${c.id}:${now.toISOString().slice(0, 10)}`))) continue;
+    await generateSummary(c.program.adminId, c.id, {}, {}, now).then(() => n++).catch((err) => console.warn("[jobs] summary not written:", err instanceof Error ? err.message : err));
+  }
+  return n;
+}
+
 export async function runProgramJobs(now = new Date()) {
-  const [digests, summaries] = await Promise.all([sendStaffDigests(now), sendGuardianSummaries(now)]);
-  return { digests, summaries };
+  const [digests, summaries, weekly] = await Promise.all([sendStaffDigests(now), sendGuardianSummaries(now), writeWeeklySummaries(now)]);
+  return { digests, summaries: summaries + weekly };
 }
