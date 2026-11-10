@@ -16,6 +16,24 @@ export const STYLES = {
   detailed: { label: "Detailed", description: "Step-by-step explanations with more examples. Good for learning something new." },
 } as const;
 
+/**
+ * Which Claude models write the course. Standard sends the simple jobs
+ * (flashcards, reading equation-heavy pages) to the small model; High quality
+ * uses the main model for everything. Both use the student's monthly AI
+ * allowance at the real cost, so High quality simply uses more of it.
+ */
+export const QUALITIES = {
+  standard: {
+    label: "Standard",
+    description: "Lessons and questions by Claude Sonnet; flashcards and equation-heavy pages by the faster Claude Haiku.",
+  },
+  high: {
+    label: "High quality",
+    description: "Claude Sonnet for everything, including flashcards and reading equations and diagrams. Uses more of your AI allowance.",
+  },
+} as const;
+export type Quality = keyof typeof QUALITIES;
+
 /** Things that can be generated. "Explanation" is always on: it's the heart of a lesson. */
 export const CONTENT_TYPES = {
   objectives: { label: "Learning objectives", scope: "lesson" },
@@ -42,6 +60,7 @@ export const courseSettingsSchema = z.object({
   questionsPerLesson: z.number().int().min(2).max(15).default(6),
   flashcardsPerLesson: z.number().int().min(0).max(25).default(8),
   includeFrontBackMatter: z.boolean().default(false),
+  quality: z.enum(["standard", "high"]).default("standard"),
 });
 export type CourseSettings = z.infer<typeof courseSettingsSchema>;
 

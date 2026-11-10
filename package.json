@@ -19,7 +19,9 @@
     "fixtures": "node tests/fixtures/generate.mjs",
     "smoke:claude": "tsx --env-file-if-exists=.env scripts/smoke-claude.ts",
     "admin:grant": "tsx --env-file-if-exists=.env scripts/make-admin.ts",
-    "test:e2e": "playwright test --trace off"
+    "test:e2e": "playwright test --trace off",
+    "cost:breakdown": "tsx --env-file-if-exists=.env scripts/cost-breakdown.ts",
+    "cost:estimate": "tsx scripts/cost-estimate.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.6.0",

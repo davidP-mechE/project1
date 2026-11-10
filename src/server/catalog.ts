@@ -149,8 +149,8 @@ export async function enroll(userId: string, entryId: string): Promise<string> {
         },
       });
       await tx.$executeRaw`
-        INSERT INTO "Page" (id, "bookId", "pageNumber", label, text, "charCount", "textSource", "ocrConfidence", "mathScore", "imageCount", "isFrontBackMatter", lines, "repairedText", "repairedAt", width, height)
-        SELECT gen_random_uuid()::text, ${book.id}, "pageNumber", label, text, "charCount", "textSource", "ocrConfidence", "mathScore", "imageCount", "isFrontBackMatter", lines, "repairedText", "repairedAt", width, height
+        INSERT INTO "Page" (id, "bookId", "pageNumber", label, text, "charCount", "textSource", "ocrConfidence", "mathScore", "imageCount", "isFrontBackMatter", lines, "repairedText", "repairedAt", "repairModel", width, height)
+        SELECT gen_random_uuid()::text, ${book.id}, "pageNumber", label, text, "charCount", "textSource", "ocrConfidence", "mathScore", "imageCount", "isFrontBackMatter", lines, "repairedText", "repairedAt", "repairModel", width, height
         FROM "Page" WHERE "bookId" = ${src.bookId}`;
       await tx.$executeRaw`
         INSERT INTO "Figure" (id, "bookId", "pageNumber", index, "storageKey", width, height)

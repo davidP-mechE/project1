@@ -11,6 +11,7 @@ import {
   EMBED_BOOK_QUEUE,
   EMBED_QUERY_QUEUE,
   enqueueBookEmbedding,
+  enqueueGeneration,
   GENERATE_QUEUE,
   PROCESS_BOOK_QUEUE,
   REMINDERS_QUEUE,
@@ -26,9 +27,10 @@ import { Queue } from "bullmq";
 import { sendDueReminders } from "@/server/reminders";
 import { runMaintenance } from "@/server/maintenance";
 import { claudeEnabled } from "@/server/env";
-import { getWriter, generationModel } from "@/server/ai/client";
+import { getBatchRunner, getWriter, generationModel } from "@/server/ai/client";
 import { AiError } from "@/server/ai/writer";
-import { markLessonFailed, runLessonJob, runQuestionsJob } from "@/server/generation/run";
+import { markLessonFailed, runFlashcardsJob, runLessonJob, runQuestionsJob } from "@/server/generation/run";
+import { batchJobFailed, pollBatch, pollDelayMs, submitAssessmentBatch, submitLessonBatch } from "@/server/generation/batch";
 import { markAssessmentFailed, runAssessmentJob } from "@/server/generation/assessments";
 import { renderPagePng } from "@/server/processing/page-images";
 import { OcrPool } from "@/server/processing/ocr";
@@ -70,12 +72,53 @@ const generator = new Worker<GeneratePayload>(
   GENERATE_QUEUE,
   async (job) => {
     const data = job.data;
+    const deps = { writer: getWriter(), ...generationModel(), renderPage: renderPagePng };
+
+    // Whole-course generation through the Batch API (half price).
+    if (data.kind === "batch-poll") {
+      const runner = getBatchRunner();
+      try {
+        const state = await pollBatch(data, { ...deps, runner });
+        if (state === "waiting") {
+          const attempt = data.attempt + 1;
+          await enqueueGeneration([{ payload: { ...data, attempt }, priority: 1, delayMs: pollDelayMs(runner, attempt) }]);
+        }
+        console.info(`[batch] ${data.batchId}: ${state}`);
+      } catch (err) {
+        // Claude or the database briefly unavailable: check again later (saved results are never saved twice).
+        console.error(`[batch] checking ${data.batchId} failed, will check again:`, err instanceof Error ? err.message : err);
+        const attempt = data.attempt + 1;
+        await enqueueGeneration([{ payload: { ...data, attempt }, priority: 1, delayMs: pollDelayMs(runner, attempt) }]);
+      }
+      return;
+    }
+    if (data.kind === "lesson-batch" || data.kind === "assessment-batch") {
+      const lastAttempt = job.attemptsMade + 1 >= (job.opts.attempts ?? 1);
+      try {
+        const runner = getBatchRunner();
+        const batchId = data.kind === "lesson-batch" ? await submitLessonBatch(data, { ...deps, runner }) : await submitAssessmentBatch(data, { ...deps, runner });
+        console.info(`[batch] ${data.kind} for course ${data.courseId}: ${batchId ?? "nothing to send"}`);
+      } catch (err) {
+        console.error(`[batch] ${data.kind} for course ${data.courseId} attempt ${job.attemptsMade + 1} failed:`, err instanceof Error ? err.message : err);
+        const ai = err instanceof AiError ? err : null;
+        if ((!ai || ai.kind === "retryable") && !lastAttempt) throw err;
+        await batchJobFailed(data); // write them one at a time instead
+        throw new UnrecoverableError(ai?.userMessage ?? "Couldn't send the batch.");
+      }
+      return;
+    }
+
     const id = data.kind === "assessment" ? data.assessmentId : data.lessonId;
     const lastAttempt = job.attemptsMade + 1 >= (job.opts.attempts ?? 1);
     try {
-      const deps = { writer: getWriter(), ...generationModel(), renderPage: renderPagePng };
       const outcome =
-        data.kind === "assessment" ? await runAssessmentJob(data, deps) : data.kind === "questions" ? await runQuestionsJob(data, deps) : await runLessonJob(data, deps);
+        data.kind === "assessment"
+          ? await runAssessmentJob(data, deps)
+          : data.kind === "questions"
+            ? await runQuestionsJob(data, deps)
+            : data.kind === "flashcards"
+              ? await runFlashcardsJob(data, deps)
+              : await runLessonJob(data, deps);
       console.info(`[generate] ${data.kind} ${id}: ${outcome}`);
     } catch (err) {
       const ai = err instanceof AiError ? err : null;
@@ -84,7 +127,7 @@ const generator = new Worker<GeneratePayload>(
       console.error(`[generate] ${data.kind} ${id} attempt ${job.attemptsMade + 1} failed:`, err instanceof Error ? err.message : err);
       if (retryable && !lastAttempt) throw err; // BullMQ will try again after a wait
       if (data.kind === "assessment") await markAssessmentFailed(id, message);
-      else await markLessonFailed(id, message);
+      else if (data.kind !== "flashcards") await markLessonFailed(id, message); // a lesson without cards is still a lesson
       throw new UnrecoverableError(message);
     }
   },

@@ -89,7 +89,9 @@ All configuration lives in `.env` (see [.env.example](.env.example) for comments
 | `LOCAL_STORAGE_DIR` | no | Folder for local storage (default `./storage`) |
 | `S3_BUCKET`, `S3_REGION`, `S3_ENDPOINT`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY` | if `s3` | AWS S3 or Cloudflare R2 (R2: `S3_REGION=auto`, `S3_ENDPOINT=https://<account>.r2.cloudflarestorage.com`) |
 | `ANTHROPIC_API_KEY` | to generate lessons | Claude API key (console.anthropic.com → API Keys). Without it everything else works |
-| `CLAUDE_MODEL_GENERATION`, `CLAUDE_MODEL_FALLBACK`, `CLAUDE_MODEL_VISION` | no | Models used for lessons, for retrying a declined request, and for re-reading equation pages |
+| `CLAUDE_MODEL_GENERATION`, `CLAUDE_MODEL_FALLBACK`, `CLAUDE_MODEL_VISION` | no | Models used for lessons, practice questions and tests (default Sonnet 5.5), for retrying a declined request (Opus 5.5), and for re-reading equation pages and picture slides (Haiku 5.5) |
+| `CLAUDE_MODEL_FLASHCARDS`, `CLAUDE_EFFORT_FLASHCARDS` | no | Flashcards are their own request on the small model (default `claude-haiku-5-5`, `low`) |
+| `CLAUDE_BATCH_GENERATION` | no | `true` (default): whole-course generation goes through the Message Batches API at half price; lessons arrive together, usually within an hour (at most 24h). Regenerating one lesson, new questions and Review drills are always instant |
 | `CLAUDE_EFFORT_GENERATION` | no | `low` / `medium` (default) / `high`: how much Claude thinks while writing |
 | `GENERATION_CONCURRENCY` | no | Lessons written at once (default 3) |
 | `CLAUDE_MODEL_GRADING`, `CLAUDE_EFFORT_GRADING` | no | Model and effort for checking written answers (default `claude-opus-5-5`, `low`) |
@@ -158,13 +160,13 @@ Each step can safely run again. A retry skips pages already read, and the outlin
 
 ### Writing lessons with Claude (Phase 4)
 
-**Flow.** "Generate course" (with a confirmation that shows the estimated cost) queues every included lesson **in course order**, so lesson 1 is ready first and you can start studying while the rest are written. The worker writes 3 at a time (`GENERATION_CONCURRENCY`). The course page shows "Writing lesson 14 of 52" and each lesson's status.
+**Flow.** "Generate course" (with a confirmation that shows the estimated cost) prepares every included lesson **in course order** and, by default, sends them all to Claude as one **batch** (`src/server/generation/batch.ts`, Message Batches API, half price). The worker checks the batch (after a minute, then less and less often, up to every 5 minutes) and saves each lesson the moment the batch ends; the course page says it's writing at half price meanwhile. Once a unit's lessons are done, its summary and test go out as a batch too, then the final exam. With `CLAUDE_BATCH_GENERATION=false`, lessons are instead written one by one, 3 at a time (`GENERATION_CONCURRENCY`), so lesson 1 is ready first and the page shows "Writing lesson 14 of 52". Regenerating one lesson, new questions and Review drills are always sent right away.
 
 **For each lesson** (`src/server/generation/run.ts`):
 1. **Equation-heavy pages** (math score ≥ 0.12) are rendered to an image and re-read by Claude once, with equations written as LaTeX. The result is saved on the page (`Page.repairedText`) and reused, so no page is paid for twice. At most 15 per lesson.
 2. **Source check, before spending money:** too little text, or mostly empty pages, means the lesson is marked **Needs attention** with the reason, not guessed. The student can fix the page range or choose **Try anyway**.
 3. **Cache check:** a hash of the source text, settings, prompt version and model (`Lesson.cacheKey`). If nothing changed, or the student hand-edited the lesson, it isn't rewritten unless they ask.
-4. **Claude writes the lesson.** Only that lesson's pages are sent, each marked `=== Page 47 ===`. The system prompt (`src/lib/ai/prompts.ts`) sets the rules: use only facts from the pages, cite pages, write math in LaTeX, and if the pages aren't usable, say so instead of guessing. **Structured outputs** guarantee the reply matches a fixed JSON shape (`src/lib/ai/lesson-schema.ts`). The system prompt never changes, so it's served from Claude's **prompt cache** at about a tenth of the price.
+4. **Claude writes the lesson** (then, in a separate request on the small model, its **flashcards**). Only that lesson's pages are sent, each marked `=== Page 47 ===`. The system prompt (`src/lib/ai/prompts.ts`) sets the rules: use only facts from the pages, cite pages, write math in LaTeX, and if the pages aren't usable, say so instead of guessing. **Structured outputs** guarantee the reply matches a fixed JSON shape (`src/lib/ai/lesson-schema.ts`). The system prompt never changes, so it's served from Claude's **prompt cache** at about a tenth of the price.
 5. **Checked before saving** (`src/lib/ai/normalize.ts`): page references outside the lesson's pages are removed (including "(p. 999)" in the text); broken questions, like a multiple-choice question whose answer doesn't exist, are dropped; content types you turned off are removed; counts are capped.
 6. **Usage is recorded:** every API call's tokens and cost go to `UsageEvent`, and the course page shows what the course has cost so far.
 
@@ -402,17 +404,42 @@ See the table at the top of [PLAN.md](PLAN.md). Short version: Postgres everywhe
 
 ## Estimated Claude API cost per 100 pages
 
-The same formula powers the estimate on each course's Settings page and in the "Generate course" confirmation (`src/lib/usage/estimate.ts`). With the default settings it gives **$1.53 per 100 pages**; with the "Concise" style, $1.29. Every real API call is now recorded with its exact cost (`UsageEvent`), so run `npm run smoke:claude` or generate a real course and compare. The course page shows the real total.
+The same formula powers the estimate on each course's Settings page and in the "Generate course" confirmation (`src/lib/usage/estimate.ts`), step by step. Every real API call is recorded with its exact cost, model, cache use and whether it was batched (`UsageEvent`).
 
-| Item | Approx. tokens | Approx. cost |
-|---|---|---|
-| Lesson generation input (Claude Sonnet 5.5, $2/M) | ~100K in | $0.20 |
-| Lesson generation output ($10/M) | ~80K out | $0.80 |
-| Unit summaries/tests, final exam, course map | ~40K in / 25K out | $0.33 |
-| Fixing math-heavy pages with vision (~10% of pages) | | $0.15 |
-| **Total per 100 pages** | | **≈ $1.50** (≈ $15 for a 1,000-page book) |
+- `npm run cost:estimate` compares the old setup with the current one for a typical chapter (`-- --lessons 6 --pages 30 --math-pages 12` to change it).
+- `npm run cost:breakdown -- <courseId>` shows what a real course cost per step and model (no id: the latest course; `--all`: everything).
+
+Three things keep generation cheap:
+
+1. **Batch API** (`CLAUDE_BATCH_GENERATION=true`): generating a whole course sends every lesson, its flashcards, and later the unit tests and final exam as batches, at **half price**. Lessons arrive together, usually within an hour. Anything a batch doesn't return usable (declined, errored, expired) is redone as a normal request, which also retries on the fallback model.
+2. **Small model for simple jobs:** flashcards are their own request on Claude Haiku 5.5 (about 40x cheaper than writing them inside the Sonnet lesson request), and so is transcribing equation-heavy pages and picture slides.
+3. **Prompt caching:** the system prompt is cached across every lesson. The lesson's pages are sent as their own block and cached for new questions and Review drills, which send the same pages again and again (cache reads cost a tenth). A lesson is written from its pages once, so its pages aren't cached there (a cache write costs 25% more).
+
+With the default settings, per 100 pages (10 lessons, 3 units, 10 equation-heavy pages):
+
+| Step | Model | Before | Now |
+|---|---|---|---|
+| Lessons + practice questions | Sonnet 5.5, batched | $1.01 | $0.51 |
+| Flashcards | Haiku 5.5, batched | $0.06 | $0.01 |
+| Reading equation-heavy pages | Haiku 5.5 | $0.10 | $0.01 |
+| Unit summaries, unit tests, final exam | Sonnet 5.5, batched | $0.21 | $0.10 |
+| **Total per 100 pages** | | **≈ $1.40** | **≈ $0.62** (≈ $6 for a 1,000-page book) |
+
+**Quality setting (per course, in Setup):** *Standard* (default) is the setup above. *High quality* uses Claude Sonnet for every step, as before: flashcards and reading equation-heavy pages included (pages the small model already read are read again). Both count against the student's monthly AI allowance at what Claude actually costs, so High quality simply uses more of it (about 1.4x for a typical math-heavy chapter); the Setup page shows each option's cost for that course, and the "Generate course" confirmation says which one it uses.
+
+Output tokens (the lesson text plus Claude's thinking) are most of the cost. If real courses still cost more than you'd like, the next lever is `CLAUDE_EFFORT_GENERATION=low` (less thinking per lesson): try it on a chapter and compare the lessons before switching.
 
 While studying: multiple choice and exact matches are free; a written answer graded by Claude ≈ $0.01–0.02 (Claude Opus 5.5 at low effort, ~2–4K tokens in); a tutor question ≈ $0.02–0.05 (up to ~6K tokens of book passages plus the conversation). Embeddings are free (computed locally).
+
+## Manual test checklist (generation cost)
+
+Needs a real `ANTHROPIC_API_KEY`; each step costs a few cents.
+
+1. `npm run smoke:claude`: check the flashcards written by Haiku are as good as before, and that page 7's equations still come out right from Haiku's transcription.
+2. Generate one chapter. The course page says **Writing your course at half price**; lessons arrive together, usually within an hour (keep the worker running).
+3. In a course's **Setup**, the **Quality** choice shows each option's cost. Switch one course to **High quality**, regenerate a lesson with equations, and check `npm run cost:breakdown -- <courseId>` shows its flashcards and page reading on `claude-sonnet-5-5`.
+4. `npm run cost:breakdown`: lessons, flashcards and tests show **Batch: yes**; flashcards and page reading are on `claude-haiku-5-5`. Compare the total with the $1.19 per chapter from before.
+5. On a lesson, **Hammer it** in Review a few times in a row: from the second set on, the QUESTIONS rows show cache reads (the pages come from the cache).
 
 ## Manual test checklist (Phase 12)
 

@@ -38,8 +38,15 @@ const schema = z.object({
   ANTHROPIC_API_KEY: z.string().optional(),
   CLAUDE_MODEL_GENERATION: z.string().default("claude-sonnet-5-5"),
   CLAUDE_MODEL_FALLBACK: z.string().default("claude-opus-5-5"),
-  CLAUDE_MODEL_VISION: z.string().default("claude-sonnet-5-5"),
+  // Transcribing equation-heavy pages and picture slides: a simple job, so the small model.
+  CLAUDE_MODEL_VISION: z.string().default("claude-haiku-5-5"),
   CLAUDE_EFFORT_GENERATION: z.enum(["low", "medium", "high", "xhigh", "max"]).default("medium"),
+  // Flashcards are written by their own request on the small model.
+  CLAUDE_MODEL_FLASHCARDS: z.string().default("claude-haiku-5-5"),
+  CLAUDE_EFFORT_FLASHCARDS: z.enum(["low", "medium", "high", "xhigh", "max"]).default("low"),
+  // Send whole-course generation through the Message Batches API: half price, results usually
+  // within an hour (up to 24h). Regenerating one lesson, questions and drills stay instant.
+  CLAUDE_BATCH_GENERATION: z.stringbool().default(true),
   // Grading written answers to practice questions (needs good judgement, short replies).
   CLAUDE_MODEL_GRADING: z.string().default("claude-opus-5-5"),
   CLAUDE_EFFORT_GRADING: z.enum(["low", "medium", "high", "xhigh", "max"]).default("low"),

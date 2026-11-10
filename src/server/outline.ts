@@ -17,7 +17,8 @@ import {
   type OutlineIssue,
 } from "@/lib/outline/edit";
 import type { DraftUnit } from "@/lib/outline/types";
-import { estimateGeneration, type EstimateLesson } from "@/lib/usage/estimate";
+import { env } from "./env";
+import { estimateGeneration, planFor, type EstimateLesson } from "@/lib/usage/estimate";
 
 /**
  * Loading and saving a course's outline and settings. Like everything in
@@ -311,7 +312,11 @@ export async function getGenerationEstimate(userId: string, courseId: string, wh
     return { unitKey: l.unitId, pages: l.pageEnd - l.pageStart + 1, chars, mathHeavyPages: math };
   });
   // Unit tests, summaries and the final exam come in a later phase; estimate lessons only for now.
-  return estimateGeneration(inputs, { ...settings, contentTypes: settings.contentTypes.filter((t) => !["unitSummaries", "unitTests", "finalExam"].includes(t)) });
+  return estimateGeneration(
+    inputs,
+    { ...settings, contentTypes: settings.contentTypes.filter((t) => !["unitSummaries", "unitTests", "finalExam"].includes(t)) },
+    planFor(settings, env.CLAUDE_BATCH_GENERATION),
+  );
 }
 
 // ─── Page preview ───────────────────────────────────────────────────────────

@@ -1,4 +1,4 @@
-import type { LessonDraft, QuestionsDraft } from "@/lib/ai/lesson-schema";
+import type { FlashcardsDraft, LessonDraft, QuestionsDraft } from "@/lib/ai/lesson-schema";
 import type { LessonPromptInput } from "@/lib/ai/prompts";
 import { pageText } from "@/lib/ai/source";
 import type { LessonWriter, WriterResult } from "./writer";
@@ -70,9 +70,17 @@ export class DemoWriter implements LessonWriter {
           topic: "Demo",
         },
       ],
-      flashcards: all.slice(0, 3).map((x, i) => ({ front: `Demo card ${i + 1}`, back: x.s, pageRefs: [x.page] })),
+      flashcards: [], // written by writeFlashcards, like the real writer
     };
     return { value, calls: [{ value: null, model: "demo", usage: noUsage }] };
+  }
+
+  async writeFlashcards(input: LessonPromptInput): Promise<WriterResult<FlashcardsDraft>> {
+    const all = input.pages.flatMap((p) => sentences(pageText(p)).map((s) => ({ s, page: p.pageNumber })));
+    return {
+      value: { flashcards: all.slice(0, 3).map((x, i) => ({ front: `Demo card ${i + 1}`, back: x.s, pageRefs: [x.page] })) },
+      calls: [{ value: null, model: "demo", usage: noUsage }],
+    };
   }
 
   async writeQuestions(input: LessonPromptInput & { avoid: string[] }): Promise<WriterResult<QuestionsDraft>> {

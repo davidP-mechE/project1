@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { costUsd } from "@/lib/ai/models";
 import { DEFAULT_SETTINGS, parseSettings, questionTypesOn } from "@/lib/course/settings";
-import { estimateGeneration, type EstimateLesson } from "@/lib/usage/estimate";
+import { DEFAULT_PLAN, estimateGeneration, LEGACY_PLAN, planFor, type EstimateLesson } from "@/lib/usage/estimate";
 
 describe("parseSettings", () => {
   it("fills in defaults for missing settings", () => {
@@ -29,14 +29,40 @@ describe("estimateGeneration", () => {
     mathHeavyPages: 0,
   }));
 
-  it("lands near the README's ~$1.50 per 100 pages with default settings", () => {
+  it("lands near the README's per-100-page figures with default settings", () => {
     const e = estimateGeneration(lessons, DEFAULT_SETTINGS);
     expect(e.lessons).toBe(10);
     expect(e.units).toBe(3);
     expect(e.pages).toBe(100);
-    expect(e.costUsd).toBeGreaterThan(0.8);
-    expect(e.costUsd).toBeLessThan(2.5);
+    expect(e.costUsd).toBeGreaterThan(0.5);
+    expect(e.costUsd).toBeLessThan(1);
     expect(e.minutes).toBeGreaterThanOrEqual(1);
+    const legacy = estimateGeneration(lessons, DEFAULT_SETTINGS, LEGACY_PLAN);
+    expect(legacy.costUsd).toBeGreaterThan(1.2);
+    expect(legacy.costUsd).toBeLessThan(2);
+  });
+
+  it("breaks the cost down by step, with the simple steps on the small model and batching at half price", () => {
+    const mathy = lessons.map((l) => ({ ...l, mathHeavyPages: 2 }));
+    const e = estimateGeneration(mathy, DEFAULT_SETTINGS);
+    const step = (id: string) => e.steps.find((s) => s.step === id)!;
+    expect(step("lessons")).toMatchObject({ model: "claude-sonnet-5-5", batch: true });
+    expect(step("flashcards")).toMatchObject({ model: "claude-haiku-5-5", batch: true });
+    expect(step("pageReading")).toMatchObject({ model: "claude-haiku-5-5", batch: false });
+    expect(e.costUsd).toBeCloseTo(e.steps.reduce((n, s) => n + s.costUsd, 0), 2);
+    const unbatched = estimateGeneration(mathy, DEFAULT_SETTINGS, { ...DEFAULT_PLAN, batch: false });
+    expect(unbatched.steps.find((s) => s.step === "lessons")!.costUsd).toBeCloseTo(step("lessons").costUsd * 2);
+    expect(estimateGeneration(mathy, DEFAULT_SETTINGS, LEGACY_PLAN).costUsd / e.costUsd).toBeGreaterThan(2);
+  });
+
+  it("High quality uses the main model for every step and costs more", () => {
+    const mathy = lessons.map((l) => ({ ...l, mathHeavyPages: 2 }));
+    const standard = estimateGeneration(mathy, DEFAULT_SETTINGS);
+    const high = estimateGeneration(mathy, { ...DEFAULT_SETTINGS, quality: "high" });
+    expect(new Set(high.steps.map((s) => s.model))).toEqual(new Set(["claude-sonnet-5-5"]));
+    expect(high.costUsd).toBeGreaterThan(standard.costUsd);
+    expect(planFor({ quality: "high" }, false)).toMatchObject({ batch: false, flashcardModel: "claude-sonnet-5-5", visionModel: "claude-sonnet-5-5" });
+    expect(DEFAULT_SETTINGS.quality).toBe("standard");
   });
 
   it("costs less with fewer content types and concise style", () => {

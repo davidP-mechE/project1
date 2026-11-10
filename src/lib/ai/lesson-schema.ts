@@ -49,7 +49,10 @@ export type LessonDraft = z.infer<typeof LessonDraftSchema>;
 export type DraftQuestion = z.infer<typeof DraftQuestionSchema>;
 
 export const QuestionsDraftSchema = z.object({ questions: z.array(DraftQuestionSchema) });
+/** Flashcards are written by their own, cheaper request (a small model is plenty for term/answer cards). */
+export const FlashcardsDraftSchema = z.object({ flashcards: LessonDraftSchema.shape.flashcards });
 export type QuestionsDraft = z.infer<typeof QuestionsDraftSchema>;
+export type FlashcardsDraft = z.infer<typeof FlashcardsDraftSchema>;
 
 // ─── What we store on the Lesson row (questions and flashcards have their own tables) ──
 

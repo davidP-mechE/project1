@@ -1,13 +1,14 @@
 import "server-only";
 import type { Prisma } from "@/generated/prisma/client";
 import { db } from "../db";
-import { claudeEnabled } from "../env";
+import { claudeEnabled, env } from "../env";
 import { NotFoundError } from "../courses";
 import { enqueueGeneration } from "../queue";
 import { LessonContentSchema, LessonEditSchema, type LessonContent } from "@/lib/ai/lesson-schema";
 import { cleanPageRefs } from "@/lib/ai/normalize";
 import { syncFlashcards } from "../flashcard-store";
 import { assertAiBudget, assertCanGenerate, LimitError } from "../limits";
+import { pendingBatch } from "./batch";
 
 /**
  * What the web app can ask for: start generating a course, regenerate a
@@ -50,6 +51,19 @@ function requireClaude() {
   }
 }
 
+/** Whole-course runs go through the Batch API (half price) when it's turned on. */
+const sendAsBatch = (count: number) => env.CLAUDE_BATCH_GENERATION && count > 0;
+
+/** Queue lessons in course order: as one batch, or one job per lesson. */
+async function enqueueLessons(courseId: string, lessonIds: string[], force: boolean) {
+  if (lessonIds.length === 0) return;
+  if (sendAsBatch(lessonIds.length)) {
+    await enqueueGeneration([{ payload: { kind: "lesson-batch", courseId, lessonIds, force: force || undefined }, priority: 10 }]);
+    return;
+  }
+  await enqueueGeneration(lessonIds.map((lessonId, i) => ({ payload: { kind: "lesson", lessonId, ...(force ? { force: true } : {}) }, priority: 10 + i })));
+}
+
 /**
  * Start (or continue) writing a course. Lessons that already have content are
  * left alone: nothing is regenerated unless the student asks.
@@ -75,8 +89,8 @@ export async function startGeneration(userId: string, courseId: string) {
     db.lesson.updateMany({ where: { id: { in: todo.map((l) => l.id) } }, data: { status: "QUEUED", error: null } }),
     db.course.update({ where: { id: courseId }, data: { status: todo.length > 0 ? "GENERATING" : "ACTIVE" } }),
   ]);
-  await enqueueGeneration(todo.map((l) => ({ payload: { kind: "lesson", lessonId: l.id }, priority: 10 + l.index })));
-  return { queued: todo.length, total: lessons.length };
+  await enqueueLessons(courseId, todo.map((l) => l.id), false);
+  return { queued: todo.length, total: lessons.length, batch: sendAsBatch(todo.length) };
 }
 
 /** Regenerate every written lesson (e.g. after changing settings). Hand-edited lessons are kept unless included. */
@@ -93,8 +107,8 @@ export async function regenerateAll(userId: string, courseId: string, opts: { in
     db.lesson.updateMany({ where: { id: { in: lessons.map((l) => l.id) } }, data: { status: "QUEUED", error: null } }),
     db.course.update({ where: { id: courseId }, data: { status: lessons.length > 0 ? "GENERATING" : "ACTIVE" } }),
   ]);
-  await enqueueGeneration(lessons.map((l, i) => ({ payload: { kind: "lesson", lessonId: l.id, force: true }, priority: 10 + i })));
-  return { queued: lessons.length };
+  await enqueueLessons(courseId, lessons.map((l) => l.id), true);
+  return { queued: lessons.length, batch: sendAsBatch(lessons.length) };
 }
 
 /** Regenerate one lesson, or only its practice questions. */
@@ -219,6 +233,7 @@ export async function getGenerationProgress(userId: string, courseId: string) {
   });
   const count = (s: string) => lessons.filter((l) => l.status === s).length;
   const done = count("READY") + count("FLAGGED") + count("FAILED");
+  const batch = course.status === "GENERATING" ? await pendingBatch(courseId) : null;
   return {
     courseStatus: course.status,
     total: lessons.length,
@@ -227,6 +242,8 @@ export async function getGenerationProgress(userId: string, courseId: string) {
     failed: count("FAILED"),
     done,
     current: lessons.find((l) => l.status === "GENERATING")?.title ?? null,
+    /** Part of the course is waiting in a half-price batch. */
+    batch: batch ? { since: batch.createdAt.toISOString() } : null,
     lessons: lessons.map((l) => ({ id: l.id, status: l.status })),
   };
 }

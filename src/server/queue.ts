@@ -17,14 +17,35 @@ export type ProcessBookPayload = { jobId: string; bookId: string };
 export const GENERATE_QUEUE = "generate";
 export type GeneratePayload =
   | {
-      kind: "lesson" | "questions";
+      kind: "lesson" | "questions" | "flashcards";
       lessonId: string;
       /** Regenerate even if the cached lesson is up to date (the student asked). */
       force?: boolean;
       /** Generate even if the pages look too thin (the student chose "Try anyway"). */
       allowThin?: boolean;
     }
-  | { kind: "assessment"; assessmentId: string };
+  | { kind: "assessment"; assessmentId: string }
+  /** Prepare these lessons and send them to Claude as one batch (half price). */
+  | { kind: "lesson-batch"; courseId: string; lessonIds: string[]; force?: boolean }
+  /** Send these unit tests / the final exam as one batch. */
+  | { kind: "assessment-batch"; courseId: string; assessmentIds: string[] }
+  /** Check a submitted batch; save its results when it's done. */
+  | { kind: "batch-poll"; batchId: string; attempt: number };
+
+/** A readable id for a generation job (one per lesson/assessment, so nothing is queued twice). */
+export function generationJobId(payload: GeneratePayload): string {
+  switch (payload.kind) {
+    case "assessment":
+      return `assessment-${payload.assessmentId}`;
+    case "lesson-batch":
+    case "assessment-batch":
+      return `${payload.kind}-${payload.courseId}-${Date.now()}`;
+    case "batch-poll":
+      return `batch-poll-${payload.batchId}-${payload.attempt}`;
+    default:
+      return `${payload.kind}-${payload.lessonId}`;
+  }
+}
 
 export function redisConnection() {
   const url = new URL(env.REDIS_URL);
@@ -86,14 +107,15 @@ function getGenerateQueue() {
  * written in course order, and a lesson the student is waiting on jumps ahead.
  * The job id makes a lesson that's already waiting in the queue not get added twice.
  */
-export async function enqueueGeneration(jobs: { payload: GeneratePayload; priority: number }[]) {
+export async function enqueueGeneration(jobs: { payload: GeneratePayload; priority: number; delayMs?: number }[]) {
   if (jobs.length === 0) return;
   await getGenerateQueue().addBulk(
-    jobs.map(({ payload, priority }) => ({
+    jobs.map(({ payload, priority, delayMs }) => ({
       name: payload.kind,
       data: payload,
       opts: {
-        jobId: payload.kind === "assessment" ? `assessment-${payload.assessmentId}` : `${payload.kind}-${payload.lessonId}`,
+        jobId: generationJobId(payload),
+        ...(delayMs ? { delay: delayMs } : {}),
         priority: Math.max(1, Math.min(2_000_000, priority)),
       },
     })),

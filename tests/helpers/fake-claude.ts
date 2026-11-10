@@ -26,7 +26,7 @@ export function sampleDraft(start: number, end: number, overrides: Partial<Lesso
 
 import type { LessonPromptInput } from "@/lib/ai/prompts";
 import { AiError, type LessonWriter, type WriterResult } from "@/server/ai/writer";
-import type { QuestionsDraft } from "@/lib/ai/lesson-schema";
+import type { FlashcardsDraft, QuestionsDraft } from "@/lib/ai/lesson-schema";
 
 const usage = { inputTokens: 3000, outputTokens: 6000, cacheReadTokens: 1500, cacheWriteTokens: 0 };
 
@@ -44,8 +44,23 @@ export class FakeWriter implements LessonWriter {
     const next = this.nextLesson;
     this.nextLesson = null;
     if (next instanceof AiError) throw next;
-    const value = next ? next(input) : sampleDraft(input.pageStart, input.pageEnd);
+    const value = next ? next(input) : { ...sampleDraft(input.pageStart, input.pageEnd), flashcards: [] };
     return { value, calls: [{ value: null, model: "claude-sonnet-5-5", usage }] };
+  }
+
+  flashcardCalls: LessonPromptInput[] = [];
+  /** Set to make the next flashcard call fail. */
+  nextFlashcards: AiError | null = null;
+  async writeFlashcards(input: LessonPromptInput): Promise<WriterResult<FlashcardsDraft>> {
+    this.flashcardCalls.push(input);
+    const next = this.nextFlashcards;
+    this.nextFlashcards = null;
+    if (next) throw next;
+    return {
+      value: { flashcards: sampleDraft(input.pageStart, input.pageEnd).flashcards },
+      // Like the real writer: the small model, or the main one for a High quality course.
+      calls: [{ value: null, model: input.settings.quality === "high" ? "claude-sonnet-5-5" : "claude-haiku-5-5", usage: { inputTokens: 3000, outputTokens: 400 } }],
+    };
   }
 
   async writeQuestions(input: LessonPromptInput & { avoid: string[] }): Promise<WriterResult<QuestionsDraft>> {
@@ -70,12 +85,13 @@ export class FakeWriter implements LessonWriter {
     };
   }
 
-  async repairPage(_png?: Buffer, kind: "book" | "slides" = "book"): Promise<WriterResult<string>> {
+  async repairPage(_png?: Buffer, kind: "book" | "slides" = "book", quality: "standard" | "high" = "standard"): Promise<WriterResult<string>> {
     this.repairCalls += 1;
     this.repairKinds.push(kind);
+    const model = quality === "high" ? "claude-sonnet-5-5" : "claude-haiku-5-5";
     return {
       value: "Ohm's law relates voltage, current and resistance: $$V = IR$$ and power is $$P = I^2 R$$. ".repeat(4),
-      calls: [{ value: null, model: "claude-sonnet-5-5", usage: { inputTokens: 1700, outputTokens: 700 } }],
+      calls: [{ value: null, model, usage: { inputTokens: 1700, outputTokens: 700 } }],
     };
   }
 }
