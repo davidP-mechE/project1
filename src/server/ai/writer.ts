@@ -19,6 +19,7 @@ import {
   type LessonPromptInput,
 } from "@/lib/ai/prompts";
 import type { TokenUsage } from "@/lib/ai/models";
+import type { Quality } from "@/lib/course/settings";
 import {
   ASSESSMENT_SYSTEM_PROMPT,
   AssessmentDraftSchema,
@@ -56,6 +57,7 @@ export interface LessonWriter {
   repairPage(
     png: Buffer,
     kind?: "book" | "slides",
+    quality?: Quality,
   ): Promise<WriterResult<string>>;
   /** A unit summary + unit test, or the final exam, from finished lessons. */
   writeAssessment(
@@ -131,6 +133,9 @@ const SPECS = {
   },
 } as const;
 
+/** The course's quality setting (unit tests and the exam use the main model either way). */
+const qualityOf = (job: StructuredJob): Quality => job.input.settings.quality ?? "standard";
+
 const REPAIR_MAX_TOKENS = 8_000;
 
 export function usageOf(u: Anthropic.Usage): TokenUsage {
@@ -204,10 +209,16 @@ export class ClaudeWriter implements LessonWriter {
     private readonly config: WriterConfig,
   ) {}
 
-  modelFor(kind: StructuredKind) {
-    return kind === "flashcards"
+  /** Flashcards go to the small model, unless the course asked for High quality (the main model for everything). */
+  modelFor(kind: StructuredKind, quality: Quality = "standard") {
+    return kind === "flashcards" && quality !== "high"
       ? this.config.flashcardModel
       : this.config.model;
+  }
+
+  /** The model that re-reads page images for a course of this quality. */
+  visionModelFor(quality: Quality = "standard") {
+    return quality === "high" ? this.config.model : this.config.visionModel;
   }
 
   /**
@@ -218,7 +229,7 @@ export class ClaudeWriter implements LessonWriter {
    */
   request(
     job: StructuredJob,
-    model = this.modelFor(job.kind),
+    model = this.modelFor(job.kind, qualityOf(job)),
   ): Anthropic.MessageCreateParamsNonStreaming {
     const spec = SPECS[job.kind];
     const content: Anthropic.TextBlockParam[] =
@@ -293,7 +304,7 @@ export class ClaudeWriter implements LessonWriter {
    */
   async run<T>(job: StructuredJob): Promise<WriterResult<T>> {
     const calls: Call<unknown>[] = [];
-    for (const model of [this.modelFor(job.kind), this.config.fallbackModel]) {
+    for (const model of [this.modelFor(job.kind, qualityOf(job)), this.config.fallbackModel]) {
       let response: Anthropic.Message;
       try {
         // Streamed: long replies would otherwise hit the SDK's 10-minute limit for
@@ -343,13 +354,15 @@ export class ClaudeWriter implements LessonWriter {
   async repairPage(
     png: Buffer,
     kind: "book" | "slides" = "book",
+    quality: Quality = "standard",
   ): Promise<WriterResult<string>> {
     const calls: Call<unknown>[] = [];
+    const visionModel = this.visionModelFor(quality);
     let response;
     try {
       response = await this.client.messages
         .stream({
-          model: this.config.visionModel,
+          model: visionModel,
           max_tokens: REPAIR_MAX_TOKENS,
           output_config: { effort: "low" },
           messages: [
@@ -379,7 +392,7 @@ export class ClaudeWriter implements LessonWriter {
     }
     calls.push({
       value: null,
-      model: response.model ?? this.config.visionModel,
+      model: response.model ?? visionModel,
       usage: usageOf(response.usage),
     });
     if (response.stop_reason === "refusal") {

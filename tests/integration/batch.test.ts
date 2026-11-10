@@ -456,3 +456,33 @@ describe("flashcards on their own request", () => {
     ).toBe(0);
   });
 });
+
+describe("High quality courses", () => {
+  it("write flashcards and read equation pages with the main model, re-reading pages the small model read before", async () => {
+    const { course: c, lessons } = await course();
+    const ohm = lessons[2]; // pages 7-8; page 7 is equation-heavy
+    await db.course.update({ where: { id: c.id }, data: { status: "GENERATING" } });
+    const direct: GenerationDeps = deps;
+
+    // Standard: the small model reads page 7 and writes the cards.
+    await runLessonJob({ lessonId: ohm.id }, direct);
+    expect((await db.page.findFirstOrThrow({ where: { bookId: c.bookId, pageNumber: 7 } })).repairModel).toBe("claude-haiku-5-5");
+
+    // Switch to High quality and regenerate: page 7 is read again by the main model, the cards too.
+    await db.course.update({ where: { id: c.id }, data: { settings: { ...DEFAULT_SETTINGS, quality: "high" } } });
+    await runLessonJob({ lessonId: ohm.id, force: true }, direct);
+    expect((await db.page.findFirstOrThrow({ where: { bookId: c.bookId, pageNumber: 7 } })).repairModel).toBe("claude-sonnet-5-5");
+    const events = await db.usageEvent.findMany({ where: { lessonId: ohm.id }, orderBy: { createdAt: "asc" } });
+    expect(events.filter((e) => e.feature === "PAGE_REPAIR").map((e) => e.model)).toEqual(["claude-haiku-5-5", "claude-sonnet-5-5"]);
+    expect(events.filter((e) => e.feature === "FLASHCARDS").map((e) => e.model)).toEqual(["claude-haiku-5-5", "claude-sonnet-5-5"]);
+    // Every call counts against the allowance at its real price, so High quality uses more of it.
+    const cost = (feature: string, model: string) => events.find((e) => e.feature === feature && e.model === model)!.costMicroUsd;
+    expect(cost("FLASHCARDS", "claude-sonnet-5-5")).toBeGreaterThan(cost("FLASHCARDS", "claude-haiku-5-5") * 10);
+
+    // Already read by the main model: not read again.
+    const reads = writer.repairCalls;
+    await runLessonJob({ lessonId: ohm.id, force: true }, direct);
+    expect(writer.repairCalls).toBe(reads);
+  });
+});
+

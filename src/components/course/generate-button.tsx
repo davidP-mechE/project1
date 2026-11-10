@@ -15,6 +15,7 @@ type Estimate = {
   costUsd: number;
   minutes: number;
   batch?: boolean;
+  quality?: "standard" | "high";
 };
 const usd = (n: number) =>
   n < 0.01 ? "under $0.01" : `about $${n.toFixed(2)}`;
@@ -87,7 +88,10 @@ export function GenerateButton({
         <dl className="mt-4 grid grid-cols-2 gap-3 rounded-lg bg-surface-2 p-4 text-sm">
           <div>
             <dt className="text-muted">Estimated API cost</dt>
-            <dd className="font-semibold">{usd(estimate.costUsd)}</dd>
+            <dd className="font-semibold">
+              {usd(estimate.costUsd)}
+              {estimate.quality === "high" && <span className="block text-xs font-normal text-muted">High quality (change in Setup)</span>}
+            </dd>
           </div>
           <div>
             <dt className="text-muted">Estimated time</dt>

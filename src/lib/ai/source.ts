@@ -14,6 +14,8 @@ export type SourcePage = {
   textSource: "NATIVE" | "OCR" | "NONE";
   mathScore: number;
   repairedText: string | null;
+  /** The model that re-read the page from its image (null: read before this was recorded). */
+  repairModel?: string | null;
   imageCount?: number;
 };
 

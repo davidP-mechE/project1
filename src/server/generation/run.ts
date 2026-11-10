@@ -46,27 +46,34 @@ async function loadPages(lesson: LoadedLesson): Promise<SourcePage[]> {
   return db.page.findMany({
     where: { bookId: lesson.course.bookId, pageNumber: { gte: lesson.pageStart, lte: lesson.pageEnd } },
     orderBy: { pageNumber: "asc" },
-    select: { pageNumber: true, label: true, text: true, textSource: true, mathScore: true, repairedText: true, imageCount: true },
+    select: { pageNumber: true, label: true, text: true, textSource: true, mathScore: true, repairedText: true, repairModel: true, imageCount: true },
   });
 }
 
-/** Re-read equation-heavy pages from images (once per page; the result is saved on the page). */
+/**
+ * Re-read equation-heavy pages from images (once per page; the result is saved
+ * on the page). A High quality course re-reads pages the small model read
+ * before, with the main model.
+ */
 async function repairPages(lesson: LoadedLesson, pages: SourcePage[], deps: GenerationDeps): Promise<SourcePage[]> {
   if (!deps.renderPage) return pages;
   const kind = sourceKind(lesson);
-  const todo = pages.filter((p) => needsRepair(p, kind)).slice(0, MAX_REPAIRS_PER_LESSON);
+  const quality = parseSettings(lesson.course.settings).quality;
+  const upgrade = (p: SourcePage) => quality === "high" && Boolean(p.repairModel) && p.repairModel !== deps.model && needsRepair({ ...p, repairedText: null }, kind);
+  const todo = pages.filter((p) => needsRepair(p, kind) || upgrade(p)).slice(0, MAX_REPAIRS_PER_LESSON);
   if (todo.length > 0) await ensureAiBudget(lesson.course.userId);
   for (const p of todo) {
     try {
       const png = await deps.renderPage(lesson.course.bookId, p.pageNumber);
-      const res = await deps.writer.repairPage(png, kind);
+      const res = await deps.writer.repairPage(png, kind, quality);
       await recordUsage({ userId: lesson.course.userId, courseId: lesson.courseId, lessonId: lesson.id, feature: "PAGE_REPAIR" }, res.calls);
       if (res.value.trim().length > 0) {
         await db.page.update({
           where: { bookId_pageNumber: { bookId: lesson.course.bookId, pageNumber: p.pageNumber } },
-          data: { repairedText: res.value, repairedAt: new Date() },
+          data: { repairedText: res.value, repairedAt: new Date(), repairModel: res.calls.at(-1)?.model ?? null },
         });
         p.repairedText = res.value;
+        p.repairModel = res.calls.at(-1)?.model ?? null;
       }
     } catch (err) {
       if (err instanceof AiError) {

@@ -247,6 +247,21 @@ describe("ClaudeWriter", () => {
     expect(req.messages[0].content[1].text).toContain("Write only flashcards");
   });
 
+  it("uses the main model for flashcards and page reading in a High quality course", async () => {
+    const { client, requests } = fakeClient([
+      { stop_reason: "end_turn", parsed_output: { flashcards: sampleDraft(4, 5).flashcards } },
+      { stop_reason: "end_turn", content: [{ type: "text", text: "$$V = IR$$" }] },
+      { stop_reason: "end_turn", content: [{ type: "text", text: "$$V = IR$$" }] },
+    ]);
+    const writer = new ClaudeWriter(client, config);
+    await writer.writeFlashcards({ ...input, settings: { ...DEFAULT_SETTINGS, quality: "high" } });
+    const high = await writer.repairPage(Buffer.from("png"), "book", "high");
+    await writer.repairPage(Buffer.from("png"), "book");
+    expect(requests.map((r) => r.model)).toEqual(["claude-sonnet-5-5", "claude-sonnet-5-5", "claude-haiku-5-5"]);
+    expect((requests[0] as { output_config: { effort: string } }).output_config.effort).toBe("medium");
+    expect(high.calls[0].model).toBe("claude-sonnet-5-5");
+  });
+
   it("caches the pages for new questions (sent again and again), not for a one-off lesson", async () => {
     const { client, requests } = fakeClient([
       { stop_reason: "end_turn", parsed_output: sampleDraft(4, 5) },

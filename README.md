@@ -425,6 +425,8 @@ With the default settings, per 100 pages (10 lessons, 3 units, 10 equation-heavy
 | Unit summaries, unit tests, final exam | Sonnet 5.5, batched | $0.21 | $0.10 |
 | **Total per 100 pages** | | **≈ $1.40** | **≈ $0.62** (≈ $6 for a 1,000-page book) |
 
+**Quality setting (per course, in Setup):** *Standard* (default) is the setup above. *High quality* uses Claude Sonnet for every step, as before: flashcards and reading equation-heavy pages included (pages the small model already read are read again). Both count against the student's monthly AI allowance at what Claude actually costs, so High quality simply uses more of it (about 1.4x for a typical math-heavy chapter); the Setup page shows each option's cost for that course, and the "Generate course" confirmation says which one it uses.
+
 Output tokens (the lesson text plus Claude's thinking) are most of the cost. If real courses still cost more than you'd like, the next lever is `CLAUDE_EFFORT_GENERATION=low` (less thinking per lesson): try it on a chapter and compare the lessons before switching.
 
 While studying: multiple choice and exact matches are free; a written answer graded by Claude ≈ $0.01–0.02 (Claude Opus 5.5 at low effort, ~2–4K tokens in); a tutor question ≈ $0.02–0.05 (up to ~6K tokens of book passages plus the conversation). Embeddings are free (computed locally).
@@ -435,8 +437,9 @@ Needs a real `ANTHROPIC_API_KEY`; each step costs a few cents.
 
 1. `npm run smoke:claude`: check the flashcards written by Haiku are as good as before, and that page 7's equations still come out right from Haiku's transcription.
 2. Generate one chapter. The course page says **Writing your course at half price**; lessons arrive together, usually within an hour (keep the worker running).
-3. `npm run cost:breakdown`: lessons, flashcards and tests show **Batch: yes**; flashcards and page reading are on `claude-haiku-5-5`. Compare the total with the $1.19 per chapter from before.
-4. On a lesson, **Hammer it** in Review a few times in a row: from the second set on, the QUESTIONS rows show cache reads (the pages come from the cache).
+3. In a course's **Setup**, the **Quality** choice shows each option's cost. Switch one course to **High quality**, regenerate a lesson with equations, and check `npm run cost:breakdown -- <courseId>` shows its flashcards and page reading on `claude-sonnet-5-5`.
+4. `npm run cost:breakdown`: lessons, flashcards and tests show **Batch: yes**; flashcards and page reading are on `claude-haiku-5-5`. Compare the total with the $1.19 per chapter from before.
+5. On a lesson, **Hammer it** in Review a few times in a row: from the second set on, the QUESTIONS rows show cache reads (the pages come from the cache).
 
 ## Manual test checklist (Phase 12)
 

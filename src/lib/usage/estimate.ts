@@ -69,6 +69,13 @@ export const LEGACY_PLAN: GenerationPlan = {
   separateFlashcards: false,
 };
 
+/** The plan for a course's quality setting: High quality uses the main model for every step. */
+export function planFor(settings: Pick<CourseSettings, "quality">, batch = true): GenerationPlan {
+  return settings.quality === "high"
+    ? { ...DEFAULT_PLAN, flashcardModel: DEFAULT_PLAN.lessonModel, visionModel: DEFAULT_PLAN.lessonModel, batch }
+    : { ...DEFAULT_PLAN, batch };
+}
+
 export type StepId =
   | "lessons"
   | "flashcards"
@@ -103,6 +110,8 @@ export type Estimate = {
   costUsd: number;
   minutes: number;
   /** Sent as a half-price batch: lessons arrive together, usually within an hour (at most a day). */
+  /** The course's quality setting. */
+  quality: CourseSettings["quality"];
   batch: boolean;
   steps: StepEstimate[];
 };
@@ -110,7 +119,7 @@ export type Estimate = {
 export function estimateGeneration(
   lessons: EstimateLesson[],
   settings: CourseSettings,
-  plan: GenerationPlan = DEFAULT_PLAN,
+  plan: GenerationPlan = planFor(settings),
 ): Estimate {
   const unitKeys = [...new Set(lessons.map((l) => l.unitKey))];
   const qTypes = questionTypesOn(settings).length;
@@ -221,6 +230,7 @@ export function estimateGeneration(
       1,
       Math.ceil((lessons.length * SECONDS_PER_LESSON) / PARALLEL_LESSONS / 60),
     ),
+    quality: settings.quality,
     batch: plan.batch,
     steps,
   };

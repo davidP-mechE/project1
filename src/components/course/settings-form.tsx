@@ -3,8 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
 import { saveSettingsAction } from "@/server/actions/outline";
-import { CONTENT_TYPES, LEVELS, STYLES, type ContentType, type CourseSettings } from "@/lib/course/settings";
-import { DEFAULT_PLAN, estimateGeneration, type EstimateLesson } from "@/lib/usage/estimate";
+import { CONTENT_TYPES, LEVELS, QUALITIES, STYLES, type ContentType, type CourseSettings, type Quality } from "@/lib/course/settings";
+import { estimateGeneration, planFor, type EstimateLesson } from "@/lib/usage/estimate";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/misc";
@@ -66,7 +66,13 @@ export function SettingsForm({ courseId, initial, lessons, actions, batch = true
     () => (s.includeFrontBackMatter ? [...lessons.normal, ...lessons.frontBack] : lessons.normal),
     [s.includeFrontBackMatter, lessons],
   );
-  const estimate = useMemo(() => estimateGeneration(included, s, { ...DEFAULT_PLAN, batch }), [included, s, batch]);
+  const estimate = useMemo(() => estimateGeneration(included, s, planFor(s, batch)), [included, s, batch]);
+  // What each quality would cost for this course, shown next to the choice.
+  const costByQuality = useMemo(
+    () =>
+      Object.fromEntries((Object.keys(QUALITIES) as Quality[]).map((q) => [q, estimateGeneration(included, { ...s, quality: q }, planFor({ quality: q }, batch)).costUsd])) as Record<Quality, number>,
+    [included, s, batch],
+  );
   const anyQuestions = s.contentTypes.some((t) => t === "multipleChoice" || t === "shortAnswer" || t === "stepProblems");
 
   function save() {
@@ -106,6 +112,27 @@ export function SettingsForm({ courseId, initial, lessons, actions, batch = true
               <Choice key={k} name="style" value={k} checked={s.style === k} onChange={() => update({ style: k })} title={STYLES[k].label} description={STYLES[k].description} />
             ))}
           </div>
+        </Fieldset>
+
+        <Fieldset legend="Quality" hint="Both count against your monthly AI allowance at what Claude actually costs, so High quality uses more of it.">
+          <div className="grid gap-2 sm:grid-cols-2">
+            {(Object.keys(QUALITIES) as Quality[]).map((k) => (
+              <Choice
+                key={k}
+                name="quality"
+                value={k}
+                checked={s.quality === k}
+                onChange={() => update({ quality: k })}
+                title={`${QUALITIES[k].label} · ≈ ${usd(costByQuality[k])}`}
+                description={QUALITIES[k].description}
+              />
+            ))}
+          </div>
+          {costByQuality.standard > 0 && (
+            <p className="text-xs text-muted">
+              High quality costs about {Math.max(1, Math.round((costByQuality.high / costByQuality.standard) * 10) / 10)}× as much for this course. Regenerate lessons after switching to rewrite ones already written.
+            </p>
+          )}
         </Fieldset>
 
         <Fieldset legend="What to create" hint="Every lesson always gets an explanation written from its pages. Choose what else to add.">

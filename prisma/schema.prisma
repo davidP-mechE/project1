@@ -269,6 +269,7 @@ model Page {
   // Equation-heavy pages re-read from an image by Claude, with math as LaTeX (Phase 4).
   repairedText      String?
   repairedAt        DateTime?
+  repairModel       String? // which model re-read it (High quality courses re-read pages a cheaper model read)
   width             Float
   height            Float
 

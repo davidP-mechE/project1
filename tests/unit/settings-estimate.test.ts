@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { costUsd } from "@/lib/ai/models";
 import { DEFAULT_SETTINGS, parseSettings, questionTypesOn } from "@/lib/course/settings";
-import { DEFAULT_PLAN, estimateGeneration, LEGACY_PLAN, type EstimateLesson } from "@/lib/usage/estimate";
+import { DEFAULT_PLAN, estimateGeneration, LEGACY_PLAN, planFor, type EstimateLesson } from "@/lib/usage/estimate";
 
 describe("parseSettings", () => {
   it("fills in defaults for missing settings", () => {
@@ -53,6 +53,16 @@ describe("estimateGeneration", () => {
     const unbatched = estimateGeneration(mathy, DEFAULT_SETTINGS, { ...DEFAULT_PLAN, batch: false });
     expect(unbatched.steps.find((s) => s.step === "lessons")!.costUsd).toBeCloseTo(step("lessons").costUsd * 2);
     expect(estimateGeneration(mathy, DEFAULT_SETTINGS, LEGACY_PLAN).costUsd / e.costUsd).toBeGreaterThan(2);
+  });
+
+  it("High quality uses the main model for every step and costs more", () => {
+    const mathy = lessons.map((l) => ({ ...l, mathHeavyPages: 2 }));
+    const standard = estimateGeneration(mathy, DEFAULT_SETTINGS);
+    const high = estimateGeneration(mathy, { ...DEFAULT_SETTINGS, quality: "high" });
+    expect(new Set(high.steps.map((s) => s.model))).toEqual(new Set(["claude-sonnet-5-5"]));
+    expect(high.costUsd).toBeGreaterThan(standard.costUsd);
+    expect(planFor({ quality: "high" }, false)).toMatchObject({ batch: false, flashcardModel: "claude-sonnet-5-5", visionModel: "claude-sonnet-5-5" });
+    expect(DEFAULT_SETTINGS.quality).toBe("standard");
   });
 
   it("costs less with fewer content types and concise style", () => {

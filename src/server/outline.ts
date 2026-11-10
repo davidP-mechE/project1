@@ -18,7 +18,7 @@ import {
 } from "@/lib/outline/edit";
 import type { DraftUnit } from "@/lib/outline/types";
 import { env } from "./env";
-import { DEFAULT_PLAN, estimateGeneration, type EstimateLesson } from "@/lib/usage/estimate";
+import { estimateGeneration, planFor, type EstimateLesson } from "@/lib/usage/estimate";
 
 /**
  * Loading and saving a course's outline and settings. Like everything in
@@ -315,7 +315,7 @@ export async function getGenerationEstimate(userId: string, courseId: string, wh
   return estimateGeneration(
     inputs,
     { ...settings, contentTypes: settings.contentTypes.filter((t) => !["unitSummaries", "unitTests", "finalExam"].includes(t)) },
-    { ...DEFAULT_PLAN, batch: env.CLAUDE_BATCH_GENERATION },
+    planFor(settings, env.CLAUDE_BATCH_GENERATION),
   );
 }
 
