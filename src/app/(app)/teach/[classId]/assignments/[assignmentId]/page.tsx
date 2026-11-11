@@ -44,7 +44,7 @@ export default async function AssignmentReportPage({ params }: PageProps<"/teach
       <PageHeader
         title={a.title}
         description={[
-          questions ? `${a.itemIds.length} questions from ${a.worksheet?.title ?? "a worksheet"}` : `${a.lessonIds.length || "All"} lessons from ${a.classCourse?.title ?? "a course"}`,
+          a.kind === "LOG_TEST" ? "Log an official practice test" : a.kind === "QUESTION_SET" ? `Practice set${a.calculator === "BY_HAND" ? " · by hand (no calculator)" : " · calculator allowed"}` : questions ? `${a.itemIds.length} questions from ${a.worksheet?.title ?? "a worksheet"}` : `${a.lessonIds.length || "All"} lessons from ${a.classCourse?.title ?? "a course"}`,
           a.timeLimitMin ? `timed, ${a.timeLimitMin} min` : null,
           dueText(a.dueAt, undefined, zone),
         ]

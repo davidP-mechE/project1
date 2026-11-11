@@ -133,3 +133,23 @@ export async function deleteWorksheetAction(worksheetId: string) {
 export async function retryWorksheetAction(worksheetId: string) {
   return run((u) => worksheets.retryWorksheet(u, id.parse(worksheetId)), [`/teach/worksheets/${worksheetId}`]);
 }
+
+// ── The 1600 Project: practice-test logs and bank sets ──
+const targets = z.object({ groupIds: z.array(id).max(200), studentIds: z.array(id).max(500) }).partial().optional();
+
+export async function assignLogTestAction(classId: string, input: unknown) {
+  const p = z.object({ testId: id, title: z.string().max(200).optional(), note: z.string().max(2000).optional(), dueAt: z.string().max(40).nullable().optional(), targets }).parse(input);
+  return run(async (u) => ({ assignmentId: (await classes.assignLogTest(u, id.parse(classId), p)).id }), [`/teach/${classId}`, "/classes"]);
+}
+export async function assignQuestionSetAction(classId: string, input: unknown) {
+  const p = z
+    .object({ setId: id, title: z.string().max(200).optional(), note: z.string().max(2000).optional(), dueAt: z.string().max(40).nullable().optional(), timeLimitMin: z.number().int().nullable().optional(), calculator: z.enum(["ALLOWED", "BY_HAND"]).optional(), targets })
+    .parse(input);
+  return run(async (u) => ({ assignmentId: (await classes.assignQuestionSet(u, id.parse(classId), p)).id }), [`/teach/${classId}`, "/classes"]);
+}
+export async function commentOnAttemptAction(classId: string, attemptId: string, body: string) {
+  return run(async (u) => {
+    const { addAttemptComment } = await import("../tutor-view");
+    await addAttemptComment(u, id.parse(classId), id.parse(attemptId), z.string().max(2000).parse(body));
+  }, [`/teach/${classId}/attempts/${attemptId}`]);
+}

@@ -342,6 +342,49 @@ export async function assignQuestions(userId: string, input: QuestionAssignmentI
   return created;
 }
 
+export type LogTestAssignmentInput = { testId: string; title?: string; note?: string; dueAt?: string | Date | null; targets?: Partial<Targets> };
+
+/** "Log Practice Test N by <date>": done when the student finishes a log of that test. */
+export async function assignLogTest(userId: string, classId: string, input: LogTestAssignmentInput) {
+  const access = await classAccess(userId, classId, "teach");
+  const test = await db.practiceTest.findFirst({ where: { id: input.testId, shared: true }, select: { id: true, name: true } });
+  if (!test) throw new ClassError("Choose a test from the catalog.");
+  const targets = await cleanTargets(access, input.targets);
+  const dueAt = parseDue(input.dueAt);
+  return db.assignment.create({
+    data: { classId, kind: "LOG_TEST", practiceTestId: test.id, title: input.title?.trim().slice(0, 200) || `Log ${test.name}`, note: input.note?.trim().slice(0, 2000) || null, dueAt, ...targets },
+  });
+}
+
+export type SetAssignmentInput = { setId: string; title?: string; note?: string; dueAt?: string | Date | null; timeLimitMin?: number | null; calculator?: "ALLOWED" | "BY_HAND"; targets?: Partial<Targets> };
+
+/** A published question-bank set, played in the practice player, with the calculator allowed or by hand only. */
+export async function assignQuestionSet(userId: string, classId: string, input: SetAssignmentInput) {
+  const access = await classAccess(userId, classId, "teach");
+  const set = await db.questionSet.findUnique({ where: { id: input.setId }, select: { id: true, title: true, status: true, visibility: true, questionIds: true } });
+  if (!set || set.status !== "published" || set.visibility === "private") throw new ClassError("Choose a published set that classes can use.");
+  const limit = input.timeLimitMin ? Math.round(input.timeLimitMin) : null;
+  if (limit !== null && (limit < 1 || limit > 300)) throw new ClassError("A time limit can be 1 to 300 minutes.");
+  const targets = await cleanTargets(access, input.targets);
+  const sections = new Set((await db.bankQuestion.findMany({ where: { id: { in: set.questionIds } }, select: { section: true } })).map((q) => q.section));
+  const section = sections.size === 1 ? ([...sections][0] === "math" ? "MATH" : "RW") : null;
+  const work = subjectFor(access, { section, domains: [] });
+  return db.assignment.create({
+    data: {
+      classId,
+      kind: "QUESTION_SET",
+      questionSetId: set.id,
+      title: input.title?.trim().slice(0, 200) || set.title,
+      note: input.note?.trim().slice(0, 2000) || null,
+      dueAt: parseDue(input.dueAt),
+      timeLimitMin: limit,
+      calculator: input.calculator === "BY_HAND" ? "BY_HAND" : "ALLOWED",
+      ...work,
+      ...targets,
+    },
+  });
+}
+
 export async function updateAssignment(userId: string, assignmentId: string, patch: { title?: string; dueAt?: string | null; note?: string }) {
   await assignmentAccess(userId, assignmentId, "teach");
   const a = { id: assignmentId };
@@ -561,7 +604,7 @@ async function gradeItem(userId: string, item: ItemForGrading, input: { choice?:
 export type CellStatus = "not_started" | "in_progress" | "done" | "not_assigned";
 export type Cell = { status: CellStatus; done: number; total: number; score: number | null; late: boolean; lastActive: Date | null };
 
-type AssignmentRow = { id: string; kind: AssignmentKind; dueAt: Date | null; timeLimitMin: number | null; lessonIds: string[]; itemIds: string[]; classCourseId: string | null; externalItems?: Prisma.JsonValue };
+type AssignmentRow = { id: string; kind: AssignmentKind; dueAt: Date | null; timeLimitMin: number | null; lessonIds: string[]; itemIds: string[]; classCourseId: string | null; externalItems?: Prisma.JsonValue; practiceTestId?: string | null; questionSetId?: string | null };
 
 /** Every student's progress on every assignment of a class (students × assignments). */
 async function progressCells(classId: string, students: string[], assignments: AssignmentRow[], now: Date) {
@@ -585,6 +628,16 @@ async function progressCells(classId: string, students: string[], assignments: A
     externalIds.length ? db.externalResult.findMany({ where: { assignmentId: { in: externalIds }, userId: { in: students } }, select: { assignmentId: true, userId: true, itemKey: true, result: true, createdAt: true } }) : [],
     diagnosticIds.length ? db.diagnosticAttempt.findMany({ where: { assignmentId: { in: diagnosticIds }, userId: { in: students } }, orderBy: { attemptNo: "asc" }, select: { assignmentId: true, userId: true, startedAt: true, finishedAt: true, results: true } }) : [],
   ]);
+  const testIds = [...new Set(assignments.flatMap((a) => (a.kind === "LOG_TEST" && a.practiceTestId ? [a.practiceTestId] : [])))];
+  const setAssignmentIds = assignments.filter((a) => a.kind === "QUESTION_SET").map((a) => a.id);
+  const [logs, sittings, setSizes] = await Promise.all([
+    testIds.length ? db.testAttempt.findMany({ where: { userId: { in: students }, testId: { in: testIds } }, select: { userId: true, testId: true, status: true, completedAt: true, updatedAt: true } }) : [],
+    setAssignmentIds.length
+      ? db.practiceSession.findMany({ where: { assignmentId: { in: setAssignmentIds }, userId: { in: students } }, select: { assignmentId: true, userId: true, startedAt: true, finishedAt: true, attempts: { select: { correct: true, createdAt: true } } } })
+      : [],
+    setAssignmentIds.length ? db.assignment.findMany({ where: { id: { in: setAssignmentIds } }, select: { id: true, questionSet: { select: { questionIds: true } } } }) : [],
+  ]);
+  const setSize = new Map(setSizes.map((x) => [x.id, x.questionSet?.questionIds.length ?? 0]));
   const attemptOf = new Map(attempts.map((x) => [`${x.userId}:${x.assignmentId}`, x])); // the latest attempt wins
   const externalOf = new Map<string, typeof external>();
   for (const r of external) externalOf.set(`${r.userId}:${r.assignmentId}`, [...(externalOf.get(`${r.userId}:${r.assignmentId}`) ?? []), r]);
@@ -620,6 +673,28 @@ async function progressCells(classId: string, students: string[], assignments: A
           total: keys.size,
           score: got.length ? got.filter((r) => r.result === "CORRECT").length / keys.size : null,
           late: Boolean(a.dueAt && (finished ? (last ?? now) > a.dueAt : now > a.dueAt)),
+          lastActive: last,
+        };
+      } else if (a.kind === "LOG_TEST") {
+        const mine = logs.filter((l) => l.userId === studentId && l.testId === a.practiceTestId);
+        const done = mine.filter((l) => l.status === "complete" && l.completedAt).sort((x, y) => x.completedAt!.getTime() - y.completedAt!.getTime())[0];
+        const last = mine.reduce<Date | null>((m, l) => (!m || l.updatedAt > m ? l.updatedAt : m), null);
+        cell = { status: done ? "done" : mine.length ? "in_progress" : "not_started", done: done ? 1 : 0, total: 1, score: null, late: Boolean(a.dueAt && (done ? done.completedAt! > a.dueAt : now > a.dueAt)), lastActive: last };
+      } else if (a.kind === "QUESTION_SET") {
+        const mine = sittings.filter((x) => x.userId === studentId && x.assignmentId === a.id);
+        const total = setSize.get(a.id) ?? 0;
+        const best = mine.reduce<{ right: number; answered: number; finishedAt: Date | null } | null>((m, x) => {
+          const right = x.attempts.filter((t) => t.correct).length;
+          return !m || right > m.right ? { right, answered: x.attempts.length, finishedAt: x.finishedAt } : m;
+        }, null);
+        const finished = mine.find((x) => x.finishedAt);
+        const last = mine.flatMap((x) => [x.startedAt, ...x.attempts.map((t) => t.createdAt)]).reduce<Date | null>((m, d) => (!m || d > m ? d : m), null);
+        cell = {
+          status: finished ? "done" : mine.length ? "in_progress" : "not_started",
+          done: best?.answered ?? 0,
+          total,
+          score: best && total ? best.right / total : null,
+          late: Boolean(a.dueAt && (finished ? finished.finishedAt! > a.dueAt : now > a.dueAt)),
           lastActive: last,
         };
       } else if (a.kind === "LESSONS") {
@@ -664,7 +739,7 @@ export async function classProgress(userId: string, classId: string, now = new D
       members: { where: memberWhere(access), orderBy: { user: { name: "asc" } }, select: { user: { select: { id: true, name: true, email: true } } } },
       assignments: {
         orderBy: [{ dueAt: { sort: "asc", nulls: "last" } }, { createdAt: "asc" }],
-        select: { id: true, kind: true, title: true, dueAt: true, timeLimitMin: true, lessonIds: true, itemIds: true, classCourseId: true, section: true, domains: true, externalItems: true, groupIds: true, studentIds: true, classCourse: { select: { title: true } } },
+        select: { id: true, kind: true, title: true, dueAt: true, timeLimitMin: true, lessonIds: true, itemIds: true, classCourseId: true, section: true, domains: true, externalItems: true, groupIds: true, studentIds: true, practiceTestId: true, questionSetId: true, calculator: true, classCourse: { select: { title: true } } },
       },
     },
   });
@@ -826,7 +901,7 @@ export async function myClasses(userId: string, now = new Date()) {
           program: { select: { name: true, badge: true } },
           assignments: {
             orderBy: [{ dueAt: { sort: "asc", nulls: "last" } }, { createdAt: "asc" }],
-            select: { id: true, kind: true, title: true, note: true, dueAt: true, timeLimitMin: true, lessonIds: true, itemIds: true, classCourseId: true, externalItems: true, groupIds: true, studentIds: true, classCourse: { select: { title: true } } },
+            select: { id: true, kind: true, title: true, note: true, dueAt: true, timeLimitMin: true, lessonIds: true, itemIds: true, classCourseId: true, externalItems: true, groupIds: true, studentIds: true, practiceTestId: true, questionSetId: true, calculator: true, classCourse: { select: { title: true } } },
           },
         },
       },

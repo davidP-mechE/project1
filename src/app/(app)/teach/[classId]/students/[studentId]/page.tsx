@@ -56,9 +56,12 @@ export default async function StudentPage({ params }: PageProps<"/teach/[classId
         title={s.student.name || "Student"}
         description={[s.baseline ? `Baseline ${s.baseline.total}` : s.baselinePending ? "Diagnostic pending" : "No baseline yet", s.latest ? `latest ${s.latest.total}` : null, s.target ? `goal ${s.target}` : null, s.testDate ? `SAT on ${s.testDate.toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" })}` : null].filter(Boolean).join(" · ")}
         actions={
+          <>
+          <ButtonLink href={`/teach/${classId}/students/${studentId}/practice`} variant="secondary" size="sm">SAT practice log</ButtonLink>
           <ButtonLink href={`/print/report/${classId}/${studentId}`} variant="secondary" size="sm">
             Print progress report
           </ButtonLink>
+          </>
         }
       />
       {s.stall.stalled && <Alert tone="warning">{s.stall.reason}.</Alert>}

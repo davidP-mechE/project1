@@ -90,7 +90,7 @@ export default async function ClassesPage() {
                       <div className="min-w-0">
                         <p className="font-medium">{a.title}</p>
                         <p className="text-xs text-muted">
-                          {a.kind === "LESSONS" ? `${a.lessonIds.length || "All"} ${a.lessonIds.length === 1 ? "lesson" : "lessons"}` : a.kind === "EXTERNAL" ? `${a.cell.total} College Board ${a.cell.total === 1 ? "question" : "questions"}` : a.kind === "DIAGNOSTIC" ? "Diagnostic (timed)" : `${a.itemIds.length} ${a.itemIds.length === 1 ? "question" : "questions"}`}
+                          {a.kind === "LESSONS" ? `${a.lessonIds.length || "All"} ${a.lessonIds.length === 1 ? "lesson" : "lessons"}` : a.kind === "EXTERNAL" ? `${a.cell.total} College Board ${a.cell.total === 1 ? "question" : "questions"}` : a.kind === "DIAGNOSTIC" ? "Diagnostic (timed)" : a.kind === "LOG_TEST" ? "Log an official practice test (from your score report)" : a.kind === "QUESTION_SET" ? `Practice set${a.cell.total ? ` · ${a.cell.total} questions` : ""}${a.calculator === "BY_HAND" ? " · by hand, no calculator" : ""}` : `${a.itemIds.length} ${a.itemIds.length === 1 ? "question" : "questions"}`}
                           {a.timeLimitMin ? ` · timed, ${a.timeLimitMin} min` : ""}
                           {a.classCourse ? ` · ${a.classCourse.title}` : ""}
                         </p>
@@ -107,7 +107,7 @@ export default async function ClassesPage() {
                         {a.kind === "LESSONS" ? (
                           <StartLessonsButton assignmentId={a.id} started={a.cell.status !== "not_started"} variant={a.cell.status === "done" ? "secondary" : "primary"} />
                         ) : (
-                          <Link href={`/classes/assignments/${a.id}`} className={buttonClasses(a.cell.status === "done" ? "secondary" : "primary", "sm")}>
+                          <Link href={a.kind === "LOG_TEST" ? (a.cell.status === "done" ? "/practice-tests" : `/practice-tests/new?test=${a.practiceTestId}`) : a.kind === "QUESTION_SET" ? `/practice/${a.questionSetId}?assignment=${a.id}` : `/classes/assignments/${a.id}`} className={buttonClasses(a.cell.status === "done" ? "secondary" : "primary", "sm")}>
                             {a.cell.status === "done" ? "Review" : a.cell.status === "in_progress" ? "Continue" : "Start"}
                             <span className="sr-only"> {a.title}</span>
                           </Link>
