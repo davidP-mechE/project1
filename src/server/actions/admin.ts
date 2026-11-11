@@ -105,12 +105,9 @@ export async function sendTestEmailAction(): Promise<Result> {
   const status = emailStatus();
   if (!status.canSend) return { ok: false, error: "Email isn't set up on this server yet: set RESEND_API_KEY (or the SMTP settings) and EMAIL_FROM, then redeploy." };
   try {
-    await sendEmail({
-      to: admin.email,
-      subject: "Coursebook test email",
-      text: `This is a test from Coursebook's Admin page. Email is working: verification and password reset links will arrive like this one.\n\nSent with: ${status.detail}\nFrom: ${status.from}`,
-      html: `<p>This is a test from Coursebook's Admin page. Email is working: verification and password reset links will arrive like this one.</p><p style="color:#535866">Sent with: ${status.detail}<br>From: ${status.from.replace(/</g, "&lt;")}</p>`,
-    });
+    const { testEmailMessage } = await import("../email/templates");
+    const { env } = await import("../env");
+    await sendEmail(testEmailMessage({ to: admin.email, detail: status.detail, from: status.from, url: `${env.APP_URL}/admin` }));
     return { ok: true, message: `Sent to ${admin.email}. Check that inbox (and its spam folder).` };
   } catch (err) {
     return { ok: false, error: `Not sent: ${err instanceof Error ? err.message : String(err)}` };
