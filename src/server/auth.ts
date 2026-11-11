@@ -9,6 +9,23 @@ import { env, googleAuthEnabled } from "./env";
 import { sendEmail } from "./email";
 import { changeEmailMessage, resetPasswordMessage, verifyEmailMessage } from "./email/templates";
 import { deleteAllUserFiles } from "./courses";
+import { recordError } from "./monitoring";
+
+/**
+ * Sends a sign-in email (verification, password reset, change of email).
+ * Better Auth catches send errors and only logs them, so a broken email setup
+ * would leave people waiting for a link that never comes: record the failure
+ * where admins see it (Admin, and an alert), then let Better Auth carry on.
+ */
+async function sendAuthEmail(kind: string, message: Parameters<typeof sendEmail>[0]) {
+  try {
+    await sendEmail(message);
+  } catch (err) {
+    const why = err instanceof Error ? err.message : String(err);
+    await recordError({ kind: "server", message: `The ${kind} email couldn't be sent: ${why}`, path: "/api/auth" }).catch(() => {});
+    throw err;
+  }
+}
 
 export const auth = betterAuth({
   appName: "Coursebook",
@@ -25,7 +42,7 @@ export const auth = betterAuth({
     maxPasswordLength: 128,
     revokeSessionsOnPasswordReset: true,
     sendResetPassword: async ({ user, url }) => {
-      await sendEmail(resetPasswordMessage(user.email, url));
+      await sendAuthEmail("password reset", resetPasswordMessage(user.email, url));
     },
   },
 
@@ -34,7 +51,7 @@ export const auth = betterAuth({
     sendOnSignIn: true, // signing in unverified re-sends the link
     autoSignInAfterVerification: true,
     sendVerificationEmail: async ({ user, url }) => {
-      await sendEmail(verifyEmailMessage(user.email, url));
+      await sendAuthEmail("verification", verifyEmailMessage(user.email, url));
     },
   },
 
@@ -56,7 +73,7 @@ export const auth = betterAuth({
       enabled: true,
       // The old address approves first; then a verification link goes to the new one.
       sendChangeEmailConfirmation: async ({ user, newEmail, url }) => {
-        await sendEmail(changeEmailMessage(user.email, newEmail, url));
+        await sendAuthEmail("change of email", changeEmailMessage(user.email, newEmail, url));
       },
     },
     deleteUser: {

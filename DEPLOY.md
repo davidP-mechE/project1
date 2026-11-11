@@ -117,8 +117,15 @@ based on `S3_ENDPOINT`.
 
 1. Add and verify your domain (Resend shows the DNS records to add).
 2. Create an API key with sending access.
-3. Use these SMTP settings: host `smtp.resend.com`, port `465`, secure `true`,
-   user `resend`, and the API key as the password.
+3. Set `RESEND_API_KEY` to that key (on both Vercel and the worker). This
+   sends through Resend's HTTP API, which works on every host; some hosts
+   block the SMTP ports. (SMTP still works instead: host `smtp.resend.com`,
+   port `465`, secure `true`, user `resend`, the key as the password.)
+4. Set `EMAIL_FROM` to an address on the domain you verified. Resend refuses
+   other senders.
+5. After deploying, open **Admin → Email** and press **Send me a test
+   email**. It shows how email is sent and, if it fails, exactly why. Failed
+   verification and password-reset emails also appear under **Errors**.
 
 ## 6. Claude API
 
@@ -142,7 +149,8 @@ comments, is in `.env.example`.
 | `STORAGE_DRIVER` | `s3` |
 | `S3_BUCKET`, `S3_ENDPOINT`, `S3_REGION` | Your bucket, `https://<account-id>.r2.cloudflarestorage.com`, `auto` |
 | `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY` | From the R2 API token |
-| `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASSWORD` | `smtp.resend.com`, `465`, `true`, `resend`, your Resend key |
+| `RESEND_API_KEY` | Your Resend key (recommended way to send email) |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASSWORD` | Only if you send over SMTP instead: `smtp.resend.com`, `465`, `true`, `resend`, your Resend key |
 | `EMAIL_FROM` | `Coursebook <hello@your-domain.com>` (a verified domain) |
 | `ANTHROPIC_API_KEY` | From step 6 |
 | `LEGAL_NAME`, `CONTACT_EMAIL`, `COPYRIGHT_AGENT` | Shown on the Terms, Privacy and Copyright pages (see [Legal](#legal-pages)) |
