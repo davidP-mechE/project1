@@ -20,9 +20,13 @@ datasource db {
 
 // ─── Accounts (shape required by Better Auth) ────────────────────────────
 
+/// USER = student. TUTOR = approved to write bank questions and shared practice tests.
+/// ADMIN = site admin. OWNER = the person in OWNER_EMAIL (synced at startup and login; also a site admin).
 enum Role {
   USER
+  TUTOR
   ADMIN
+  OWNER
 }
 
 // Plan only gates usage limits. Payments (Stripe) come later and will just set this.
@@ -98,6 +102,15 @@ model User {
   threadReads        ThreadRead[]
   announcements      Announcement[]
   badges             Badge[]
+
+  // Phase 3b: SAT practice tracker, question bank, Course Studio
+  testAttempts       TestAttempt[]
+  attemptComments    AttemptComment[]
+  bankQuestions      BankQuestion[]      @relation("bankAuthor")
+  questionSets       QuestionSet[]       @relation("setAuthor")
+  practiceSessions   PracticeSession[]
+  bankAttempts       BankAttempt[]
+  customTests        PracticeTest[]      @relation("testCreator")
 
   /// Set on every login, for the Staff page.
   lastLoginAt      DateTime?
@@ -1271,6 +1284,14 @@ enum AssignmentKind {
   QUESTIONS // questions from a worksheet the teacher uploaded
   EXTERNAL
   DIAGNOSTIC
+  LOG_TEST // "Log Practice Test N by <date>": done when the student completes a log of that test
+  QUESTION_SET // a question-bank set, played in the practice player
+}
+
+/// Whether the Desmos calculator panel is offered while doing the work.
+enum CalculatorSetting {
+  ALLOWED
+  BY_HAND
 }
 
 model Assignment {
@@ -1311,6 +1332,13 @@ model Assignment {
   studentIds         String[]
   diagnosticAttempts DiagnosticAttempt[]
   retakes            DiagnosticRetake[]
+  /// LOG_TEST: the practice test to log. QUESTION_SET: the bank set to play.
+  practiceTestId     String?
+  practiceTest       PracticeTest?       @relation(fields: [practiceTestId], references: [id], onDelete: Restrict)
+  questionSetId      String?
+  questionSet        QuestionSet?        @relation(fields: [questionSetId], references: [id], onDelete: Restrict)
+  calculator         CalculatorSetting   @default(ALLOWED)
+  practiceSessions   PracticeSession[]
 
   @@index([classId, dueAt])
 }
@@ -1493,6 +1521,9 @@ model ScoreRecord {
   /// A question-by-question review (Bluebook / My Practice): [{ section, module, number, domain, skill, correct }]. No content.
   review       Json        @default("[]")
   enteredById  String
+  /// Written from a completed practice-test log (the tracker); kept in step with it.
+  testAttemptId String?    @unique
+  testAttempt   TestAttempt? @relation(fields: [testAttemptId], references: [id], onDelete: Cascade)
   verifiedById String?
   verifiedAt   DateTime?
   createdAt    DateTime    @default(now())
@@ -1897,4 +1928,431 @@ model Badge {
 
   @@unique([userId, kind, detail])
   @@index([userId, earnedAt])
+}
+
+// ─── Phase 3b: tracker for official SAT practice ─────────────────────────
+// Official tests are referenced by name and question number ONLY. No question
+// text, passages, images, explanations or answer keys are ever stored here.
+
+enum SatSection {
+  math
+  rw
+}
+
+/// SAT domains (parentId null) and the skills under them. Seeded from src/lib/sat/domains.ts; the owner can edit.
+model Skill {
+  id        String     @id
+  section   SatSection
+  domain    String
+  name      String
+  parentId  String?    @map("parent_id")
+  parent    Skill?     @relation("skillTree", fields: [parentId], references: [id], onDelete: Restrict)
+  children  Skill[]    @relation("skillTree")
+  order     Int        @default(0)
+  createdAt DateTime   @default(now())
+
+  attemptItems  AttemptItem[]
+  bankQuestions BankQuestion[]
+
+  @@unique([section, name])
+  @@map("skills")
+}
+
+model ErrorType {
+  id           String        @id
+  label        String        @unique
+  order        Int           @default(0)
+  attemptItems AttemptItem[]
+
+  @@map("error_types")
+}
+
+enum PracticeTestSource {
+  bluebook
+  paper
+  other
+}
+
+/// Metadata only: a name and module sizes. modules: [{ section: "rw"|"math", number: 1|2, question_count }].
+model PracticeTest {
+  id          String             @id @default(cuid())
+  name        String
+  source      PracticeTestSource @default(other)
+  modules     Json
+  /// Null for seeded tests. A student's custom test is private (shared = false); owner/tutor tests are shared.
+  createdById String?            @map("created_by_id")
+  createdBy   User?              @relation("testCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  shared      Boolean            @default(true)
+  createdAt   DateTime           @default(now())
+
+  attempts    TestAttempt[]
+  keys        PracticeTestKey[]
+  assignments Assignment[]
+
+  @@map("practice_tests")
+}
+
+/// A tutor's private answer key for their own class. Never seeded, never shown to students or other classes.
+model PracticeTestKey {
+  id          String       @id @default(cuid())
+  classId     String
+  testId      String
+  test        PracticeTest @relation(fields: [testId], references: [id], onDelete: Cascade)
+  /// { "rw-1-5": "B", "math-2-14": "3/4" }
+  answers     Json         @default("{}")
+  createdById String
+  updatedAt   DateTime     @updatedAt
+
+  @@unique([classId, testId])
+  @@map("practice_test_keys")
+}
+
+enum TestAttemptStatus {
+  draft
+  complete
+}
+
+model TestAttempt {
+  id          String            @id @default(cuid())
+  userId      String            @map("user_id")
+  user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  testId      String            @map("test_id")
+  test        PracticeTest      @relation(fields: [testId], references: [id], onDelete: Restrict)
+  dateTaken   DateTime          @map("date_taken")
+  scoreRw     Int?              @map("score_rw")
+  scoreMath   Int?              @map("score_math")
+  total       Int?
+  minutesUsed Int?              @map("minutes_used")
+  notes       String?
+  status      TestAttemptStatus @default(draft)
+  completedAt DateTime?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  /// Only non-correct cells are stored; a question with no row was answered correctly.
+  items       AttemptItem[]
+  comments    AttemptComment[]
+  scoreRecord ScoreRecord?
+
+  @@index([userId, dateTaken])
+  @@map("test_attempts")
+}
+
+enum ItemResult {
+  correct
+  wrong
+  skipped
+  guessed
+}
+
+enum RedoStatus {
+  to_redo
+  redone_correct
+  still_wrong
+}
+
+model AttemptItem {
+  id             String      @id @default(cuid())
+  attemptId      String      @map("attempt_id")
+  attempt        TestAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  section        SatSection
+  module         Int
+  questionNumber Int         @map("question_number")
+  result         ItemResult
+  skillId        String?     @map("skill_id")
+  skill          Skill?      @relation(fields: [skillId], references: [id], onDelete: SetNull)
+  errorTypeId    String?     @map("error_type_id")
+  errorType      ErrorType?  @relation(fields: [errorTypeId], references: [id], onDelete: SetNull)
+  note           String?
+  redoStatus     RedoStatus  @default(to_redo) @map("redo_status")
+  updatedAt      DateTime    @updatedAt
+
+  @@unique([attemptId, section, module, questionNumber])
+  @@map("attempt_items")
+}
+
+/// A tutor's comment on a student's logged attempt.
+model AttemptComment {
+  id        String      @id @default(cuid())
+  attemptId String
+  attempt   TestAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User        @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  body      String
+  createdAt DateTime    @default(now())
+
+  @@index([attemptId, createdAt])
+  @@map("attempt_comments")
+}
+
+// ─── Phase 3b: question bank (original questions only) ───────────────────
+
+enum QuestionSource {
+  original
+}
+
+enum BankQuestionType {
+  mcq
+  grid_in @map("grid-in")
+}
+
+enum PublishStatus {
+  draft
+  published
+}
+
+enum DesmosTechnique {
+  intersection
+  overlap
+  shading
+  sliders
+  regression
+  list_plug_in @map("list-plug-in")
+  table
+}
+
+model BankQuestion {
+  id              String           @id @default(cuid())
+  externalId      String?          @unique @map("external_id")
+  authorId        String?          @map("author_id")
+  author          User?            @relation("bankAuthor", fields: [authorId], references: [id], onDelete: SetNull)
+  source          QuestionSource   @default(original)
+  section         SatSection
+  skillId         String?          @map("skill_id")
+  skill           Skill?           @relation(fields: [skillId], references: [id], onDelete: SetNull)
+  blueprint       String?
+  lesson          String?
+  week            Int?
+  unit            String?
+  focus           String?
+  difficulty      Int              @default(2)
+  type            BankQuestionType
+  /// Markdown + LaTeX; may contain a Markdown table.
+  stem            String
+  choices         String[]
+  /// MCQ: the letter (A–D). Grid-in: the accepted value (e.g. "3/4").
+  answer          String
+  answerText      String?          @map("answer_text")
+  explanation     String           @default("")
+  /// MCQ: { "B": "mistake" } per wrong letter. Grid-in: { "-5": "mistake" } per likely wrong value.
+  distractorNotes Json             @default("{}") @map("distractor_notes")
+  desmosState     Json?            @map("desmos_state")
+  desmosTechnique DesmosTechnique? @map("desmos_technique")
+  imageUrl        String?          @map("image_url")
+  status          PublishStatus    @default(draft)
+  version         Int              @default(1)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  versions BankQuestionVersion[]
+  attempts BankAttempt[]
+
+  @@index([status, section, skillId])
+  @@index([week])
+  @@map("bank_questions")
+}
+
+/// The content of an earlier version, kept when a published question is edited.
+model BankQuestionVersion {
+  id              String           @id @default(cuid())
+  questionId      String
+  question        BankQuestion     @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  version         Int
+  type            BankQuestionType
+  stem            String
+  choices         String[]
+  answer          String
+  answerText      String?
+  explanation     String
+  distractorNotes Json
+  desmosState     Json?
+  imageUrl        String?
+  editedById      String?
+  createdAt       DateTime         @default(now())
+
+  @@unique([questionId, version])
+  @@map("bank_question_versions")
+}
+
+enum SetVisibility {
+  private
+  class
+  public
+}
+
+model QuestionSet {
+  id          String          @id @default(cuid())
+  title       String
+  description String?
+  authorId    String?         @map("author_id")
+  author      User?           @relation("setAuthor", fields: [authorId], references: [id], onDelete: SetNull)
+  questionIds String[]        @map("question_ids")
+  visibility  SetVisibility   @default(private)
+  status      PublishStatus   @default(draft)
+  /// Skills its questions cover (kept in step on save), for "Focus next".
+  skillIds    String[]        @map("skill_ids")
+  /// Optional time limit for timed play.
+  timeLimitMin Int?           @map("time_limit_min")
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  sessions    PracticeSession[]
+  attempts    BankAttempt[]
+  assignments Assignment[]
+
+  @@map("question_sets")
+}
+
+/// One sitting of a set in the practice player (its clock, and the calculator's lifetime).
+model PracticeSession {
+  id           String      @id @default(cuid())
+  userId       String
+  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  setId        String
+  set          QuestionSet @relation(fields: [setId], references: [id], onDelete: Cascade)
+  assignmentId String?
+  assignment   Assignment? @relation(fields: [assignmentId], references: [id], onDelete: SetNull)
+  timeLimitSec Int?
+  calculator   CalculatorSetting @default(ALLOWED)
+  startedAt    DateTime    @default(now())
+  finishedAt   DateTime?
+
+  attempts BankAttempt[]
+
+  @@index([userId, setId])
+  @@map("practice_sessions")
+}
+
+model BankAttempt {
+  id              String           @id @default(cuid())
+  userId          String           @map("user_id")
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  questionId      String           @map("question_id")
+  question        BankQuestion     @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  questionVersion Int              @map("question_version")
+  setId           String?          @map("set_id")
+  set             QuestionSet?     @relation(fields: [setId], references: [id], onDelete: SetNull)
+  sessionId       String?
+  session         PracticeSession? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+  answerGiven     String           @map("answer_given")
+  correct         Boolean
+  timeSeconds     Int              @default(0) @map("time_seconds")
+  createdAt       DateTime         @default(now()) @map("created_at")
+
+  @@index([userId, createdAt])
+  @@index([questionId, questionVersion])
+  @@map("bank_question_attempts")
+}
+
+// ─── Phase 3b: owner-only Course Studio ──────────────────────────────────
+// Draft courses are invisible to everyone but the owner (a plain 404). Files
+// are served only through /api/studio/files/<id>, which checks the course.
+
+enum StudioSection {
+  math
+  ebrw
+  other
+}
+
+enum StudioStatus {
+  draft
+  published
+  archived
+}
+
+enum StudioVisibility {
+  owner_only
+  public
+}
+
+model StudioCourse {
+  id          String           @id @default(cuid())
+  slug        String           @unique
+  title       String
+  section     StudioSection    @default(other)
+  description String           @default("")
+  status      StudioStatus     @default(draft)
+  visibility  StudioVisibility @default(owner_only)
+  /// The owner who made it. Not a hard link to an account, so courses outlive account changes.
+  ownerId     String?          @map("owner_id")
+  publishedAt DateTime?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  units  StudioUnit[]
+  shares StudioCourseShare[]
+
+  @@map("studio_courses")
+}
+
+/// Reserved for sharing a draft with chosen tutors or classes later. Nothing reads it yet.
+model StudioCourseShare {
+  id        String       @id @default(cuid())
+  courseId  String
+  course    StudioCourse @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  userId    String?
+  classId   String?
+  createdAt DateTime     @default(now())
+
+  @@map("studio_course_shares")
+}
+
+model StudioUnit {
+  id       String        @id @default(cuid())
+  courseId String
+  course   StudioCourse  @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  order    Int
+  title    String
+  lessons  StudioLesson[]
+
+  @@index([courseId, order])
+  @@map("studio_units")
+}
+
+model StudioLesson {
+  id              String           @id @default(cuid())
+  unitId          String
+  unit            StudioUnit       @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  order           Int
+  title           String
+  /// Tag for the Desmos Toolkit: questions with this technique link here once it's published.
+  desmosTechnique DesmosTechnique? @map("desmos_technique")
+  blocks          StudioBlock[]
+  files           StudioFile[]
+
+  @@index([unitId, order])
+  @@map("studio_lessons")
+}
+
+enum StudioBlockKind {
+  markdown
+  file
+  desmos
+  question_set
+}
+
+/// markdown: { text }. file: { fileId }. desmos: { state, interactive }. question_set: { setId }.
+model StudioBlock {
+  id       String          @id @default(cuid())
+  lessonId String
+  lesson   StudioLesson    @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  order    Int
+  kind     StudioBlockKind
+  data     Json            @default("{}")
+
+  @@index([lessonId, order])
+  @@map("studio_blocks")
+}
+
+model StudioFile {
+  id          String       @id @default(cuid())
+  lessonId    String
+  lesson      StudioLesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  name        String
+  contentType String
+  sizeBytes   Int
+  storageKey  String
+  createdAt   DateTime     @default(now())
+
+  @@map("studio_files")
 }

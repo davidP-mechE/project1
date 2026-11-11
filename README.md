@@ -32,6 +32,7 @@ npm install                 # also generates the database client
 cp .env.example .env        # then edit .env (see below)
 docker compose up -d        # starts Postgres, Redis and Mailpit
 npm run db:migrate          # creates the database tables
+npm run db:seed             # SAT skills, error types, practice-test catalog, studio drafts, the weeks 3–6 questions
 npm run dev                 # web app: http://localhost:3000
 ```
 
@@ -66,6 +67,7 @@ Install PostgreSQL 16 with the pgvector extension and Redis yourself, create the
 | `npm run lint` | ESLint |
 | `npm run build` | Production build |
 | `npm run db:migrate` | Apply/create database migrations (dev) |
+| `npm run db:seed` | Reference data and The 1600 Project question file (safe to re-run; see PHASE3_BANK_PLAN.md) |
 | `npm run db:studio` | Browse the database in your browser |
 | `npm run fixtures` | Regenerate the test PDFs in `tests/fixtures` (needs Playwright) |
 | `npm run smoke:claude` | One **real** Claude test: writes one lesson from the test book, re-reads an equation page and grades two answers, printing the results with their exact cost (~$0.05–0.10). Needs `ANTHROPIC_API_KEY` |

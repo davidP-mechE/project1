@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 import { ProgramTag } from "@/components/brand/seal";
 import { db } from "@/server/db";
 
-export type ClassTab = "trends" | "announcements" | "overview" | "students" | "assign" | "skills" | "groups" | "review" | "staff" | "scores" | "attendance" | "alerts" | "curriculum" | "assistant";
+export type ClassTab = "trends" | "announcements" | "overview" | "students" | "assign" | "skills" | "groups" | "review" | "staff" | "scores" | "attendance" | "alerts" | "curriculum" | "assistant" | "practice";
 type Role = "ADMIN" | "TEACHER" | "SPECIALIST" | "VIEWER";
 
 export const ROLE_LABEL: Record<Role, string> = { ADMIN: "Program admin", TEACHER: "Teacher", SPECIALIST: "Specialist", VIEWER: "Viewer" };
@@ -23,6 +23,7 @@ export async function ClassNav({
     { id: "scores", label: "Scores", href: `/teach/${c.id}/scores`, show: true },
     { id: "skills", label: "Skills", href: `/teach/${c.id}/skills`, show: true },
     { id: "trends", label: "Trends", href: `/teach/${c.id}/trends`, show: true },
+    { id: "practice", label: "SAT practice", href: `/teach/${c.id}/practice`, show: true },
     { id: "review", label: "Review AI grades", href: `/teach/${c.id}/review`, show: role !== "VIEWER" },
     { id: "curriculum", label: "Curriculum", href: `/teach/${c.id}/curriculum`, show: true },
     { id: "assistant", label: "Assistant", href: `/teach/${c.id}/assistant`, show: true },
@@ -35,7 +36,7 @@ export async function ClassNav({
   ];
   const program = (await db.class.findUnique({ where: { id: c.id }, select: { program: { select: { name: true, badge: true } } } }))?.program;
   const groups: { label: string; ids: ClassTab[] }[] = [
-    { label: "Overview", ids: ["overview", "scores", "skills", "trends"] },
+    { label: "Overview", ids: ["overview", "scores", "skills", "trends", "practice"] },
     { label: "Teach", ids: ["assign", "review", "curriculum", "assistant"] },
     { label: "People", ids: ["students", "groups", "staff", "attendance", "alerts", "announcements"] },
   ];

@@ -16,7 +16,7 @@ import { CoursebookMark, Wordmark } from "@/components/brand/seal";
  */
 
 type Props = {
-  user: { name: string; email: string; isAdmin: boolean; isStaff: boolean; coursebook: boolean };
+  user: { name: string; email: string; isAdmin: boolean; isStaff: boolean; coursebook: boolean; isAuthor?: boolean; isOwner?: boolean };
   dueCount: number;
   timeZone: string;
   game: { streak: number; xp: number; level: number };
@@ -140,7 +140,7 @@ type NavLink = { href: string; label: string; icon: keyof typeof ICONS; badge?: 
  * top, then folding sections (the one you're in opens by itself). Teaching
  * appears for people who teach; Settings and Admin live in the account menu.
  */
-function NavLinks({ isStaff, coursebook, dueCount, unread, onNavigate }: { isStaff: boolean; coursebook: boolean; dueCount: number; unread: Props["unread"]; onNavigate?: () => void }) {
+function NavLinks({ isStaff, coursebook, roles, dueCount, unread, onNavigate }: { isStaff: boolean; coursebook: boolean; roles?: { isAuthor?: boolean; isOwner?: boolean }; dueCount: number; unread: Props["unread"]; onNavigate?: () => void }) {
   const pathname = usePathname();
   const top: NavLink[] = [
     { href: "/dashboard", label: "Today", icon: "home" },
@@ -160,6 +160,7 @@ function NavLinks({ isStaff, coursebook, dueCount, unread, onNavigate }: { isSta
               { href: "/hub", label: "Hub", icon: "hub" },
             ] as NavLink[])
           : []),
+        { href: "/learn", label: "Courses", icon: "library" },
       ],
     },
     {
@@ -167,20 +168,28 @@ function NavLinks({ isStaff, coursebook, dueCount, unread, onNavigate }: { isSta
       links: [
         { href: "/skills", label: "Review", icon: "skills" },
         { href: "/review", label: "Flashcards", icon: "spaced", badge: dueCount, badgeLabel: "cards to review" },
+        { href: "/practice", label: "Practice sets", icon: "skills" },
+        { href: "/practice-tests", label: "SAT practice log", icon: "scores" },
         { href: "/mistakes", label: "Mistake log", icon: "errors" },
         { href: "/errors", label: "Error log", icon: "errors" },
         { href: "/mastery", label: "Mastery", icon: "mastery" },
       ],
     },
-    ...(isStaff
+    ...(isStaff || roles?.isAuthor
       ? [
           {
             label: "Teaching",
             links: [
-              { href: "/teach", label: "My classes", icon: "teach" as const },
-              { href: "/teach/worksheets", label: "Worksheets", icon: "worksheet" as const },
-              { href: "/teach/diagnostics", label: "Diagnostics", icon: "scores" as const },
-              { href: "/teach/review", label: "Review queue", icon: "errors" as const },
+              ...(isStaff
+                ? [
+                    { href: "/teach", label: "My classes", icon: "teach" as const },
+                    { href: "/teach/worksheets", label: "Worksheets", icon: "worksheet" as const },
+                    { href: "/teach/diagnostics", label: "Diagnostics", icon: "scores" as const },
+                    { href: "/teach/review", label: "Review queue", icon: "errors" as const },
+                  ]
+                : []),
+              ...(roles?.isAuthor ? [{ href: "/bank", label: "Question bank", icon: "worksheet" as const }] : []),
+              ...(roles?.isOwner ? [{ href: "/studio", label: "Course Studio", icon: "library" as const }] : []),
             ],
           },
         ]
@@ -272,7 +281,7 @@ function Stats({ game }: { game: Props["game"] }) {
 }
 
 /** The sections, shared by the top bar's menus and the phone menu. */
-function sections(isStaff: boolean, coursebook: boolean, dueCount: number, unread: Props["unread"]) {
+function sections(isStaff: boolean, coursebook: boolean, dueCount: number, unread: Props["unread"], roles?: { isAuthor?: boolean; isOwner?: boolean }) {
   const groups: { label: string; links: NavLink[] }[] = [
     {
       label: "Learn",
@@ -285,6 +294,7 @@ function sections(isStaff: boolean, coursebook: boolean, dueCount: number, unrea
               { href: "/hub", label: "Hub", icon: "hub" },
             ] as NavLink[])
           : []),
+        { href: "/learn", label: "Courses", icon: "library" },
       ],
     },
     {
@@ -292,20 +302,28 @@ function sections(isStaff: boolean, coursebook: boolean, dueCount: number, unrea
       links: [
         { href: "/skills", label: "Review", icon: "skills" },
         { href: "/review", label: "Flashcards", icon: "spaced", badge: dueCount, badgeLabel: "cards to review" },
+        { href: "/practice", label: "Practice sets", icon: "skills" },
+        { href: "/practice-tests", label: "SAT practice log", icon: "scores" },
         { href: "/mistakes", label: "Mistake log", icon: "errors" },
         { href: "/errors", label: "Error log", icon: "errors" },
         { href: "/mastery", label: "Mastery", icon: "mastery" },
       ],
     },
-    ...(isStaff
+    ...(isStaff || roles?.isAuthor
       ? [
           {
             label: "Teaching",
             links: [
-              { href: "/teach", label: "My classes", icon: "teach" as const },
-              { href: "/teach/worksheets", label: "Worksheets", icon: "worksheet" as const },
-              { href: "/teach/diagnostics", label: "Diagnostics", icon: "scores" as const },
-              { href: "/teach/review", label: "Review queue", icon: "errors" as const },
+              ...(isStaff
+                ? [
+                    { href: "/teach", label: "My classes", icon: "teach" as const },
+                    { href: "/teach/worksheets", label: "Worksheets", icon: "worksheet" as const },
+                    { href: "/teach/diagnostics", label: "Diagnostics", icon: "scores" as const },
+                    { href: "/teach/review", label: "Review queue", icon: "errors" as const },
+                  ]
+                : []),
+              ...(roles?.isAuthor ? [{ href: "/bank", label: "Question bank", icon: "worksheet" as const }] : []),
+              ...(roles?.isOwner ? [{ href: "/studio", label: "Course Studio", icon: "library" as const }] : []),
             ],
           },
         ]
@@ -389,7 +407,7 @@ function NavMenu({ label, links, activeHref }: { label: string; links: NavLink[]
 export function AppSidebar({ user, dueCount, timeZone, game, unread }: Props) {
   const pathname = usePathname();
   const drawer = useRef<HTMLDialogElement>(null);
-  const { top, groups } = sections(user.isStaff, user.coursebook, dueCount, unread);
+  const { top, groups } = sections(user.isStaff, user.coursebook, dueCount, unread, user);
   const activeHref = useActiveHref([...top, ...groups.flatMap((g) => g.links)]);
 
   // "Today" is the student's day: save the browser's time zone once.
@@ -486,7 +504,7 @@ export function AppSidebar({ user, dueCount, timeZone, game, unread }: Props) {
             </button>
           </div>
           <Stats game={game} />
-          <NavLinks isStaff={user.isStaff} coursebook={user.coursebook} dueCount={dueCount} unread={unread} onNavigate={() => drawer.current?.close()} />
+          <NavLinks isStaff={user.isStaff} coursebook={user.coursebook} roles={user} dueCount={dueCount} unread={unread} onNavigate={() => drawer.current?.close()} />
           <div className="mt-auto flex items-center justify-between gap-2 border-t border-border pt-4">
             <UserMenu name={user.name} email={user.email} isAdmin={user.isAdmin} placement="up" showName />
             <ThemeToggle className="text-nav-muted hover:bg-nav-active hover:text-nav-text" />

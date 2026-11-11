@@ -33,7 +33,7 @@ export const normalizeEmail = (email: string) => email.trim().toLowerCase();
 /** This person's rules (once per request). */
 export const programAccess = cache(async (userId: string): Promise<ProgramAccess> => {
   const user = await db.user.findUnique({ where: { id: userId }, select: { email: true, role: true } });
-  if (!user || user.role === "ADMIN") return NONE;
+  if (!user || user.role === "ADMIN" || user.role === "OWNER") return NONE;
   return rulesForEmail(user.email);
 });
 
@@ -103,7 +103,7 @@ export async function setAccessRule(adminId: string, input: RuleInput): Promise<
   if (!program) throw new AccessRuleError("That program doesn't exist any more.");
   if (input.mode === "BLOCKED" && normalizeEmail(program.admin.email) === email) throw new AccessRuleError(`That's the admin of ${program.name}. Hand the program to someone else before blocking them from it.`);
   const user = await db.user.findUnique({ where: { email }, select: { role: true } });
-  if (user?.role === "ADMIN") throw new AccessRuleError("Site admins can't be limited.");
+  if (user?.role === "ADMIN" || user?.role === "OWNER") throw new AccessRuleError("Site admins can't be limited.");
   const note = input.note?.trim().slice(0, 200) || null;
   await db.programAccessRule.upsert({
     where: { email_programId: { email, programId: program.id } },

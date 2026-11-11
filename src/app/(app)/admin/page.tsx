@@ -2,7 +2,7 @@ import { formatInZone } from "@/lib/dates";
 import { viewerZone } from "@/server/session";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import { AccessRuleForm, DemoDataControls, PlanSelect, RemoveRuleButton, RetryButton, TestEmailButton } from "@/components/admin/admin-controls";
+import { AccessRuleForm, DemoDataControls, PlanSelect, RemoveRuleButton, RetryButton, RoleSelect, TestEmailButton } from "@/components/admin/admin-controls";
 import { listAccessRules } from "@/server/program-access";
 import { emailStatus } from "@/server/email";
 import { DEMO_MODE_DOMAIN, DEMO_MODE_PASSWORD, DEMO_TUTOR_EMAIL, demoStatus } from "@/server/demo-data";
@@ -11,6 +11,7 @@ import { inputClasses } from "@/components/ui/field";
 import { buttonClasses } from "@/components/ui/button";
 import { getAiSpend, getFailures, getFeatureUsage, getOverview, listUsers, requireAdmin } from "@/server/admin";
 import { listProblems } from "@/server/monitoring";
+import { isOwner } from "@/server/roles";
 import { DeleteAccountForm, ResolveButton } from "@/components/support/data-forms";
 
 export const metadata: Metadata = { title: "Admin" };
@@ -81,7 +82,8 @@ function Table({ caption, head, children }: { caption: string; head: string[]; c
 const td = "px-4 py-2 align-top";
 
 export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
-  await requireAdmin();
+  const me = await requireAdmin();
+  const viewerIsOwner = await isOwner(me.id);
   const zone = await viewerZone();
   const sp = await searchParams;
   const q = typeof sp.q === "string" ? sp.q : "";
@@ -343,12 +345,13 @@ export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
             Search
           </button>
         </form>
-        <Table caption="Users" head={["User", "Joined", "Courses", "AI this month", "Plan"]}>
+        <Table caption="Users" head={["User", "Joined", "Courses", "AI this month", "Plan", ...(viewerIsOwner ? ["Role"] : [])]}>
           {users.map((u) => (
             <tr key={u.id}>
               <td className={`${td} break-all`}>
                 <span className="font-medium">{u.name}</span>
-                {u.role === "ADMIN" && <span className="ml-2 rounded bg-surface-2 px-1.5 py-0.5 text-xs">admin</span>}
+                {u.role === "TUTOR" && <span className="ml-2 rounded bg-surface-2 px-1.5 py-0.5 text-xs">tutor</span>}
+                {(u.role === "ADMIN" || u.role === "OWNER") && <span className="ml-2 rounded bg-surface-2 px-1.5 py-0.5 text-xs">admin</span>}
                 <span className="block text-xs text-muted">
                   {u.email}
                   {!u.emailVerified && " · not verified"}
@@ -362,6 +365,11 @@ export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
               <td className={td}>
                 <PlanSelect userId={u.id} plan={u.plan} email={u.email} />
               </td>
+              {viewerIsOwner && (
+                <td className={td}>
+                  <RoleSelect userId={u.id} role={u.role} email={u.email} />
+                </td>
+              )}
             </tr>
           ))}
         </Table>
