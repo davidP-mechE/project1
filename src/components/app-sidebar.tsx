@@ -156,6 +156,7 @@ function NavLinks({ isStaff, roles, dueCount, unread, onNavigate }: { isStaff: b
         { href: "/library", label: "Library", icon: "library" },
         { href: "/slides", label: "Slides", icon: "slides" },
         { href: "/hub", label: "Hub", icon: "hub" },
+        { href: "/learn", label: "Courses", icon: "library" },
       ],
     },
     {
@@ -184,6 +185,7 @@ function NavLinks({ isStaff, roles, dueCount, unread, onNavigate }: { isStaff: b
                   ]
                 : []),
               ...(roles?.isAuthor ? [{ href: "/bank", label: "Question bank", icon: "worksheet" as const }] : []),
+              ...(roles?.isOwner ? [{ href: "/studio", label: "Course Studio", icon: "library" as const }] : []),
             ],
           },
         ]
@@ -284,6 +286,7 @@ function sections(isStaff: boolean, dueCount: number, unread: Props["unread"], r
         { href: "/library", label: "Library", icon: "library" },
         { href: "/slides", label: "Slides", icon: "slides" },
         { href: "/hub", label: "Hub", icon: "hub" },
+        { href: "/learn", label: "Courses", icon: "library" },
       ],
     },
     {
@@ -312,6 +315,7 @@ function sections(isStaff: boolean, dueCount: number, unread: Props["unread"], r
                   ]
                 : []),
               ...(roles?.isAuthor ? [{ href: "/bank", label: "Question bank", icon: "worksheet" as const }] : []),
+              ...(roles?.isOwner ? [{ href: "/studio", label: "Course Studio", icon: "library" as const }] : []),
             ],
           },
         ]
