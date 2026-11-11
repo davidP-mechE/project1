@@ -64,7 +64,7 @@ export function StudyShell({ bookId, sidebar, children, initialPage = null }: { 
         </div>
         {open && (
           <aside
-            className="fixed inset-0 z-30 flex flex-col bg-surface lg:sticky lg:inset-auto lg:top-6 lg:z-auto lg:h-[calc(100dvh-3rem)] lg:overflow-hidden lg:rounded-xl lg:border lg:border-border"
+            className="fixed inset-0 z-30 flex flex-col bg-surface lg:sticky lg:inset-auto lg:top-22 lg:z-auto lg:h-[calc(100dvh-7rem)] lg:overflow-hidden lg:rounded-xl lg:border lg:border-border"
             aria-label={kind === "SLIDES" ? "Slide viewer" : "Book viewer"}
           >
             <PdfViewer bookId={bookId} page={page} onPageChange={setPage} onClose={close} />

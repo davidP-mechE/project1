@@ -46,7 +46,7 @@ export function ThreadList({ courseId, threads, current }: { courseId: string; t
   );
   return (
     <>
-      <nav aria-label="Conversations" className="sticky top-6 hidden max-h-[calc(100dvh-3rem)] flex-col gap-3 overflow-y-auto lg:flex">
+      <nav aria-label="Conversations" className="sticky top-22 hidden max-h-[calc(100dvh-7rem)] flex-col gap-3 overflow-y-auto lg:flex">
         <Link href={`/courses/${courseId}/tutor`} className="press rounded-lg border border-border bg-surface px-3 py-2 text-center text-sm font-medium hover:bg-surface-2">
           + New conversation
         </Link>

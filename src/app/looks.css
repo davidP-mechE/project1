@@ -577,3 +577,50 @@ html[data-look="c"] .cb-mark .mk-gold {
 html[data-look="c"] .cb-mark .mk-gold-s {
   stroke: #7fd6bd;
 }
+
+/* ── Top bar per direction ── */
+html[data-look] .topnav-item[aria-current="page"]::after,
+html[data-look] .topnav-item[data-here]::after {
+  display: none;
+}
+/* A: the current section is marked with the highlighter. */
+html[data-look="a"] .topnav-item[aria-current="page"],
+html[data-look="a"] .topnav-item[data-here] {
+  background: linear-gradient(100deg, transparent 0.45rem, var(--hl) 0.6rem, var(--hl) calc(100% - 0.55rem), transparent calc(100% - 0.4rem)) 0 62% / 100% 52% no-repeat;
+}
+html[data-look="a"] .tabbar-item[aria-current="page"] {
+  box-shadow: inset 0 4px 0 var(--accent);
+}
+/* B: the current section is a solid ink tab. */
+html[data-look="b"] .topnav-item {
+  border-radius: 6px;
+  font-weight: 600;
+}
+html[data-look="b"] .topnav-item[aria-current="page"],
+html[data-look="b"] .topnav-item[data-here] {
+  background: var(--text);
+  color: var(--bg);
+}
+html[data-look="b"] .topnav-count {
+  border-radius: 4px;
+}
+html[data-look="b"] .tabbar-item[aria-current="page"] {
+  box-shadow: inset 0 4px 0 var(--primary);
+}
+/* C: a filled answer bubble under the current section. */
+html[data-look="c"] .topnav-item[aria-current="page"]::after,
+html[data-look="c"] .topnav-item[data-here]::after {
+  display: block;
+  left: 50%;
+  right: auto;
+  bottom: -0.2rem;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  transform: translateX(-50%);
+  background: var(--primary);
+}
+html[data-look="c"] .tabbar-item[aria-current="page"] {
+  box-shadow: none;
+  color: var(--primary);
+}
