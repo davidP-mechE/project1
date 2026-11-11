@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { LimitedNotice } from "@/components/limited-notice";
+import { allowsCoursebook, programAccess } from "@/server/program-access";
 import { CourseCard, type CourseCardData } from "@/components/library/course-card";
 import { ButtonLink } from "@/components/ui/button";
 import { EmptyState, PageHeader } from "@/components/ui/misc";
@@ -11,6 +13,8 @@ export const metadata: Metadata = { title: "Slides" };
 /** Lecture slide decks, each turned into a mini-course. */
 export default async function SlidesPage() {
   const user = await requireUser();
+  const access = await programAccess(user.id);
+  if (!allowsCoursebook(access)) return <LimitedNotice access={access} />;
   const decks = await listCourses(user.id, { archived: false, kind: "SLIDES" });
   const now = new Date();
   const cards: CourseCardData[] = decks.map((c) => ({

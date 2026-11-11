@@ -25,12 +25,14 @@ const schema = z.object({
   DESMOS_API_KEY: z.string().optional(),
   GOOGLE_CLIENT_SECRET: z.string().optional(),
 
+  // Email: Resend's HTTP API (preferred: no SMTP ports needed), else any SMTP server.
+  RESEND_API_KEY: z.string().optional(),
   SMTP_HOST: z.string().optional(),
   SMTP_PORT: z.coerce.number().int().default(1025),
   SMTP_USER: z.string().optional(),
   SMTP_PASSWORD: z.string().optional(),
   SMTP_SECURE: z.stringbool().default(false),
-  EMAIL_FROM: z.string().default("Coursebook <no-reply@coursebook.local>"),
+  EMAIL_FROM: z.string().default("Coursebook <hello@coursebook.site>"),
 
   STORAGE_DRIVER: z.enum(["local", "s3"]).default("local"),
   LOCAL_STORAGE_DIR: z.string().default("./storage"),

@@ -1,4 +1,5 @@
 import "server-only";
+import { assertCoursebookAllowed, courseAccessWhere, programAccess } from "./program-access";
 import { db } from "./db";
 import { enqueueBookProcessing } from "./queue";
 import { storage, storageKeys } from "./storage";
@@ -20,8 +21,9 @@ export class NotFoundError extends Error {
 }
 
 export async function listCourses(userId: string, opts: { archived: boolean; kind?: "BOOK" | "SLIDES" }) {
+  const access = courseAccessWhere(await programAccess(userId));
   return db.course.findMany({
-    where: { userId, archivedAt: opts.archived ? { not: null } : null, ...(opts.kind ? { book: { kind: opts.kind } } : {}) },
+    where: { userId, archivedAt: opts.archived ? { not: null } : null, ...(opts.kind ? { book: { kind: opts.kind } } : {}), ...access },
     orderBy: [{ lastOpenedAt: { sort: "desc", nulls: "last" } }, { createdAt: "desc" }],
     select: {
       id: true,
@@ -40,7 +42,8 @@ export async function listCourses(userId: string, opts: { archived: boolean; kin
 
 export async function getCourse(userId: string, courseId: string) {
   const course = await db.course.findFirst({
-    where: { id: courseId, userId },
+    // Admin → Program access can put some of a person's courses out of reach (never deleted).
+    where: { id: courseId, userId, ...courseAccessWhere(await programAccess(userId)) },
     include: {
       book: {
         select: {
@@ -100,6 +103,7 @@ export async function createUpload(
   userId: string,
   input: { filename: string; size: number; contentType: string; rightsConfirmed: boolean; kind?: UploadKind },
 ) {
+  await assertCoursebookAllowed(userId);
   const slides = input.kind === "slides";
   const pptx = slides && isPptx(input.filename);
   const since = new Date(Date.now() - 60 * 60 * 1000);

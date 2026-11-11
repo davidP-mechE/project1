@@ -2,7 +2,9 @@ import { formatInZone } from "@/lib/dates";
 import { viewerZone } from "@/server/session";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import { DemoDataControls, PlanSelect, RetryButton, RoleSelect } from "@/components/admin/admin-controls";
+import { AccessRuleForm, DemoDataControls, PlanSelect, RemoveRuleButton, RetryButton, RoleSelect, TestEmailButton } from "@/components/admin/admin-controls";
+import { listAccessRules } from "@/server/program-access";
+import { emailStatus } from "@/server/email";
 import { DEMO_MODE_DOMAIN, DEMO_MODE_PASSWORD, DEMO_TUTOR_EMAIL, demoStatus } from "@/server/demo-data";
 import { Card, PageHeader } from "@/components/ui/misc";
 import { inputClasses } from "@/components/ui/field";
@@ -85,7 +87,8 @@ export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
   const zone = await viewerZone();
   const sp = await searchParams;
   const q = typeof sp.q === "string" ? sp.q : "";
-  const [overview, spend, usage, failures, users, problems, demo] = await Promise.all([getOverview(), getAiSpend(), getFeatureUsage(), getFailures(), listUsers(q), listProblems(), demoStatus()]);
+  const [overview, spend, usage, failures, users, problems, demo, access] = await Promise.all([getOverview(), getAiSpend(), getFeatureUsage(), getFailures(), listUsers(q), listProblems(), demoStatus(), listAccessRules()]);
+  const mail = emailStatus();
   const maxDay = Math.max(0.01, ...spend.daily.map((d) => d.usd));
   const failedTotal = failures.books.length + failures.lessons.length + failures.assessments.length;
 
@@ -131,6 +134,49 @@ export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
           <Stat label="Books" value={num(overview.books)} sub={`${num(overview.courses)} courses · ${num(overview.failedBooks)} failed`} />
           <Stat label="Claude spend" value={usd(overview.spendMonth)} sub={`this month · ${usd(overview.spend30)} in 30 days`} />
         </div>
+      </Section>
+
+      <Section id="email" title="Email" description="Verification links, password resets, invites and reminders. If sending fails, the error shows up under Errors above.">
+        <Card className="flex flex-col gap-3 p-4 text-sm">
+          <p>
+            <span className={mail.canSend ? "font-semibold text-success" : "font-semibold text-danger"}>{mail.canSend ? "Set up" : "Not set up"}</span> · {mail.detail} · from <span className="font-mono">{mail.from}</span>
+          </p>
+          {!mail.canSend && (
+            <p className="text-muted">
+              Set <span className="font-mono text-text">RESEND_API_KEY</span> (recommended) or the <span className="font-mono text-text">SMTP_*</span> settings, and <span className="font-mono text-text">EMAIL_FROM</span> with an address on a domain verified in Resend, then redeploy. See DEPLOY.md, step 5.
+            </p>
+          )}
+          <TestEmailButton />
+        </Card>
+      </Section>
+
+      <Section
+        id="access"
+        title="Program access"
+        description="Limit an account to one program, or keep it out of one. Rules go by email, so they also apply to people who haven't signed up yet. Only this program: the person can use that program's classes, assignments and class courses, and nothing else (no own uploads, Hub or other programs; their own courses are kept but can't be opened). Blocked from this program: they can't join, teach in or see its classes; the rest of Coursebook works as usual."
+      >
+        <Card className="flex flex-col gap-4 p-4">
+          {access.programs.length === 0 ? <p className="text-sm text-muted">There are no programs yet.</p> : <AccessRuleForm programs={access.programs} />}
+        </Card>
+        {access.rules.length > 0 && (
+          <Table caption="Program access rules" head={["Email", "Rule", "Note", "Added", ""]}>
+            {access.rules.map((r) => (
+              <tr key={r.id}>
+                <td className={td}>{r.email}</td>
+                <td className={td}>
+                  <span className={r.mode === "ONLY" ? "rounded bg-surface-2 px-1.5 py-0.5 text-xs font-semibold" : "rounded bg-danger-bg px-1.5 py-0.5 text-xs font-semibold text-danger"}>
+                    {r.mode === "ONLY" ? `Only ${r.program.name}` : `Blocked from ${r.program.name}`}
+                  </span>
+                </td>
+                <td className={`${td} text-muted`}>{r.note ?? ""}</td>
+                <td className={`${td} whitespace-nowrap text-muted`}>{formatInZone(r.createdAt, zone, "medium")}</td>
+                <td className={`${td} text-right`}>
+                  <RemoveRuleButton id={r.id} email={r.email} />
+                </td>
+              </tr>
+            ))}
+          </Table>
+        )}
       </Section>
 
       <Section

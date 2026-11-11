@@ -32,6 +32,34 @@ Usually one person is both.
   - If it keeps happening, or students can't work, note the error id and the page, then follow §6.
   - Click **Mark fixed** once it's sorted.
 
+### Program access
+
+**Admin → Program access** limits who can use a program, by email (it also
+works for people who haven't signed up yet):
+
+- **Only this program**: the person can use that program's classes, their
+  assignments and class courses, scores, calendar and messages, and nothing
+  else: no uploads, no Hub, no other programs' classes, no programs of their
+  own. Courses they already had are kept but can't be opened while the rule
+  is in place.
+- **Blocked from this program**: they can't join, teach in, be added to or see
+  that program's classes or class courses. The rest of Coursebook works as
+  usual. Removing the rule gives everything back; nothing is deleted.
+
+Site admins can't be limited, and a program's own admin can't be blocked from
+it (hand the program over first).
+
+A program's admin can manage the same rules for their own program, on the
+program's page (Teaching → the program → Program access). They can't set a
+rule for their own account or for a site admin, and every change goes in the
+program's audit log. Site admins see every program's rules in Admin.
+
+### Email
+
+**Admin → Email** shows how email is sent and has **Send me a test email**.
+If sign-up links aren't arriving, start there: the result names the problem
+(for example an unverified sender domain). See DEPLOY.md, step 5.
+
 ## 2. Staff
 
 | To… | Do this | Notes |

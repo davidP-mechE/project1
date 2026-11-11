@@ -1,4 +1,5 @@
 import "server-only";
+import { isAllowedMember } from "./program-access";
 import { randomUUID } from "node:crypto";
 import { db } from "./db";
 import { env } from "./env";
@@ -70,8 +71,8 @@ async function isTutorOf(staffId: string, classId: string, studentId: string) {
 async function pairOpen(t: { classId: string; studentId: string; staffId: string }) {
   const archived = await db.class.findUnique({ where: { id: t.classId }, select: { archivedAt: true } });
   if (!archived || archived.archivedAt) return false;
-  const member = await db.classMember.count({ where: { classId: t.classId, userId: t.studentId } });
-  if (!member) return false;
+  // isAllowedMember also applies Admin → Program access rules to the student.
+  if (!(await isAllowedMember(t.studentId, t.classId))) return false;
   return Boolean(await staffCanReach(t.staffId, t.classId, t.studentId));
 }
 

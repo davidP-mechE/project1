@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { AccessDeniedError } from "@/server/program-access";
 import { z } from "zod";
 import { getSession } from "@/server/session";
 import { createUpload, RateLimitError } from "@/server/courses";
@@ -30,6 +31,7 @@ export async function POST(request: Request) {
     return NextResponse.json(result);
   } catch (err) {
     if (err instanceof RateLimitError) return jsonError(err.message, 429);
+    if (err instanceof AccessDeniedError) return jsonError(err.message, 403);
     throw err;
   }
 }

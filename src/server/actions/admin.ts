@@ -81,3 +81,47 @@ export async function setRoleAction(userId: string, role: string): Promise<Resul
     return "Role updated.";
   });
 }
+
+/** Admin → Program access: add or change a rule for an email and a program. */
+export async function setAccessRuleAction(input: { email: string; programId: string; mode: string; note?: string }): Promise<Result> {
+  const admin = await requireAdmin();
+  const parsed = z.object({ email: z.string().max(254), programId: id, mode: z.enum(["ONLY", "BLOCKED"]), note: z.string().max(200).optional() }).safeParse(input);
+  if (!parsed.success) return { ok: false, error: "Check the email, program and rule." };
+  const { AccessRuleError, setAccessRule } = await import("../program-access");
+  try {
+    const message = await setAccessRule(admin.id, parsed.data);
+    revalidatePath("/admin");
+    return { ok: true, message };
+  } catch (err) {
+    if (err instanceof AccessRuleError) return { ok: false, error: err.message };
+    console.error(err);
+    return { ok: false, error: "Something went wrong." };
+  }
+}
+
+export async function removeAccessRuleAction(ruleId: string): Promise<Result> {
+  return run(async () => {
+    const { removeAccessRule } = await import("../program-access");
+    await removeAccessRule(id.parse(ruleId));
+    return "Rule removed.";
+  });
+}
+
+/** Admin → Email: send a test email to the admin, showing exactly what went wrong if it fails. */
+export async function sendTestEmailAction(): Promise<Result> {
+  const admin = await requireAdmin();
+  const { sendEmail, emailStatus } = await import("../email");
+  const status = emailStatus();
+  if (!status.canSend) return { ok: false, error: "Email isn't set up on this server yet: set RESEND_API_KEY (or the SMTP settings) and EMAIL_FROM, then redeploy." };
+  try {
+    await sendEmail({
+      to: admin.email,
+      subject: "Coursebook test email",
+      text: `This is a test from Coursebook's Admin page. Email is working: verification and password reset links will arrive like this one.\n\nSent with: ${status.detail}\nFrom: ${status.from}`,
+      html: `<p>This is a test from Coursebook's Admin page. Email is working: verification and password reset links will arrive like this one.</p><p style="color:#535866">Sent with: ${status.detail}<br>From: ${status.from.replace(/</g, "&lt;")}</p>`,
+    });
+    return { ok: true, message: `Sent to ${admin.email}. Check that inbox (and its spam folder).` };
+  } catch (err) {
+    return { ok: false, error: `Not sent: ${err instanceof Error ? err.message : String(err)}` };
+  }
+}

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { allowsCoursebook, programAccess } from "@/server/program-access";
 import Link from "next/link";
 import { CourseCard, type CourseCardData } from "@/components/library/course-card";
 import { ButtonLink } from "@/components/ui/button";
@@ -15,7 +16,8 @@ export default async function LibraryPage({ searchParams }: PageProps<"/library"
   const user = await requireUser();
   const { view } = await searchParams;
   const archived = view === "archived";
-  const [courses, today] = await Promise.all([listCourses(user.id, { archived, kind: "BOOK" }), getTodaySummary(user.id)]);
+  const [courses, today, access] = await Promise.all([listCourses(user.id, { archived, kind: "BOOK" }), getTodaySummary(user.id), programAccess(user.id)]);
+  const canUpload = allowsCoursebook(access);
   const now = new Date();
   const cards: CourseCardData[] = courses.map((c) => ({
     id: c.id,
@@ -34,7 +36,7 @@ export default async function LibraryPage({ searchParams }: PageProps<"/library"
       <PageHeader
         title="Your library"
         description="Each textbook you upload becomes its own course."
-        actions={<ButtonLink href="/library/upload">Upload a textbook</ButtonLink>}
+        actions={canUpload ? <ButtonLink href="/library/upload">Upload a textbook</ButtonLink> : undefined}
       />
       {today.hasStudied && <TodayStrip {...today} />}
       <nav aria-label="Library views" className="mb-6 flex gap-1 border-b border-border">
@@ -55,6 +57,10 @@ export default async function LibraryPage({ searchParams }: PageProps<"/library"
       {cards.length === 0 ? (
         archived ? (
           <EmptyState title="No archived courses">Courses you archive will appear here.</EmptyState>
+        ) : !canUpload ? (
+          <EmptyState title="No courses yet" action={<ButtonLink href="/classes">Go to your classes</ButtonLink>}>
+            Courses your tutors assign show up here once you start them.
+          </EmptyState>
         ) : (
           <EmptyState title="Your library is empty" action={<ButtonLink href="/library/upload">Upload your first textbook</ButtonLink>}>
             Upload a textbook PDF and Coursebook will turn it into a structured course you can study at your own pace.

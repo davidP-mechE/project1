@@ -12,6 +12,7 @@ import { unreadCount } from "@/server/notifications";
 import { unreadThreadCount } from "@/server/messages";
 import { staffClassIds } from "@/server/access";
 import { isSiteAdminRole, roleOf } from "@/server/roles";
+import { allowsCoursebook, programAccess } from "@/server/program-access";
 
 /** The signed-in app's chrome (top bar, footer, staging note), shared by the app, the Studio and the course catalog. */
 export async function AppShell({ user, children }: { user: CurrentUser; children: ReactNode }) {
@@ -24,10 +25,12 @@ export async function AppShell({ user, children }: { user: CurrentUser; children
   ]);
   const isStaff = (await staffClassIds(user.id)).length > 0;
   const roles = await roleOf(user.id);
+  // Accounts limited to one program (Admin → Program access) don't see the library, slides or Hub.
+  const coursebook = allowsCoursebook(await programAccess(user.id));
   return (
     <>
       <AppSidebar
-        user={{ name: user.name, email: user.email, isAdmin: isSiteAdminRole(user.role), isStaff, isAuthor: roles.isAuthor, isOwner: roles.isOwner }}
+        user={{ name: user.name, email: user.email, isAdmin: isSiteAdminRole(user.role), isStaff, coursebook, isAuthor: roles.isAuthor, isOwner: roles.isOwner }}
         dueCount={counts.due + counts.new}
         timeZone={prefs?.timezone ?? "UTC"}
         game={{ streak: game.streak, xp: game.xp, level: game.level }}

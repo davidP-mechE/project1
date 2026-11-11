@@ -1,4 +1,5 @@
 import "server-only";
+import { courseAccessWhere, programAccess } from "./program-access";
 import { db } from "./db";
 import { NotFoundError } from "./courses";
 import { toView, type AttemptView } from "./study";
@@ -65,7 +66,7 @@ const toPractice = (q: QuestionRow): PracticeQuestion => ({
 /** The student's courses (not archived), for grouping. */
 async function courses(userId: string, courseId?: string | null) {
   const list = await db.course.findMany({
-    where: { userId, archivedAt: null, ...(courseId ? { id: courseId } : {}) },
+    where: { userId, archivedAt: null, ...(courseId ? { id: courseId } : {}), ...courseAccessWhere(await programAccess(userId)) },
     orderBy: [{ lastOpenedAt: { sort: "desc", nulls: "last" } }, { createdAt: "desc" }],
     select: { id: true, title: true, book: { select: { id: true, kind: true } } },
   });

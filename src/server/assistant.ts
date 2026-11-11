@@ -1,4 +1,5 @@
 import "server-only";
+import { isAllowedMember } from "./program-access";
 import { z } from "zod";
 import type { Prisma } from "@/generated/prisma/client";
 import { db } from "./db";
@@ -200,7 +201,7 @@ export async function deleteLesson(userId: string, lessonId: string) {
 
 /** Lessons in a class: staff see drafts in their scope; students see approved ones only. */
 export async function classLessons(userId: string, classId: string) {
-  const member = await db.classMember.count({ where: { classId, userId } });
+  const member = await isAllowedMember(userId, classId);
   if (member) return { staff: false, lessons: await db.draftLesson.findMany({ where: { classId, approvedAt: { not: null } }, orderBy: { approvedAt: "desc" } }) };
   const access = await classAccess(userId, classId);
   const all = await db.draftLesson.findMany({ where: { classId }, orderBy: { createdAt: "desc" } });

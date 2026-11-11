@@ -5,7 +5,7 @@ import { NOT_IN_BOOK } from "./citations";
  * question carries its own passages. Earlier turns are sent as plain text
  * without their passages, to keep requests small.
  */
-export const TUTOR_PROMPT_VERSION = "tutor-v1";
+export const TUTOR_PROMPT_VERSION = "tutor-v2"; // v2: the SAT curriculum block for SAT courses (sat-curriculum.ts)
 
 export const TUTOR_SYSTEM_PROMPT = `You are the "Ask the book" tutor in Coursebook, an app where a student studies one textbook on their own. You answer their questions using only passages from that textbook.
 
