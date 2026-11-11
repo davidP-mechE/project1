@@ -1,19 +1,72 @@
 import "server-only";
 import type { EmailMessage } from "./index";
+import { env } from "../env";
 
 function escapeHtml(s: string) {
   return s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
 }
 
+/*
+ * Every email uses one shell in Coursebook's "Cover series" look: a small cobalt
+ * cover (darker spine, pink band) with the wordmark, a white card with a wide,
+ * heavy heading and a cobalt button, and a footer with the site's address.
+ * Tables and inline styles, so Gmail, Outlook and Apple Mail all render it.
+ * Email clients don't load the site's Archivo, so headings use Arial Black
+ * (similarly wide and heavy) and text uses the system sans-serif.
+ */
+const C = { page: "#f1f2f4", card: "#ffffff", border: "#d0d4db", ink: "#17191f", muted: "#535866", cobalt: "#2a3bd1", spine: "#1a258a", pink: "#ff5c93" };
+const SANS = "-apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif";
+const DISPLAY = "'Arial Black', 'Archivo', 'Helvetica Neue', Arial, sans-serif";
+
+/** The site's address for the footer, e.g. "coursebook.site". */
+const siteHost = () => {
+  try {
+    return new URL(env.APP_URL).host;
+  } catch {
+    return "coursebook.site";
+  }
+};
+
+function button(label: string, url: string) {
+  return `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:28px 0 8px"><tr><td style="background:${C.cobalt};border-radius:6px"><a href="${escapeHtml(url)}" style="display:inline-block;padding:13px 22px;font-family:${SANS};font-size:15px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:6px">${escapeHtml(label)}</a></td></tr></table>`;
+}
+
+/** The shared frame: `body` is already-safe HTML. */
+function shell(title: string, body: string, preheader: string) {
+  const host = siteHost();
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"><meta name="supported-color-schemes" content="light"><title>${escapeHtml(title)}</title></head>
+<body style="margin:0;padding:0;background:${C.page}">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0">${escapeHtml(preheader)}</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:${C.page}"><tr><td align="center" style="padding:28px 16px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:520px">
+<tr><td>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-radius:6px 6px 0 0;overflow:hidden"><tr>
+<td width="14" style="width:14px;background:${C.spine};border-radius:6px 0 0 0"></td>
+<td style="background:${C.cobalt};padding:22px 24px 20px;border-radius:0 6px 0 0;font-family:${DISPLAY};font-size:22px;font-weight:900;letter-spacing:-0.5px;color:#ffffff">Coursebook</td>
+</tr><tr><td colspan="2" height="6" style="height:6px;line-height:6px;font-size:0;background:${C.pink}">&nbsp;</td></tr></table>
+</td></tr>
+<tr><td style="background:${C.card};border:1.5px solid ${C.border};border-top:0;border-radius:0 0 6px 6px;padding:32px 28px 28px;font-family:${SANS};color:${C.ink}">
+<h1 style="margin:0 0 16px;font-family:${DISPLAY};font-size:24px;line-height:1.15;font-weight:900;letter-spacing:-0.5px;color:${C.ink}">${escapeHtml(title)}</h1>
+${body}
+</td></tr>
+<tr><td style="padding:16px 4px 0;font-family:${SANS};font-size:12px;line-height:1.5;color:${C.muted}">Sent by Coursebook &middot; <a href="https://${escapeHtml(host)}" style="color:${C.muted}">${escapeHtml(host)}</a></td></tr>
+</table>
+</td></tr></table>
+</body></html>`;
+}
+
+const para = (text: string, last = false) => `<p style="margin:0 0 ${last ? 0 : 12}px;font-size:16px;line-height:1.55;color:${C.ink}">${escapeHtml(text)}</p>`;
+
 function layout(title: string, intro: string, buttonLabel: string, url: string, outro: string) {
   const safeUrl = escapeHtml(url);
-  return `<!doctype html><html><body style="font-family:system-ui,sans-serif;background:#f7f2e7;padding:24px">
-<div style="max-width:480px;margin:auto;background:#fff;border-radius:12px;padding:32px">
-<h1 style="font-size:20px;margin:0 0 16px">${escapeHtml(title)}</h1>
-<p style="color:#333;line-height:1.5">${escapeHtml(intro)}</p>
-<p style="margin:24px 0"><a href="${safeUrl}" style="background:#14213d;color:#fbf5e6;padding:12px 20px;border-radius:8px;text-decoration:none;display:inline-block">${escapeHtml(buttonLabel)}</a></p>
-<p style="color:#666;font-size:13px;line-height:1.5">${escapeHtml(outro)}<br><br>Or paste this link into your browser:<br><span style="word-break:break-all">${safeUrl}</span></p>
-</div></body></html>`;
+  return shell(
+    title,
+    `${para(intro, true)}
+${button(buttonLabel, url)}
+<p style="margin:20px 0 0;font-size:13px;line-height:1.55;color:${C.muted}">${escapeHtml(outro)}</p>
+<p style="margin:12px 0 0;font-size:13px;line-height:1.55;color:${C.muted}">Or paste this link into your browser:<br><a href="${safeUrl}" style="color:${C.cobalt};word-break:break-all">${safeUrl}</a></p>`,
+    intro,
+  );
 }
 
 export function verifyEmailMessage(to: string, url: string): EmailMessage {
@@ -72,13 +125,13 @@ export function reminderMessage(input: {
   const subject = input.streak > 0 && !input.studiedToday ? `Keep your ${input.streak}-day streak going` : "A few minutes of studying today?";
   const url = `${input.appUrl}/dashboard`;
   const outro = "You're getting this because you turned on daily reminders in Coursebook.";
-  const html = `<!doctype html><html><body style="font-family:system-ui,sans-serif;background:#f7f2e7;padding:24px">
-<div style="max-width:480px;margin:auto;background:#fff;border-radius:12px;padding:32px">
-<h1 style="font-size:20px;margin:0 0 16px">Hi ${escapeHtml(first)} 👋</h1>
-${lines.map((l) => `<p style="color:#333;line-height:1.5;margin:0 0 8px">${escapeHtml(l)}</p>`).join("\n")}
-<p style="margin:24px 0"><a href="${escapeHtml(url)}" style="background:#14213d;color:#fbf5e6;padding:12px 20px;border-radius:8px;text-decoration:none;display:inline-block">Start studying</a></p>
-<p style="color:#666;font-size:13px;line-height:1.5">${escapeHtml(outro)} <a href="${escapeHtml(input.unsubscribeUrl)}" style="color:#666">Turn off reminders</a>.</p>
-</div></body></html>`;
+  const html = shell(
+    `Hi ${first}`,
+    `${lines.map((l, i) => para(l, i === lines.length - 1)).join("\n")}
+${button("Start studying", url)}
+<p style="margin:20px 0 0;font-size:13px;line-height:1.55;color:${C.muted}">${escapeHtml(outro)} <a href="${escapeHtml(input.unsubscribeUrl)}" style="color:${C.muted}">Turn off reminders</a>.</p>`,
+    lines[0] ?? subject,
+  );
   return {
     to: input.to,
     subject,
