@@ -27,7 +27,7 @@ export default async function HubPage({ searchParams }: PageProps<"/hub">) {
     <div className="mx-auto flex max-w-6xl flex-col gap-6">
       <PageHeader
         title="Hub"
-        description="Provided courses, ready to study: free, openly licensed textbooks turned into full courses with lessons, practice, flashcards and tests. Add one to your library and it's yours to study."
+        description="Provided courses, ready to study: free, openly licensed textbooks turned into full courses with lessons, practice, flashcards and tests, and The 1600 Project's SAT lesson slides. Add one to your library and it's yours to study."
       />
       {sp.error === "unavailable" && <Alert tone="error">That course isn&apos;t available any more.</Alert>}
       {admin && (

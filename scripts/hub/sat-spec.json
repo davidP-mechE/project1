@@ -1,0 +1,50 @@
+{
+  "courses": [
+    {
+      "key": "sat-math",
+      "title": "SAT Math",
+      "subject": "math",
+      "description": "The 1600 Project's SAT Math lessons as slides: the four-week Foundations series, a lesson for every Math domain (Algebra, Advanced Math, Problem-Solving and Data Analysis, Geometry and Trigonometry), mixed practice and calculator strategy, and two Desmos toolkits. Worked examples, common traps and exit tickets in every lesson.",
+      "units": [
+        { "title": "Foundations", "decks": ["math-f1", "math-f2", "math-f3", "math-f4"] },
+        { "title": "Algebra", "decks": ["math-1.1"] },
+        { "title": "Advanced Math", "decks": ["math-2.1", "math-2.2"] },
+        { "title": "Problem-Solving and Data Analysis", "decks": ["math-3.1", "math-3.2", "math-3.3"] },
+        { "title": "Geometry and Trigonometry", "decks": ["math-4.1"] },
+        { "title": "Mixed Practice and Desmos", "decks": ["math-u7", "math-desmos-alg", "math-desmos-adv"] }
+      ]
+    },
+    {
+      "key": "sat-ebrw",
+      "title": "SAT EBRW",
+      "subject": "ela",
+      "description": "The 1600 Project's SAT Reading and Writing lessons as slides: the four-week ELA Foundations series, a lesson for every question type in the four Reading and Writing domains, and mixed-domain practice with pacing and a strategy review. Worked examples with explained answers and common traps in every lesson.",
+      "units": [
+        { "title": "Foundations", "decks": ["ela-w1", "ela-w2", "ela-w3", "ela-w4"] },
+        { "title": "Information and Ideas", "decks": ["ela-1.1", "ela-1.2", "ela-1.3"] },
+        { "title": "Craft and Structure", "decks": ["ela-2.1", "ela-2.2", "ela-2.3"] },
+        { "title": "Expression of Ideas", "decks": ["ela-3.1", "ela-3.2", "ela-3.3"] },
+        { "title": "Standard English Conventions", "decks": ["ela-4.1", "ela-4.2"] },
+        { "title": "Mixed-Domain Practice", "decks": ["ela-u9"] }
+      ]
+    }
+  ],
+  "drop": {
+    "math-desmos-alg": ["eq1-you", "lin-you", "sys-you", "ineq-you", "plug-you", "bank"],
+    "math-desmos-adv": ["equiv-you", "nonlin-you", "nlsys-you", "quad-you", "func-you", "expo-you", "const-you", "bank"],
+    "math-u7": ["errorlog", "materials"],
+    "ela-u9": ["l9-errorlog"]
+  },
+  "titles": {
+    "math-u7": "Unit 7 · Mixed Sets and Calculator Strategy",
+    "ela-u9": "Unit 9 · Mixed-Domain Practice",
+    "ela-w1": "Foundations Week 1 · Test Basics",
+    "ela-w2": "Foundations Week 2 · Punctuation Points",
+    "ela-w3": "Foundations Week 3 · Grammar Matching",
+    "ela-w4": "Foundations Week 4 · Transitions and Notes",
+    "math-f1": "Foundations F1 · Structure and Shortcuts",
+    "math-f2": "Foundations F2 · Lines in Every Form",
+    "math-f3": "Foundations F3 · Word Problems to Equations",
+    "math-f4": "Foundations F4 · Geometry and Data Quick Wins"
+  }
+}

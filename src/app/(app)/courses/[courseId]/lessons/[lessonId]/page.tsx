@@ -6,6 +6,9 @@ import { notFound } from "next/navigation";
 import { LessonActions, LessonRecovery, LessonStatusPoller } from "@/components/lesson/lesson-actions";
 import { Flashcards, KeyTerms, Objectives, PageRefs, Section, WorkedExamples } from "@/components/lesson/lesson-parts";
 import { Markdown } from "@/components/lesson/markdown";
+import { SlideDeck } from "@/components/lesson/slide-deck";
+import { sanitizeSlideHtml } from "@/lib/slides/sanitize";
+import { SLIDE_LESSON_MODEL } from "@/lib/slides/constants";
 import { CourseSidebar } from "@/components/study/course-sidebar";
 import { LessonCompletion } from "@/components/study/lesson-completion";
 import { Practice } from "@/components/study/practice";
@@ -64,6 +67,9 @@ export default async function LessonPage({ params, searchParams }: PageProps<"/c
   const kind = course.book.kind;
   const slides = kind === "SLIDES";
   const pages = rangeText(kind, lesson.pageStart, lesson.pageEnd);
+  // A lesson made from the course's own slides shows them, cleaned again here before they reach the page.
+  const deck = content?.slides?.length ? content.slides.map((s) => ({ id: s.id, html: sanitizeSlideHtml(s.html) })) : null;
+  const fromSlides = lesson.model === SLIDE_LESSON_MODEL;
 
   return (
     <StudyShell bookId={bookId} initialPage={initialBookPage} sidebar={<CourseSidebar courseId={courseId} courseTitle={course.title} outline={outline} currentLessonId={lessonId} />}>
@@ -102,7 +108,7 @@ export default async function LessonPage({ params, searchParams }: PageProps<"/c
               disabledReason={claudeEnabled ? null : "The tutor needs an ANTHROPIC_API_KEY on the server."}
             />
           )}
-          <LessonActions courseId={courseId} lessonId={lessonId} status={lesson.status} hasContent={Boolean(content)} userEdited={lesson.userEdited} />
+          <LessonActions courseId={courseId} lessonId={lessonId} status={lesson.status} hasContent={Boolean(content)} userEdited={lesson.userEdited} fromSlides={fromSlides} />
         </div>
       </header>
 
@@ -171,9 +177,23 @@ export default async function LessonPage({ params, searchParams }: PageProps<"/c
               <Objectives items={content.objectives} />
             </Section>
           )}
-          <Section title="Lesson" id="explanation">
-            <Markdown bookId={bookId}>{content.explanation}</Markdown>
-          </Section>
+          {deck ? (
+            <>
+              <Section title="Slides" id="slides" count={deck.length}>
+                <SlideDeck slides={deck} firstPage={lesson.pageStart} />
+              </Section>
+              <details className="rounded-lg border border-border bg-surface px-4 py-3 text-sm">
+                <summary className="cursor-pointer font-medium">Text version of the slides</summary>
+                <div className="mt-3">
+                  <Markdown bookId={bookId}>{content.explanation}</Markdown>
+                </div>
+              </details>
+            </>
+          ) : (
+            <Section title="Lesson" id="explanation">
+              <Markdown bookId={bookId}>{content.explanation}</Markdown>
+            </Section>
+          )}
           {content.workedExamples.length > 0 && (
             <Section title="Worked examples" id="examples" count={content.workedExamples.length}>
               <WorkedExamples items={content.workedExamples} bookId={bookId} kind={kind} />
@@ -199,11 +219,17 @@ export default async function LessonPage({ params, searchParams }: PageProps<"/c
               </a>
             </Section>
           )}
+          {fromSlides ? (
+          <p className="text-xs text-muted">
+            The course&apos;s own lesson slides ({pages}): <PageRefs bookId={bookId} pages={[lesson.pageStart]} kind={kind} />
+          </p>
+          ) : (
           <p className="text-xs text-muted">
             {lesson.model === "demo" ? "Demo lesson (not written by Claude) from" : "Written by Claude from"} {pages} of the {sourceNoun(kind)}
             {lesson.generatedAt && ` on ${formatInZone(lesson.generatedAt, zone, "medium")}`}. Check
             important details against the original: <PageRefs bookId={bookId} pages={[lesson.pageStart]} kind={kind} />
           </p>
+          )}
           <LessonNotes courseId={courseId} initialNote={notes.note} />
           {!lesson.skip && (
             <LessonCompletion

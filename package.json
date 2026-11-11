@@ -25,6 +25,7 @@
     "backup:now": "tsx --env-file-if-exists=.env --conditions=react-server scripts/backup-now.ts",
     "demo:load": "tsx --env-file-if-exists=.env --conditions=react-server scripts/demo-mode.ts load",
     "demo:clear": "tsx --env-file-if-exists=.env --conditions=react-server scripts/demo-mode.ts clear",
+    "hub:sat": "tsx --env-file-if-exists=.env --conditions=react-server scripts/hub-import-sat.ts",
     "seed:demo": "tsx --env-file-if-exists=.env --conditions=react-server scripts/seed-demo.ts",
     "perf:check": "tsx --env-file-if-exists=.env --conditions=react-server scripts/perf-check.ts"
   },
@@ -60,6 +61,7 @@
     "rehype-katex": "^7.0.1",
     "remark-gfm": "^4.0.1",
     "remark-math": "^6.0.0",
+    "sanitize-html": "^2.18.1",
     "server-only": "^0.0.1",
     "sql.js": "1.14.2",
     "tesseract.js": "^7.0.0",
@@ -75,6 +77,7 @@
     "@types/pg": "^8.23.1",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/sanitize-html": "^2.16.0",
     "@types/sql.js": "1.4.11",
     "dotenv": "^18.0.10",
     "eslint": "^9",

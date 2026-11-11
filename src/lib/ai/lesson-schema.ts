@@ -68,11 +68,15 @@ export const KeyTermSchema = z.object({
   definition: z.string().min(1).max(2_000),
   pageRefs: z.array(z.number().int()).max(20),
 });
+/** A lesson imported from a slide deck keeps its slides (cleaned HTML, see src/lib/slides/sanitize.ts) and shows them inline. */
+export const LessonSlideSchema = z.object({ id: z.string().min(1).max(80), html: z.string().min(1).max(40_000) });
+
 export const LessonContentSchema = z.object({
   objectives: z.array(z.string().min(1).max(500)).max(10),
   explanation: z.string().min(1).max(60_000),
   workedExamples: z.array(WorkedExampleSchema).max(10),
   keyTerms: z.array(KeyTermSchema).max(40),
+  slides: z.array(LessonSlideSchema).max(80).optional(),
 });
 export type LessonContent = z.infer<typeof LessonContentSchema>;
 

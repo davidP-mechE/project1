@@ -5,6 +5,7 @@ import { claudeEnabled, env } from "../env";
 import { NotFoundError } from "../courses";
 import { enqueueGeneration } from "../queue";
 import { LessonContentSchema, LessonEditSchema, type LessonContent } from "@/lib/ai/lesson-schema";
+import { SLIDE_LESSON_MODEL } from "@/lib/slides/constants";
 import { cleanPageRefs } from "@/lib/ai/normalize";
 import { syncFlashcards } from "../flashcard-store";
 import { assertAiBudget, assertCanGenerate, LimitError } from "../limits";
@@ -98,7 +99,14 @@ export async function regenerateAll(userId: string, courseId: string, opts: { in
   requireClaude();
   await ownedCourse(userId, courseId);
   const lessons = await db.lesson.findMany({
-    where: { courseId, skip: false, status: { in: ["READY", "FAILED", "FLAGGED", "PENDING"] }, ...(opts.includeEdited ? {} : { userEdited: false }) },
+    where: {
+      courseId,
+      skip: false,
+      status: { in: ["READY", "FAILED", "FLAGGED", "PENDING"] },
+      ...(opts.includeEdited ? {} : { userEdited: false }),
+      // Lessons that are the course's own slides are never rewritten.
+      OR: [{ model: null }, { model: { not: SLIDE_LESSON_MODEL } }],
+    },
     orderBy: [{ unit: { order: "asc" } }, { order: "asc" }],
     select: { id: true },
   });
@@ -120,6 +128,9 @@ export async function regenerateLesson(
   requireClaude();
   const lesson = await ownedLesson(userId, lessonId);
   if (["QUEUED", "GENERATING"].includes(lesson.status)) return; // already on its way
+  if (opts.mode === "lesson" && lesson.model === SLIDE_LESSON_MODEL) {
+    throw new GenerationError("This lesson is the course's own slides, so there's nothing to rewrite. You can still ask for new practice questions.");
+  }
   if (opts.mode === "questions" && !lesson.content) {
     throw new GenerationError("Generate the lesson first, then you can regenerate its questions.");
   }
@@ -150,8 +161,12 @@ export async function saveLessonEdits(userId: string, lessonId: string, input: u
   }
   const range = { pageStart: lesson.pageStart, pageEnd: lesson.pageEnd };
   const { content, questions, flashcards } = parsed.data;
+  // Slides come only from the stored lesson, never from the form.
+  const stored = lesson.content ? LessonContentSchema.safeParse(lesson.content) : null;
+  const slides = stored?.success ? stored.data.slides : undefined;
   const cleaned: LessonContent = {
     ...content,
+    slides,
     workedExamples: content.workedExamples.map((w) => ({ ...w, pageRefs: cleanPageRefs(w.pageRefs, range) })),
     keyTerms: content.keyTerms.map((k) => ({ ...k, pageRefs: cleanPageRefs(k.pageRefs, range) })),
   };

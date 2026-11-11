@@ -84,6 +84,12 @@ The final review of Coursebook and The 1600 Project's setup on it, most serious 
 - On Trends, a Math-only class still lists all eight domains, including the Reading and Writing ones, which have no data. The score axis uses uneven tick values (1088, 1163).
 - The tutor sees their own copy of the demo course on Today ("Your next lesson…"), as any teacher who owns a course does.
 
+17b. **The SAT slide courses on the Hub** (`npm run hub:sat`):
+- Their lessons have no practice questions or flashcards yet. A tutor or student can add them from the lesson's ⋯ menu → "New practice questions", which uses AI.
+- The slides use the site's own font (Inter, or Arial if it isn't available), not the fonts set in the original artifacts, because the site only loads fonts it hosts itself.
+- The Hub cards have no cover picture.
+- Lessons change only when you rebuild and import again (ADMIN_GUIDE §10). Editing the artifacts doesn't update the site.
+
 18. **Four database migrations** (`program_public_identity`, `calendar_token`, `badges` and `answer_indexes`) were generated with `prisma migrate diff` and applied with `migrate deploy`, because `migrate dev` can't run non-interactively in the build environment. They're ordinary SQL files. Review them like any migration.
 
 ## Checked and fine
