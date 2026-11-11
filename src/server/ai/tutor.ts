@@ -1,5 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { TUTOR_SYSTEM_PROMPT, type TutorTurn } from "@/lib/tutor/prompt";
+import { SAT_CURRICULUM } from "@/lib/tutor/sat-curriculum";
 import { NOT_IN_BOOK } from "@/lib/tutor/citations";
 import { AiError, type Call } from "./writer";
 import { usageCalls } from "./grader";
@@ -7,8 +8,10 @@ import { usageCalls } from "./grader";
 /** Streams a tutor answer. Tests use a fake one. */
 export interface TutorModel {
   readonly kind: "claude" | "demo";
-  answer(messages: TutorTurn[], onText: (text: string) => void, signal: AbortSignal): Promise<TutorAnswer>;
+  answer(messages: TutorTurn[], onText: (text: string) => void, signal: AbortSignal, opts?: TutorOptions): Promise<TutorAnswer>;
 }
+/** sat: the course is SAT prep, so the tutor also gets the program's SAT curriculum. */
+export type TutorOptions = { sat?: boolean };
 export type TutorAnswer = { text: string; calls: Call<unknown>[]; stop: "done" | "stopped" | "too_long" };
 
 export type TutorConfig = { model: string; effort: "low" | "medium" | "high" | "xhigh" | "max" };
@@ -22,7 +25,7 @@ export class ClaudeTutor implements TutorModel {
     private readonly config: TutorConfig,
   ) {}
 
-  async answer(messages: TutorTurn[], onText: (text: string) => void, signal: AbortSignal): Promise<TutorAnswer> {
+  async answer(messages: TutorTurn[], onText: (text: string) => void, signal: AbortSignal, opts: TutorOptions = {}): Promise<TutorAnswer> {
     let text = "";
     // Usage as it arrives, so a stopped answer is still billed correctly.
     let partial: { input: number; output: number; cacheRead: number; cacheWrite: number; model: string } | null = null;
@@ -30,7 +33,11 @@ export class ClaudeTutor implements TutorModel {
       {
         model: this.config.model,
         max_tokens: TUTOR_MAX_TOKENS,
-        system: [{ type: "text", text: TUTOR_SYSTEM_PROMPT, cache_control: { type: "ephemeral" } }],
+        // Both blocks are fixed text, so each is cached; SAT courses add the curriculum after the rules.
+        system: [
+          { type: "text", text: TUTOR_SYSTEM_PROMPT, cache_control: { type: "ephemeral" } },
+          ...(opts.sat ? [{ type: "text" as const, text: SAT_CURRICULUM, cache_control: { type: "ephemeral" as const } }] : []),
+        ],
         messages,
         output_config: { effort: this.config.effort },
         // If the safety filter misreads a textbook topic, the API retries on a suitable model itself.

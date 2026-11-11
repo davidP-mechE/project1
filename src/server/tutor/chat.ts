@@ -1,4 +1,5 @@
 import "server-only";
+import { courseAccessWhere, programAccess } from "../program-access";
 import type { Prisma } from "@/generated/prisma/client";
 import { db } from "../db";
 import { env } from "../env";
@@ -13,6 +14,7 @@ import { retrievePassages } from "./retrieve";
 import { checkCitations, saysNotInBook } from "@/lib/tutor/citations";
 import { pagesCovered } from "@/lib/tutor/retrieval";
 import { threadTitle, tutorMessages, type TutorTurn } from "@/lib/tutor/prompt";
+import { looksLikeSat } from "@/lib/tutor/sat-curriculum";
 
 /**
  * "Ask the book": one question → find passages → Claude answers (streamed)
@@ -39,7 +41,7 @@ export type TutorEvent =
 
 async function ownedCourse(userId: string, courseId: string) {
   const course = await db.course.findFirst({
-    where: { id: courseId, userId },
+    where: { id: courseId, userId, ...courseAccessWhere(await programAccess(userId)) },
     select: { id: true, title: true, bookId: true, status: true, book: { select: { status: true, kind: true } } },
   });
   if (!course) throw new NotFoundError("Course not found");
@@ -82,6 +84,15 @@ export async function tutorStatus(userId: string, courseId: string) {
   const course = await ownedCourse(userId, courseId);
   const [chunks, progress] = await Promise.all([db.chunk.count({ where: { bookId: course.bookId } }), embeddingProgress(course.bookId)]);
   return { ready: course.book.status === "READY" && chunks > 0, meaningSearch: progress };
+}
+
+/** SAT prep courses get the program's SAT curriculum in the tutor (by title, Hub course or class program). */
+async function isSatCourse(courseId: string) {
+  const c = await db.course.findUnique({
+    where: { id: courseId },
+    select: { title: true, catalogEntry: { select: { title: true } }, classCourse: { select: { class: { select: { program: { select: { subject: true } } } } } } },
+  });
+  return c ? looksLikeSat({ title: c.title, catalogTitle: c.catalogEntry?.title, programSubject: c.classCourse?.class.program?.subject }) : false;
 }
 
 export type AskInput = { courseId: string; threadId?: string | null; lessonId?: string | null; question: unknown };
@@ -137,7 +148,7 @@ export async function askTutor(userId: string, input: AskInput, deps: AskDeps, e
   const usageCtx = { userId, courseId: course.id, lessonId, feature: "TUTOR" as const };
 
   try {
-    const answer = await deps.tutor.answer(messages, (text) => emit({ type: "delta", text }), signal);
+    const answer = await deps.tutor.answer(messages, (text) => emit({ type: "delta", text }), signal, { sat: await isSatCourse(course.id) });
     await recordUsage(usageCtx, answer.calls);
     const checked = checkCitations(answer.text, pagesCovered(found.passages));
     const content = answer.stop === "too_long" ? `${checked.text}\n\n_(The answer was cut short. Ask a narrower question for the rest.)_` : checked.text;
