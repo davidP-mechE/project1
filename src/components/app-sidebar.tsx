@@ -17,7 +17,7 @@ import { BRAND } from "@/lib/brand";
  */
 
 type Props = {
-  user: { name: string; email: string; isAdmin: boolean };
+  user: { name: string; email: string; isAdmin: boolean; isStaff: boolean };
   dueCount: number;
   timeZone: string;
   game: { streak: number; xp: number; level: number };
@@ -134,87 +134,121 @@ export function Logo({ className }: { className?: string }) {
   return <CoursebookMark className={className} />;
 }
 
-function NavLinks({ isAdmin, dueCount, unread, onNavigate }: { isAdmin: boolean; dueCount: number; unread: Props["unread"]; onNavigate?: () => void }) {
+type NavLink = { href: string; label: string; icon: keyof typeof ICONS; badge?: number; badgeLabel?: string };
+
+/**
+ * The links, short enough to fit without scrolling: the everyday pages at the
+ * top, then folding sections (the one you're in opens by itself). Teaching
+ * appears for people who teach; Settings and Admin live in the account menu.
+ */
+function NavLinks({ isStaff, dueCount, unread, onNavigate }: { isStaff: boolean; dueCount: number; unread: Props["unread"]; onNavigate?: () => void }) {
   const pathname = usePathname();
-  const groups: { label: string | null; links: { href: string; label: string; icon: keyof typeof ICONS; badge?: number; badgeLabel?: string }[] }[] = [
+  const top: NavLink[] = [
+    { href: "/dashboard", label: "Today", icon: "home" },
+    { href: "/messages", label: "Messages", icon: "messages", badge: unread.threads, badgeLabel: "unread conversations" },
+    { href: "/calendar", label: "Calendar", icon: "calendar" },
+    { href: "/scores", label: "SAT scores", icon: "scores" },
+  ];
+  const groups: { label: string; links: NavLink[] }[] = [
     {
-      label: null,
+      label: "Learn",
       links: [
-        { href: "/dashboard", label: "Today", icon: "home" },
-        { href: "/notifications", label: "Notifications", icon: "bell", badge: unread.notices, badgeLabel: "unread" },
-        { href: "/messages", label: "Messages", icon: "messages", badge: unread.threads, badgeLabel: "unread conversations" },
-        { href: "/calendar", label: "Calendar", icon: "calendar" },
-      ],
-    },
-    {
-      label: "Learning",
-      links: [
+        { href: "/classes", label: "Classes", icon: "classes" },
         { href: "/library", label: "Library", icon: "library" },
         { href: "/slides", label: "Slides", icon: "slides" },
         { href: "/hub", label: "Hub", icon: "hub" },
-        { href: "/classes", label: "Classes", icon: "classes" },
-        { href: "/scores", label: "SAT scores", icon: "scores" },
       ],
     },
     {
       label: "Practice",
       links: [
         { href: "/skills", label: "Review", icon: "skills" },
-        { href: "/review", label: "Spaced repetition", icon: "spaced", badge: dueCount, badgeLabel: "cards to review" },
+        { href: "/review", label: "Flashcards", icon: "spaced", badge: dueCount, badgeLabel: "cards to review" },
         { href: "/mistakes", label: "Mistake log", icon: "errors" },
         { href: "/errors", label: "Error log", icon: "errors" },
         { href: "/mastery", label: "Mastery", icon: "mastery" },
       ],
     },
-    {
-      label: "Teaching",
-      links: [
-        { href: "/teach", label: "My classes", icon: "teach" },
-        { href: "/teach/worksheets", label: "Worksheets", icon: "worksheet" },
-        { href: "/teach/diagnostics", label: "Diagnostics", icon: "scores" },
-        { href: "/teach/review", label: "Review queue", icon: "errors" },
-      ],
-    },
-    {
-      label: "Account",
-      links: [{ href: "/settings", label: "Settings", icon: "settings" }, ...(isAdmin ? [{ href: "/admin", label: "Admin", icon: "admin" as const }] : [])],
-    },
+    ...(isStaff
+      ? [
+          {
+            label: "Teaching",
+            links: [
+              { href: "/teach", label: "My classes", icon: "teach" as const },
+              { href: "/teach/worksheets", label: "Worksheets", icon: "worksheet" as const },
+              { href: "/teach/diagnostics", label: "Diagnostics", icon: "scores" as const },
+              { href: "/teach/review", label: "Review queue", icon: "errors" as const },
+            ],
+          },
+        ]
+      : []),
   ];
   // The most specific link wins (e.g. /teach/worksheets, not /teach).
+  const all = [...top, ...groups.flatMap((g) => g.links)];
   const matches = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
-  const activeHref = groups.flatMap((g) => g.links.map((l) => l.href)).filter(matches).sort((x, y) => y.length - x.length)[0];
-  const isActive = (href: string) => href === activeHref;
+  const activeHref = all.map((l) => l.href).filter(matches).sort((x, y) => y.length - x.length)[0];
+  const link = (l: NavLink) => {
+    const active = l.href === activeHref;
+    return (
+      <Link
+        key={l.href}
+        href={l.href}
+        onClick={onNavigate}
+        aria-current={active ? "page" : undefined}
+        className={cn(
+          "press flex items-center gap-3 rounded-xl px-3 py-1.5 text-[0.93rem] transition-colors",
+          active ? "bg-nav-active font-semibold text-nav-text shadow-[inset_3px_0_0_var(--accent)]" : "text-nav-text/85 hover:bg-nav-active/60 hover:text-nav-text",
+        )}
+      >
+        <Icon name={l.icon} />
+        <span className="flex-1">{l.label}</span>
+        {l.badge ? (
+          <span className="pop-in rounded-full bg-[#f4e4b0] px-2 text-xs font-bold leading-5 text-[#1b1f33]" aria-label={`${l.badge} ${l.badgeLabel ?? "new"}`}>
+            {l.badge > 99 ? "99+" : l.badge}
+          </span>
+        ) : null}
+      </Link>
+    );
+  };
   return (
-    <nav aria-label="Main" className="flex flex-col gap-4">
-      {groups.map((g, i) => (
-        <div key={i} className="flex flex-col gap-1">
-          {g.label && <p className="px-3 text-xs font-semibold uppercase tracking-wider text-nav-muted">{g.label}</p>}
-          {g.links.map((l) => {
-            const active = isActive(l.href);
-            return (
-              <Link
-                key={l.href}
-                href={l.href}
-                onClick={onNavigate}
-                aria-current={active ? "page" : undefined}
-                className={cn(
-                  "press flex items-center gap-3 rounded-xl px-3 py-2 text-[0.95rem] transition-colors",
-                  active ? "bg-nav-active font-semibold text-nav-text shadow-[inset_3px_0_0_var(--accent)]" : "text-nav-text/90 hover:bg-nav-active/60",
-                )}
-              >
-                <Icon name={l.icon} />
-                <span className="flex-1">{l.label}</span>
-                {l.badge ? (
-                  <span className="pop-in rounded-full bg-[#f4e4b0] px-2 text-xs font-bold leading-5 text-[#1b1f33]" aria-label={`${l.badge} ${l.badgeLabel ?? "new"}`}>
-                    {l.badge > 99 ? "99+" : l.badge}
-                  </span>
-                ) : null}
-              </Link>
-            );
-          })}
-        </div>
-      ))}
+    <nav aria-label="Main" className="flex flex-col gap-3">
+      <div className="flex flex-col gap-0.5">{top.map(link)}</div>
+      {groups.map((g) => {
+        const here = g.links.some((l) => l.href === activeHref);
+        const count = g.links.reduce((n, l) => n + (l.badge ?? 0), 0);
+        return (
+          <details key={g.label} open={here} className="group/nav">
+            <summary className="flex cursor-pointer list-none items-center justify-between rounded-lg px-3 py-1 text-xs font-semibold uppercase tracking-wider text-nav-muted hover:text-nav-text [&::-webkit-details-marker]:hidden">
+              <span>
+                {g.label}
+                {count > 0 && <span className="ml-2 rounded-full bg-[#f4e4b0] px-1.5 text-[10px] text-[#1b1f33]">{count > 99 ? "99+" : count}</span>}
+              </span>
+              <svg viewBox="0 0 24 24" className="size-3.5 transition-transform group-open/nav:rotate-90" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden>
+                <path d="m9 6 6 6-6 6" />
+              </svg>
+            </summary>
+            <div className="mt-0.5 flex flex-col gap-0.5">{g.links.map(link)}</div>
+          </details>
+        );
+      })}
     </nav>
+  );
+}
+
+/** The notification bell, with a gold dot and count when something's new. */
+function Bell({ count, onNavigate }: { count: number; onNavigate?: () => void }) {
+  const pathname = usePathname();
+  return (
+    <Link
+      href="/notifications"
+      onClick={onNavigate}
+      aria-current={pathname === "/notifications" ? "page" : undefined}
+      className="relative inline-flex size-9 items-center justify-center rounded-xl text-nav-text hover:bg-nav-active"
+      aria-label={count ? `Notifications, ${count} unread` : "Notifications"}
+    >
+      <Icon name="bell" />
+      {count > 0 && <span className="pop-in absolute -right-0.5 -top-0.5 min-w-4 rounded-full bg-accent px-1 text-center text-[10px] font-bold leading-4 text-accent-text">{count > 9 ? "9+" : count}</span>}
+    </Link>
   );
 }
 
@@ -258,10 +292,15 @@ export function AppSidebar({ user, dueCount, timeZone, game, unread }: Props) {
   return (
     <>
       {/* Desktop: fixed sidebar */}
-      <aside className="dark-nav fixed inset-y-0 left-0 z-20 hidden w-64 flex-col gap-6 overflow-y-auto bg-nav px-4 py-5 lg:flex">
-        {brand}
-        <Stats game={game} />
-        <NavLinks isAdmin={user.isAdmin} dueCount={dueCount} unread={unread} />
+      <aside className="dark-nav fixed inset-y-0 left-0 z-20 hidden w-60 flex-col gap-5 overflow-y-auto bg-nav px-3 py-5 lg:flex">
+        <div className="flex items-center justify-between gap-2 px-1">
+          {brand}
+          <Bell count={unread.notices} />
+        </div>
+        <div className="px-1">
+          <Stats game={game} />
+        </div>
+        <NavLinks isStaff={user.isStaff} dueCount={dueCount} unread={unread} />
         <div className="mt-auto flex items-center justify-between gap-2 border-t border-white/10 pt-4">
           <UserMenu name={user.name} email={user.email} isAdmin={user.isAdmin} placement="up" showName />
           <ThemeToggle className="text-nav-muted hover:bg-nav-active hover:text-nav-text" />
@@ -310,7 +349,7 @@ export function AppSidebar({ user, dueCount, timeZone, game, unread }: Props) {
             </button>
           </div>
           <Stats game={game} />
-          <NavLinks isAdmin={user.isAdmin} dueCount={dueCount} unread={unread} onNavigate={() => drawer.current?.close()} />
+          <NavLinks isStaff={user.isStaff} dueCount={dueCount} unread={unread} onNavigate={() => drawer.current?.close()} />
           <div className="mt-auto flex items-center justify-between gap-2 border-t border-white/10 pt-4">
             <UserMenu name={user.name} email={user.email} isAdmin={user.isAdmin} placement="up" showName />
             <ThemeToggle className="text-nav-muted hover:bg-nav-active hover:text-nav-text" />
