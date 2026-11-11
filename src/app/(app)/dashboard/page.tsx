@@ -9,6 +9,7 @@ import { ButtonLink } from "@/components/ui/button";
 import { Card, ProgressBar } from "@/components/ui/misc";
 import { formatDay } from "@/lib/planning/dates";
 import { cn } from "@/lib/utils";
+import { coverColor } from "@/lib/subjects";
 import { getDashboard } from "@/server/dashboard";
 import { getGameSummary } from "@/server/gamification";
 import { requireUser, viewerZone } from "@/server/session";
@@ -81,8 +82,7 @@ export default async function DashboardPage() {
 
   const hour = d.hour;
   const lessonsDone = d.courses.reduce((n, c) => n + c.done, 0);
-  const SPINE = ["var(--chart-1)", "var(--chart-3)", "var(--chart-4)", "var(--chart-5)", "var(--chart-2)"];
-  const tiles = [
+    const tiles = [
     { label: "Level", value: String(game.level), sub: `${game.levelSize - game.intoLevel} XP to level ${game.level + 1}`, bar: game.intoLevel / game.levelSize, href: null, tone: "var(--chart-2)" },
     { label: "Accuracy this week", value: accuracy === null ? "—" : `${accuracy}%`, sub: accuracy === null ? "answer a few questions" : `${game.week.answered} ${game.week.answered === 1 ? "answer" : "answers"}`, bar: accuracy === null ? null : accuracy / 100, href: null, tone: "var(--chart-5)" },
     { label: "Lessons finished", value: String(lessonsDone), sub: `in ${plural(d.courses.length, "course")}`, bar: null, href: "/library", tone: "var(--chart-3)" },
@@ -98,12 +98,11 @@ export default async function DashboardPage() {
       {/* ── Greeting ── */}
       <header className="rise flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
         <div>
-          <p className="eyebrow flex items-center gap-2">
-            <span aria-hidden className="inline-block size-1.5 rounded-full bg-accent" />
+          <p className="eyebrow">
             {formatDay(d.today, { weekday: "long", month: "long", day: "numeric" })}
           </p>
-          <h1 className="mt-2 font-display text-4xl font-semibold leading-tight sm:text-5xl">
-            {greeting(hour)}, <span className="ink-underline">{first}</span>
+          <h1 className="mt-2 font-display text-4xl sm:text-[3.4rem]">
+            {greeting(hour)}, {first}
             <span aria-hidden>{hour < 5 || hour >= 18 ? " ☾" : " ☀"}</span>
           </h1>
           <p className="mt-2 max-w-2xl text-lg text-muted">{step?.course ? `Pick up where you left off in ${step.course}.` : d.courses.length ? "You're all caught up. Nice work." : "Let's set up your first course."}</p>
@@ -117,30 +116,30 @@ export default async function DashboardPage() {
             </ul>
           )}
         </div>
-        <div className={cn("flex items-center gap-3 self-start rounded-2xl border px-4 py-3 md:self-auto", d.streak.current > 0 ? "streak-glow border-accent/40 bg-warning-bg" : "border-border bg-surface")}>
-          <span aria-hidden className="text-3xl">{d.streak.current > 0 ? "🔥" : "✦"}</span>
-          <span>
+        <div className={cn("flex items-center gap-3 self-start rounded-md border-[1.5px] px-4 py-2.5 md:self-auto md:py-3", d.streak.current > 0 ? "border-transparent bg-accent text-accent-text" : "border-border bg-surface")}>
+          <span aria-hidden className="text-2xl md:text-3xl">{d.streak.current > 0 ? "🔥" : "✦"}</span>
+          <span className="flex items-baseline gap-2 md:block">
             <span className="score-num block text-2xl leading-none">{d.streak.current}</span>
-            <span className="text-xs font-semibold text-muted">{d.streak.current === 0 ? "Start a streak today" : d.streak.studiedToday ? "day streak" : "day streak: study today to keep it"}</span>
+            <span className="text-xs font-semibold opacity-80">{d.streak.current === 0 ? "Start a streak today" : d.streak.studiedToday ? "day streak" : "day streak: study today to keep it"}</span>
           </span>
         </div>
       </header>
 
       {/* ── Next step, with today's goal ── */}
-      <section aria-labelledby="next-step" className="hero-card rise grid items-center gap-8 rounded-[1.75rem] p-7 sm:p-10 md:grid-cols-[1fr_auto]" style={{ ["--d" as string]: "60ms" }}>
+      <section aria-labelledby="next-step" className="hero-card rise grid items-center gap-8 rounded-lg py-8 pb-12 pl-14 pr-6 sm:py-10 sm:pb-14 sm:pl-[4.5rem] sm:pr-10 md:grid-cols-[1fr_auto]" style={{ ["--d" as string]: "60ms" }}>
         {step ? (
           <div className="flex flex-col gap-5">
-            <p className="text-sm font-semibold uppercase tracking-[0.14em] text-[#d9b84a]">
+            <p className="text-sm font-semibold text-white/85">
               {step.kicker}
               {step.course ? ` · ${step.course}` : ""}
             </p>
-            <h2 id="next-step" className="max-w-[34rem] font-display text-3xl font-semibold leading-tight sm:text-[2.6rem]">
+            <h2 id="next-step" className="cover-title max-w-[40rem] text-[2.1rem] sm:text-[3.4rem]">
               {step.title}
             </h2>
             {step.progress && (
               <div className="flex max-w-md items-center gap-3 text-sm">
-                <div className="hero-track h-2 flex-1 overflow-hidden rounded-full" role="progressbar" aria-label="Course progress" aria-valuemin={0} aria-valuemax={step.progress.total} aria-valuenow={step.progress.done}>
-                  <div className="hero-fill grow-right h-full rounded-full" style={{ width: `${step.progress.total ? Math.max(2, (step.progress.done / step.progress.total) * 100) : 0}%` }} />
+                <div className="hero-track h-2 flex-1 overflow-hidden" role="progressbar" aria-label="Course progress" aria-valuemin={0} aria-valuemax={step.progress.total} aria-valuenow={step.progress.done}>
+                  <div className="hero-fill grow-right h-full" style={{ width: `${step.progress.total ? Math.max(2, (step.progress.done / step.progress.total) * 100) : 0}%` }} />
                 </div>
                 <span className="shrink-0 font-semibold">
                   {step.progress.done} of {step.progress.total} lessons
@@ -156,7 +155,7 @@ export default async function DashboardPage() {
           </div>
         ) : (
           <div className="flex flex-col gap-4">
-            <h2 id="next-step" className="font-display text-3xl font-semibold">
+            <h2 id="next-step" className="cover-title text-[2.1rem] sm:text-[3rem]">
               {d.courses.length ? "All caught up" : "Welcome to Coursebook"}
             </h2>
             <p className="max-w-md opacity-90">
@@ -190,18 +189,18 @@ export default async function DashboardPage() {
         {tiles.map((t, i) => {
           const body = (
             <>
-              <span aria-hidden className="absolute inset-y-4 left-0 w-1 rounded-r-full" style={{ background: t.tone }} />
+              <span aria-hidden className="absolute inset-y-0 left-0 w-1.5" style={{ background: t.tone }} />
               <span className="eyebrow">{t.label}</span>
               <span className="score-num mt-1 block text-4xl">{t.value}</span>
               <span className="text-xs text-muted">{t.sub}</span>
               {t.bar !== null && (
-                <span aria-hidden className="mt-3 block h-1.5 overflow-hidden rounded-full bg-surface-2">
-                  <span className="grow-right block h-full rounded-full" style={{ width: `${Math.max(3, t.bar * 100)}%`, background: t.tone }} />
+                <span aria-hidden className="mt-3 block h-1.5 overflow-hidden bg-surface-2">
+                  <span className="grow-right block h-full" style={{ width: `${Math.max(3, t.bar * 100)}%`, background: t.tone }} />
                 </span>
               )}
             </>
           );
-          const cls = "lift rise relative block overflow-hidden rounded-2xl border border-border bg-surface p-5 pl-6";
+          const cls = "lift rise relative block overflow-hidden rounded-lg border-[1.5px] border-border bg-surface p-5 pl-6";
           return t.href ? (
             <Link key={t.label} href={t.href} className={cn(cls, "transition-transform hover:-translate-y-0.5")} style={{ ["--d" as string]: `${120 + i * 60}ms` }}>
               {body}
@@ -233,7 +232,7 @@ export default async function DashboardPage() {
                         <span className="block truncate font-semibold">{a.title}</span>
                         <span className="block truncate text-xs text-muted">{a.className}</span>
                       </span>
-                      <span className={cn("shrink-0 rounded-full px-2.5 py-1 text-xs", a.dueAt && a.dueAt < new Date() ? "bg-danger-bg font-semibold text-danger" : "bg-surface-2 text-muted")}>{dueText(a.dueAt, undefined, zone)}</span>
+                      <span className={cn("shrink-0 rounded px-2 py-1 text-xs", a.dueAt && a.dueAt < new Date() ? "bg-danger-bg font-semibold text-danger" : "bg-surface-2 text-muted")}>{dueText(a.dueAt, undefined, zone)}</span>
                     </Link>
                   </li>
                 ))}
@@ -290,7 +289,7 @@ export default async function DashboardPage() {
                     {q.progress} of {q.target}
                   </p>
                 </div>
-                <span className={cn("shrink-0 rounded-full px-2.5 py-0.5 text-xs font-bold", q.done ? "bg-success-bg text-success" : "bg-accent text-accent-text")}>+{q.xp} XP</span>
+                <span className={cn("shrink-0 rounded px-2 py-0.5 text-xs font-bold", q.done ? "bg-success-bg text-success" : "bg-accent text-accent-text")}>+{q.xp} XP</span>
               </li>
             ))}
           </ul>
@@ -312,13 +311,13 @@ export default async function DashboardPage() {
             </Link>
           </div>
           <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {d.courses.map((c, i) => (
+            {d.courses.map((c) => (
               <li key={c.id}>
-                <Link href={`/courses/${c.id}`} className="lift group relative flex h-full flex-col gap-3 overflow-hidden rounded-2xl border border-border bg-surface p-5 pl-7 transition-transform hover:-translate-y-0.5">
-                  <span aria-hidden className="absolute inset-y-0 left-0 w-3" style={{ background: SPINE[i % SPINE.length] }} />
-                  <span aria-hidden className="absolute inset-y-0 left-3 w-px bg-black/10" />
-                  <span className="line-clamp-2 font-semibold group-hover:underline">{c.title}</span>
-                  <span className="mt-auto flex items-center gap-3 text-xs text-muted">
+                <Link href={`/courses/${c.id}`} className="card-hover group flex h-full flex-col overflow-hidden rounded-lg border-[1.5px] border-border bg-surface">
+                  <span className="hero-card flex min-h-24 items-end py-4 pl-9 pr-4 [--band:0.4rem] [--spine:1.1rem]" style={{ ["--cover" as string]: coverColor(c.subject) }}>
+                    <span className="cover-title line-clamp-2 text-lg group-hover:underline">{c.title}</span>
+                  </span>
+                  <span className="mt-auto flex items-center gap-3 p-4 text-xs text-muted">
                     <ProgressBar value={c.pct} label={`${c.title} progress`} className="h-1.5" />
                     <span className="shrink-0 tabular-nums">
                       {c.done}/{c.total}
@@ -348,7 +347,7 @@ export default async function DashboardPage() {
                     </span>
                   </span>
                   {w.lesson && (
-                    <Link href={`/courses/${w.lesson.courseId}/practice/session?lesson=${w.lesson.id}`} className="press shrink-0 rounded-lg border border-border px-2.5 py-1 text-xs font-semibold hover:bg-surface">
+                    <Link href={`/courses/${w.lesson.courseId}/practice/session?lesson=${w.lesson.id}`} className="press shrink-0 rounded-md border-[1.5px] border-border px-2.5 py-1 text-xs font-semibold hover:border-text">
                       Practise
                     </Link>
                   )}
@@ -360,7 +359,7 @@ export default async function DashboardPage() {
                     <span className="block truncate font-semibold">{l.title}</span>
                     <span className="text-xs text-muted">You marked this lesson confusing</span>
                   </span>
-                  <Link href={`/courses/${l.courseId}/lessons/${l.id}`} className="press shrink-0 rounded-lg border border-border px-2.5 py-1 text-xs font-semibold hover:bg-surface">
+                  <Link href={`/courses/${l.courseId}/lessons/${l.id}`} className="press shrink-0 rounded-md border-[1.5px] border-border px-2.5 py-1 text-xs font-semibold hover:border-text">
                     Revisit
                   </Link>
                 </li>
@@ -374,7 +373,7 @@ export default async function DashboardPage() {
                     </span>
                   </span>
                   {c.lesson && (
-                    <Link href={`/courses/${c.lesson.courseId}/lessons/${c.lesson.id}`} className="press shrink-0 rounded-lg border border-border px-2.5 py-1 text-xs font-semibold hover:bg-surface">
+                    <Link href={`/courses/${c.lesson.courseId}/lessons/${c.lesson.id}`} className="press shrink-0 rounded-md border-[1.5px] border-border px-2.5 py-1 text-xs font-semibold hover:border-text">
                       Reread
                     </Link>
                   )}

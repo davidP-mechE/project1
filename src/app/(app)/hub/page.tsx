@@ -5,7 +5,7 @@ import { PillNav } from "@/components/review/filters";
 import { Alert } from "@/components/ui/alert";
 import { buttonClasses } from "@/components/ui/button";
 import { EmptyState, PageHeader } from "@/components/ui/misc";
-import { subjectOf } from "@/lib/subjects";
+import { coverColor, subjectOf } from "@/lib/subjects";
 import { enrollAction } from "@/server/actions/hub";
 import { listCatalog } from "@/server/catalog";
 import { db } from "@/server/db";
@@ -47,18 +47,20 @@ export default async function HubPage({ searchParams }: PageProps<"/hub">) {
           )}
           <ul className="stagger-list grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {shown.map((e) => (
-              <li key={e.id} className="lift card-hover flex flex-col overflow-hidden rounded-2xl border border-border bg-surface">
-                <div className="hero-card flex h-36 items-end gap-3 rounded-none p-4">
+              <li key={e.id} className="card-hover flex flex-col overflow-hidden rounded-lg border-[1.5px] border-border bg-surface">
+                <div className="hero-card flex min-h-48 gap-4 pb-8 pl-12 pr-5 pt-5 [--band:0.6rem] [--spine:1.25rem]" style={{ ["--cover" as string]: coverColor(e.subject) }}>
+                  <div className="flex min-w-0 flex-1 flex-col justify-between gap-6">
+                    <span className="self-start rounded bg-white px-2 py-0.5 text-xs font-bold text-[#17191f]">
+                      {subjectOf(e.subject).name}
+                    </span>
+                    <h2 className="cover-title text-[1.9rem]">{e.title}</h2>
+                  </div>
                   {e.hasCover && (
                     // eslint-disable-next-line @next/next/no-img-element -- auth-checked API image
-                    <img src={`/api/hub/${e.id}/cover`} alt="" className="h-28 w-20 shrink-0 rounded-md object-cover shadow-lg" />
+                    <img src={`/api/hub/${e.id}/cover`} alt="" className="h-32 w-24 shrink-0 self-end rounded-sm object-cover" />
                   )}
-                  <span className="rounded-full bg-[#f4e4b0] px-2.5 py-0.5 text-xs font-bold text-[#1b1f33]">
-                    {subjectOf(e.subject).icon} {subjectOf(e.subject).name}
-                  </span>
                 </div>
                 <div className="flex flex-1 flex-col gap-3 p-5">
-                  <h2 className="text-xl font-semibold">{e.title}</h2>
                   <p className="text-sm text-muted">{e.description}</p>
                   <p className="text-xs text-muted">
                     {e.lessons} lessons · {e.pages} {e.kind === "SLIDES" ? "slides" : "pages"} · {e.license}

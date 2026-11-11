@@ -36,7 +36,7 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
           Staging copy: fake data only. Changes here don&apos;t affect the real site.
         </div>
       )}
-      <div className="paper flex min-h-dvh flex-col lg:pl-60">
+      <div className="paper flex min-h-dvh flex-col pb-16 lg:pb-0">
         <main id="main" className="mx-auto w-full min-w-0 max-w-[92rem] flex-1 px-4 py-8 sm:px-6 lg:px-12">
           <PageTransition>{children}</PageTransition>
         </main>

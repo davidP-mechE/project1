@@ -18,7 +18,7 @@ export async function getDashboard(userId: string, now = new Date()) {
       where: { userId, archivedAt: null, status: { in: ["GENERATING", "ACTIVE"] } },
       orderBy: [{ lastOpenedAt: { sort: "desc", nulls: "last" } }, { createdAt: "desc" }],
       take: 8,
-      select: { id: true, title: true, progressPct: true },
+      select: { id: true, title: true, progressPct: true, subject: true },
     }),
     db.questionAttempt.findMany({
       where: { userId, createdAt: { gte: new Date(now.getTime() - 90 * 86_400_000) }, course: { archivedAt: null } },
@@ -71,7 +71,7 @@ export async function getDashboard(userId: string, now = new Date()) {
     courses: courses.map((c, i) => {
       const o = outlines[i];
       const resume = o.resume ? o.units.flatMap((u) => u.lessons).find((l) => l.id === o.resume!.id) : null;
-      return { id: c.id, title: c.title, pct: o.pct, done: o.done, total: o.total, resume: resume ? { id: resume.id, title: resume.title, reason: o.resume!.reason } : null };
+      return { id: c.id, title: c.title, subject: c.subject, pct: o.pct, done: o.done, total: o.total, resume: resume ? { id: resume.id, title: resume.title, reason: o.resume!.reason } : null };
     }),
     weakTopics: weak.map((w) => ({ topic: w.topic, score: w.score, attempts: w.attempts, lesson: w.lessonId ? (lessonById.get(w.lessonId) ?? null) : null })),
     confusing: confusing.map((c) => c.lesson),

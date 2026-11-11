@@ -10,7 +10,7 @@ export function PillNav({ label, items }: { label: string; items: { href: string
           key={i.href}
           href={i.href}
           aria-current={i.active ? "page" : undefined}
-          className={cn("press rounded-full border px-3.5 py-1.5 transition-colors", i.active ? "border-primary bg-primary font-semibold text-primary-text shadow-sm" : "border-border bg-surface hover:border-accent/60 hover:bg-surface-2")}
+          className={cn("press rounded-md border-[1.5px] px-3.5 py-1.5 font-semibold transition-colors", i.active ? "border-primary bg-primary text-primary-text" : "border-border bg-surface hover:border-text")}
         >
           {i.label}
           {i.count !== undefined && <span className={cn("ml-1", i.active ? "opacity-80" : "text-muted")}>({i.count})</span>}

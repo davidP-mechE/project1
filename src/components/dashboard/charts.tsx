@@ -98,17 +98,17 @@ export function GoalRing({ minutes, target, score, onDark = false }: { minutes: 
         {onDark &&
           Array.from({ length: 24 }, (_, i) => {
             const a = (i / 24) * 2 * Math.PI;
-            return <line key={i} x1={50 + 47 * Math.cos(a)} y1={50 + 47 * Math.sin(a)} x2={50 + (i % 6 === 0 ? 43 : 45) * Math.cos(a)} y2={50 + (i % 6 === 0 ? 43 : 45) * Math.sin(a)} stroke="rgb(251 243 223 / 0.35)" strokeWidth="1" />;
+            return <line key={i} x1={50 + 47 * Math.cos(a)} y1={50 + 47 * Math.sin(a)} x2={50 + (i % 6 === 0 ? 43 : 45) * Math.cos(a)} y2={50 + (i % 6 === 0 ? 43 : 45) * Math.sin(a)} stroke="rgb(255 255 255 / 0.4)" strokeWidth="1" />;
           })}
-        <circle cx="50" cy="50" r={onDark ? 36 : r} fill="none" stroke={onDark ? "rgb(251 243 223 / 0.14)" : "var(--surface-2)"} strokeWidth={onDark ? 7 : 9} />
+        <circle cx="50" cy="50" r={onDark ? 36 : r} fill="none" stroke={onDark ? "rgb(255 255 255 / 0.2)" : "var(--surface-2)"} strokeWidth={onDark ? 7 : 9} />
         <circle
           cx="50"
           cy="50"
           r={onDark ? 36 : r}
           fill="none"
-          stroke={done ? (onDark ? "#9ed8a6" : "var(--success)") : onDark ? "#c9a227" : "var(--primary)"}
+          stroke={done ? (onDark ? "#ff5c93" : "var(--success)") : onDark ? "#ffffff" : "var(--primary)"}
           strokeWidth={onDark ? 7 : 9}
-          strokeLinecap="round"
+          strokeLinecap="butt"
           strokeDasharray={onDark ? 2 * Math.PI * 36 : c}
           strokeDashoffset={(onDark ? 2 * Math.PI * 36 : c) * (1 - Math.max(pct, minutes > 0 ? 0.02 : 0))}
           className="ring-fill"

@@ -87,7 +87,7 @@ export default async function LessonPage({ params, searchParams }: PageProps<"/c
       <div className="read-progress" aria-hidden />
       <header className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">{lesson.title}</h1>
+          <h1 className="font-display text-3xl sm:text-[2.4rem]">{lesson.title}</h1>
           <p className="mt-1 text-sm text-muted">
             {view.position && `Lesson ${view.position.index} of ${view.position.total} · `}
             <a href={`/api/books/${bookId}/file#page=${lesson.pageStart}`} data-book-page={lesson.pageStart} target="_blank" rel="noopener" className="underline-offset-2 hover:underline">

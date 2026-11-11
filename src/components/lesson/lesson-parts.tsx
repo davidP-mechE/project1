@@ -34,7 +34,7 @@ export function PageRefs({ bookId, pages, kind }: { bookId: string; pages: numbe
 export function Section({ title, id, children, count }: { title: string; id: string; children: ReactNode; count?: number }) {
   return (
     <section aria-labelledby={id} className="scroll-mt-20">
-      <h2 id={id} className="mb-3 text-lg font-semibold">
+      <h2 id={id} className="mb-4 font-display text-2xl">
         {title}
         {count !== undefined && <span className="ml-2 text-sm font-normal text-muted">({count})</span>}
       </h2>

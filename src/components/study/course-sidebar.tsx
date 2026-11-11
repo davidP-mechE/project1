@@ -12,7 +12,7 @@ export function CourseSidebar({ courseId, courseTitle, outline, currentLessonId 
       {outline.units.map((u) => (
         <li key={u.id}>
           <div className="mb-1 flex items-baseline justify-between gap-2 px-2">
-            <h3 className="text-xs font-semibold uppercase tracking-wide text-muted">{u.title}</h3>
+            <h3 className="text-sm font-bold">{u.title}</h3>
             <span className="shrink-0 text-xs tabular-nums text-muted">
               {u.progress.done}/{u.progress.total}
             </span>
@@ -27,7 +27,7 @@ export function CourseSidebar({ courseId, courseTitle, outline, currentLessonId 
                     aria-current={current ? "page" : undefined}
                     className={cn(
                       "press-soft flex items-start gap-2 rounded-lg px-2 py-1.5 text-sm",
-                      current ? "bg-primary/10 font-medium text-text" : "text-muted hover:bg-surface-2 hover:text-text",
+                      current ? "bg-text font-semibold text-bg" : "text-muted hover:bg-surface-2 hover:text-text",
                     )}
                   >
                     <span
@@ -63,7 +63,7 @@ export function CourseSidebar({ courseId, courseTitle, outline, currentLessonId 
   );
   return (
     <>
-      <nav aria-label="Course contents" className="sticky top-6 hidden max-h-[calc(100dvh-3rem)] flex-col gap-4 overflow-y-auto pb-4 lg:flex">
+      <nav aria-label="Course contents" className="sticky top-22 hidden max-h-[calc(100dvh-7rem)] flex-col gap-4 overflow-y-auto pb-4 lg:flex">
         <Link href={`/courses/${courseId}`} className="px-2 text-sm font-semibold hover:underline">
           {courseTitle}
         </Link>

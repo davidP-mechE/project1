@@ -47,7 +47,7 @@ export async function ClassNav({
           ← My classes
         </Link>
       </p>
-      <header className="hero-card rounded-[1.5rem] px-6 py-7 sm:px-8">
+      <header className="hero-card rounded-2xl px-6 py-7 sm:px-8">
         {program && <ProgramTag program={program} className="text-[#f3ead5] [&_.text-muted]:text-[#c3b9a2]" />}
         <h1 className="mt-3 font-display text-3xl font-semibold leading-tight sm:text-4xl">{c.name}</h1>
         <p className="mt-3 flex flex-wrap items-center gap-2 text-sm">

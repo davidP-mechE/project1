@@ -98,13 +98,13 @@ export default async function CalendarPage({ searchParams }: PageProps<"/calenda
       <PageHeader title="Calendar" description={`Times are in your timezone (${zone}).`} />
       <nav aria-label="Months" className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <Link href={q({ month: prev })} className="rounded-[10px] border border-border px-3 py-1.5 text-sm hover:bg-surface-2">
+          <Link href={q({ month: prev })} className="rounded-md border border-border px-3 py-1.5 text-sm hover:bg-surface-2">
             ← <span className="sr-only">Previous month</span>
           </Link>
           <h2 className="min-w-40 text-center font-display text-xl font-semibold" aria-live="polite">
             {title}
           </h2>
-          <Link href={q({ month: next })} className="rounded-[10px] border border-border px-3 py-1.5 text-sm hover:bg-surface-2">
+          <Link href={q({ month: next })} className="rounded-md border border-border px-3 py-1.5 text-sm hover:bg-surface-2">
             → <span className="sr-only">Next month</span>
           </Link>
           {key !== today.slice(0, 7) && (

@@ -27,7 +27,7 @@ export default async function Home() {
   const featured = env.FEATURED_PROGRAM_SLUG ? await publicProgram(env.FEATURED_PROGRAM_SLUG) : null;
   return (
     <div className="mx-auto flex max-w-5xl flex-col gap-14 px-4 py-12 sm:py-16">
-      <section className="hero-card grid items-center gap-8 rounded-[1.75rem] px-6 py-12 sm:px-12 md:grid-cols-[1.4fr_1fr]">
+      <section className="hero-card grid items-center gap-8 rounded-2xl px-6 py-12 sm:px-12 md:grid-cols-[1.4fr_1fr]">
         <div className="flex flex-col gap-6">
           <p className="font-display text-sm font-semibold tracking-[0.2em] text-[#d9b84a]">{BRAND.name.toUpperCase()}</p>
           <h1 className="font-display text-4xl font-semibold leading-tight sm:text-5xl">Turn your textbooks into courses. Run your tutoring program on top.</h1>

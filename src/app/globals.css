@@ -4,98 +4,127 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /*
- * The 1600 Project design system: "Ink & Gold".
- * Navy ink on warm paper, with gold as the program's mark. Gold is decoration
- * (rules, ticks, the seal, the accent button's fill); text in gold uses
- * --accent-ink, which is dark enough. Every text/background pair meets WCAG AA
- * (4.5:1); the browser tests check the real pages in both themes.
+ * Coursebook's design system: "Cover series".
+ * Coursebook is a publisher with a series of book covers: flat cobalt and
+ * pink on cool paper, Archivo set wide and heavy for headings, square-ish
+ * corners and no soft shadows. Courses get a cover in their subject's colour
+ * (--cover-*). Programs that run on Coursebook (The 1600 Project) keep their
+ * own badge and slide styling inside it.
  *
- * Type: Fraunces (display: headings, big numbers) and Inter (everything else).
- * Radius: 14px cards, 10px controls. Spacing: Tailwind's 4px scale.
+ * Pink is decoration and fills (with ink text on it); pink text uses
+ * --accent-ink. Every text/background pair meets WCAG AA (4.5:1); the browser
+ * tests check the real pages in both themes.
+ *
+ * Type: Archivo (variable width and weight) for everything.
+ * Radius: 6px cards and controls, 8px large panels. Spacing: Tailwind's 4px scale.
  */
 :root {
-  --bg: #f7f2e7;
-  --surface: #fffdf8;
-  --surface-2: #f0e8d6;
-  --border: #e3d8c0;
-  --text: #151c2e;
-  --text-muted: #555b6c;
-  --primary: #14213d;
-  --primary-hover: #0c1529;
-  --primary-text: #fbf5e6;
-  --accent: #c9a227; /* gold: fills and decoration */
-  --accent-hover: #b8931d;
-  --accent-text: #14213d; /* navy on gold: 7:1 */
-  --accent-ink: #735709; /* gold dark enough for text on paper */
-  --danger: #a3301d;
-  --danger-bg: #fbe8e1;
-  --success: #24704a;
-  --success-bg: #e3f0e6;
-  --warning: #80520a;
-  --warning-bg: #faefd0;
-  --focus: #3550c9;
-  --shadow: 0 1px 0 #e3d8c0, 0 10px 28px -18px rgb(20 33 61 / 0.35);
-  /* Charts: navy line, gold goals and estimate band, then a calm series palette. */
-  --chart-1: #14213d;
-  --chart-2: #c9a227;
-  --chart-3: #4f7cac;
-  --chart-4: #b5654d;
-  --chart-5: #5b8a5f;
-  --chart-grid: #e9dfc9;
-  --chart-band: rgb(201 162 39 / 0.22);
-  /* Ink sidebar and hero cards (the same in both themes) */
-  --nav-bg: #14213d;
-  --nav-text: #f3ead5;
-  --nav-muted: #c3b9a2;
-  --nav-active: #24304f;
-  --hero-from: #14213d;
-  --hero-to: #26375f;
-  --hero-text: #fbf3df;
+  --ff-sans: "Archivo Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --ff-display: var(--ff-sans);
+  --bg: #f1f2f4;
+  --surface: #ffffff;
+  --surface-2: #e8eaee;
+  --border: #d0d4db;
+  --border-strong: #7c8190; /* form fields: 3:1 against the page */
+  --text: #17191f;
+  --text-muted: #535866;
+  --primary: #2a3bd1;
+  --primary-hover: #1f2db0;
+  --primary-text: #ffffff;
+  --accent: #ff5c93; /* pink: fills and decoration */
+  --accent-hover: #ff4585;
+  --accent-text: #17191f;
+  --accent-ink: #b0105a; /* pink dark enough for text */
+  --danger: #b42318;
+  --danger-bg: #fde8e6;
+  --success: #1d7148;
+  --success-bg: #e1f2e7;
+  --warning: #8a5300;
+  --warning-bg: #fdf0d5;
+  --focus: #2a3bd1;
+  --shadow: 0 1px 0 rgb(23 25 31 / 0.04);
+  /* Charts: cobalt line, pink goals and estimate band, then the series palette. */
+  --chart-1: #2a3bd1;
+  --chart-2: #ff5c93;
+  --chart-3: #0e8a6a;
+  --chart-4: #e29a00;
+  --chart-5: #7a3fd0;
+  --chart-grid: #e3e6eb;
+  --chart-band: rgb(255 92 147 / 0.18);
+  /* The top bar and tab bar */
+  --nav-bg: #ffffff;
+  --nav-text: #17191f;
+  --nav-muted: #535866;
+  --nav-active: #e8eaee;
+  /* Cover cards (the next step on Today, course covers) */
+  --hero-from: #2a3bd1;
+  --hero-to: #2a3bd1;
+  --hero-text: #ffffff;
+  /* Course covers by subject: white text on each meets AA. */
+  --cover-math: #2a3bd1;
+  --cover-physics: #5b33c4;
+  --cover-chemistry: #0b7259;
+  --cover-biology: #2c6e2f;
+  --cover-earth-space: #0d5c87;
+  --cover-health: #b0245a;
+  --cover-computer-science: #3a3e4a;
+  --cover-ela: #c62f1f;
+  --cover-social-studies: #9a4a00;
+  --cover-economics: #006e69;
+  --cover-other: #4a4f5c;
 }
 
 .dark {
-  --bg: #0d1322;
-  --surface: #151d31;
-  --surface-2: #1d2740;
-  --border: #2b3654;
-  --text: #f1ead8;
-  --text-muted: #b5ae9d;
-  --primary: #e3c56a;
-  --primary-hover: #efd58e;
-  --primary-text: #11182b;
-  --accent: #e3c56a;
-  --accent-hover: #efd58e;
-  --accent-text: #11182b;
-  --accent-ink: #e8cd7d;
-  --danger: #f3a08f;
+  --bg: #14161c;
+  --surface: #1c1f27;
+  --surface-2: #262a35;
+  --border: #353a48;
+  --border-strong: #7a8091;
+  --text: #f1f2f5;
+  --text-muted: #a9aebb;
+  --primary: #9aa4ff;
+  --primary-hover: #b3bbff;
+  --primary-text: #14161c;
+  --accent: #ff70a0;
+  --accent-hover: #ff8ab2;
+  --accent-text: #14161c;
+  --accent-ink: #ff94b9;
+  --danger: #ff9a8a;
   --danger-bg: #3a1a17;
-  --success: #9ed8a6;
-  --success-bg: #15301d;
-  --warning: #f1c56a;
-  --warning-bg: #34280c;
-  --focus: #e3c56a;
-  --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 10px 30px -14px rgb(0 0 0 / 0.6);
-  --chart-1: #e3c56a;
-  --chart-2: #9fb5e0;
-  --chart-3: #7fb0d8;
-  --chart-4: #e39a82;
-  --chart-5: #9ccf9f;
-  --chart-grid: #26304b;
-  --chart-band: rgb(227 197 106 / 0.18);
-  --nav-bg: #0a0f1c;
-  --nav-text: #f1e8d2;
-  --nav-muted: #ada592;
-  --nav-active: #1c2540;
-  --hero-from: #14213d;
-  --hero-to: #26375f;
-  --hero-text: #fbf3df;
+  --success: #8fd6a8;
+  --success-bg: #15301f;
+  --warning: #f3c56a;
+  --warning-bg: #33280e;
+  --focus: #ff94b9;
+  --shadow: 0 1px 0 rgb(0 0 0 / 0.3);
+  --chart-1: #9aa4ff;
+  --chart-2: #ff70a0;
+  --chart-3: #5ccfa8;
+  --chart-4: #f2b84b;
+  --chart-5: #b794f6;
+  --chart-grid: #2b303c;
+  --chart-band: rgb(255 112 160 / 0.16);
+  --nav-bg: #1c1f27;
+  --nav-text: #f1f2f5;
+  --nav-muted: #a9aebb;
+  --nav-active: #2b303c;
+  --hero-from: #2a3bd1;
+  --hero-to: #2a3bd1;
+  --hero-text: #ffffff;
 }
 
 @theme inline {
+  /* Square-ish corners everywhere: the radius scale tops out at 8px. */
+  --radius-md: 0.375rem;
+  --radius-lg: 0.375rem;
+  --radius-xl: 0.375rem;
+  --radius-2xl: 0.5rem;
+  --radius-3xl: 0.5rem;
   --color-bg: var(--bg);
   --color-surface: var(--surface);
   --color-surface-2: var(--surface-2);
   --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
   --color-text: var(--text);
   --color-muted: var(--text-muted);
   --color-primary: var(--primary);
@@ -123,11 +152,8 @@
   --color-nav-text: var(--nav-text);
   --color-nav-muted: var(--nav-muted);
   --color-nav-active: var(--nav-active);
-  --font-sans:
-    "Inter Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
-    Roboto, "Helvetica Neue", Arial, sans-serif;
-  --font-display:
-    "Fraunces Variable", ui-serif, Georgia, "Times New Roman", serif;
+  --font-sans: var(--ff-sans);
+  --font-display: var(--ff-display);
 }
 
 html {
@@ -141,32 +167,11 @@ body {
   background: var(--bg);
   color: var(--text);
   font-family: var(--font-sans);
-  font-feature-settings: "cv11", "ss01";
 }
 
-/* Warm paper with two soft glows (gold top-right, ink bottom-left), so pages don't feel flat. */
+/* The app's page background (kept as a class: some pages set their own). */
 .paper {
-  background:
-    radial-gradient(60rem 30rem at 100% -10%, rgb(201 162 39 / 0.10), transparent 70%),
-    radial-gradient(50rem 30rem at -10% 110%, rgb(20 33 61 / 0.06), transparent 70%),
-    var(--bg);
-  background-attachment: fixed;
-}
-.dark .paper {
-  background:
-    radial-gradient(60rem 30rem at 100% -10%, rgb(227 197 106 / 0.08), transparent 70%),
-    radial-gradient(50rem 30rem at -10% 110%, rgb(120 150 220 / 0.06), transparent 70%),
-    var(--bg);
-  background-attachment: fixed;
-}
-
-/* A hand-drawn gold underline under a word (the greeting's name). */
-.ink-underline {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 12' preserveAspectRatio='none'%3E%3Cpath d='M2 8 C 40 3, 80 11, 120 6 S 180 4, 198 7' fill='none' stroke='%23c9a227' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-size: 100% 0.32em;
-  background-position: 0 98%;
-  padding-bottom: 0.08em;
+  background: var(--bg);
 }
 
 /* A sideways-scrolling box contains its own screen-reader-only labels (absolutely
@@ -203,20 +208,19 @@ body {
   }
 }
 
-/* Big numbers (scores, stats) use the display face with even-width figures. */
+/* Big numbers (scores, stats): wide and heavy, with even-width figures. */
 .score-num {
   font-family: var(--font-display);
   font-variant-numeric: lining-nums tabular-nums;
-  font-weight: 650;
+  font-stretch: 112%;
+  font-weight: 800;
   letter-spacing: -0.01em;
 }
 
-/* Small uppercase labels above numbers ("LATEST SCORE"). */
+/* Small labels above numbers and headings ("Latest score"): sentence case. */
 .eyebrow {
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-size: 0.8rem;
+  font-weight: 600;
   color: var(--text-muted);
 }
 
@@ -564,10 +568,8 @@ body {
 }
 @media (hover: hover) {
   .card-hover:hover {
-    transform: translateY(-3px);
-    box-shadow:
-      0 2px 4px rgb(27 31 51 / 0.06),
-      0 14px 30px -14px rgb(27 31 51 / 0.32);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 0 -2px var(--border);
   }
 }
 .card-hover:active {
@@ -581,7 +583,7 @@ body {
   animation: cb-grow-x 700ms cubic-bezier(0.2, 0.8, 0.2, 1) 120ms both;
 }
 
-/* A right answer glows; a finished quest gets a moon-gold sheen. */
+/* A right answer glows; a finished quest gets a quick sheen. */
 .answer-glow {
   animation: cb-answer-glow 900ms ease-out both;
 }
@@ -605,7 +607,7 @@ body {
   background: linear-gradient(
     115deg,
     transparent 30%,
-    rgb(244 228 176 / 0.85) 50%,
+    rgb(255 255 255 / 0.85) 50%,
     transparent 70%
   );
   transform: translateX(-120%);
@@ -663,7 +665,7 @@ details > summary {
   cursor: pointer;
 }
 
-/* A thin moon-gold line along the top of a lesson fills as you read (scroll-driven, no script). */
+/* A thin pink line along the top of a lesson fills as you read (scroll-driven, no script). */
 .read-progress {
   display: none;
 }
@@ -678,10 +680,11 @@ details > summary {
     transform-origin: left;
     animation: cb-grow-x linear both;
     animation-timeline: scroll(root block);
+    top: 3.5rem; /* under the top bar */
   }
   @media (min-width: 1024px) {
     .read-progress {
-      left: 16rem; /* beside the sidebar */
+      top: 4rem;
     }
   }
 }
@@ -698,7 +701,7 @@ html {
 }
 @media (min-width: 1024px) {
   html {
-    scroll-padding-top: 1.5rem;
+    scroll-padding-top: 5.5rem;
   }
 }
 
@@ -824,62 +827,69 @@ html {
   text-decoration: underline;
 }
 
-/* ─── Cream & moon look (Phase 11) ──────────────────────────────────── */
+/* ─── Headings and covers ───────────────────────────────────────────── */
 
+/* Headings are set wide and heavy; page titles wider still. */
 h1,
 h2,
 .font-display {
   font-family: var(--font-display);
-  font-optical-sizing: auto;
-  letter-spacing: -0.01em;
+  font-stretch: 112%;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+h1 {
+  font-stretch: 122%;
+  line-height: 1.05;
 }
 
-/* Night-sky hero card with a crescent moon and a few stars. */
+/* A cover: a flat colour field with a darker spine band down the left and a
+   pink band along the bottom (the next step on Today, course covers). */
 .hero-card {
   position: relative;
   overflow: hidden;
   color: var(--hero-text);
-  background: linear-gradient(135deg, var(--hero-from), var(--hero-to));
-  box-shadow: var(--shadow);
+  background: var(--cover, var(--hero-from));
 }
 .hero-card::before {
-  /* the right-hand page of an open book: faint ruled lines that fade in from the right */
   content: "";
   position: absolute;
-  inset: 0 0 0 45%;
-  background: repeating-linear-gradient(to bottom, transparent 0 1.9rem, rgb(251 243 223 / 0.07) 1.9rem calc(1.9rem + 1px));
-  mask-image: linear-gradient(to right, transparent, black 60%);
+  inset: 0 auto 0 0;
+  width: var(--spine, 2rem);
+  background: rgb(0 0 0 / 0.28);
   pointer-events: none;
 }
 .hero-card::after {
-  /* the gold bookmark ribbon from the Coursebook mark */
   content: "";
   position: absolute;
-  top: 0;
-  right: 2.25rem;
-  width: 1.15rem;
-  height: 3.4rem;
-  background: linear-gradient(#d9b84a, #b8931d);
-  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 78%, 0 100%);
-  box-shadow: 0 2px 6px rgb(0 0 0 / 0.25);
+  inset: auto 0 0 0;
+  height: var(--band, 0.9rem);
+  background: var(--accent);
   pointer-events: none;
 }
 .hero-card > * {
   position: relative;
 }
-/* Light-on-night button inside hero cards (plain CSS so it wins over the button's utility classes). */
+/* A cover's title: as wide as the face goes. */
+.cover-title {
+  font-stretch: 125%;
+  font-weight: 850;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+/* White button on a cover (plain CSS so it wins over the button's utility classes). */
 .hero-button {
-  background: #c9a227;
-  color: #14213d;
+  background: #fff;
+  color: #2a3bd1;
 }
 .hero-button:hover {
-  background: #d8b33c;
+  background: #e9ecff;
 }
 .hero-card .hero-track {
-  background: rgb(251 243 223 / 0.22);
+  background: rgb(255 255 255 / 0.25);
 }
 .hero-card .hero-fill {
-  background: #c9a227;
+  background: #fff;
 }
 
 /* Soft lift for cards. */
@@ -1012,8 +1022,67 @@ dialog.drawer[open] {
 }
 .hero-ghost {
   color: var(--hero-text);
-  box-shadow: inset 0 0 0 1px rgb(251 243 223 / 0.45);
+  box-shadow: inset 0 0 0 1.5px rgb(255 255 255 / 0.6);
 }
 .hero-ghost:hover {
-  background: rgb(251 243 223 / 0.12);
+  background: rgb(255 255 255 / 0.12);
+}
+
+/* ─── Top bar (desktop) and tab bar (phones) ─────────────────────────── */
+.topnav-item {
+  position: relative;
+  font-stretch: 105%;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  height: 2.5rem;
+  padding: 0 0.8rem;
+  border-radius: 6px;
+  font-size: 0.93rem;
+  font-weight: 600;
+  color: var(--nav-text);
+  white-space: nowrap;
+}
+.topnav-item:hover {
+  background: var(--nav-active);
+}
+/* The section you're in is a solid ink tab. */
+.topnav-item[aria-current="page"],
+.topnav-item[data-here] {
+  background: var(--text);
+  color: var(--bg);
+}
+.topnav-count {
+  display: inline-block;
+  min-width: 1.25rem;
+  padding: 0 0.35rem;
+  border-radius: 4px;
+  background: var(--accent);
+  color: var(--accent-text);
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 1.25rem;
+  text-align: center;
+}
+.tabbar-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.55rem 0 0.5rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--nav-muted);
+}
+.tabbar-item[aria-current="page"] {
+  color: var(--nav-text);
+  box-shadow: inset 0 4px 0 var(--primary);
+}
+
+/* Form fields get the stronger edge (3:1 against the page), wherever they're built.
+   Fields drawn without a border stay borderless. */
+input:not([type="checkbox"], [type="radio"], [type="range"], [type="hidden"], [type="submit"], [type="button"]),
+select,
+textarea {
+  border-color: var(--border-strong);
 }

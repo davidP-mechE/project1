@@ -34,7 +34,7 @@ export default async function ProgramPage({ params }: PageProps<"/p/[slug]">) {
   const lastStep = p.goalGain ? ["Watch the gain", `Every score adds to your chart. The goal: +${p.goalGain} points.`] : steps[3];
   return (
     <div className="mx-auto flex max-w-5xl flex-col gap-14 px-4 py-12 sm:py-16">
-      <section className="hero-card grid items-center gap-8 rounded-[1.75rem] px-6 py-12 sm:px-12 md:grid-cols-[1.4fr_1fr]">
+      <section className="hero-card grid items-center gap-8 rounded-2xl px-6 py-12 sm:px-12 md:grid-cols-[1.4fr_1fr]">
         <div className="flex flex-col gap-6">
           <div className="flex items-center gap-3">
             <ProgramBadge program={p} onDark className="size-14" />
