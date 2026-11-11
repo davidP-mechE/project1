@@ -28,10 +28,10 @@ export function LessonStatusPoller({ courseId, lessonId, status }: { courseId: s
   return null;
 }
 
-type Props = { courseId: string; lessonId: string; status: string; hasContent: boolean; userEdited: boolean };
+type Props = { courseId: string; lessonId: string; status: string; hasContent: boolean; userEdited: boolean; fromSlides?: boolean };
 
 /** Regenerate / Edit actions for a lesson. */
-export function LessonActions({ courseId, lessonId, status, hasContent, userEdited }: Props) {
+export function LessonActions({ courseId, lessonId, status, hasContent, userEdited, fromSlides = false }: Props) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -57,7 +57,8 @@ export function LessonActions({ courseId, lessonId, status, hasContent, userEdit
         <Menu
           label="Lesson actions"
           items={[
-            { label: hasContent ? "Regenerate this lesson" : "Generate this lesson", onSelect: () => (userEdited ? confirm.current?.showModal() : run("lesson")), disabled: busy || pending },
+            // A lesson made from the course's own slides has nothing to rewrite.
+            ...(fromSlides ? [] : [{ label: hasContent ? "Regenerate this lesson" : "Generate this lesson", onSelect: () => (userEdited ? confirm.current?.showModal() : run("lesson")), disabled: busy || pending }]),
             { label: "New practice questions", onSelect: () => run("questions"), disabled: busy || pending || !hasContent },
           ]}
         >

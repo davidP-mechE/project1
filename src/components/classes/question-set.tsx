@@ -48,7 +48,7 @@ export function Countdown({ endsAt, onEnd }: { endsAt: string; onEnd: () => void
   const s = Math.max(0, Math.round(left / 1000));
   const low = s < 5 * 60;
   return (
-    <span role="timer" aria-live={low ? "polite" : "off"} className={cn("rounded-full px-3 py-1 text-sm font-semibold tabular-nums", low ? "bg-danger-bg text-danger" : "bg-surface-2")}>
+    <span role="timer" aria-live={low ? "polite" : "off"} className={cn("rounded px-3 py-1 text-sm font-semibold tabular-nums", low ? "bg-danger-bg text-danger" : "bg-surface-2")}>
       {Math.floor(s / 60)}:{String(s % 60).padStart(2, "0")} left
     </span>
   );
@@ -118,7 +118,7 @@ function QuestionCard({ assignmentId, q, timed, locked, onSaved }: { assignmentI
                   )}
                 >
                   <input type="radio" name={`q-${q.id}`} checked={choice === j} onChange={() => setChoice(j)} className="sr-only" />
-                  <span className="font-semibold text-muted">{letter(j)}.</span>
+                  <span className="choice-letter">{letter(j)}<span className="sr-only">.</span></span>
                   <Markdown className="flex-1 [&_p]:m-0">{c}</Markdown>
                   {right && <span className="text-success" aria-label="correct answer">✓</span>}
                 </label>

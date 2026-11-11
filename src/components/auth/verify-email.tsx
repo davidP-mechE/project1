@@ -20,7 +20,7 @@ export function VerifyEmail({ email: initialEmail, expired }: { email?: string; 
 
   return (
     <>
-      <h1 className="text-xl font-semibold">{expired ? "That link has expired" : "Check your email"}</h1>
+      <h1 className="font-display text-3xl">{expired ? "That link has expired" : "Check your email"}</h1>
       <p className="mt-2 text-sm text-muted">
         {expired
           ? "Verification links work for 1 hour. Send yourself a new one below."

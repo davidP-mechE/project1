@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
-import { retryAssessmentAction, retryBookAction, retryLessonsAction, setPlanAction } from "@/server/actions/admin";
+import { demoDataAction, retryAssessmentAction, retryBookAction, retryLessonsAction, setPlanAction } from "@/server/actions/admin";
 
 type Result = { ok: true; message?: string } | { ok: false; error: string };
 
@@ -62,5 +62,32 @@ export function PlanSelect({ userId, plan, email }: { userId: string; plan: stri
         </span>
       )}
     </span>
+  );
+}
+
+/** Load / Clear buttons for demo mode. */
+export function DemoDataControls({ loaded }: { loaded: boolean }) {
+  const [pending, start] = useTransition();
+  const [result, setResult] = useState<Result | null>(null);
+  const go = (op: "load" | "clear") => start(async () => setResult(await demoDataAction(op)));
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <Button size="sm" disabled={pending} onClick={() => go("load")}>
+        {pending ? "Working…" : loaded ? "Reload demo data" : "Load demo data"}
+      </Button>
+      <Button
+        size="sm"
+        variant="secondary"
+        disabled={pending || !loaded}
+        onClick={() => {
+          if (confirm("Delete every demo account, the demo class and all their work? Real data isn't touched.")) go("clear");
+        }}
+      >
+        Clear demo data
+      </Button>
+      <span role="status" className={result?.ok === false ? "text-xs text-danger" : "text-xs text-muted"}>
+        {result ? (result.ok ? result.message : result.error) : ""}
+      </span>
+    </div>
   );
 }

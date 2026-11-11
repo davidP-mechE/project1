@@ -3,8 +3,7 @@ import type { Metadata, Viewport } from "next";
 import { headers } from "next/headers";
 import { ThemeProvider } from "@/components/theme";
 import "katex/dist/katex.min.css";
-import "@fontsource-variable/inter";
-import "@fontsource-variable/fraunces/soft.css";
+import "@fontsource-variable/archivo/standard.css";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -14,8 +13,8 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f6efe0" },
-    { media: "(prefers-color-scheme: dark)", color: "#0f1220" },
+    { media: "(prefers-color-scheme: light)", color: "#f1f2f4" },
+    { media: "(prefers-color-scheme: dark)", color: "#14161c" },
   ],
 };
 

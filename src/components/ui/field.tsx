@@ -2,7 +2,7 @@ import { useId, type ComponentProps } from "react";
 import { cn } from "@/lib/utils";
 
 export const inputClasses =
-  "h-10 w-full rounded-lg border border-border bg-surface px-3 text-sm text-text placeholder:text-muted focus-visible:border-focus";
+  "h-10 w-full rounded-md border-[1.5px] border-border-strong bg-surface px-3 text-sm text-text placeholder:text-muted focus-visible:border-focus";
 
 /** A labelled input with optional hint and error text, wired up for screen readers. */
 export function Field({

@@ -34,7 +34,7 @@ export function PageRefs({ bookId, pages, kind }: { bookId: string; pages: numbe
 export function Section({ title, id, children, count }: { title: string; id: string; children: ReactNode; count?: number }) {
   return (
     <section aria-labelledby={id} className="scroll-mt-20">
-      <h2 id={id} className="mb-3 text-lg font-semibold">
+      <h2 id={id} className="mb-4 font-display text-2xl">
         {title}
         {count !== undefined && <span className="ml-2 text-sm font-normal text-muted">({count})</span>}
       </h2>
@@ -113,7 +113,7 @@ export function Flashcards({ items }: { items: { id: string; front: string; back
     <ul className="grid gap-3 sm:grid-cols-2">
       {items.map((f) => (
         <li key={f.id}>
-          <details className="press-soft group h-full rounded-xl border border-border bg-surface p-4 open:bg-surface-2">
+          <details className="index-card press-soft group h-full p-4">
             <summary className="cursor-pointer list-none font-medium [&::-webkit-details-marker]:hidden">
               <Markdown className="[&_p]:m-0">{f.front}</Markdown>
               <span className="mt-2 block text-xs font-normal text-primary group-open:hidden">Tap to flip</span>

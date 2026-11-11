@@ -10,7 +10,7 @@ export function UsageMeter({ plan, limits, usage, resetsAt }: { plan: string; li
     <Card>
       <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
         <h2 className="text-lg font-semibold">Plan and usage</h2>
-        <span className="rounded-full bg-surface-2 px-2.5 py-0.5 text-sm font-medium">{plan === "PRO" ? "Pro" : "Free"} plan</span>
+        <span className="rounded bg-surface-2 px-2.5 py-0.5 text-sm font-medium">{plan === "PRO" ? "Pro" : "Free"} plan</span>
       </div>
       <ul className="flex flex-col gap-4">
         {meters.map((m) => {

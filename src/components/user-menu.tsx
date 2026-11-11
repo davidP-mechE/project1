@@ -36,7 +36,7 @@ export function UserMenu({ name, email, isAdmin = false, placement = "down", sho
       >
         {showName ? (
           <>
-            <span aria-hidden className="inline-flex size-9 shrink-0 items-center justify-center rounded-full bg-[#f4e4b0] text-sm font-bold text-[#1b1f33]">
+            <span aria-hidden className="inline-flex size-9 shrink-0 items-center justify-center rounded-full bg-accent text-sm font-bold text-accent-text">
               {initials}
             </span>
             <span className="min-w-0 truncate text-sm font-semibold">{name}</span>
@@ -50,7 +50,7 @@ export function UserMenu({ name, email, isAdmin = false, placement = "down", sho
         )}
       </button>
       {open && (
-        <div role="menu" className={`absolute z-30 w-60 rounded-xl border border-border bg-surface p-1 text-text shadow-lg ${placement === "up" ? "bottom-full left-0 mb-2" : "right-0 mt-2"}`}>
+        <div role="menu" className={`absolute z-30 w-60 rounded-lg border-[1.5px] border-border bg-surface p-1 text-text shadow-lg ${placement === "up" ? "bottom-full left-0 mb-2" : "right-0 mt-2"}`}>
           <div className="px-3 py-2 text-sm">
             <p className="truncate font-medium">{name}</p>
             <p className="truncate text-muted">{email}</p>

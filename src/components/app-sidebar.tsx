@@ -2,13 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useRef, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { setTimeZoneAction } from "@/server/actions/review";
 import { ThemeToggle } from "@/components/theme";
 import { UserMenu } from "@/components/user-menu";
 import { cn } from "@/lib/utils";
 import { CoursebookMark, Wordmark } from "@/components/brand/seal";
-import { BRAND } from "@/lib/brand";
 
 /**
  * The app's navigation: an ink sidebar on desktop; on phones, a top bar
@@ -196,14 +195,14 @@ function NavLinks({ isStaff, dueCount, unread, onNavigate }: { isStaff: boolean;
         onClick={onNavigate}
         aria-current={active ? "page" : undefined}
         className={cn(
-          "press flex items-center gap-3 rounded-xl px-3 py-1.5 text-[0.93rem] transition-colors",
-          active ? "bg-nav-active font-semibold text-nav-text shadow-[inset_3px_0_0_var(--accent)]" : "text-nav-text/85 hover:bg-nav-active/60 hover:text-nav-text",
+          "press flex items-center gap-3 rounded-md px-3 py-1.5 text-[0.93rem] transition-colors",
+          active ? "bg-text font-semibold text-bg" : "text-nav-text hover:bg-nav-active",
         )}
       >
         <Icon name={l.icon} />
         <span className="flex-1">{l.label}</span>
         {l.badge ? (
-          <span className="pop-in rounded-full bg-[#f4e4b0] px-2 text-xs font-bold leading-5 text-[#1b1f33]" aria-label={`${l.badge} ${l.badgeLabel ?? "new"}`}>
+          <span className="pop-in topnav-count" aria-label={`${l.badge} ${l.badgeLabel ?? "new"}`}>
             {l.badge > 99 ? "99+" : l.badge}
           </span>
         ) : null}
@@ -218,10 +217,10 @@ function NavLinks({ isStaff, dueCount, unread, onNavigate }: { isStaff: boolean;
         const count = g.links.reduce((n, l) => n + (l.badge ?? 0), 0);
         return (
           <details key={g.label} open={here} className="group/nav">
-            <summary className="flex cursor-pointer list-none items-center justify-between rounded-lg px-3 py-1 text-xs font-semibold uppercase tracking-wider text-nav-muted hover:text-nav-text [&::-webkit-details-marker]:hidden">
+            <summary className="flex cursor-pointer list-none items-center justify-between rounded-md px-3 py-1 text-sm font-bold text-nav-text hover:bg-nav-active [&::-webkit-details-marker]:hidden">
               <span>
                 {g.label}
-                {count > 0 && <span className="ml-2 rounded-full bg-[#f4e4b0] px-1.5 text-[10px] text-[#1b1f33]">{count > 99 ? "99+" : count}</span>}
+                {count > 0 && <span className="topnav-count ml-2">{count > 99 ? "99+" : count}</span>}
               </span>
               <svg viewBox="0 0 24 24" className="size-3.5 transition-transform group-open/nav:rotate-90" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden>
                 <path d="m9 6 6 6-6 6" />
@@ -255,15 +254,126 @@ function Bell({ count, onNavigate }: { count: number; onNavigate?: () => void })
 function Stats({ game }: { game: Props["game"] }) {
   return (
     <div className="flex flex-wrap gap-2 text-sm">
-      <span className="inline-flex items-center gap-1.5 rounded-full bg-nav-active px-2.5 py-1 font-semibold text-nav-text" title="Study streak">
+      <span className="inline-flex items-center gap-1.5 rounded-md bg-nav-active px-2.5 py-1 font-semibold text-nav-text" title="Study streak">
         <span aria-hidden>{game.streak > 0 ? "🔥" : "🌙"}</span>
         {game.streak}
         <span className="sr-only"> day streak</span>
       </span>
-      <span className="inline-flex items-center gap-1.5 rounded-full bg-nav-active px-2.5 py-1 font-semibold text-nav-text" title={`Level ${game.level}`}>
-        <span aria-hidden className="text-[#f4e4b0]">✦</span>
+      <span className="inline-flex items-center gap-1.5 rounded-md bg-nav-active px-2.5 py-1 font-semibold text-nav-text" title={`Level ${game.level}`}>
+        <span aria-hidden className="text-accent-ink">✦</span>
         {game.xp.toLocaleString("en-US")} <span className="text-xs font-medium text-nav-muted">XP</span>
       </span>
+    </div>
+  );
+}
+
+/** The sections, shared by the top bar's menus and the phone menu. */
+function sections(isStaff: boolean, dueCount: number, unread: Props["unread"]) {
+  const groups: { label: string; links: NavLink[] }[] = [
+    {
+      label: "Learn",
+      links: [
+        { href: "/classes", label: "Classes", icon: "classes" },
+        { href: "/library", label: "Library", icon: "library" },
+        { href: "/slides", label: "Slides", icon: "slides" },
+        { href: "/hub", label: "Hub", icon: "hub" },
+      ],
+    },
+    {
+      label: "Practice",
+      links: [
+        { href: "/skills", label: "Review", icon: "skills" },
+        { href: "/review", label: "Flashcards", icon: "spaced", badge: dueCount, badgeLabel: "cards to review" },
+        { href: "/mistakes", label: "Mistake log", icon: "errors" },
+        { href: "/errors", label: "Error log", icon: "errors" },
+        { href: "/mastery", label: "Mastery", icon: "mastery" },
+      ],
+    },
+    ...(isStaff
+      ? [
+          {
+            label: "Teaching",
+            links: [
+              { href: "/teach", label: "My classes", icon: "teach" as const },
+              { href: "/teach/worksheets", label: "Worksheets", icon: "worksheet" as const },
+              { href: "/teach/diagnostics", label: "Diagnostics", icon: "scores" as const },
+              { href: "/teach/review", label: "Review queue", icon: "errors" as const },
+            ],
+          },
+        ]
+      : []),
+  ];
+  const top: NavLink[] = [
+    { href: "/dashboard", label: "Today", icon: "home" },
+    { href: "/messages", label: "Messages", icon: "messages", badge: unread.threads, badgeLabel: "unread conversations" },
+    { href: "/calendar", label: "Calendar", icon: "calendar" },
+    { href: "/scores", label: "SAT scores", icon: "scores" },
+  ];
+  return { top, groups };
+}
+
+function useActiveHref(links: NavLink[]) {
+  const pathname = usePathname();
+  const matches = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
+  return links.map((l) => l.href).filter(matches).sort((x, y) => y.length - x.length)[0];
+}
+
+const countText = (n: number) => (n > 99 ? "99+" : String(n));
+
+/** A section's drop-down menu in the top bar. Closes on Escape, a click outside, or navigating. */
+function NavMenu({ label, links, activeHref }: { label: string; links: NavLink[]; activeHref?: string }) {
+  const pathname = usePathname();
+  // Open on the page it was opened on, so navigating closes it.
+  const [openOn, setOpenOn] = useState<string | null>(null);
+  const open = openOn === pathname;
+  const setOpen = (o: boolean | ((o: boolean) => boolean)) => setOpenOn((typeof o === "function" ? o(open) : o) ? pathname : null);
+  const ref = useRef<HTMLDivElement>(null);
+  const here = links.some((l) => l.href === activeHref);
+  const count = links.reduce((n, l) => n + (l.badge ?? 0), 0);
+  useEffect(() => {
+    if (!open) return;
+    const close = (e: MouseEvent | KeyboardEvent) => {
+      if (e instanceof KeyboardEvent ? e.key === "Escape" : !ref.current?.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", close);
+    document.addEventListener("keydown", close);
+    return () => {
+      document.removeEventListener("mousedown", close);
+      document.removeEventListener("keydown", close);
+    };
+  });
+  return (
+    <div ref={ref} className="relative">
+      <button type="button" aria-expanded={open} onClick={() => setOpen((o) => !o)} data-here={here || undefined} className="topnav-item">
+        {label}
+        {count > 0 && (
+          <span className="topnav-count" aria-label={`${count} to do`}>
+            {countText(count)}
+          </span>
+        )}
+        <svg viewBox="0 0 24 24" className={cn("size-3.5 transition-transform", open && "rotate-180")} fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden>
+          <path d="m6 9 6 6 6-6" />
+        </svg>
+      </button>
+      {open && (
+        <div className="topnav-panel absolute left-0 top-full z-30 mt-2 w-60 rounded-xl border border-border bg-surface p-1.5 text-text shadow-lg">
+          <ul className="flex flex-col">
+            {links.map((l) => (
+              <li key={l.href}>
+                <Link href={l.href} aria-current={l.href === activeHref ? "page" : undefined} className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm hover:bg-surface-2 aria-[current=page]:bg-surface-2 aria-[current=page]:font-semibold">
+                  <Icon name={l.icon} />
+                  <span className="flex-1">{l.label}</span>
+                  {l.badge ? (
+                    <span className="topnav-count" aria-label={`${l.badge} ${l.badgeLabel ?? "new"}`}>
+                      {countText(l.badge)}
+                    </span>
+                  ) : null}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }
@@ -271,6 +381,8 @@ function Stats({ game }: { game: Props["game"] }) {
 export function AppSidebar({ user, dueCount, timeZone, game, unread }: Props) {
   const pathname = usePathname();
   const drawer = useRef<HTMLDialogElement>(null);
+  const { top, groups } = sections(user.isStaff, dueCount, unread);
+  const activeHref = useActiveHref([...top, ...groups.flatMap((g) => g.links)]);
 
   // "Today" is the student's day: save the browser's time zone once.
   useEffect(() => {
@@ -283,56 +395,73 @@ export function AppSidebar({ user, dueCount, timeZone, game, unread }: Props) {
     drawer.current?.close();
   }, [pathname]);
 
-  const brand = (
-    <Link href="/dashboard" className="flex items-center gap-2.5">
-      <Wordmark />
+  const plain = (href: string, label: string) => (
+    <Link href={href} aria-current={activeHref === href ? "page" : undefined} className="topnav-item">
+      {label}
+    </Link>
+  );
+  const tab = (href: string, label: string, icon: keyof typeof ICONS, badge?: number, badgeLabel?: string) => (
+    <Link href={href} aria-current={activeHref === href ? "page" : undefined} className="tabbar-item">
+      <span className="relative">
+        <Icon name={icon} />
+        {badge ? (
+          <span className="topnav-count absolute -right-3 -top-2" aria-label={`${badge} ${badgeLabel}`}>
+            {countText(badge)}
+          </span>
+        ) : null}
+      </span>
+      <span>{label}</span>
     </Link>
   );
 
   return (
     <>
-      {/* Desktop: fixed sidebar */}
-      <aside className="dark-nav fixed inset-y-0 left-0 z-20 hidden w-60 flex-col gap-5 overflow-y-auto bg-nav px-3 py-5 lg:flex">
-        <div className="flex items-center justify-between gap-2 px-1">
-          {brand}
-          <Bell count={unread.notices} />
-        </div>
-        <div className="px-1">
-          <Stats game={game} />
-        </div>
-        <NavLinks isStaff={user.isStaff} dueCount={dueCount} unread={unread} />
-        <div className="mt-auto flex items-center justify-between gap-2 border-t border-white/10 pt-4">
-          <UserMenu name={user.name} email={user.email} isAdmin={user.isAdmin} placement="up" showName />
-          <ThemeToggle className="text-nav-muted hover:bg-nav-active hover:text-nav-text" />
-        </div>
-      </aside>
-
-      {/* Phones and tablets: top bar + slide-out menu */}
-      <header className="sticky top-0 z-20 flex h-14 items-center justify-between gap-2 bg-nav px-4 lg:hidden">
-        <Link href="/dashboard" className="flex items-center gap-2">
-          <CoursebookMark className="size-8" />
-          <span className="font-display text-lg font-semibold text-nav-text">{BRAND.name}</span>
-        </Link>
-        <div className="flex items-center gap-2">
-          <span className="hidden min-[400px]:block">
-            <Stats game={game} />
-          </span>
-          <Link href="/notifications" className="relative inline-flex size-10 items-center justify-center rounded-xl text-nav-text hover:bg-nav-active" aria-label={unread.notices ? `Notifications, ${unread.notices} unread` : "Notifications"}>
-            <Icon name="bell" />
-            {unread.notices > 0 && <span aria-hidden className="absolute right-1.5 top-1.5 size-2.5 rounded-full bg-accent ring-2 ring-nav" />}
+      {/* The top bar: the brand, the sections, and your stats and account. */}
+      <header className="topnav sticky top-0 z-20 border-b border-border bg-nav text-nav-text">
+        <div className="mx-auto flex h-14 max-w-[92rem] items-center gap-2 px-4 sm:px-6 lg:h-16 lg:gap-6 lg:px-12">
+          <Link href="/dashboard" className="flex shrink-0 items-center gap-2.5">
+            <Wordmark />
           </Link>
-          <button
-            type="button"
-            onClick={() => drawer.current?.showModal()}
-            className="inline-flex size-10 items-center justify-center rounded-xl text-nav-text hover:bg-nav-active"
-            aria-label="Open menu"
-          >
-            <svg viewBox="0 0 24 24" className="size-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
-              <path d="M4 7h16M4 12h16M4 17h16" />
-            </svg>
-          </button>
+          <nav aria-label="Main" className="hidden items-center gap-1 lg:flex">
+            {plain("/dashboard", "Today")}
+            {groups.map((g) => (
+              <NavMenu key={g.label} label={g.label} links={g.links} activeHref={activeHref} />
+            ))}
+            {plain("/calendar", "Calendar")}
+            {plain("/scores", "SAT scores")}
+          </nav>
+          <div className="ml-auto flex items-center gap-1 sm:gap-2">
+            <span className="hidden sm:block">
+              <Stats game={game} />
+            </span>
+            <Link href="/messages" aria-current={pathname.startsWith("/messages") ? "page" : undefined} className="relative hidden size-10 items-center justify-center rounded-xl hover:bg-nav-active lg:inline-flex" aria-label={unread.threads ? `Messages, ${unread.threads} unread` : "Messages"}>
+              <Icon name="messages" />
+              {unread.threads > 0 && <span aria-hidden className="absolute right-1.5 top-1.5 size-2.5 rounded-full bg-accent ring-2 ring-nav" />}
+            </Link>
+            <Bell count={unread.notices} />
+            <span className="hidden lg:block">
+              <ThemeToggle className="text-nav-muted hover:bg-nav-active hover:text-nav-text" />
+            </span>
+            <span className="hidden lg:block">
+              <UserMenu name={user.name} email={user.email} isAdmin={user.isAdmin} />
+            </span>
+          </div>
         </div>
       </header>
+
+      {/* Phones and tablets: a tab bar along the bottom; "Menu" opens every link. */}
+      <nav aria-label="Main" className="tabbar fixed inset-x-0 bottom-0 z-20 grid grid-cols-5 border-t border-border bg-nav pb-[env(safe-area-inset-bottom)] text-nav-text lg:hidden">
+        {tab("/dashboard", "Today", "home")}
+        {tab("/library", "Library", "library")}
+        {tab("/review", "Flashcards", "spaced", dueCount, "cards to review")}
+        {tab("/messages", "Messages", "messages", unread.threads, "unread conversations")}
+        <button type="button" onClick={() => drawer.current?.showModal()} className="tabbar-item" aria-label="Open menu">
+          <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
+            <path d="M4 7h16M4 12h16M4 17h16" />
+          </svg>
+          <span aria-hidden>Menu</span>
+        </button>
+      </nav>
       <dialog
         ref={drawer}
         aria-label="Menu"
@@ -341,16 +470,16 @@ export function AppSidebar({ user, dueCount, timeZone, game, unread }: Props) {
           if (e.target === drawer.current) drawer.current?.close(); // tap outside
         }}
       >
-        <div className="flex h-full flex-col gap-6 px-4 py-5">
+        <div className="flex h-full flex-col gap-6 overflow-y-auto px-4 py-5">
           <div className="flex items-center justify-between">
-            {brand}
+            <Wordmark />
             <button type="button" onClick={() => drawer.current?.close()} className="inline-flex size-9 items-center justify-center rounded-xl text-nav-text hover:bg-nav-active" aria-label="Close menu">
               ✕
             </button>
           </div>
           <Stats game={game} />
           <NavLinks isStaff={user.isStaff} dueCount={dueCount} unread={unread} onNavigate={() => drawer.current?.close()} />
-          <div className="mt-auto flex items-center justify-between gap-2 border-t border-white/10 pt-4">
+          <div className="mt-auto flex items-center justify-between gap-2 border-t border-border pt-4">
             <UserMenu name={user.name} email={user.email} isAdmin={user.isAdmin} placement="up" showName />
             <ThemeToggle className="text-nav-muted hover:bg-nav-active hover:text-nav-text" />
           </div>

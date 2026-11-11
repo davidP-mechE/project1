@@ -19,7 +19,7 @@ export default function AppError({ error, reset }: { error: Error & { digest?: s
       <p className="text-sm text-muted">Sorry, something went wrong on our side. Your work is saved. Try again, or go back to Today.{error.digest && ` (Error code ${error.digest}.)`}</p>
       <div className="flex gap-2">
         <Button onClick={reset}>Try again</Button>
-        <Link href="/dashboard" className="inline-flex items-center rounded-[10px] border border-border px-4 text-sm font-semibold hover:bg-surface-2">
+        <Link href="/dashboard" className="inline-flex items-center rounded-md border border-border px-4 text-sm font-semibold hover:bg-surface-2">
           Go to Today
         </Link>
       </div>

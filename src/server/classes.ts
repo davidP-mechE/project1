@@ -185,8 +185,10 @@ export async function classByCode(code: string) {
 export async function joinClass(userId: string, code: string) {
   const limited = await rateLimit(RATE_RULES.classJoin, userId);
   if (!limited.ok) throw new ClassError("Too many tries. Please wait a while and check the code with your teacher.", 429);
-  const c = await db.class.findUnique({ where: { joinCode: normalizeCode(code) }, select: { id: true, teacherId: true, archivedAt: true, _count: { select: { members: true } } } });
+  const c = await db.class.findUnique({ where: { joinCode: normalizeCode(code) }, select: { id: true, teacherId: true, archivedAt: true, isDemo: true, _count: { select: { members: true } } } });
   if (!c || c.archivedAt) throw new ClassError("No class has that code. Check it with your teacher.", 404);
+  // Demo classes only take demo accounts, so real students never mix with demo data.
+  if (c.isDemo && !(await db.user.count({ where: { id: userId, isDemo: true } }))) throw new ClassError("No class has that code. Check it with your teacher.", 404);
   const staff = await db.class.count({ where: { id: c.id, OR: [{ program: { adminId: userId } }, { staff: { some: { userId } } }] } });
   if (staff) throw new ClassError("You're on this class's staff. Open it under Teaching.");
   const already = await db.classMember.findUnique({ where: { classId_userId: { classId: c.id, userId } } });

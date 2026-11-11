@@ -162,3 +162,41 @@ Run these on a machine with the production `.env`, or locally:
 | `npm run db:deploy` | Apply database changes |
 | `npm run cost:breakdown` | AI cost by step for a course |
 | `npm test` / `npm run test:e2e` | Run the tests |
+| `npm run demo:load` / `npm run demo:clear` | Turn demo mode on or off (see below) |
+| `npm run hub:sat` | Put the SAT Math and SAT EBRW slide courses on the Hub (see below) |
+
+### The SAT courses on the Hub
+
+**SAT Math** and **SAT EBRW** are The 1600 Project's own lesson slides, made into Hub courses. Every student can add them from the Hub for free.
+- SAT Math: 14 lessons, 133 slides. SAT EBRW: 16 lessons, 128 slides.
+- Each lesson shows its slides, with a text version underneath.
+- Tutor speaker notes and blank template slides are left out.
+
+To put them on the Hub, run `npm run hub:sat` once from a checkout of the repository with the production `.env` (like the other commands here), after `npm run admin:grant`. It uploads the slide PDFs to the site's storage and adds the courses to its database. The courses belong to the first site admin; to choose a different admin, run `npm run hub:sat -- --owner you@example.com`. Running it again skips courses that are already there. It uses no AI, so it costs nothing.
+
+To take a course down, use **Hide from Hub** on the Hub page (as an admin). Students keep their copies.
+
+To change a lesson, edit the slide artifact, download the decks, and rebuild:
+1. Run `node scripts/hub/build-sat.cjs <folder of decks>` (`scripts/hub/sat-spec.json` lists the decks, units and slides left out).
+2. Hide or delete the old Hub course.
+3. Run `npm run hub:sat` again.
+
+### Demo mode
+
+Demo mode fills the site with an invented class so you can see and try the class features without real students. Turn it on or off from **Admin → Demo data** (Load demo data / Clear demo data), or with `npm run demo:load` and `npm run demo:clear`.
+
+It creates one tutor (Jordan Whitfield), the class **Demo: SAT Math** in a "Demo Tutoring Program", and 10 invented students:
+- 2 strong, 5 average and 3 struggling
+- one of the struggling students never started
+
+It also adds:
+- a short made-up textbook, *Foundations of SAT Algebra*, turned into a 4-chapter course with lessons, practice questions, flashcards and unit tests
+- lesson progress, quiz answers and unit-test results that match each student's level
+- a PSAT baseline and an October Bluebook practice score with College Board bands
+- three assignments: one everyone finished, one with late and missing work, and one due next week
+- a Math diagnostic
+- a few tutor chats
+
+Sign in as `tutor@demo.coursebook.invalid`, or as `student1@demo.coursebook.invalid` to `student10@demo.coursebook.invalid`. The password for all of them is `coursebook-demo-mode`.
+
+Every demo record is flagged `isDemo`. Clearing deletes the demo accounts and everything they own in one step, and real accounts and data are never touched. Real students can't join the demo class, even with its code. Demo mode is refused on a production deployment (`APP_ENV=production`) unless you set `DEMO_DATA_ALLOWED=true` there on purpose.

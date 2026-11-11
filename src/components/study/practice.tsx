@@ -133,7 +133,7 @@ export function QuestionCard({
           Question {index + 1} · {TYPE_LABEL[q.type]} · {q.topic}
         </span>
         {!done && last && (
-          <span className={cn("rounded-full px-2 py-0.5", last.correct ? "bg-success-bg text-success" : "bg-surface-2")}>
+          <span className={cn("rounded px-2 py-0.5", last.correct ? "bg-success-bg text-success" : "bg-surface-2")}>
             Last try: {VERDICT[last.verdict].label.toLowerCase()}
           </span>
         )}
@@ -159,7 +159,7 @@ export function QuestionCard({
                   )}
                 >
                   <input type="radio" name={`${id}-choice`} value={j} checked={choice === j} onChange={() => setChoice(j)} className="sr-only" />
-                  <span className="font-semibold text-muted">{letter(j)}.</span>
+                  <span className="choice-letter">{letter(j)}<span className="sr-only">.</span></span>
                   <Markdown className="flex-1 [&_p]:m-0">{c}</Markdown>
                   {isCorrect && <span className="text-success" aria-label="correct answer">✓</span>}
                   {isWrongPick && <span className="text-danger" aria-label="your answer, incorrect">✗</span>}

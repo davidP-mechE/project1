@@ -47,35 +47,35 @@ export async function ClassNav({
           ← My classes
         </Link>
       </p>
-      <header className="hero-card rounded-[1.5rem] px-6 py-7 sm:px-8">
-        {program && <ProgramTag program={program} className="text-[#f3ead5] [&_.text-muted]:text-[#c3b9a2]" />}
-        <h1 className="mt-3 font-display text-3xl font-semibold leading-tight sm:text-4xl">{c.name}</h1>
+      <header className="hero-card rounded-lg py-7 pb-10 pl-9 pr-5 sm:pl-[4.25rem] sm:pr-8">
+        {program && <ProgramTag program={program} className="text-white [&_.text-muted]:text-white/80" />}
+        <h1 className="cover-title mt-3 text-3xl sm:text-[2.6rem]">{c.name}</h1>
         <p className="mt-3 flex flex-wrap items-center gap-2 text-sm">
           {c.archivedAt ? (
-            <span className="rounded-full bg-white/10 px-3 py-1">Archived: students can&apos;t see it</span>
+            <span className="rounded bg-white/15 px-3 py-1">Archived: students can&apos;t see it</span>
           ) : (
-            <span className="rounded-full bg-white/10 px-3 py-1">
-              Class code <span className="font-mono font-semibold tracking-wider text-[#e8cd7d]">{c.joinCode}</span>
+            <span className="rounded bg-white/15 px-3 py-1">
+              Class code <span className="font-bold tracking-wider">{c.joinCode}</span>
             </span>
           )}
-          <span className="rounded-full bg-white/10 px-3 py-1">You: {ROLE_LABEL[role]}</span>
+          <span className="rounded bg-white/15 px-3 py-1">You: {ROLE_LABEL[role]}</span>
         </p>
       </header>
       <nav aria-label="Class pages" className="min-w-0">
-        <ul className="flex flex-wrap items-center gap-x-1 gap-y-1.5 rounded-2xl border border-border bg-surface p-1.5 shadow-sm">
+        <ul className="flex items-center gap-x-1 gap-y-1.5 overflow-x-auto rounded-lg border-[1.5px] border-border bg-surface p-1.5 sm:flex-wrap">
           {groups.map((g, gi) => {
             const items = g.ids.flatMap((id) => (shown.get(id) ? [shown.get(id)!] : []));
             if (!items.length) return null;
             return (
-              <li key={g.label} className="flex flex-wrap items-center gap-1">
+              <li key={g.label} className="flex shrink-0 items-center gap-1 sm:flex-wrap">
                 {gi > 0 && <span aria-hidden className="mx-1 h-6 w-px bg-border" />}
-                <span className="px-2 text-[10px] font-bold uppercase tracking-wider text-muted">{g.label}</span>
+                <span className="px-2 text-xs font-bold text-muted">{g.label}</span>
                 {items.map((t) => (
                   <Link
                     key={t.id}
                     href={t.href}
                     aria-current={t.id === active ? "page" : undefined}
-                    className={cn("press rounded-xl px-3 py-1.5 text-sm transition-colors", t.id === active ? "bg-primary font-semibold text-primary-text shadow-sm" : "text-text hover:bg-surface-2")}
+                    className={cn("press whitespace-nowrap rounded-xl px-3 py-1.5 text-sm transition-colors", t.id === active ? "bg-text font-semibold text-bg" : "text-text hover:bg-surface-2")}
                   >
                     {t.label}
                   </Link>

@@ -22,6 +22,7 @@ export default async function SlidesPage() {
     lastOpenedLabel: c.lastOpenedAt ? timeAgo(c.lastOpenedAt, now) : "",
     archived: false,
     coverUrl: c.book.coverKey ? `/api/books/${c.book.id}/cover` : null,
+    subject: c.subject,
   }));
 
   return (

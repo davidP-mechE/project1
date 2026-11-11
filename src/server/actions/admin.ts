@@ -51,3 +51,24 @@ export async function retryAssessmentAction(assessmentId: string): Promise<Resul
     return "Queued again.";
   });
 }
+
+/** Demo mode (Admin → Demo data): load or clear the invented "Demo: SAT Math" class. */
+export async function demoDataAction(op: "load" | "clear"): Promise<Result> {
+  return run(async () => {
+    const which = z.enum(["load", "clear"]).parse(op);
+    const { clearDemoData, loadDemoData } = await import("../demo-data");
+    const { ClassError } = await import("../access");
+    try {
+      if (which === "clear") {
+        const r = await clearDemoData();
+        return r.removedUsers ? `Demo data cleared (${r.removedUsers} demo accounts and everything they owned).` : "There was no demo data to clear.";
+      }
+      await clearDemoData();
+      const r = await loadDemoData();
+      return `Demo data loaded: "Demo: SAT Math" with ${r.students} students.`;
+    } catch (err) {
+      if (err instanceof ClassError) throw new GenerationError(err.message);
+      throw err;
+    }
+  });
+}

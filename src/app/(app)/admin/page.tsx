@@ -2,7 +2,8 @@ import { formatInZone } from "@/lib/dates";
 import { viewerZone } from "@/server/session";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import { PlanSelect, RetryButton } from "@/components/admin/admin-controls";
+import { DemoDataControls, PlanSelect, RetryButton } from "@/components/admin/admin-controls";
+import { DEMO_MODE_DOMAIN, DEMO_MODE_PASSWORD, DEMO_TUTOR_EMAIL, demoStatus } from "@/server/demo-data";
 import { Card, PageHeader } from "@/components/ui/misc";
 import { inputClasses } from "@/components/ui/field";
 import { buttonClasses } from "@/components/ui/button";
@@ -82,7 +83,7 @@ export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
   const zone = await viewerZone();
   const sp = await searchParams;
   const q = typeof sp.q === "string" ? sp.q : "";
-  const [overview, spend, usage, failures, users, problems] = await Promise.all([getOverview(), getAiSpend(), getFeatureUsage(), getFailures(), listUsers(q), listProblems()]);
+  const [overview, spend, usage, failures, users, problems, demo] = await Promise.all([getOverview(), getAiSpend(), getFeatureUsage(), getFailures(), listUsers(q), listProblems(), demoStatus()]);
   const maxDay = Math.max(0.01, ...spend.daily.map((d) => d.usd));
   const failedTotal = failures.books.length + failures.lessons.length + failures.assessments.length;
 
@@ -128,6 +129,34 @@ export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
           <Stat label="Books" value={num(overview.books)} sub={`${num(overview.courses)} courses · ${num(overview.failedBooks)} failed`} />
           <Stat label="Claude spend" value={usd(overview.spendMonth)} sub={`this month · ${usd(overview.spend30)} in 30 days`} />
         </div>
+      </Section>
+
+      <Section
+        id="demo"
+        title="Demo data"
+        description="Fill the app with an invented class to try the class features: a tutor, the class Demo: SAT Math, 10 students at different levels, a short course, assignments, diagnostic results and tutor chats. Every demo record is marked as demo and is deleted in one step. Real accounts and data are never touched."
+      >
+        <Card className="flex flex-col gap-3 p-4 text-sm">
+          {!demo.allowed ? (
+            <p className="text-muted">Demo data is turned off on this production deployment (set DEMO_DATA_ALLOWED=true to allow it).</p>
+          ) : (
+            <>
+              <p>
+                {demo.loaded ? (
+                  <>
+                    <span className="font-semibold text-success">Loaded</span> · {demo.users} demo accounts · join code <span className="font-mono">{demo.joinCode}</span>
+                  </>
+                ) : (
+                  <span className="text-muted">Not loaded.</span>
+                )}
+              </p>
+              <p className="text-muted">
+                Sign in as the tutor with <span className="font-mono text-text">{DEMO_TUTOR_EMAIL}</span>, or as a student with <span className="font-mono text-text">student1@{DEMO_MODE_DOMAIN}</span> to <span className="font-mono text-text">student10@…</span>. Password for all: <span className="font-mono text-text">{DEMO_MODE_PASSWORD}</span>
+              </p>
+              <DemoDataControls loaded={demo.loaded} />
+            </>
+          )}
+        </Card>
       </Section>
 
       <Section id="spend" title="Claude API spend" description="Last 30 days, from the cost recorded with every API call.">

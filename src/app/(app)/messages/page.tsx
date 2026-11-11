@@ -27,7 +27,7 @@ export default async function MessagesPage({ searchParams }: PageProps<"/message
       {isProgramAdmin && (
         <nav aria-label="Conversations" className="mb-4 flex gap-2 text-sm">
           {(["mine", "program"] as const).map((v) => (
-            <Link key={v} href={v === "program" ? "/messages?view=program" : "/messages"} aria-current={view === v ? "page" : undefined} className={cn("rounded-full border px-3 py-1", view === v ? "border-primary bg-primary text-primary-text" : "border-border")}>
+            <Link key={v} href={v === "program" ? "/messages?view=program" : "/messages"} aria-current={view === v ? "page" : undefined} className={cn("rounded border px-3 py-1", view === v ? "border-primary bg-primary text-primary-text" : "border-border")}>
               {v === "mine" ? "My conversations" : "Everyone in the program"}
             </Link>
           ))}

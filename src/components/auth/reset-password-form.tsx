@@ -16,7 +16,7 @@ export function ResetPasswordForm({ token }: { token?: string }) {
   if (!token) {
     return (
       <>
-        <h1 className="text-xl font-semibold">Link expired</h1>
+        <h1 className="font-display text-3xl">Link expired</h1>
         <p className="mt-2 text-sm text-muted">This password reset link is invalid or has expired.</p>
         <p className="mt-6"><Link href="/forgot-password" className="text-primary underline-offset-2 hover:underline">Request a new link</Link></p>
       </>
@@ -44,7 +44,7 @@ export function ResetPasswordForm({ token }: { token?: string }) {
 
   return (
     <>
-      <h1 className="text-xl font-semibold">Choose a new password</h1>
+      <h1 className="font-display text-3xl">Choose a new password</h1>
       <form onSubmit={onSubmit} className="mt-6 flex flex-col gap-4">
         {error && <Alert tone="error">{error}</Alert>}
         <Field label="New password" name="password" type="password" autoComplete="new-password" required minLength={8} maxLength={128} hint="At least 8 characters." />

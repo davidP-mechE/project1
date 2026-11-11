@@ -77,7 +77,7 @@ export default async function MasteryPage() {
                       <div className="flex flex-wrap items-center gap-2 text-sm">
                         <span className="text-muted">Shaky skills:</span>
                         {c.weakest.map((w) => (
-                          <Link key={w.key} href={`/skills/drill?course=${c.id}&skill=${encodeURIComponent(w.key)}`} className="press rounded-full bg-danger-bg px-2.5 py-0.5 text-xs font-semibold text-danger hover:underline">
+                          <Link key={w.key} href={`/skills/drill?course=${c.id}&skill=${encodeURIComponent(w.key)}`} className="press rounded bg-danger-bg px-2.5 py-0.5 text-xs font-semibold text-danger hover:underline">
                             {w.topic} · {pct(w.accuracy)}
                           </Link>
                         ))}

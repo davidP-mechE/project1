@@ -7,20 +7,20 @@ import { Wordmark } from "@/components/brand/seal";
 export default function MarketingLayout({ children }: LayoutProps<"/">) {
   return (
     <>
-      <header className="dark-nav bg-nav">
+      <header className="border-b border-border bg-nav">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4">
           <Link href="/">
             <Wordmark />
           </Link>
-          <nav aria-label="Site" className="flex items-center gap-1 sm:gap-2">
-            <Link href="/help" className="hidden rounded-[10px] px-3 py-1.5 text-sm font-semibold text-nav-text hover:bg-nav-active sm:inline-flex">
+          <nav aria-label="Site" className="flex items-center gap-0.5 sm:gap-2">
+            <Link href="/help" className="hidden rounded-md px-3 py-1.5 text-sm font-semibold text-nav-text hover:bg-nav-active sm:inline-flex">
               Help
             </Link>
             <ThemeToggle className="text-nav-muted hover:bg-nav-active hover:text-nav-text" />
-            <Link href="/login" className="rounded-[10px] px-3 py-1.5 text-sm font-semibold text-nav-text hover:bg-nav-active">
+            <Link href="/login" className="whitespace-nowrap rounded-md px-2 py-1.5 sm:px-3 text-sm font-semibold text-nav-text hover:bg-nav-active">
               Log in
             </Link>
-            <ButtonLink href="/signup" size="sm" variant="accent">
+            <ButtonLink href="/signup" size="sm" variant="accent" className="whitespace-nowrap">
               Sign up
             </ButtonLink>
           </nav>

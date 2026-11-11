@@ -54,7 +54,7 @@ export function FlashcardBrowser({ courseId, lessons }: { courseId: string; book
               <li key={c.id} className="grid gap-2 p-3 text-sm sm:grid-cols-[1fr_1fr_auto] sm:items-start sm:gap-4">
                 <Markdown className="font-medium [&_p]:m-0">{c.front}</Markdown>
                 <Markdown className="text-muted [&_p]:m-0">{c.back}</Markdown>
-                <span className={cn("justify-self-start whitespace-nowrap rounded-full px-2 py-0.5 text-xs", STATE_TONE[c.state] ?? STATE_TONE.NEW)} title={c.lapses ? `Forgotten ${c.lapses} times` : undefined}>
+                <span className={cn("justify-self-start whitespace-nowrap rounded px-2 py-0.5 text-xs", STATE_TONE[c.state] ?? STATE_TONE.NEW)} title={c.lapses ? `Forgotten ${c.lapses} times` : undefined}>
                   {c.dueLabel}
                 </span>
               </li>

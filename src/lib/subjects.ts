@@ -22,6 +22,8 @@ export const SUBJECTS = [
 export type SubjectId = (typeof SUBJECTS)[number]["id"];
 export const SUBJECT_IDS = SUBJECTS.map((s) => s.id) as SubjectId[];
 export const subjectOf = (id: string | null | undefined) => SUBJECTS.find((s) => s.id === id) ?? SUBJECTS[SUBJECTS.length - 1];
+/** A course cover's colour for its subject (the --cover-* tokens in globals.css; white text on each meets AA). */
+export const coverColor = (id: string | null | undefined) => `var(--cover-${subjectOf(id).id})`;
 export const isSubjectId = (id: unknown): id is SubjectId => typeof id === "string" && (SUBJECT_IDS as string[]).includes(id);
 
 /** Words that point to a subject. A match in the title counts far more than one in the outline. */

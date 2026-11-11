@@ -52,11 +52,11 @@ export default async function TeachPage() {
               return (
                 <li key={p.id}>
                   {p.isAdmin ? (
-                    <Link href={`/teach/programs/${p.id}`} className="lift flex items-center gap-4 rounded-[1.25rem] border border-border bg-surface p-4 transition-transform hover:-translate-y-0.5">
+                    <Link href={`/teach/programs/${p.id}`} className="lift flex items-center gap-4 rounded-lg border border-border bg-surface p-4 transition-transform hover:-translate-y-0.5">
                       {inner}
                     </Link>
                   ) : (
-                    <div className="flex items-center gap-4 rounded-[1.25rem] border border-border bg-surface p-4">{inner}</div>
+                    <div className="flex items-center gap-4 rounded-lg border border-border bg-surface p-4">{inner}</div>
                   )}
                 </li>
               );
@@ -80,7 +80,7 @@ export default async function TeachPage() {
           <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {classes.map((c, i) => (
               <li key={c.id}>
-                <Link href={`/teach/${c.id}`} className={cn("lift group relative flex h-full flex-col gap-4 overflow-hidden rounded-[1.25rem] border border-border bg-surface p-5 pl-7 transition-transform hover:-translate-y-0.5", c.archivedAt && "opacity-70")}>
+                <Link href={`/teach/${c.id}`} className={cn("lift group relative flex h-full flex-col gap-4 overflow-hidden rounded-lg border border-border bg-surface p-5 pl-7 transition-transform hover:-translate-y-0.5", c.archivedAt && "opacity-70")}>
                   <span aria-hidden className="absolute inset-y-0 left-0 w-3" style={{ background: ["var(--chart-1)", "var(--chart-3)", "var(--chart-4)", "var(--chart-5)", "var(--chart-2)"][i % 5] }} />
                   <span>
                     <span className="block font-display text-xl font-semibold group-hover:underline">{c.name}</span>
@@ -97,8 +97,8 @@ export default async function TeachPage() {
                     </span>
                   </span>
                   <span className="mt-auto flex flex-wrap gap-2 text-xs">
-                    <span className="rounded-full bg-surface-2 px-2.5 py-1 font-semibold">{ROLE_LABEL[c.role]}</span>
-                    <span className="rounded-full bg-surface-2 px-2.5 py-1">{c.archivedAt ? "Archived" : `Code ${c.joinCode}`}</span>
+                    <span className="rounded bg-surface-2 px-2.5 py-1 font-semibold">{ROLE_LABEL[c.role]}</span>
+                    <span className="rounded bg-surface-2 px-2.5 py-1">{c.archivedAt ? "Archived" : `Code ${c.joinCode}`}</span>
                   </span>
                 </Link>
               </li>

@@ -12,7 +12,7 @@ const DOTS: Record<MasteryLevel, number> = { new: 0, learning: 1, familiar: 2, m
 /** A small pill: ●●○ Familiar. */
 export function MasteryBadge({ level, className }: { level: MasteryLevel; className?: string }) {
   return (
-    <span className={cn("inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium", TONE[level], className)}>
+    <span className={cn("inline-flex items-center gap-1.5 rounded px-2 py-0.5 text-xs font-medium", TONE[level], className)}>
       <span aria-hidden className="flex gap-0.5">
         {[0, 1, 2].map((i) => (
           <span key={i} className={cn("size-1.5 rounded-full", i < DOTS[level] ? "bg-current" : "bg-current opacity-25")} />

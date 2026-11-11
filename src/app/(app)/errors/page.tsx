@@ -88,7 +88,7 @@ export default async function ErrorLogPage({ searchParams }: PageProps<"/errors"
                                 Missed {e.missed}× · last {date(e.lastMissedAt, zone)} · {e.where}
                               </span>
                             </span>
-                            <span className={cn("shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold", e.fixed ? "bg-success-bg text-success" : "bg-danger-bg text-danger")}>
+                            <span className={cn("shrink-0 rounded px-2 py-0.5 text-xs font-semibold", e.fixed ? "bg-success-bg text-success" : "bg-danger-bg text-danger")}>
                               {e.fixed ? "Fixed" : "Missing"}
                             </span>
                           </summary>

@@ -9,5 +9,5 @@ const TONE: Record<SkillStats["status"], string> = {
 };
 
 export function SkillBadge({ status }: { status: SkillStats["status"] }) {
-  return <span className={cn("inline-flex rounded-full px-2 py-0.5 text-xs font-semibold", TONE[status])}>{SKILL_STATUS_LABEL[status]}</span>;
+  return <span className={cn("inline-flex rounded px-2 py-0.5 text-xs font-semibold", TONE[status])}>{SKILL_STATUS_LABEL[status]}</span>;
 }

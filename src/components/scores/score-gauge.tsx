@@ -40,8 +40,8 @@ export function ScoreGauge({ score, baseline, goal, label = "Latest score", capt
         <text x={cx} y={cy - 8} textAnchor="middle" className="score-num" fontSize="48" fill="var(--text)">
           {score ?? "–"}
         </text>
-        <text x={cx} y={cy + 14} textAnchor="middle" fontSize="11" fontWeight="700" letterSpacing="1.6" fill="var(--text-muted)">
-          OF 1600
+        <text x={cx} y={cy + 15} textAnchor="middle" fontSize="13" fontWeight="600" fill="var(--text-muted)">
+          of 1600
         </text>
       </svg>
       {caption && <p className="text-center text-xs text-muted">{caption}</p>}

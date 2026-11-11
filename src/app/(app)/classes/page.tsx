@@ -99,7 +99,7 @@ export default async function ClassesPage() {
                       <div className="flex items-center gap-3">
                         <div className="text-right text-xs">
                           <p className={cn(overdue ? "font-semibold text-danger" : "text-muted")}>{dueText(a.dueAt, now, zone)}</p>
-                          <p className={cn("mt-1 inline-block rounded-full px-2 py-0.5", a.cell.status === "done" ? "bg-success-bg font-semibold text-success" : a.cell.status === "in_progress" ? "bg-warning-bg text-warning" : "bg-surface-2 text-muted")}>
+                          <p className={cn("mt-1 inline-block rounded px-2 py-0.5", a.cell.status === "done" ? "bg-success-bg font-semibold text-success" : a.cell.status === "in_progress" ? "bg-warning-bg text-warning" : "bg-surface-2 text-muted")}>
                             {STATUS_LABEL[a.cell.status]}
                             {a.kind === "LESSONS" ? ` · ${a.cell.done}/${a.cell.total || "?"}` : a.cell.score !== null && (a.cell.status === "done" || !a.timeLimitMin) ? ` · ${pct(a.cell.score)}` : ""}
                           </p>

@@ -2,11 +2,12 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ButtonLink } from "@/components/ui/button";
 import { ScoreGauge } from "@/components/scores/score-gauge";
-import { CoursebookMark, ProgramBadge } from "@/components/brand/seal";
+import { ProgramBadge } from "@/components/brand/seal";
 import { getSession } from "@/server/session";
 import { publicProgram } from "@/server/programs";
 import { env } from "@/server/env";
 import { BRAND } from "@/lib/brand";
+import { coverColor } from "@/lib/subjects";
 
 const study = [
   { title: "Courses from your books", body: "Upload a textbook or a slide deck. Coursebook turns it into units, lessons, flashcards and quizzes, with page references back to the original." },
@@ -21,16 +22,38 @@ const programs = [
   { title: "Messages and announcements", body: "Tutors message the students in their scope; announcements reach a class or a group. Nothing is public, and there are no leaderboards." },
 ];
 
+/** Three covers from the series, fanned out: what a library on Coursebook looks like. */
+function CoverStack() {
+  const covers = [
+    { title: "Biology", subject: "biology", turn: "-rotate-6 translate-y-3" },
+    { title: "Pre\u00adcalculus", subject: "physics", turn: "rotate-2 -translate-y-2" },
+    { title: "Your slides", subject: "ela", turn: "rotate-[8deg] translate-y-5" },
+  ];
+  return (
+    <div aria-hidden className="hidden items-end justify-center md:flex">
+      {covers.map((c, i) => (
+        <span
+          key={c.title}
+          className={`hero-card -ml-6 flex h-52 w-36 shrink-0 items-end rounded-md pb-6 pl-6 pr-3 shadow-[0_10px_0_-4px_rgb(0_0_0/0.25)] ring-2 ring-white [--band:0.45rem] [--spine:0.8rem] first:ml-0 ${c.turn}`}
+          style={{ ["--cover" as string]: coverColor(c.subject), zIndex: i }}
+        >
+          <span className="cover-title text-lg">{c.title}</span>
+        </span>
+      ))}
+    </div>
+  );
+}
+
 /** The public front page: what Coursebook is. Logged-in people go straight to Today. */
 export default async function Home() {
   if (await getSession()) redirect("/dashboard");
   const featured = env.FEATURED_PROGRAM_SLUG ? await publicProgram(env.FEATURED_PROGRAM_SLUG) : null;
   return (
     <div className="mx-auto flex max-w-5xl flex-col gap-14 px-4 py-12 sm:py-16">
-      <section className="hero-card grid items-center gap-8 rounded-[1.75rem] px-6 py-12 sm:px-12 md:grid-cols-[1.4fr_1fr]">
+      <section className="hero-card grid items-center gap-10 rounded-lg py-12 pb-16 pl-9 pr-5 sm:py-16 sm:pb-20 sm:pl-24 sm:pr-12 md:grid-cols-[1.35fr_1fr]">
         <div className="flex flex-col gap-6">
-          <p className="font-display text-sm font-semibold tracking-[0.2em] text-[#d9b84a]">{BRAND.name.toUpperCase()}</p>
-          <h1 className="font-display text-4xl font-semibold leading-tight sm:text-5xl">Turn your textbooks into courses. Run your tutoring program on top.</h1>
+          <p className="text-sm font-semibold text-white/85">{BRAND.name}</p>
+          <h1 className="cover-title text-[1.9rem] sm:text-[3rem]">Turn your textbooks into courses. Run your tutoring program on top.</h1>
           <p className="max-w-xl text-lg opacity-90">Upload a book or slides and get lessons, flashcards and quizzes. Then bring in classes, tutors and students: scores, diagnostics, a mistake log and messages, all in one place.</p>
           <div className="flex flex-wrap gap-3">
             <ButtonLink href="/signup" className="hero-button">
@@ -41,20 +64,18 @@ export default async function Home() {
             </ButtonLink>
           </div>
         </div>
-        <div aria-hidden className="hidden justify-center md:flex">
-          <CoursebookMark className="size-48 drop-shadow-xl" />
-        </div>
+        <CoverStack />
       </section>
 
       <section aria-labelledby="study" className="flex flex-col gap-6">
-        <h2 id="study" className="font-display text-3xl font-semibold">
+        <h2 id="study" className="font-display text-3xl">
           For studying
         </h2>
         <ul className="grid gap-4 sm:grid-cols-3">
           {study.map((f) => (
-            <li key={f.title} className="lift rounded-2xl border border-border bg-surface p-6">
-              <span aria-hidden className="block h-1 w-10 rounded-full bg-accent" />
-              <h3 className="mt-4 text-lg font-semibold">{f.title}</h3>
+            <li key={f.title} className="rounded-lg border-[1.5px] border-border bg-surface p-6">
+              <span aria-hidden className="block h-2 w-10 bg-accent" />
+              <h3 className="mt-4 font-display text-xl font-extrabold">{f.title}</h3>
               <p className="mt-2 text-sm text-muted">{f.body}</p>
             </li>
           ))}
@@ -63,13 +84,13 @@ export default async function Home() {
 
       <section aria-labelledby="tutoring" className="grid items-start gap-8 md:grid-cols-[1.4fr_1fr]">
         <div className="flex flex-col gap-6">
-          <h2 id="tutoring" className="font-display text-3xl font-semibold">
+          <h2 id="tutoring" className="font-display text-3xl">
             For tutoring programs
           </h2>
           <ul className="grid gap-4 sm:grid-cols-2">
             {programs.map((f) => (
-              <li key={f.title} className="rounded-2xl border border-border bg-surface p-5">
-                <h3 className="font-semibold">{f.title}</h3>
+              <li key={f.title} className="rounded-lg border-[1.5px] border-border bg-surface p-5">
+                <h3 className="font-display text-lg font-extrabold">{f.title}</h3>
                 <p className="mt-1 text-sm text-muted">{f.body}</p>
               </li>
             ))}
@@ -82,7 +103,7 @@ export default async function Home() {
 
       {featured && (
         <section aria-labelledby="programs" className="flex flex-col gap-4">
-          <h2 id="programs" className="font-display text-3xl font-semibold">
+          <h2 id="programs" className="font-display text-3xl">
             Programs on {BRAND.name}
           </h2>
           <Link href={`/p/${featured.slug}`} className="lift flex flex-col gap-4 rounded-2xl border border-border bg-surface p-6 sm:flex-row sm:items-center">
@@ -93,7 +114,7 @@ export default async function Home() {
                 {featured.publicBlurb ?? (featured.goalGain ? `An ${featured.subject} prep program aiming for a ${featured.goalGain}-point gain for every student.` : `A ${featured.subject} program.`)}
               </span>
             </span>
-            <span className="text-sm font-semibold text-primary">About the program →</span>
+            <span className="text-sm font-semibold text-primary">About the program</span>
           </Link>
         </section>
       )}

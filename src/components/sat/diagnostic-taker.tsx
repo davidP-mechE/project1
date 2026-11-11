@@ -129,7 +129,7 @@ function ModuleView({ view, desmosKey }: { view: Extract<DiagnosticView, { phase
               {q.choices.map((c, k) => (
                 <label key={k} className={cn("flex cursor-pointer items-start gap-3 rounded-lg border px-3 py-2 text-sm", saved[q.id]?.choice === k ? "border-primary bg-primary/10" : "border-border hover:bg-surface-2")}>
                   <input type="radio" name={`q-${q.id}`} checked={saved[q.id]?.choice === k} onChange={() => save(q, { choice: k })} className="mt-1 size-4 accent-[var(--primary)]" />
-                  <span className="font-semibold text-muted">{letter(k)}.</span>
+                  <span className="choice-letter">{letter(k)}<span className="sr-only">.</span></span>
                   <Markdown className="flex-1 [&_p]:m-0">{c}</Markdown>
                 </label>
               ))}

@@ -50,7 +50,7 @@ export function LoginForm({ googleEnabled, notice, next = "/library", demo = fal
 
   return (
     <>
-      <h1 className="text-xl font-semibold">Log in</h1>
+      <h1 className="font-display text-3xl">Log in</h1>
       <p className="mt-1 text-sm text-muted">
         New here? <Link href={next === "/library" ? "/signup" : `/signup?next=${encodeURIComponent(next)}`} className="font-medium text-primary underline-offset-2 hover:underline">Create an account</Link>
       </p>
@@ -71,7 +71,7 @@ export function LoginForm({ googleEnabled, notice, next = "/library", demo = fal
         <Button type="submit" disabled={busy}>{busy ? "Logging in…" : "Log in"}</Button>
       </form>
       {demo && (
-        <section aria-labelledby="demo-logins" className="mt-6 rounded-xl border border-dashed border-border p-4">
+        <section aria-labelledby="demo-logins" className="mt-6 rounded-lg border-[1.5px] border-dashed border-border p-4">
           <h2 id="demo-logins" className="text-sm font-semibold">Try the demo</h2>
           <p className="mt-1 text-xs text-muted">A made-up program with invented students. Log in as:</p>
           <div className="mt-3 grid grid-cols-2 gap-2">

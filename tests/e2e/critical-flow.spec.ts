@@ -23,8 +23,8 @@ async function shot(page: Page, name: string) {
   await page.locator("main").screenshot({ path: path.join(dir, `${name}.png`) });
 }
 
-/** Full-page screenshot in a given theme (for the rebrand: landing, program page, sidebar, Today, scores). */
-async function shotTheme(page: Page, name: string, theme: "light" | "dark", target: "page" | "main" | "sidebar" = "page") {
+/** Full-page screenshot in a given theme (for the rebrand: landing, program page, top bar, Today, scores). */
+async function shotTheme(page: Page, name: string, theme: "light" | "dark", target: "page" | "main" | "topbar" = "page") {
   const dir = process.env.E2E_SHOTS;
   if (!dir) return;
   mkdirSync(dir, { recursive: true });
@@ -36,7 +36,7 @@ async function shotTheme(page: Page, name: string, theme: "light" | "dark", targ
   await page.waitForTimeout(400);
   const file = path.join(dir, `${name}-${theme}.png`);
   if (target === "page") await page.screenshot({ path: file, fullPage: true });
-  else await page.locator(target === "main" ? "main" : "aside").screenshot({ path: file });
+  else await page.locator(target === "main" ? "main" : "header.topnav").screenshot({ path: file });
 }
 
 /** A small worksheet PDF: numbered questions, one with lettered choices. */
@@ -677,7 +677,7 @@ test("the full student journey works, is accessible, and respects the CSP", asyn
   await expect(sp3.getByText("The 1600 Project", { exact: true }).first()).toBeVisible();
   await a11y(sp3, "student today");
   for (const t of ["light", "dark"] as const) await shotTheme(sp3, "student-today", t, "main");
-  for (const t of ["light", "dark"] as const) await shotTheme(sp3, "sidebar", t, "sidebar");
+  for (const t of ["light", "dark"] as const) await shotTheme(sp3, "topbar", t, "topbar");
   // The student messages their teacher; the teacher gets a notification and replies.
   await sp3.goto("/messages/new");
   const tutor = sp3.getByRole("combobox", { name: /^Tutor/ });

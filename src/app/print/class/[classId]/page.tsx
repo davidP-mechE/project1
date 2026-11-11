@@ -12,7 +12,7 @@ export const metadata: Metadata = { title: "Class summary" };
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-lg border border-neutral-300 p-3">
-      <p className="text-xs uppercase tracking-wide text-neutral-500">{label}</p>
+      <p className="text-xs text-neutral-500">{label}</p>
       <p className="score-num text-2xl">{value}</p>
     </div>
   );
@@ -39,7 +39,7 @@ export default async function ClassSummaryPage({ params }: PageProps<"/print/cla
       <article className="mx-auto flex max-w-[46rem] flex-col gap-8 px-6 pb-16">
         <header className="flex items-start justify-between gap-4 border-b-2 border-black pb-5">
           <div>
-            <p className="text-sm uppercase tracking-widest text-neutral-500">Class summary</p>
+            <p className="text-sm text-neutral-500">Class summary</p>
             <h1 className="mt-1 font-display text-4xl font-bold">{r.className}</h1>
             <p className="mt-1 text-sm text-neutral-600">
               {r.program.name} · printed {formatInZone(new Date(), zone, "long")}
