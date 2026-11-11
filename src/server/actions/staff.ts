@@ -101,6 +101,14 @@ export async function transferAdminAction(programId: string, toUserId: string, c
   return run((u) => programs.transferAdmin(u, id.parse(programId), { toUserId: id.parse(toUserId), confirmName: z.string().max(200).parse(confirmName) }), ["/teach", `/teach/programs/${programId}`]);
 }
 
+export async function setProgramAccessRuleAction(programId: string, input: { email: string; mode: string; note?: string }) {
+  const parsed = z.object({ email: z.string().max(254), mode: z.enum(["ONLY", "BLOCKED"]), note: z.string().max(200).optional() }).parse(input);
+  return run(async (u) => ({ message: await programs.setProgramAccessRule(u, id.parse(programId), parsed) }), [`/teach/programs/${programId}`]);
+}
+export async function removeProgramAccessRuleAction(programId: string, ruleId: string) {
+  return run((u) => programs.removeProgramAccessRule(u, id.parse(programId), id.parse(ruleId)), [`/teach/programs/${programId}`]);
+}
+
 // ── AI grade review ──
 export async function regradeQuestionAction(classId: string, assignmentId: string, itemId: string) {
   return run((u) => review.regradeQuestion(u, id.parse(assignmentId), id.parse(itemId)), [`/teach/${classId}/assignments/${assignmentId}`]);

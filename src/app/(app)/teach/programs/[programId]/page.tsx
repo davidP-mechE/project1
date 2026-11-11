@@ -9,7 +9,8 @@ import { ProgramBadge } from "@/components/brand/seal";
 import { CalendarForm } from "@/components/classes/assistant-forms";
 import { NotFoundError } from "@/server/courses";
 import { ClassError } from "@/server/access";
-import { getProgram } from "@/server/programs";
+import { getProgram, programAccessRules } from "@/server/programs";
+import { ProgramAccessRules } from "@/components/classes/program-access";
 import { requireUser, viewerZone } from "@/server/session";
 
 export const metadata: Metadata = { title: "Program" };
@@ -37,6 +38,7 @@ export default async function ProgramPage({ params, searchParams }: PageProps<"/
     throw err;
   }
   const { program, staff, log } = data;
+  const rules = await programAccessRules(user.id, program.id);
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-6">
       <p className="text-sm">
@@ -69,6 +71,14 @@ export default async function ProgramPage({ params, searchParams }: PageProps<"/
         <ProgramPublicPageForm program={program} />
       </Card>
       <Card>
+        <h2 className="mb-1 text-lg font-semibold">Program access</h2>
+        <p className="mb-4 text-sm text-muted">
+          By email, so it also covers people who haven&apos;t signed up yet. <strong className="font-semibold text-text">Only {program.name}</strong>: they can use this program&apos;s classes and nothing else in Coursebook (no uploads, Hub or other programs; their own courses are kept but can&apos;t be opened).{" "}
+          <strong className="font-semibold text-text">Blocked from {program.name}</strong>: they can&apos;t join, teach in or see its classes. Nothing is deleted; removing a rule gives everything back. Changes appear in the audit log.
+        </p>
+        <ProgramAccessRules programId={program.id} programName={program.name} rules={rules.map((r) => ({ ...r, createdAt: r.createdAt.toISOString() }))} />
+      </Card>
+      <Card>
         <h2 className="mb-1 text-lg font-semibold">School calendar</h2>
         <p className="mb-4 text-sm text-muted">Curriculum units are laid out on school weeks from the term start, skipping these days.</p>
         <CalendarForm programId={program.id} termStart={program.termStart?.toISOString().slice(0, 10) ?? null} termEnd={program.termEnd?.toISOString().slice(0, 10) ?? null} closedDates={program.closedDates.map((d) => d.toISOString().slice(0, 10))} />
@@ -87,7 +97,7 @@ export default async function ProgramPage({ params, searchParams }: PageProps<"/
       </Card>
       <Card>
         <h2 id="audit" className="mb-1 scroll-mt-20 text-lg font-semibold">Audit log</h2>
-        <p className="mb-4 text-sm text-muted">Every staff, role, scope, group and grade-override change. Entries can&apos;t be edited or deleted.</p>
+        <p className="mb-4 text-sm text-muted">Every staff, role, scope, group, access-rule and grade-override change. Entries can&apos;t be edited or deleted.</p>
         {log.length === 0 ? (
           <p className="text-sm text-muted">Nothing yet.</p>
         ) : (

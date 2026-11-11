@@ -1,5 +1,5 @@
 import "server-only";
-import { allowsCoursebook, allowsProgram, ONLY_MESSAGE, programAccess, programIdFilter } from "./program-access";
+import { AccessRuleError, allowsCoursebook, allowsProgram, normalizeEmail, ONLY_MESSAGE, programAccess, programIdFilter, setAccessRule } from "./program-access";
 import type { Prisma } from "@/generated/prisma/client";
 import { db } from "./db";
 import { env } from "./env";
@@ -233,4 +233,38 @@ export async function studentPrograms(userId: string) {
     out.set(p.id, e);
   }
   return [...out.values()];
+}
+
+// ── Program access (the program admin's own rules; site admins manage every program's in Admin) ──
+
+/** This program's access rules, for its admin. */
+export async function programAccessRules(userId: string, programId: string) {
+  await adminProgram(userId, programId);
+  return db.programAccessRule.findMany({ where: { programId }, orderBy: { createdAt: "desc" }, select: { id: true, email: true, mode: true, note: true, createdAt: true } });
+}
+
+/** The program admin limits an email to this program, or blocks it from this program. Logged in the audit log. */
+export async function setProgramAccessRule(userId: string, programId: string, input: { email: string; mode: "ONLY" | "BLOCKED"; note?: string | null }) {
+  const p = await adminProgram(userId, programId);
+  const me = await db.user.findUniqueOrThrow({ where: { id: userId }, select: { email: true } });
+  if (normalizeEmail(input.email) === normalizeEmail(me.email)) throw new ClassError("You can't set a rule for your own account.");
+  const before = await db.programAccessRule.findUnique({ where: { email_programId: { email: normalizeEmail(input.email), programId } }, select: { mode: true } });
+  let message: string;
+  try {
+    message = await setAccessRule(userId, { ...input, programId });
+  } catch (err) {
+    if (err instanceof AccessRuleError) throw new ClassError(err.message);
+    throw err;
+  }
+  const email = normalizeEmail(input.email);
+  await audit(db, { programId, actorId: userId, action: "access.set", targetType: "email", targetId: email, summary: input.mode === "ONLY" ? `Limited ${email} to ${p.name} only` : `Blocked ${email} from ${p.name}`, before: before ?? undefined, after: { mode: input.mode } });
+  return message;
+}
+
+export async function removeProgramAccessRule(userId: string, programId: string, ruleId: string) {
+  const p = await adminProgram(userId, programId);
+  const rule = await db.programAccessRule.findFirst({ where: { id: ruleId, programId }, select: { id: true, email: true, mode: true } });
+  if (!rule) throw new NotFoundError("Rule not found");
+  await db.programAccessRule.delete({ where: { id: rule.id } });
+  await audit(db, { programId, actorId: userId, action: "access.remove", targetType: "email", targetId: rule.email, summary: `Removed the rule ${rule.mode === "ONLY" ? `limiting ${rule.email} to ${p.name}` : `blocking ${rule.email} from ${p.name}`}`, before: { mode: rule.mode } });
 }

@@ -49,6 +49,11 @@ works for people who haven't signed up yet):
 Site admins can't be limited, and a program's own admin can't be blocked from
 it (hand the program over first).
 
+A program's admin can manage the same rules for their own program, on the
+program's page (Teaching → the program → Program access). They can't set a
+rule for their own account or for a site admin, and every change goes in the
+program's audit log. Site admins see every program's rules in Admin.
+
 ### Email
 
 **Admin → Email** shows how email is sent and has **Send me a test email**.

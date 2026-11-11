@@ -3,7 +3,7 @@ import { db } from "@/server/db";
 import { ClassError, classAccess } from "@/server/access";
 import { createClass, joinClass, myClasses } from "@/server/classes";
 import { addStaff } from "@/server/staff";
-import { createProgram, studentPrograms } from "@/server/programs";
+import { createProgram, programAccessRules, removeProgramAccessRule, setProgramAccessRule, studentPrograms } from "@/server/programs";
 import { createUpload } from "@/server/courses";
 import { AccessDeniedError, AccessRuleError, courseAccessWhere, programAccess, rulesForEmail, setAccessRule } from "@/server/program-access";
 import { createUser, resetDb } from "../helpers/db";
@@ -81,5 +81,25 @@ describe("program access rules", () => {
     await expect(setAccessRule(f.siteAdmin.id, { email: f.admin.email, programId: f.p1600.id, mode: "BLOCKED" })).rejects.toBeInstanceOf(AccessRuleError);
     await expect(setAccessRule(f.siteAdmin.id, { email: f.siteAdmin.email, programId: f.p1600.id, mode: "ONLY" })).rejects.toThrow(/Site admins/);
     await expect(setAccessRule(f.siteAdmin.id, { email: "not-an-email", programId: f.p1600.id, mode: "ONLY" })).rejects.toThrow(/valid email/);
+  });
+
+  it("lets a program's admin manage rules for their own program only, with an audit trail", async () => {
+    const f = await fixture();
+    await setProgramAccessRule(f.admin.id, f.p1600.id, { email: f.student.email, mode: "ONLY", note: "Program student" });
+    expect((await programAccessRules(f.admin.id, f.p1600.id)).map((r) => r.mode)).toEqual(["ONLY"]);
+    await expect(joinClass(f.student.id, f.elsewhere.joinCode)).rejects.toThrow(/only/);
+
+    // Not someone else's program, not their own account, not a site admin.
+    await expect(setProgramAccessRule(f.other.id, f.p1600.id, { email: "x@example.com", mode: "BLOCKED" })).rejects.toThrow();
+    await expect(programAccessRules(f.other.id, f.p1600.id)).rejects.toThrow();
+    await expect(setProgramAccessRule(f.admin.id, f.p1600.id, { email: f.admin.email, mode: "ONLY" })).rejects.toThrow(/your own account/);
+    await expect(setProgramAccessRule(f.admin.id, f.p1600.id, { email: f.siteAdmin.email, mode: "BLOCKED" })).rejects.toThrow(/Site admins/);
+
+    const [rule] = await programAccessRules(f.admin.id, f.p1600.id);
+    await expect(removeProgramAccessRule(f.other.id, f.p1600.id, rule.id)).rejects.toThrow();
+    await removeProgramAccessRule(f.admin.id, f.p1600.id, rule.id);
+    await expect(joinClass(f.student.id, f.elsewhere.joinCode)).resolves.toBe(f.elsewhere.id);
+    const log = await db.auditLog.findMany({ where: { programId: f.p1600.id, action: { startsWith: "access." } }, orderBy: { createdAt: "asc" } });
+    expect(log.map((l) => l.action)).toEqual(["access.set", "access.remove"]);
   });
 });
