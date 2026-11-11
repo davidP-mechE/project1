@@ -69,9 +69,9 @@ const schema = z.object({
   EMBEDDINGS_CACHE_DIR: z.string().optional(),
   // Shown on the Terms, Privacy and Copyright pages.
   LEGAL_NAME: z.string().default("the operator of this Coursebook site"),
-  CONTACT_EMAIL: z.string().optional(),
+  CONTACT_EMAIL: z.string().default("hello@coursebook.site"),
   COPYRIGHT_AGENT: z.string().optional(), // name and postal address of your designated copyright agent ("\n" for new lines)
-  LEGAL_UPDATED: z.string().default("November 9, 2026"),
+  LEGAL_UPDATED: z.string().default("November 11, 2026"),
   // Development only: write placeholder "demo" lessons without calling Claude (free).
   FAKE_CLAUDE: z.stringbool().default(false),
 });

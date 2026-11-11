@@ -241,7 +241,7 @@ Everything the domain touches, in one place:
 | Resend | Verify `coursebook.site` (step 5); `EMAIL_FROM=Coursebook <hello@coursebook.site>`. |
 | Cloudflare R2 bucket CORS | `"AllowedOrigins": ["https://coursebook.site"]` (step 4), or uploads from the browser fail. |
 | Google sign-in (if used) | Authorized redirect URI `https://coursebook.site/api/auth/callback/google`. |
-| Legal pages | `CONTACT_EMAIL`, for example `hello@coursebook.site` (you'll need a mailbox or forwarding for it to receive mail; Resend only sends). |
+| Legal pages | The contact address is `hello@coursebook.site` (the default for `CONTACT_EMAIL`). Resend only sends, so forward it to a real inbox with Cloudflare → Email → Email Routing. |
 
 Then open `https://coursebook.site/api/health` (it should say `{"ok":true}`)
 and send yourself a test from **Admin → Email**.
@@ -274,9 +274,10 @@ needs to set `user.plan`.
 describe what this code actually does. **They are not legal advice.** Before
 you open the site to the public:
 
-- Set `LEGAL_NAME` (you or your company), `CONTACT_EMAIL`, `COPYRIGHT_AGENT`
-  (name and postal address; use `\n` for new lines), and `LEGAL_UPDATED`. Until
-  `CONTACT_EMAIL` is set, the pages show a visible reminder.
+- The contact address is `hello@coursebook.site` (the default for
+  `CONTACT_EMAIL`; set the variable to change it). Optionally set `LEGAL_NAME`
+  (you or your company), `COPYRIGHT_AGENT` (name and postal address; use `\n`
+  for new lines) and `LEGAL_UPDATED`.
 - Have them reviewed for your country. If you add services (payments,
   analytics, error tracking), add those to the privacy policy.
 - In the US, register a DMCA designated agent with the Copyright Office
