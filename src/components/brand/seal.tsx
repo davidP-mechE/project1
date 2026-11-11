@@ -7,14 +7,14 @@ import { BRAND, badgeText } from "@/lib/brand";
  */
 export function CoursebookMark({ className }: { className?: string }) {
   return (
-    <svg viewBox="0 0 42 42" className={cn("size-9 shrink-0", className)} aria-hidden>
-      <rect x="1" y="1" width="40" height="40" rx="11" fill="#14213d" stroke="#c9a227" strokeWidth="1.5" />
-      <path d="M21 13.5C17 11 12.5 10.6 8.5 11.6V28.6C12.5 27.6 17 28 21 30.5Z" fill="#f3ead5" />
-      <path d="M21 13.5C25 11 29.5 10.6 33.5 11.6V28.6C29.5 27.6 25 28 21 30.5Z" fill="#fbf5e6" />
-      <path d="M11.5 16.4C14 15.9 16.6 16.2 18.6 17.2M11.5 20C14 19.5 16.6 19.8 18.6 20.8M11.5 23.6C14 23.1 16.6 23.4 18.6 24.4" stroke="#14213d" strokeOpacity=".35" strokeWidth="1" strokeLinecap="round" fill="none" />
-      <path d="M21 13.5V30.5" stroke="#c9a227" strokeWidth="1.6" />
-      <path d="M27.2 11.4V19.6L29 18 30.8 19.6V11.1" fill="#c9a227" />
-      <path d="M7 32.6C12 31 17 31.4 21 33.8 25 31.4 30 31 35 32.6" stroke="#c9a227" strokeWidth="1.6" strokeLinecap="round" fill="none" />
+    <svg viewBox="0 0 42 42" className={cn("cb-mark size-9 shrink-0", className)} aria-hidden>
+      <rect className="mk-tile" x="1" y="1" width="40" height="40" rx="11" fill="#14213d" stroke="#c9a227" strokeWidth="1.5" />
+      <path className="mk-page" d="M21 13.5C17 11 12.5 10.6 8.5 11.6V28.6C12.5 27.6 17 28 21 30.5Z" fill="#f3ead5" />
+      <path className="mk-page2" d="M21 13.5C25 11 29.5 10.6 33.5 11.6V28.6C29.5 27.6 25 28 21 30.5Z" fill="#fbf5e6" />
+      <path className="mk-lines" d="M11.5 16.4C14 15.9 16.6 16.2 18.6 17.2M11.5 20C14 19.5 16.6 19.8 18.6 20.8M11.5 23.6C14 23.1 16.6 23.4 18.6 24.4" stroke="#14213d" strokeOpacity=".35" strokeWidth="1" strokeLinecap="round" fill="none" />
+      <path className="mk-gold-s" d="M21 13.5V30.5" stroke="#c9a227" strokeWidth="1.6" />
+      <path className="mk-gold" d="M27.2 11.4V19.6L29 18 30.8 19.6V11.1" fill="#c9a227" />
+      <path className="mk-gold-s" d="M7 32.6C12 31 17 31.4 21 33.8 25 31.4 30 31 35 32.6" stroke="#c9a227" strokeWidth="1.6" strokeLinecap="round" fill="none" />
     </svg>
   );
 }

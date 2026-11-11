@@ -5,7 +5,12 @@ import { ThemeProvider } from "@/components/theme";
 import "katex/dist/katex.min.css";
 import "@fontsource-variable/inter";
 import "@fontsource-variable/fraunces/soft.css";
+import "@fontsource-variable/newsreader/opsz.css";
+import "@fontsource-variable/instrument-sans";
+import "@fontsource-variable/archivo/standard.css";
+import "@fontsource-variable/atkinson-hyperlegible-next";
 import "./globals.css";
+import "./looks.css";
 
 export const metadata: Metadata = {
   title: { default: BRAND.name, template: `%s · ${BRAND.name}` },

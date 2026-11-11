@@ -123,11 +123,11 @@
   --color-nav-text: var(--nav-text);
   --color-nav-muted: var(--nav-muted);
   --color-nav-active: var(--nav-active);
-  --font-sans:
+  --font-sans: var(--ff-sans,
     "Inter Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
-    Roboto, "Helvetica Neue", Arial, sans-serif;
-  --font-display:
-    "Fraunces Variable", ui-serif, Georgia, "Times New Roman", serif;
+    Roboto, "Helvetica Neue", Arial, sans-serif);
+  --font-display: var(--ff-display,
+    "Fraunces Variable", ui-serif, Georgia, "Times New Roman", serif);
 }
 
 html {
