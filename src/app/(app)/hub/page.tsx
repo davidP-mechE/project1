@@ -1,3 +1,4 @@
+import { isSiteAdminRole } from "@/server/roles";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { EnrollButton, PublishToggle } from "@/components/hub/hub-controls";
@@ -17,7 +18,7 @@ export const metadata: Metadata = { title: "Hub" };
 export default async function HubPage({ searchParams }: PageProps<"/hub">) {
   const user = await requireUser();
   const sp = await searchParams;
-  const admin = (await db.user.findUnique({ where: { id: user.id }, select: { role: true } }))?.role === "ADMIN";
+  const admin = isSiteAdminRole((await db.user.findUnique({ where: { id: user.id }, select: { role: true } }))?.role);
   const entries = await listCatalog(user.id, { includeHidden: admin });
   const subjects = [...new Set(entries.map((e) => e.subject))];
   const subject = typeof sp.subject === "string" && subjects.includes(sp.subject) ? sp.subject : null;

@@ -23,7 +23,7 @@ import { externalItemsOf } from "./external";
 import { addMistakes } from "./mistakes";
 import { applyRosterDetails } from "./roster";
 import { assignedTo, cleanTargets, groupsByClass, isAssignedToStudent, studentsTargeted, type Targets } from "./targets";
-import type { Prisma } from "@/generated/prisma/client";
+import type { AssignmentKind, Prisma } from "@/generated/prisma/client";
 
 export { ClassError };
 
@@ -561,7 +561,7 @@ async function gradeItem(userId: string, item: ItemForGrading, input: { choice?:
 export type CellStatus = "not_started" | "in_progress" | "done" | "not_assigned";
 export type Cell = { status: CellStatus; done: number; total: number; score: number | null; late: boolean; lastActive: Date | null };
 
-type AssignmentRow = { id: string; kind: "LESSONS" | "QUESTIONS" | "EXTERNAL" | "DIAGNOSTIC"; dueAt: Date | null; timeLimitMin: number | null; lessonIds: string[]; itemIds: string[]; classCourseId: string | null; externalItems?: Prisma.JsonValue };
+type AssignmentRow = { id: string; kind: AssignmentKind; dueAt: Date | null; timeLimitMin: number | null; lessonIds: string[]; itemIds: string[]; classCourseId: string | null; externalItems?: Prisma.JsonValue };
 
 /** Every student's progress on every assignment of a class (students × assignments). */
 async function progressCells(classId: string, students: string[], assignments: AssignmentRow[], now: Date) {

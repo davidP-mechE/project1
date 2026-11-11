@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
-import { demoDataAction, retryAssessmentAction, retryBookAction, retryLessonsAction, setPlanAction } from "@/server/actions/admin";
+import { demoDataAction, retryAssessmentAction, retryBookAction, retryLessonsAction, setPlanAction, setRoleAction } from "@/server/actions/admin";
 
 type Result = { ok: true; message?: string } | { ok: false; error: string };
 
@@ -89,5 +89,45 @@ export function DemoDataControls({ loaded }: { loaded: boolean }) {
         {result ? (result.ok ? result.message : result.error) : ""}
       </span>
     </div>
+  );
+}
+
+/** Owner only: student, approved tutor (writes bank questions and shared tests), or site admin. */
+export function RoleSelect({ userId, role, email }: { userId: string; role: string; email: string }) {
+  const [pending, start] = useTransition();
+  const [value, setValue] = useState(role);
+  const [error, setError] = useState<string | null>(null);
+  if (role === "OWNER") return <span className="text-xs font-semibold">Owner</span>;
+  return (
+    <span className="inline-flex items-center gap-2">
+      <select
+        aria-label={`Role for ${email}`}
+        value={value}
+        disabled={pending}
+        className="h-8 rounded-lg border border-border bg-surface px-2 text-sm"
+        onChange={(e) => {
+          const next = e.target.value;
+          const before = value;
+          setValue(next);
+          setError(null);
+          start(async () => {
+            const r = await setRoleAction(userId, next);
+            if (!r.ok) {
+              setValue(before);
+              setError(r.error);
+            }
+          });
+        }}
+      >
+        <option value="USER">Student</option>
+        <option value="TUTOR">Tutor</option>
+        <option value="ADMIN">Site admin</option>
+      </select>
+      {error && (
+        <span role="alert" className="text-xs text-danger">
+          {error}
+        </span>
+      )}
+    </span>
   );
 }

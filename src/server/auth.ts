@@ -9,6 +9,7 @@ import { env, googleAuthEnabled } from "./env";
 import { sendEmail } from "./email";
 import { changeEmailMessage, resetPasswordMessage, verifyEmailMessage } from "./email/templates";
 import { deleteAllUserFiles } from "./courses";
+import { syncOwnerRole } from "./roles";
 
 export const auth = betterAuth({
   appName: "Coursebook",
@@ -106,6 +107,8 @@ export const auth = betterAuth({
         // Last login, for the Staff page.
         after: async (session) => {
           await db.user.update({ where: { id: session.userId }, data: { lastLoginAt: new Date() } }).catch(() => {});
+          // OWNER_EMAIL may belong to an account made (or verified) after the server started.
+          await syncOwnerRole().catch(() => {});
         },
       },
     },

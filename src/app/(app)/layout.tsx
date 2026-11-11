@@ -10,6 +10,7 @@ import { getGameSummary } from "@/server/gamification";
 import { unreadCount } from "@/server/notifications";
 import { unreadThreadCount } from "@/server/messages";
 import { staffClassIds } from "@/server/access";
+import { isSiteAdminRole } from "@/server/roles";
 
 export default async function AppLayout({ children }: LayoutProps<"/">) {
   const user = await requireUser();
@@ -24,7 +25,7 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
   return (
     <>
       <AppSidebar
-        user={{ name: user.name, email: user.email, isAdmin: user.role === "ADMIN", isStaff }}
+        user={{ name: user.name, email: user.email, isAdmin: isSiteAdminRole(user.role), isStaff }}
         dueCount={counts.due + counts.new}
         timeZone={prefs?.timezone ?? "UTC"}
         game={{ streak: game.streak, xp: game.xp, level: game.level }}

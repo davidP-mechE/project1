@@ -13,6 +13,7 @@
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
     "db:studio": "prisma studio",
+    "db:seed": "tsx --env-file-if-exists=.env --conditions=react-server scripts/seed.ts",
     "postinstall": "prisma generate && node scripts/copy-pdfjs.mjs",
     "worker": "tsx --env-file-if-exists=.env --conditions=react-server src/worker/index.ts",
     "worker:dev": "tsx watch --env-file-if-exists=.env --conditions=react-server src/worker/index.ts",

@@ -19,6 +19,8 @@ const schema = z.object({
 
   BETTER_AUTH_SECRET: z.string().min(16, "BETTER_AUTH_SECRET must be at least 16 characters"),
   GOOGLE_CLIENT_ID: z.string().optional(),
+  /** The site owner's email (gets the OWNER role at startup and login; reaches /studio). Unset: nobody is owner. */
+  OWNER_EMAIL: z.email().optional(),
   /** Desmos API key (desmos.com/api), for the built-in graphing calculator on Math questions. Without it, a link opens desmos.com. */
   DESMOS_API_KEY: z.string().optional(),
   GOOGLE_CLIENT_SECRET: z.string().optional(),

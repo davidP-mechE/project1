@@ -1,3 +1,4 @@
+import { isSiteAdminRole } from "@/server/roles";
 import { formatInZone } from "@/lib/dates";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
@@ -68,7 +69,7 @@ export default async function CoursePage({ params }: PageProps<"/courses/[course
   const generating = course.status === "GENERATING" || course.status === "ACTIVE";
   const [hubEntry, publish] = await Promise.all([
     course.catalogEntryId ? db.catalogEntry.findUnique({ where: { id: course.catalogEntryId }, select: { attribution: true, license: true, sourceUrl: true } }) : null,
-    user.role === "ADMIN" && !course.catalogEntryId && generating ? getPublishState(courseId) : null,
+    isSiteAdminRole(user.role) && !course.catalogEntryId && generating ? getPublishState(courseId) : null,
   ]);
   const [pendingEstimate, progress, units, cost, study] = outline
     ? await Promise.all([

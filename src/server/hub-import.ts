@@ -49,7 +49,7 @@ export function slidesToMarkdown(slides: { text: string }[]) {
 /** Who owns imported Hub courses: the given site admin, or the first one. */
 export async function hubOwner(email?: string) {
   const admin = await db.user.findFirst({
-    where: { role: "ADMIN", ...(email ? { email: email.toLowerCase() } : {}) },
+    where: { role: { in: ["ADMIN", "OWNER"] }, ...(email ? { email: email.toLowerCase() } : {}) },
     orderBy: { createdAt: "asc" },
     select: { id: true, email: true },
   });

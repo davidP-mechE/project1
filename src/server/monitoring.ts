@@ -41,7 +41,7 @@ export async function recordError(input: { kind: "server" | "client" | "worker" 
   if (!row.alertedAt || now.getTime() - row.alertedAt.getTime() >= ALERT_EVERY_MS) {
     const claimed = await db.errorEvent.updateMany({ where: { id: row.id, OR: [{ alertedAt: null }, { alertedAt: { lte: new Date(now.getTime() - ALERT_EVERY_MS) } }] }, data: { alertedAt: now } });
     if (claimed.count) {
-      const admins = await db.user.findMany({ where: { role: "ADMIN" }, select: { email: true } });
+      const admins = await db.user.findMany({ where: { role: { in: ["ADMIN", "OWNER"] } }, select: { email: true } });
       for (const a of admins) await sendEmail(errorAlertMessage({ to: a.email, kind: row.kind, message: row.message, path: row.path, count: row.count, url: `${env.APP_URL}/admin` })).catch(() => {});
     }
   }
@@ -53,7 +53,7 @@ export async function reportProblem(userId: string | null, input: { path: string
   const r = await db.problemReport.create({
     data: { userId, path: scrubPath(input.path), userAgent: input.userAgent.slice(0, 300), errorIds: input.errorIds.slice(0, 10).map((e) => e.slice(0, 64)), note: scrub(input.note.slice(0, 2000)) },
   });
-  const admins = await db.user.findMany({ where: { role: "ADMIN" }, select: { email: true } });
+  const admins = await db.user.findMany({ where: { role: { in: ["ADMIN", "OWNER"] } }, select: { email: true } });
   for (const a of admins) await sendEmail(problemReportMessage({ to: a.email, path: r.path, note: r.note, errorIds: r.errorIds, userAgent: r.userAgent, url: `${env.APP_URL}/admin` })).catch(() => {});
   return r.id;
 }
