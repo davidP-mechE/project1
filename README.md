@@ -594,6 +594,7 @@ Needs a real `ANTHROPIC_API_KEY`; each step costs a few cents.
 ## Demo data and performance
 
 - `npm run seed:demo` makes a demo program ("Riverside SAT Program", public page `/p/demo`) with 30 invented students in two classes and a year of activity: scores, assignments and answers, attendance, mistake logs, sessions, a curriculum, announcements and messages. Every account is `@demo.example.com` with the password `coursebook-demo-2026`; running it again replaces them, and `npm run seed:demo -- --remove` deletes them. It refuses to run against production.
+- **Demo mode:** `npm run demo:load` / `npm run demo:clear`, or Admin → Demo data. It adds one tutor, the class "Demo: SAT Math", 10 students at three levels, a short made-up textbook course, assignments, a diagnostic and tutor chats. Every record is flagged `isDemo` and is cleared in one step. See ADMIN_GUIDE.md.
 - `DEMO_LOGINS=true` (with `STAFF_TWO_FACTOR=off`) shows one-click log-ins on `/login` for the demo admin, teacher, Math specialist and student. It's ignored when `APP_ENV=production`.
 - `npm run perf:check` times the heavy pages' server work (class scores, trends, reports, calendar, the program dashboard, Today) against the demo program, warm. Anything over 500 ms is marked SLOW.
 

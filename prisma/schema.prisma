@@ -104,6 +104,8 @@ model User {
   /// Two-factor login (authenticator app); required for program admins and staff.
   twoFactorEnabled Boolean?    @default(false)
   twoFactors       TwoFactor[]
+  /// Demo data (Admin → Demo data, or npm run demo:load). Cleared in one step; never mixed with real records.
+  isDemo           Boolean     @default(false)
 
   @@map("user")
 }
@@ -209,6 +211,8 @@ model Book {
   figures Figure[]
   chunks  Chunk[]
   jobs    Job[]
+  /// Demo data (Admin → Demo data, or npm run demo:load). Cleared in one step; never mixed with real records.
+  isDemo  Boolean  @default(false)
 
   @@index([userId, createdAt])
 }
@@ -307,6 +311,8 @@ model Course {
   studyPlans         StudyPlan[]
   assessments        Assessment[]
   assessmentAttempts AssessmentAttempt[]
+  /// Demo data (Admin → Demo data, or npm run demo:load). Cleared in one step; never mixed with real records.
+  isDemo             Boolean             @default(false)
 
   @@index([userId, archivedAt])
 }
@@ -1061,6 +1067,8 @@ model Program {
   createdAt       DateTime     @default(now())
   classes         Class[]
   auditLogs       AuditLog[]
+  /// Demo data (Admin → Demo data, or npm run demo:load). Cleared in one step; never mixed with real records.
+  isDemo          Boolean      @default(false)
 
   @@index([adminId])
 }
@@ -1177,6 +1185,8 @@ model Class {
   invites           ClassInvite[]
   courses           ClassCourse[]
   assignments       Assignment[]
+  /// Demo data (Admin → Demo data, or npm run demo:load). Cleared in one step; never mixed with real records.
+  isDemo            Boolean            @default(false)
 
   @@index([teacherId])
   @@index([programId])
@@ -1307,6 +1317,8 @@ model Worksheet {
   createdAt    DateTime        @default(now())
   items        WorksheetItem[]
   assignments  Assignment[]
+  /// Demo data (Admin → Demo data, or npm run demo:load). Cleared in one step; never mixed with real records.
+  isDemo       Boolean         @default(false)
 
   @@index([ownerId, createdAt])
 }

@@ -23,6 +23,8 @@
     "cost:breakdown": "tsx --env-file-if-exists=.env scripts/cost-breakdown.ts",
     "cost:estimate": "tsx scripts/cost-estimate.ts",
     "backup:now": "tsx --env-file-if-exists=.env --conditions=react-server scripts/backup-now.ts",
+    "demo:load": "tsx --env-file-if-exists=.env --conditions=react-server scripts/demo-mode.ts load",
+    "demo:clear": "tsx --env-file-if-exists=.env --conditions=react-server scripts/demo-mode.ts clear",
     "seed:demo": "tsx --env-file-if-exists=.env --conditions=react-server scripts/seed-demo.ts",
     "perf:check": "tsx --env-file-if-exists=.env --conditions=react-server scripts/perf-check.ts"
   },
