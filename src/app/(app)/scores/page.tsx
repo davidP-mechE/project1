@@ -34,7 +34,7 @@ export default async function ScoresPage() {
   const goals = h.target ? [h.target] : targets;
   const gain = h.baseline && h.latest ? h.latest.total - h.baseline.total : null;
   return (
-    <div className="mx-auto flex max-w-3xl flex-col gap-6">
+    <div className="mx-auto flex max-w-6xl flex-col gap-6">
       {programs.length > 0 && (
         <div className="flex flex-wrap gap-x-6 gap-y-2">
           {programs.map((p) => (
@@ -42,7 +42,7 @@ export default async function ScoresPage() {
           ))}
         </div>
       )}
-      <PageHeader title="SAT scores" description="Your official, practice and diagnostic scores, and how far you've come." actions={h.scores.length > 0 ? <ButtonLink href="/print/report/me" variant="secondary" size="sm">Print my progress report</ButtonLink> : undefined} />
+      <PageHeader eyebrow="Your SAT" title="SAT scores" description="Your official, practice and diagnostic scores, and how far you've come." actions={h.scores.length > 0 ? <ButtonLink href="/print/report/me" variant="secondary" size="sm">Print my progress report</ButtonLink> : undefined} />
       {h.scores.length === 0 ? (
         <Card className="flex flex-col gap-4">
           <h2 className="text-lg font-semibold">Start with your baseline</h2>
@@ -87,30 +87,38 @@ export default async function ScoresPage() {
               </div>
             </Card>
           </div>
-          <Card>
-            <h2 className="mb-3 text-lg font-semibold">Your progress</h2>
-            <ScoreChart points={h.scores} targets={goals} projection={h.projection} />
-            {h.stall.stalled && <Alert tone="warning" className="mt-3">{h.stall.reason}. Talk to your tutor about what to focus on next.</Alert>}
-          </Card>
-          <Card>
-            <h2 className="mb-1 text-lg font-semibold">Where to focus</h2>
-            <p className="mb-4 text-sm text-muted">Your weakest content areas first, from your College Board reports and question reviews and your practice here.</p>
-            <WeakSpots data={weak} />
-          </Card>
-          <Card>
-            <h2 className="mb-3 text-lg font-semibold">All scores</h2>
-            <ScoreTable scores={h.scores} actions={(id, verified) => <ScoreRowActions scoreId={id} verified={verified} canDelete={!verified} />} />
-          </Card>
-          <Card>
-            <h2 className="mb-4 text-lg font-semibold">Add a score</h2>
-            <ScoreForm />
-          </Card>
+          <div className="grid items-start gap-6 lg:grid-cols-[1.25fr_1fr]">
+            <div className="flex min-w-0 flex-col gap-6">
+              <Card>
+                <h2 className="mb-3 font-display text-2xl font-semibold">Your progress</h2>
+                <ScoreChart points={h.scores} targets={goals} projection={h.projection} />
+                {h.stall.stalled && <Alert tone="warning" className="mt-3">{h.stall.reason}. Talk to your tutor about what to focus on next.</Alert>}
+              </Card>
+              <Card>
+                <h2 className="mb-3 font-display text-2xl font-semibold">All scores</h2>
+                <ScoreTable scores={h.scores} actions={(id, verified) => <ScoreRowActions scoreId={id} verified={verified} canDelete={!verified} />} />
+              </Card>
+            </div>
+            <Card>
+              <h2 className="mb-1 font-display text-2xl font-semibold">Where to focus</h2>
+              <p className="mb-4 text-sm text-muted">Your weakest content areas first, from your College Board reports and question reviews and your practice here.</p>
+              <WeakSpots data={weak} />
+            </Card>
+          </div>
         </>
       )}
-      <Card>
-        <h2 className="mb-4 text-lg font-semibold">Goal and test date</h2>
-        <GoalForm targetScore={h.target} testDate={h.testDate ? h.testDate.toISOString().slice(0, 10) : null} targets={targets} officialDates={officialDates} />
-      </Card>
+      <div className={cn("grid items-start gap-6", h.scores.length > 0 && "lg:grid-cols-[1.25fr_1fr]")}>
+        {h.scores.length > 0 && (
+          <Card>
+            <h2 className="mb-4 font-display text-2xl font-semibold">Add a score</h2>
+            <ScoreForm />
+          </Card>
+        )}
+        <Card>
+          <h2 className="mb-4 font-display text-2xl font-semibold">Goal and test date</h2>
+          <GoalForm targetScore={h.target} testDate={h.testDate ? h.testDate.toISOString().slice(0, 10) : null} targets={targets} officialDates={officialDates} />
+        </Card>
+      </div>
       <p className="text-sm text-muted">
         <a href="/api/me/sat-export" download className="underline">
           Download all your tutoring records

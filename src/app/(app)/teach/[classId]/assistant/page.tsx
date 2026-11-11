@@ -26,7 +26,7 @@ export default async function AssistantPage({ params }: PageProps<"/teach/[class
   const allowed = c.access.subjects ? [...c.access.subjects] : null;
   const groupName = new Map(g.groups.map((x) => [x.id, x.name]));
   return (
-    <div className="mx-auto flex max-w-4xl flex-col gap-6">
+    <div className="mx-auto flex max-w-6xl flex-col gap-6">
       <ClassNav c={c} active="assistant" />
       <Card>
         <h2 className="mb-1 text-lg font-semibold">Ask about your class</h2>

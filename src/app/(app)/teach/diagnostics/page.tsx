@@ -13,7 +13,7 @@ export default async function DiagnosticsPage() {
   const user = await requireUser();
   const { programs, diagnostics } = await listDiagnostics(user.id);
   return (
-    <div className="mx-auto flex max-w-4xl flex-col gap-6">
+    <div className="mx-auto flex max-w-6xl flex-col gap-6">
       <PageHeader title="Diagnostics" description="Timed, two-module tests like the digital SAT: module 2 is harder or easier depending on module 1. Scores are estimates." />
       {programs.length === 0 ? (
         <EmptyState title="No program yet">Create a class first; diagnostics belong to your tutoring program.</EmptyState>

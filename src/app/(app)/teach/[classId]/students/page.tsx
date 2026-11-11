@@ -37,7 +37,7 @@ export default async function StudentsPage({
   }
   const manage = c.access.role === "ADMIN" || c.access.role === "TEACHER";
   return (
-    <div className="mx-auto flex max-w-4xl flex-col gap-6">
+    <div className="mx-auto flex max-w-6xl flex-col gap-6">
       <ClassNav c={c} active="students" />
       {manage && (
         <Card className="flex flex-col gap-5">

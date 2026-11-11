@@ -35,7 +35,7 @@ export default async function AssignmentReportPage({ params }: PageProps<"/teach
   if (a.kind === "DIAGNOSTIC") redirect(`/teach/${a.classId}/diagnostics/${a.id}`);
   const questions = a.kind === "QUESTIONS";
   return (
-    <div className="mx-auto flex max-w-4xl flex-col gap-6">
+    <div className="mx-auto flex max-w-6xl flex-col gap-6">
       <p className="text-sm">
         <Link href={`/teach/${classId}`} className="text-muted hover:text-text hover:underline">
           ← {a.class.name}

@@ -38,7 +38,7 @@ export default async function ProgramPage({ params, searchParams }: PageProps<"/
   }
   const { program, staff, log } = data;
   return (
-    <div className="mx-auto flex max-w-4xl flex-col gap-6">
+    <div className="mx-auto flex max-w-6xl flex-col gap-6">
       <p className="text-sm">
         <Link href="/teach" className="text-muted hover:text-text hover:underline">
           ← My classes

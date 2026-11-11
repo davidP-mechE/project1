@@ -547,7 +547,7 @@ test("the full student journey works, is accessible, and respects the CSP", asyn
   await expect(page.getByRole("heading", { name: "Nothing to review" })).toBeVisible();
 
   await page.goto("/teach");
-  await page.getByRole("link", { name: "Alex Student's tutoring program", exact: true }).click();
+  await page.getByRole("link", { name: /^Alex Student's tutoring program You're the admin/ }).click();
   await page.waitForURL(/\/teach\/programs\//);
   const programUrl = page.url();
   await expect(page.getByText(/Added Maya Math to SAT Math, Period 2 as Specialist \(Math\)/)).toBeVisible();

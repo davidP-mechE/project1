@@ -26,7 +26,7 @@ export default async function StaffPage({ params }: PageProps<"/teach/[classId]/
     throw err;
   }
   return (
-    <div className="mx-auto flex max-w-4xl flex-col gap-6">
+    <div className="mx-auto flex max-w-6xl flex-col gap-6">
       <ClassNav c={c} active="staff" />
       <Card>
         <h2 className="mb-1 text-lg font-semibold">Staff</h2>

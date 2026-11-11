@@ -22,7 +22,7 @@ export default async function GroupsPage({ params }: PageProps<"/teach/[classId]
     throw err;
   }
   return (
-    <div className="mx-auto flex max-w-4xl flex-col gap-6">
+    <div className="mx-auto flex max-w-6xl flex-col gap-6">
       <ClassNav c={c} active="groups" />
       {g.manage && (
         <Card>

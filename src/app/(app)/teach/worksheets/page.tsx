@@ -16,7 +16,7 @@ export default async function WorksheetsPage({ searchParams }: PageProps<"/teach
   const { before } = await searchParams;
   const worksheets = await listWorksheets(user.id, { before: typeof before === "string" ? before : undefined });
   return (
-    <div className="mx-auto flex max-w-4xl flex-col gap-6">
+    <div className="mx-auto flex max-w-6xl flex-col gap-6">
       <p className="text-sm">
         <Link href="/teach" className="text-muted hover:text-text hover:underline">
           ← My classes

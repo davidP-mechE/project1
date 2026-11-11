@@ -29,7 +29,7 @@ export default async function ClassScoresPage({ params, searchParams }: PageProp
     throw err;
   }
   return (
-    <div className="mx-auto flex max-w-5xl flex-col gap-6">
+    <div className="mx-auto flex max-w-6xl flex-col gap-6">
       <ClassNav c={c} active="scores" />
       <p className="-mt-2 text-sm">
         <Link href={`/print/class/${classId}`} className="font-medium text-primary underline-offset-2 hover:underline">

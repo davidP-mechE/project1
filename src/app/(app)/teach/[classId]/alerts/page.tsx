@@ -30,7 +30,7 @@ export default async function AlertsPage({ params }: PageProps<"/teach/[classId]
     throw err;
   }
   return (
-    <div className="mx-auto flex max-w-4xl flex-col gap-6">
+    <div className="mx-auto flex max-w-6xl flex-col gap-6">
       <ClassNav c={c} active="alerts" />
       {a.alerts.length === 0 ? (
         <EmptyState title="No alerts">Nobody is behind, inactive, missing sessions or dropping right now.{a.hiddenCount > 0 && ` (${a.hiddenCount} snoozed or dismissed.)`}</EmptyState>

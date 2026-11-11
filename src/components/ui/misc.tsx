@@ -2,7 +2,9 @@ import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 export function Card({ children, className }: { children: ReactNode; className?: string }) {
-  return <div className={cn("lift rounded-2xl border border-border bg-surface p-6", className)}>{children}</div>;
+  // A card given its own padding (p-0, p-4…) uses that instead of the default.
+  const padded = /(^|\s)p-[\d[]/.test(className ?? "");
+  return <div className={cn("lift rounded-[1.25rem] border border-border bg-surface", !padded && "p-6", className)}>{children}</div>;
 }
 
 export function Spinner({ className, label = "Loading" }: { className?: string; label?: string }) {
@@ -51,14 +53,21 @@ export function EmptyState({
   );
 }
 
-export function PageHeader({ title, description, actions }: { title: string; description?: string; actions?: ReactNode }) {
+export function PageHeader({ title, description, actions, eyebrow }: { title: string; description?: string; actions?: ReactNode; eyebrow?: string }) {
   return (
-    <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+    <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
       <div>
-        <h1 className="font-display text-3xl font-semibold tracking-tight">{title}</h1>
-        {description && <p className="mt-1 text-sm text-muted">{description}</p>}
+        {eyebrow && (
+          <p className="eyebrow mb-2 flex items-center gap-2">
+            <span aria-hidden className="inline-block size-1.5 rounded-full bg-accent" />
+            {eyebrow}
+          </p>
+        )}
+        <h1 className="font-display text-3xl font-semibold leading-tight tracking-tight sm:text-4xl">{title}</h1>
+        <span aria-hidden className="mt-3 block h-[3px] w-12 rounded-full bg-accent" />
+        {description && <p className="mt-3 max-w-2xl text-[0.95rem] text-muted">{description}</p>}
       </div>
-      {actions && <div className="flex gap-2">{actions}</div>}
+      {actions && <div className="flex flex-wrap gap-2">{actions}</div>}
     </div>
   );
 }

@@ -32,7 +32,7 @@ export default async function WorksheetPage({ params }: PageProps<"/teach/worksh
   const draft = ws.source === "AI_DRAFT";
   const unapproved = ws.items.filter((i) => !i.approvedAt).length;
   return (
-    <div className="mx-auto flex max-w-3xl flex-col gap-6">
+    <div className="mx-auto flex max-w-6xl flex-col gap-6">
       <p className="text-sm">
         <Link href="/teach/worksheets" className="text-muted hover:text-text hover:underline">
           ← Worksheets

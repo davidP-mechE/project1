@@ -169,9 +169,32 @@ body {
   padding-bottom: 0.08em;
 }
 
+/* A sideways-scrolling box contains its own screen-reader-only labels (absolutely
+   positioned), so they can't stretch the page past the window. */
+.overflow-x-auto {
+  position: relative;
+}
+
+/* Every page's sections rise in one after another (the page's top-level blocks). */
+.page-flow > * > * {
+  animation: cb-rise-in 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) backwards;
+  /* Flex items may shrink below their content, so wide tables scroll inside their card instead of widening the page. */
+  min-width: 0;
+}
+.page-flow > * > :nth-child(2) { animation-delay: 50ms; }
+.page-flow > * > :nth-child(3) { animation-delay: 100ms; }
+.page-flow > * > :nth-child(4) { animation-delay: 150ms; }
+.page-flow > * > :nth-child(5) { animation-delay: 200ms; }
+.page-flow > * > :nth-child(n + 6) { animation-delay: 250ms; }
+@media (prefers-reduced-motion: reduce) {
+  .page-flow > * > * {
+    animation: none;
+  }
+}
+
 /* Sections rise into place one after another (--d is the delay). */
 .rise {
-  animation: cb-rise-in 0.55s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  animation: cb-rise-in 0.55s cubic-bezier(0.2, 0.7, 0.2, 1) backwards;
   animation-delay: var(--d, 0ms);
 }
 @media (prefers-reduced-motion: reduce) {
