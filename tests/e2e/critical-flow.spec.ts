@@ -157,7 +157,7 @@ test("the full student journey works, is accessible, and respects the CSP", asyn
     await a11y(page, p);
   }
   await page.goto("/privacy");
-  await expect(page.getByText(/DRAFT/).first()).toBeVisible();
+  await expect(page.getByRole("link", { name: "hello@coursebook.site" }).first()).toBeVisible();
   await page.goto("/help");
   await expect(page.getByRole("heading", { name: "For students" })).toBeVisible();
   await page.getByText("How do I join my class?").click();

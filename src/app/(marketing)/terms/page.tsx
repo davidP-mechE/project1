@@ -10,12 +10,6 @@ export default function TermsPage() {
   const who = legalName();
   return (
     <LegalPage
-      draft={[
-        "Who may join (anyone, or a program's students and the staff its admin invites) and minimum age",
-        "Acceptable use, including the ban on uploading official College Board or Bluebook questions",
-        "What happens to accounts when a program ends or a student graduates",
-        "Governing law and contact details",
-      ]}
       title="Terms of Service"
       intro={
         <p>

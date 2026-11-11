@@ -236,3 +236,10 @@ export function announcementMessage(input: { to: string; className: string; titl
   const outro = `To stop these emails, change Settings → Notifications (${input.settingsUrl}).`;
   return { to: input.to, subject: `${input.className}: ${input.title}`, text: `${intro}\n\n${input.url}\n\n${outro}`, html: layout(input.title, intro, "Open Today", input.url, outro) };
 }
+
+/** Admin → Email: a test, in the same frame as every other email so it shows the real look. */
+export function testEmailMessage(input: { to: string; detail: string; from: string; url: string }): EmailMessage {
+  const intro = "Email is working. Verification links, password resets and invites will arrive looking like this one.";
+  const outro = `Sent with: ${input.detail}. From: ${input.from}.`;
+  return { to: input.to, subject: "Coursebook test email", text: `${intro}\n\n${outro}\n\n${input.url}`, html: layout("Your test email arrived", intro, "Open the admin page", input.url, outro) };
+}
