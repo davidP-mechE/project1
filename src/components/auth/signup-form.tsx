@@ -45,7 +45,7 @@ export function SignupForm({ googleEnabled, next = "/library" }: { googleEnabled
 
   return (
     <>
-      <h1 className="text-xl font-semibold">Create your account</h1>
+      <h1 className="font-display text-3xl">Create your account</h1>
       <p className="mt-1 text-sm text-muted">
         Already have one? <Link href={next === "/library" ? "/login" : `/login?next=${encodeURIComponent(next)}`} className="font-medium text-primary underline-offset-2 hover:underline">Log in</Link>
       </p>

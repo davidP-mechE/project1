@@ -855,7 +855,7 @@ h1 {
   content: "";
   position: absolute;
   inset: 0 auto 0 0;
-  width: var(--spine, 2rem);
+  width: var(--spine, var(--spine-auto, 2rem));
   background: rgb(0 0 0 / 0.28);
   pointer-events: none;
 }
@@ -864,11 +864,16 @@ h1 {
   position: absolute;
   inset: auto 0 0 0;
   height: var(--band, 0.9rem);
-  background: var(--accent);
+  background: var(--band-color, var(--accent));
   pointer-events: none;
 }
 .hero-card > * {
   position: relative;
+}
+@media (max-width: 639px) {
+  .hero-card {
+    --spine-auto: 1.1rem;
+  }
 }
 /* A cover's title: as wide as the face goes. */
 .cover-title {
@@ -884,6 +889,14 @@ h1 {
 }
 .hero-button:hover {
   background: #e9ecff;
+}
+/* A program's own gold button on its navy page (The 1600 Project's colours, not Coursebook's). */
+.program-button {
+  background: #c9a227;
+  color: #14213d;
+}
+.program-button:hover {
+  background: #d8b33c;
 }
 .hero-card .hero-track {
   background: rgb(255 255 255 / 0.25);

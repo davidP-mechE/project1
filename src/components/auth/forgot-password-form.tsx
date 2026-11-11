@@ -21,7 +21,7 @@ export function ForgotPasswordForm() {
 
   return (
     <>
-      <h1 className="text-xl font-semibold">Reset your password</h1>
+      <h1 className="font-display text-3xl">Reset your password</h1>
       <p className="mt-2 text-sm text-muted">Enter your email and we&apos;ll send you a link to choose a new password.</p>
       <form onSubmit={onSubmit} className="mt-6 flex flex-col gap-4">
         {status === "sent" && <Alert tone="success">If an account exists for that email, a reset link is on its way. It expires in 1 hour.</Alert>}

@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ButtonLink } from "@/components/ui/button";
 import { ScoreGauge } from "@/components/scores/score-gauge";
-import { ProgramBadge } from "@/components/brand/seal";
+import { CoursebookMark, ProgramBadge } from "@/components/brand/seal";
 import { publicProgram } from "@/server/programs";
 import { BRAND } from "@/lib/brand";
 
@@ -34,13 +34,20 @@ export default async function ProgramPage({ params }: PageProps<"/p/[slug]">) {
   const lastStep = p.goalGain ? ["Watch the gain", `Every score adds to your chart. The goal: +${p.goalGain} points.`] : steps[3];
   return (
     <div className="mx-auto flex max-w-5xl flex-col gap-14 px-4 py-12 sm:py-16">
-      <section className="hero-card grid items-center gap-8 rounded-2xl px-6 py-12 sm:px-12 md:grid-cols-[1.4fr_1fr]">
+      <p className="-mb-10 flex items-center gap-2 text-sm text-muted">
+        <CoursebookMark className="size-6" />
+        <span>
+          {p.name} runs on <Link href="/" className="font-semibold text-text underline-offset-2 hover:underline">{BRAND.name}</Link>
+        </span>
+      </p>
+      {/* The program's own colours (navy and gold, like its badge), not Coursebook's. */}
+      <section className="hero-card grid items-center gap-8 rounded-lg py-12 pb-16 pl-9 pr-5 [--band-color:#c9a227] [--cover:#14213d] sm:pl-24 sm:pr-12 md:grid-cols-[1.4fr_1fr]">
         <div className="flex flex-col gap-6">
           <div className="flex items-center gap-3">
             <ProgramBadge program={p} onDark className="size-14" />
-            <p className="font-display text-sm font-semibold tracking-[0.2em] text-[#d9b84a]">{p.name.toUpperCase()}</p>
+            <p className="text-lg font-bold text-[#e8cd7d]">{p.name}</p>
           </div>
-          <h1 className="font-display text-4xl font-semibold leading-tight sm:text-5xl">{p.goalGain ? `An ${p.subject} prep program built around one number: your gain.` : p.name}</h1>
+          <h1 className="cover-title text-[1.9rem] sm:text-[3.2rem]">{p.goalGain ? `An ${p.subject} prep program built around one number: your gain.` : p.name}</h1>
           <p className="max-w-xl text-lg opacity-90">
             {avg && p.goalGain
               ? `Our school's average ${p.subject} score is about ${avg}. Our goal is a ${p.goalGain}-point gain for every student${p.targets.length ? `, toward ${p.targets.join(" and ")}` : ""}, with tutors, practice and a plan to get there.`
@@ -48,7 +55,7 @@ export default async function ProgramPage({ params }: PageProps<"/p/[slug]">) {
           </p>
           {avg && p.goalGain && p.publicBlurb && <p className="max-w-xl opacity-90">{p.publicBlurb}</p>}
           <div className="flex flex-wrap gap-3">
-            <ButtonLink href="/signup" className="hero-button">
+            <ButtonLink href="/signup" className="program-button">
               Sign up
             </ButtonLink>
             <ButtonLink href="/login" variant="ghost" className="hero-ghost">
@@ -57,21 +64,21 @@ export default async function ProgramPage({ params }: PageProps<"/p/[slug]">) {
           </div>
         </div>
         {exampleScore && avg && (
-          <div className="rounded-2xl bg-surface p-4 text-text shadow-lg">
+          <div className="rounded-lg bg-surface p-4 text-text">
             <ScoreGauge score={exampleScore} baseline={avg} goal={goal} label="Example: a student's progress" caption={`+${exampleScore - avg} since their PSAT${goal ? `, on the way to ${goal}` : ""}.`} />
           </div>
         )}
       </section>
 
       <section aria-labelledby="how" className="flex flex-col gap-6">
-        <h2 id="how" className="font-display text-3xl font-semibold">
+        <h2 id="how" className="font-display text-3xl">
           How it works
         </h2>
         <ol className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {[...steps.slice(0, 3), lastStep].map(([title, body], i) => (
-            <li key={title} className="rounded-2xl border border-border bg-surface p-5">
+            <li key={title} className="rounded-lg border-[1.5px] border-border bg-surface p-5">
               <span className="score-num text-3xl text-accent-ink">{i + 1}</span>
-              <h3 className="mt-2 font-semibold">{title}</h3>
+              <h3 className="mt-2 font-display text-lg font-extrabold">{title}</h3>
               <p className="mt-1 text-sm text-muted">{body}</p>
             </li>
           ))}

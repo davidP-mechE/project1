@@ -33,7 +33,7 @@ export function TwoFactorForm({ next }: { next: string }) {
 
   return (
     <>
-      <h1 className="text-xl font-semibold">Two-factor code</h1>
+      <h1 className="font-display text-3xl">Two-factor code</h1>
       <p className="mt-1 text-sm text-muted">{backup ? "Enter one of the backup codes you saved when you turned on two-factor login. Each works once." : "Open your authenticator app and enter the 6-digit code for Coursebook."}</p>
       <form onSubmit={onSubmit} className="mt-6 flex flex-col gap-4">
         {error && <Alert tone="error">{error}</Alert>}

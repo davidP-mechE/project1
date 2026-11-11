@@ -126,14 +126,14 @@ export default async function DashboardPage() {
       </header>
 
       {/* ── Next step, with today's goal ── */}
-      <section aria-labelledby="next-step" className="hero-card rise grid items-center gap-8 rounded-lg py-8 pb-12 pl-14 pr-6 sm:py-10 sm:pb-14 sm:pl-[4.5rem] sm:pr-10 md:grid-cols-[1fr_auto]" style={{ ["--d" as string]: "60ms" }}>
+      <section aria-labelledby="next-step" className="hero-card rise grid items-center gap-8 rounded-lg py-8 pb-12 pl-9 pr-5 sm:py-10 sm:pb-14 sm:pl-[4.5rem] sm:pr-10 md:grid-cols-[1fr_auto]" style={{ ["--d" as string]: "60ms" }}>
         {step ? (
           <div className="flex flex-col gap-5">
             <p className="text-sm font-semibold text-white/85">
               {step.kicker}
               {step.course ? ` · ${step.course}` : ""}
             </p>
-            <h2 id="next-step" className="cover-title max-w-[40rem] text-[2.1rem] sm:text-[3.4rem]">
+            <h2 id="next-step" className="cover-title max-w-[40rem] text-[1.9rem] sm:text-[3.4rem]">
               {step.title}
             </h2>
             {step.progress && (
