@@ -349,6 +349,7 @@ The sidebar now has a **Practice** section: Review, Spaced repetition, Error log
 **Lecture slides** (**Slides** in the sidebar):
 - Upload a deck as a **PDF** (exported from PowerPoint, Google Slides or Keynote: keeps the exact look) or a **PowerPoint .pptx** file. A deck becomes a course like a book does, with slides as pages: lessons, practice, flashcards, tests, the tutor, search and exports all work, and everything says "slide 4" instead of "p. 4".
 - PowerPoint files are read directly (`src/lib/slides/pptx.ts`): titles, bullet points, tables, pictures and **speaker notes** (often the best explanation in a deck). The worker lays them out as a simple PDF for the viewer (`src/server/processing/slides-pdf.ts`); hidden slides are left out.
+- **Several decks, one course (a "collage")**: choose several decks at once on **Slides → Upload slides** (put them in order and name the course), or press **Add slides** on any slides course to add more later, like each week's lecture. Each deck becomes a unit. The worker merges them, in order, into the course's one PDF (`src/server/processing/collage.ts`), so lessons, the viewer, search and the tutor work as usual and slides are numbered through the whole course. Adding decks keeps the course open and leaves lessons already written untouched; the new deck's lessons wait for **Generate remaining**. A deck that can't be read (damaged, password-protected) is left out and can be removed; the others go ahead. Up to 15 decks at a time and 30 per course (`src/lib/upload/limits.ts`); courses added from the Hub can't take more decks.
 - **Outline** (`src/lib/slides/outline.ts`): section-divider slides start a unit, and the slides in between become lessons of about 6 slides, named after their first slide. Title/agenda slides and "Questions? / Thank you / References" are skipped by default. Edit it like any outline.
 - **Writing lessons**: Claude is told these are slides, to turn terse bullets into a connected explanation without adding facts, and to cite "(slide 12)". Slides that are mostly pictures (diagrams, charts) are read from their image first, so the lesson can explain them (~1 cent per slide, counted in the cost estimate).
 
@@ -431,6 +432,121 @@ Output tokens (the lesson text plus Claude's thinking) are most of the cost. If 
 
 While studying: multiple choice and exact matches are free; a written answer graded by Claude ≈ $0.01–0.02 (Claude Opus 5.5 at low effort, ~2–4K tokens in); a tutor question ≈ $0.02–0.05 (up to ~6K tokens of book passages plus the conversation). Embeddings are free (computed locally).
 
+## Classes and worksheets (teachers)
+
+Anyone can teach: **Teaching → My classes** in the sidebar.
+
+- **Classes and students** (`src/server/classes.ts`): a class has a 7-character join code (no 0/O or 1/I). Students enter it under **Classes**, or open the invite link (`/join/CODE`); new students sign up and land back on the link. Teachers can also invite by email (each gets the link), copy the code or link, make a new code, remove students, rename or archive the class. Joining with a code is rate-limited, so codes can't be guessed.
+- **Assigning lessons**: one of your courses, or chosen lessons from it, with a due date and a note. Each student gets **their own copy** of the course the first time they start (like the Hub: their notes, answers and flashcards are theirs), made from a per-class snapshot of the course's files, so it keeps working if you change or delete the course. Class copies don't count against students' plans.
+- **Worksheets** (`src/server/worksheets.ts`, `src/lib/ai/worksheet.ts`): upload a PDF of questions (up to 20 pages). The worker shows Claude every page as an image plus its text, and Claude lists each question (keeping its number, choices, math as LaTeX, figures described) with its answer: from the worksheet's answer key when it has one, otherwise worked out and marked **"check it"**. Fix anything with **Edit**; your answer becomes the key. Then **Assign questions**: all of them, or pick by number ("1-10, 14") to split a worksheet into several assignments; send one to several classes at once; file it under a course (students see it on that course's page); add a due date and, optionally, a **time limit**.
+- **Students answering**: multiple choice is checked instantly, written answers by Claude against the answer key (Claude Opus, low effort; it counts against the student's AI allowance like other grading). Untimed sets show results right away and can be retried (the latest answer counts). Timed sets start a clock kept on the server; results show when the student hands in or time runs out, and late answers are refused.
+- **Reports**: **Progress** is every student × every assignment (score or lessons done, late/overdue marked, class averages). Each assignment shows every student's status and score and, for questions, how the class did on each question: % correct, how many chose each option (common wrong answers stand out), and each student's answer. **Skills** lists the class's weakest skills from worksheet answers and who's under 60% on each.
+- Students see their classes and assignments under **Classes**, and the next ones due on **Today**.
+
+Privacy: teachers see students' names, emails and their work on assigned items only, never their own courses, notes or other answers.
+
+## Tutoring programs, staff and scopes
+
+Phase 3 (see `PHASE3_SPEC.md`) turns classes into a general tutoring-program feature. Your first class starts **your program** (for example a school's SAT program), and you're its **program admin**. Coursebook is the product; a program's name, badge and optional public page (`/p/<slug>`) are the program's own data, and `FEATURED_PROGRAM_SLUG` features one on the landing page.
+
+- **Programs** (`src/server/programs.ts`): a program holds classes, staff and settings (score targets, how long staff invites last, a daily AI spending cap). Its admin page (**Teaching → your program**) has the settings, **hand over the admin role** (to a staff member: type the program's name to confirm; you stay on as a teacher), and the **audit log**.
+- **Staff roles** per class (**Staff** tab, `src/server/staff.ts`):
+  - **Teacher**: everything in the class.
+  - **Specialist**: sees, assigns and grades only their **scope**: SAT sections (Math, Reading and Writing), single domains (for example Advanced Math), and/or groups of students. Student tutors are specialists limited to the group they tutor.
+  - **Viewer**: read-only reports, names but no contact details.
+  - Add someone by email: an existing account gets access right away plus an email; anyone else gets an invite link that signs them up and lands them in the class. Invite links expire (7 days by default), can be resent (the old link stops working) or cancelled, and only work for the invited address.
+  - Only the program admin adds, changes or removes staff, unless they tick **Can add, change and remove staff** for a teacher.
+  - Removal and role changes apply on the person's next request: access is read from the database every time.
+- **Scope is enforced on the server** (`src/server/access.ts`): every teacher-side function calls `classAccess()` and filters students and assignments by the caller's scope in the database query. Anything out of scope is "not found", so ids can't be probed. Assignments carry a subject: question sets take it from their questions' tags, and lesson assignments from the subject picked when assigning. Untagged work is only visible to staff without a subject limit.
+- **SAT tags** (`src/lib/sat/domains.ts`): the 8 digital-SAT domains and their skills (names only). Claude suggests a domain, skill, difficulty and "Desmos helps" for each worksheet question; teachers confirm them (**Confirm tags**, or **Confirm all**) or change them. The Skills report groups by SAT skill.
+- **Groups** (**Groups** tab, `src/server/groups.ts`): teachers group students (score band, session, a tutor's students). Students don't see group names.
+- **Review AI grades** (`src/server/grade-review.ts`): teachers and specialists see the written answers Claude graded for their own students and subjects, and confirm or override each one. The student sees the reviewed grade; overrides go in the audit log.
+- **Audit log**: every staff add, invite, resend, cancel, accept, role or scope change, removal, group change, grade override and admin handover, with who did it and when. There's no code path that edits or deletes entries.
+- **No official content**: the worksheet reader refuses official College Board, SAT or Bluebook material, and points teachers to linking College Board questions instead.
+- **Deleting an account**: a program admin with other staff or students must hand the role over first.
+
+### Security
+
+- **Two-factor login** (**Settings → Two-factor login**): an authenticator-app code at login, with 10 single-use backup codes. It's **required for program admins and staff**. Until it's on, every teaching page sends them to set it up, and every server function that returns student data refuses (`assertStaffTwoFactor` in `src/server/access.ts`). Students can turn it on too. If a staff member loses their phone and backup codes, the program admin can **Reset two-factor** on the Staff page (logs them out; audited). `STAFF_TWO_FACTOR=off` turns enforcement off for local development and the browser test only.
+- **Rate limits**:
+  - **Login and sign-up:** 5 a minute.
+  - **Two-factor codes:** 5 a minute, and the plugin also locks after repeated failures.
+  - **Password reset:** 3 per 5 minutes.
+  - **Staff invites:** 40 a day.
+  - **Class invites:** 100 a day.
+  - **Join codes:** 10 an hour.
+  - **Worksheet uploads:** 20 an hour.
+  - **Answers checked by Claude:** an hourly limit.
+  - **AI:** each person has a monthly allowance, and the **program's daily AI cap** (program page) pauses AI for everyone in the program once the day's spend reaches it, emailing the admin once (`assertProgramAiCap` in `src/server/limits.ts`).
+- **Question versions**: editing a question students have already answered keeps the old version and makes a new one. Past answers keep their grades and record which version they answered. The assignment report flags them, and **Re-grade against the current version** is an explicit, audited step (multiple choice and exact matches are re-checked; other written answers go back to **Review AI grades**). Deleting an answered question archives it instead, so no grade disappears.
+
+Tests: `tests/integration/security.test.ts`.
+
+### SAT scores, practice and the cohort
+
+- **Scores** (`src/server/scores.ts`, `src/lib/sat/scores.ts`). Students in a program are asked for a **baseline** (SAT, PSAT, a practice test, or "I'll take the diagnostic"). Scores are entered with section scores and the **numbers and topics** of missed questions only; the server refuses any other field, so test content can't be saved.
+  - **Students:** see their history chart (official tests filled, practice hollow, goal lines) and an **estimated range** (a trend, labelled as an estimate, never official). They also get a goal and test date, and a **weekly plan back from test day** (`src/server/pacing.ts`).
+  - **Staff:** see the class's **Scores** tab (gain, on track, distance to 1200 and 1300, stalling, missing baselines; viewers with fewer than 5 students see numbers only). Each student's page shows their scores, open mistakes, plan and guardians. The admin sees the **program dashboard**.
+- **College Board questions by link** (`src/server/external.ts`): attach Question Bank links and question IDs to an assignment; students answer on College Board and record right, wrong or skipped. Only `collegeboard.org` links are accepted, and no content is stored.
+- **Diagnostics** (`src/server/diagnostics.ts`). **Teaching → Diagnostics** builds an adaptive test from the program's tagged questions: per section, module 1, then a harder or easier module 2 depending on how module 1 went.
+  - **The clock** is kept on the server: late answers are refused, a reload doesn't reset it, and expired modules hand themselves in.
+  - **Attempts:** one per student unless a teacher allows a retake.
+  - **Results:** estimated section scores (saved as a DIAGNOSTIC score), plus results by domain and with or without Desmos. Answers and explanations appear after the diagnostic closes.
+  - **Grid-in answers** match by value (`3/4` = `.75`).
+- **Mistake log** (`/mistakes`, `src/server/mistakes.ts`): every wrong answer (assignments, diagnostics, College Board, misses entered from outside tests) comes back after 1, 3, 7 and 16 days until it's right twice in a row. Outside-test misses come back as a similar approved question on the same skill.
+- **Desmos:** with `DESMOS_API_KEY` the graphing calculator opens beside Math questions, and use is recorded. Without a key, it's a link to desmos.com.
+- **Cohort tools** (`src/server/cohort.ts`, `src/server/roster.ts`, `src/server/targets.ts`):
+  - **Assigning:** anything can go to the whole class, groups, or chosen students. A tutor limited to a group can only target it.
+  - **Attendance:** sessions (one-off or weekly) and a phone-friendly register, with attendance shown beside score gains (with a not-cause-and-effect note).
+  - **Alerts:** overdue work, dropping scores, inactive for 7 days, 2 absences in a row. They can be snoozed or dismissed, with an optional 7am email digest.
+  - **Roster CSV import:** previewed row by row; nothing is sent if any row is bad. Group, goal and baseline apply on joining.
+  - **Grade export:** CSV with formula-safe cells; emails only on request, for managers.
+  - **Guardian emails:** weekly, opt-in per class, only with recorded consent, with one-click unsubscribe.
+- **Curriculum and the assistant** (`src/server/curriculum.ts`, `src/server/assistant.ts`, `src/server/ai/assistant.ts`):
+  - **Curriculum:** paste a syllabus (Sonnet turns it into units) or start from the SAT template (no AI). Units are laid out on school weeks, skipping closed days, and stay drafts until published.
+  - **Pacing suggestions:** decided by rules, worded by Haiku. Accepting one adds a week and moves later units.
+  - **Drafts:** Claude drafts original questions (into a Worksheets draft that can't be assigned or used in diagnostics until each question is approved) and short lessons (hidden from students until approved).
+  - **Weekly summaries:** Claude sees stand-in labels, never names, and names are put back afterwards.
+  - **"Ask about your class":** read-only lookups that run as the asker, so their scope applies.
+  - **Review queue:** **Teaching → Review queue** lists everything waiting for a person.
+
+### Reliability and support
+
+- **Error monitoring** (`src/server/monitoring.ts`, `src/instrumentation.ts`): server, browser and worker errors are grouped with personal details removed, and site admins are emailed on a new one (then at most hourly). **Admin → Errors and problem reports.**
+- **Report a problem** (page footer): sends the page, the browser and recent error ids, never what's typed.
+- **First-login walkthroughs** for students (Today) and staff (My classes), shown once.
+- **Data requests:** students download their records (SAT scores page); staff download a student's records (logged); the program admin deletes a student's program data; the site admin deletes a whole account (Admin page).
+- **Backups:** nightly `pg_dump` to file storage with 30-day retention (`BACKUPS_ENABLED=true`, needs `postgresql-client`), plus `npm run backup:now`.
+- **Staging:** `APP_ENV=staging` shows a banner and refuses to start on the production database.
+- **Handoff:** `ADMIN_GUIDE.md` (deploys, backups, staff, handing over the admin role, a new semester) and `PRIVACY_REVIEW.md` (FERPA/COPPA checklist for the school).
+
+Every permission and scope rule has a test in `tests/integration/permissions.test.ts`. For example, a Math specialist can't see or grade Reading and Writing work, a group-scoped specialist can't see other students, and a removed staff member is locked out on their next request.
+
+## Manual test checklist (classes and worksheets)
+
+1. **My classes → Create class**. On its Students page, copy the invite link and open it in a private window: sign up as a student, and you land back on the link; join.
+2. **Worksheets**: upload a real worksheet PDF with an answer key (with a real Claude key). Check the questions match the PDF (numbering, choices, math), and that answers from the key are marked "Answer from the worksheet". Upload one without a key and check Claude's answers.
+3. Assign questions 1-5 to the class (untimed, due tomorrow) and 6-10 (timed, 5 minutes) as a second assignment.
+4. As the student: answer the first set (try a wrong answer, then again); start the timed one and let it run out: answers lock and results appear.
+5. **Assign lessons**: a few lessons from a course. As the student, **Start**: your own copy opens at the first lesson; finish one.
+6. As the teacher: **Progress** shows both students' scores and lessons; open an assignment to see each question's results; **Skills** shows the weakest skills.
+
+## Manual test checklist (programs and staff)
+
+1. As the program admin, open a class's **Groups** tab and make "Group B" with two students.
+2. **Staff → Add someone**: add a second account of yours as a **Specialist** for **All of Math**. In a private window, log in as them: **Teaching** lists the class with "Specialist", and only Math-tagged assignments and their skills appear.
+3. Add a third address that has no account as a **Specialist** for **Reading and Writing**, limited to Group B. Open the invite email's link, sign up with that address, and accept: only Group B's students and R&W work show.
+4. Change the Math specialist to **Viewer**: their next page load has no **Assign** or **Review AI grades** tabs. **Remove** them: their next page load is "not found".
+5. On **Review AI grades**, override a grade: the student sees the new score, and the program's audit log shows the change.
+6. On the program page, hand the admin role to a teacher (type the program name). They can now add staff; you can't, but you're still a teacher.
+
+## Manual test checklist (slide collages)
+
+1. **Slides → Upload slides**: choose 3 decks (mix PDF and .pptx). Reorder them with the arrows, name the course, upload. The outline has one unit per deck, in your order, with the cover and "Questions?" slides skipped.
+2. Generate it and open a lesson from the second deck: "See the slides" opens at the right slide (slides are numbered through the whole course).
+3. On the course page, **Add slides**: add next week's deck while the course is open. It says "Adding…", then the deck appears with its slide range, the lessons you wrote are unchanged, and **Generate 1 remaining** (or more) writes only the new ones.
+4. Add a password-protected PDF: it shows why it couldn't be added and can be removed; the other decks are fine.
+
 ## Manual test checklist (generation cost)
 
 Needs a real `ANTHROPIC_API_KEY`; each step costs a few cents.
@@ -474,6 +590,12 @@ Needs a real `ANTHROPIC_API_KEY`; each step costs a few cents.
 3. Take the final exam the same way. A written answer is graded by Claude (real mode).
 4. **Export** tab: download the Markdown, both CSVs (open them in a spreadsheet) and the Anki deck (File → Import in Anki: one subdeck per unit). **PDF study guide** opens the print dialog; Save as PDF and check math and page breaks.
 5. Phone width and dark mode on a test and its results.
+
+## Demo data and performance
+
+- `npm run seed:demo` makes a demo program ("Riverside SAT Program", public page `/p/demo`) with 30 invented students in two classes and a year of activity: scores, assignments and answers, attendance, mistake logs, sessions, a curriculum, announcements and messages. Every account is `@demo.example.com` with the password `coursebook-demo-2026`; running it again replaces them, and `npm run seed:demo -- --remove` deletes them. It refuses to run against production.
+- `DEMO_LOGINS=true` (with `STAFF_TWO_FACTOR=off`) shows one-click log-ins on `/login` for the demo admin, teacher, Math specialist and student. It's ignored when `APP_ENV=production`.
+- `npm run perf:check` times the heavy pages' server work (class scores, trends, reports, calendar, the program dashboard, Today) against the demo program, warm. Anything over 500 ms is marked SLOW.
 
 ## Manual test checklist (Phase 8)
 

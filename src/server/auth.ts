@@ -2,6 +2,8 @@ import "server-only";
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { nextCookies } from "better-auth/next-js";
+import { twoFactor } from "better-auth/plugins";
+import { APIError } from "better-auth/api";
 import { db } from "./db";
 import { env, googleAuthEnabled } from "./env";
 import { sendEmail } from "./email";
@@ -61,6 +63,9 @@ export const auth = betterAuth({
       enabled: true,
       // Database rows are removed by cascading deletes; files are removed here.
       beforeDelete: async (user) => {
+        // A program admin hands the program over first, so its other staff and students aren't cut off.
+        const shared = await db.program.count({ where: { adminId: user.id, classes: { some: { OR: [{ staff: { some: { userId: { not: user.id } } } }, { members: { some: {} } }] } } } });
+        if (shared > 0) throw new APIError("BAD_REQUEST", { message: "You're the admin of a program with other staff or students. Hand the admin role to someone else first (Teaching → your program)." });
         await deleteAllUserFiles(user.id);
       },
     },
@@ -83,6 +88,10 @@ export const auth = betterAuth({
       "/sign-up/email": { window: 60, max: 5 },
       "/request-password-reset": { window: 300, max: 3 },
       "/send-verification-email": { window: 300, max: 3 },
+      // Two-factor codes: 5 tries a minute stops guessing (the plugin also locks after repeated failures).
+      "/two-factor/verify-totp": { window: 60, max: 5 },
+      "/two-factor/verify-backup-code": { window: 60, max: 5 },
+      "/two-factor/enable": { window: 300, max: 5 },
     },
   },
 
@@ -91,7 +100,22 @@ export const auth = betterAuth({
   },
 
   // Must be last: lets Server Actions set auth cookies.
-  plugins: [nextCookies()],
+  databaseHooks: {
+    session: {
+      create: {
+        // Last login, for the Staff page.
+        after: async (session) => {
+          await db.user.update({ where: { id: session.userId }, data: { lastLoginAt: new Date() } }).catch(() => {});
+        },
+      },
+    },
+  },
+
+  plugins: [
+    // Authenticator-app codes, with backup codes. Required for staff (src/server/access.ts).
+    twoFactor({ issuer: "Coursebook", backupCodeOptions: { amount: 10, length: 10 } }),
+    nextCookies(),
+  ],
 });
 
 export type AuthSession = typeof auth.$Infer.Session;

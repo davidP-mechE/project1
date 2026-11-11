@@ -10,6 +10,13 @@ export default function PrivacyPage() {
   return (
     <LegalPage
       title="Privacy Policy"
+      draft={[
+        "Who runs Coursebook and who to contact (name, email, address)",
+        "For each tutoring program: who runs it, and whether its school needs a data agreement (FERPA) and parental consent for students under 18",
+        "Confirmation that every student is 13 or older (COPPA)",
+        "How long data is kept after a student leaves",
+        "Tutoring-program data: scores, answers, attendance, messages, guardian contacts, and what's sent to Claude (Anthropic)",
+      ]}
       intro={
         <p>
           This explains what {who} (“we”) collects when you use Coursebook, why, who else handles it, and how to delete it. Short version: we keep
@@ -53,6 +60,17 @@ export default function PrivacyPage() {
             <>
               <p>Only to provide the service you asked for: reading your books, writing and showing your courses, grading answers, reminders you turned on, account emails (verification, password reset), enforcing limits, keeping the service secure, and fixing problems.</p>
               <p>We don’t sell your data, show ads, or use your books or study data to train AI models.</p>
+            </>
+          ),
+        },
+        {
+          id: "programs",
+          title: "If you join a tutoring program",
+          body: (
+            <>
+              <p>A tutoring program (for example, a school&apos;s SAT program) runs its classes on Coursebook. Inside it, your tutors see your work for their classes (some only for their subject or group), and your program admin sees the whole program.</p>
+              <p>Messages between students and tutors can be read by your program admin, to keep everyone safe. Other students never see your scores or messages.</p>
+              <p>Each program&apos;s data is its own: it isn&apos;t shared with other programs.</p>
             </>
           ),
         },

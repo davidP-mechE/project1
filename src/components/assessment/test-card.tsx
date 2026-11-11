@@ -1,3 +1,4 @@
+import { formatInZone } from "@/lib/dates";
 import { ButtonLink } from "@/components/ui/button";
 import { Card } from "@/components/ui/misc";
 import { AssessmentPoller, RegenerateButton } from "./assessment-status";
@@ -12,7 +13,7 @@ type Props = {
 };
 
 /** The "take the test" card: status, best score, past attempts. */
-export function TestCard({ courseId, kind, takeHref, assessment, attempts, notYet }: Props) {
+export function TestCard({ courseId, kind, takeHref, assessment, attempts, notYet, zone }: Props & { zone: string }) {
   const name = kind === "UNIT_TEST" ? "Unit test" : "Final exam";
   const best = attempts.length ? Math.max(...attempts.map((a) => a.score)) : null;
   const busy = assessment?.status === "QUEUED" || assessment?.status === "GENERATING";
@@ -46,7 +47,7 @@ export function TestCard({ courseId, kind, takeHref, assessment, attempts, notYe
         <ul className="mt-4 flex flex-col gap-1 border-t border-border pt-3 text-sm">
           {attempts.map((a) => (
             <li key={a.id} className="flex justify-between gap-2">
-              <span className="text-muted">{a.createdAt.toLocaleDateString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}</span>
+              <span className="text-muted">{formatInZone(a.createdAt, zone, "dayTime")}</span>
               <span className="tabular-nums">
                 {Math.round(a.score * 100)}% · {a.correct}/{a.total}
               </span>

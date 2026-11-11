@@ -1,3 +1,6 @@
+import { BaselineBanner } from "@/components/scores/baseline-banner";
+import { Walkthrough } from "@/components/support/walkthrough";
+import { toursToShow } from "@/server/tours";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { GoalRing, MinutesChart } from "@/components/dashboard/charts";
@@ -8,7 +11,15 @@ import { formatDay } from "@/lib/planning/dates";
 import { cn } from "@/lib/utils";
 import { getDashboard } from "@/server/dashboard";
 import { getGameSummary } from "@/server/gamification";
-import { requireUser } from "@/server/session";
+import { requireUser, viewerZone } from "@/server/session";
+import { studentPrograms } from "@/server/programs";
+import { studentAnnouncements } from "@/server/announcements";
+import { ProgramTag } from "@/components/brand/seal";
+import { formatInZone } from "@/lib/dates";
+import { awardBadges, myBadges } from "@/server/badges";
+import { BadgeList } from "@/components/badges";
+import { dueAssignments } from "@/server/classes";
+import { dueText } from "@/components/classes/format";
 
 export const metadata: Metadata = { title: "Today" };
 
@@ -58,7 +69,9 @@ function nextStep(d: Dashboard) {
 
 export default async function DashboardPage() {
   const user = await requireUser();
-  const [d, game] = await Promise.all([getDashboard(user.id), getGameSummary(user.id)]);
+  const tours = await toursToShow(user.id);
+  await awardBadges(user.id).catch((err) => console.warn("[badges]", err instanceof Error ? err.message : err));
+  const [d, game, due, programs, news, zone, badges] = await Promise.all([getDashboard(user.id), getGameSummary(user.id), dueAssignments(user.id), studentPrograms(user.id), studentAnnouncements(user.id), viewerZone(), myBadges(user.id)]);
   const first = d.name.split(" ")[0];
   const goalMet = d.goal.minutes >= d.goal.target;
   const cards = d.review.due + d.review.new;
@@ -68,12 +81,14 @@ export default async function DashboardPage() {
 
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-6">
+      <BaselineBanner userId={user.id} />
+      {tours.student && <Walkthrough tour="student" />}
       <Celebrate goalMet={goalMet} streak={d.streak.current} today={d.today} />
 
       <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-sm text-muted">{formatDay(d.today, { weekday: "long", month: "long", day: "numeric" })}</p>
-          <h1 className="text-3xl font-semibold sm:text-4xl">
+          <h1 className="font-display text-3xl font-semibold sm:text-4xl">
             {greeting(d.hour)}, {first}!
           </h1>
           <p className="mt-1 text-muted">{step?.course ? `Pick up where you left off in ${step.course}.` : d.courses.length ? "You're all caught up. Nice work." : "Let's set up your first course."}</p>
@@ -88,6 +103,15 @@ export default async function DashboardPage() {
           {d.streak.current === 0 ? "Start a streak today" : d.streak.studiedToday ? `${d.streak.current}-day streak` : `${d.streak.current}-day streak: study today to keep it`}
         </p>
       </header>
+      {programs.length > 0 && (
+        <ul aria-label="Your programs" className="flex flex-wrap gap-x-6 gap-y-2">
+          {programs.map((p) => (
+            <li key={p.id}>
+              <ProgramTag program={p} detail={p.classes.join(", ")} />
+            </li>
+          ))}
+        </ul>
+      )}
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_21rem]">
         {/* ── Main column ── */}
@@ -238,6 +262,62 @@ export default async function DashboardPage() {
 
         {/* ── Side column ── */}
         <div className="flex flex-col gap-6">
+          {badges.length > 0 && (
+            <section aria-labelledby="badges-title" className="flex flex-col gap-3">
+              <h2 id="badges-title" className="text-xl font-semibold">
+                Your badges
+              </h2>
+              <BadgeList badges={badges.slice(0, 6)} zone={zone} />
+            </section>
+          )}
+          {news.length > 0 && (
+            <section id="announcements" aria-labelledby="announcements-title" className="flex flex-col gap-3">
+              <h2 id="announcements-title" className="text-xl font-semibold">
+                Announcements
+              </h2>
+              <ul className="flex flex-col gap-3">
+                {news.map((a) => (
+                  <li key={a.id}>
+                    <Card className={cn(a.pinned && "border-accent")}>
+                      <p className="eyebrow">
+                        {a.pinned && <span className="text-accent-ink">Pinned · </span>}
+                        {a.class.name}
+                        {a.group ? ` · ${a.group.name}` : ""}
+                      </p>
+                      <h3 className="mt-1 font-semibold">{a.title}</h3>
+                      <p className="mt-1 whitespace-pre-wrap text-sm">{a.body}</p>
+                      <p className="mt-2 text-xs text-muted">
+                        {a.author?.name ?? "Staff"} · {formatInZone(a.createdAt, zone, "dayTime")}
+                      </p>
+                    </Card>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+          {due.length > 0 && (
+            <Card className="stagger flex flex-col gap-3 p-5">
+              <div className="flex items-baseline justify-between gap-2">
+                <h2 className="text-xl font-semibold">Assigned to you</h2>
+                <Link href="/classes" className="text-sm text-muted hover:text-text hover:underline">
+                  All classes
+                </Link>
+              </div>
+              <ul className="flex flex-col gap-2">
+                {due.map((a) => (
+                  <li key={a.id}>
+                    <Link href={a.kind === "QUESTIONS" ? `/classes/assignments/${a.id}` : "/classes"} className="flex items-center justify-between gap-3 rounded-lg px-2 py-1.5 hover:bg-surface-2">
+                      <span className="min-w-0">
+                        <span className="block truncate text-sm font-semibold">{a.title}</span>
+                        <span className="block truncate text-xs text-muted">{a.className}</span>
+                      </span>
+                      <span className={cn("shrink-0 text-xs", a.dueAt && a.dueAt < new Date() ? "font-semibold text-danger" : "text-muted")}>{dueText(a.dueAt, undefined, zone)}</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </Card>
+          )}
           <Card className="stagger flex flex-col gap-4 p-5">
             <div className="flex items-baseline justify-between">
               <h2 className="text-xl font-semibold">Daily quests</h2>

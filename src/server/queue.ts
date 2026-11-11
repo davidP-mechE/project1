@@ -29,6 +29,8 @@ export type GeneratePayload =
   | { kind: "lesson-batch"; courseId: string; lessonIds: string[]; force?: boolean }
   /** Send these unit tests / the final exam as one batch. */
   | { kind: "assessment-batch"; courseId: string; assessmentIds: string[] }
+  /** Read a teacher's worksheet and list its questions. */
+  | { kind: "worksheet"; worksheetId: string }
   /** Check a submitted batch; save its results when it's done. */
   | { kind: "batch-poll"; batchId: string; attempt: number };
 
@@ -42,6 +44,8 @@ export function generationJobId(payload: GeneratePayload): string {
       return `${payload.kind}-${payload.courseId}-${Date.now()}`;
     case "batch-poll":
       return `batch-poll-${payload.batchId}-${payload.attempt}`;
+    case "worksheet":
+      return `worksheet-${payload.worksheetId}-${Date.now()}`;
     default:
       return `${payload.kind}-${payload.lessonId}`;
   }

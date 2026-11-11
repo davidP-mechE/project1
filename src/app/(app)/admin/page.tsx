@@ -1,3 +1,5 @@
+import { formatInZone } from "@/lib/dates";
+import { viewerZone } from "@/server/session";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { PlanSelect, RetryButton } from "@/components/admin/admin-controls";
@@ -5,6 +7,8 @@ import { Card, PageHeader } from "@/components/ui/misc";
 import { inputClasses } from "@/components/ui/field";
 import { buttonClasses } from "@/components/ui/button";
 import { getAiSpend, getFailures, getFeatureUsage, getOverview, listUsers, requireAdmin } from "@/server/admin";
+import { listProblems } from "@/server/monitoring";
+import { DeleteAccountForm, ResolveButton } from "@/components/support/data-forms";
 
 export const metadata: Metadata = { title: "Admin" };
 
@@ -19,6 +23,12 @@ const FEATURE_LABELS: Record<string, string> = {
   PAGE_REPAIR: "Equation pages (vision)",
   GRADING: "Grading written answers",
   TUTOR: "Tutor",
+  WORKSHEET: "Reading worksheets",
+  FLASHCARDS: "Flashcards",
+  CURRICULUM: "Curriculum imports",
+  DRAFT: "Drafted questions and lessons",
+  SUMMARY: "Weekly summaries",
+  ASSISTANT: "Assistant questions",
 };
 
 function Section({ id, title, description, children }: { id: string; title: string; description?: string; children: ReactNode }) {
@@ -69,15 +79,47 @@ const td = "px-4 py-2 align-top";
 
 export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
   await requireAdmin();
+  const zone = await viewerZone();
   const sp = await searchParams;
   const q = typeof sp.q === "string" ? sp.q : "";
-  const [overview, spend, usage, failures, users] = await Promise.all([getOverview(), getAiSpend(), getFeatureUsage(), getFailures(), listUsers(q)]);
+  const [overview, spend, usage, failures, users, problems] = await Promise.all([getOverview(), getAiSpend(), getFeatureUsage(), getFailures(), listUsers(q), listProblems()]);
   const maxDay = Math.max(0.01, ...spend.daily.map((d) => d.usd));
   const failedTotal = failures.books.length + failures.lessons.length + failures.assessments.length;
 
   return (
     <div className="flex flex-col gap-10">
       <PageHeader title="Admin" description="Users, Claude API spend, failed work and feature use. Only admins can see this page." />
+
+      <Section id="problems" title="Errors and problem reports" description="Server, browser and worker errors (grouped; personal details removed), and reports from the Report a problem button. You're emailed when a new one appears.">
+        {problems.errors.length === 0 && problems.reports.length === 0 ? (
+          <p className="text-sm text-muted">Nothing open.</p>
+        ) : (
+          <ul className="flex flex-col divide-y divide-border rounded-xl border border-border bg-surface text-sm">
+            {problems.errors.map((e) => (
+              <li key={e.id} className="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5">
+                <span className="min-w-0">
+                  <span className="rounded bg-danger-bg px-1.5 py-0.5 text-xs font-semibold text-danger">{e.kind}</span> <span className="font-medium">{e.message}</span>
+                  <span className="block text-xs text-muted">
+                    {e.path || "–"} · {e.count}× · last {formatInZone(e.lastAt, zone, "full")} · id {e.id}
+                  </span>
+                </span>
+                <ResolveButton kind="error" id={e.id} />
+              </li>
+            ))}
+            {problems.reports.map((r) => (
+              <li key={r.id} className="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5">
+                <span className="min-w-0">
+                  <span className="rounded bg-warning-bg px-1.5 py-0.5 text-xs font-semibold text-warning">report</span> <span className="font-medium">{r.note || "(no note)"}</span>
+                  <span className="block text-xs text-muted">
+                    {r.path} · {formatInZone(r.createdAt, zone, "full")} · {r.errorIds.length ? `errors: ${r.errorIds.join(", ")}` : "no errors recorded"} · {r.userAgent.slice(0, 80)}
+                  </span>
+                </span>
+                <ResolveButton kind="report" id={r.id} />
+              </li>
+            ))}
+          </ul>
+        )}
+      </Section>
 
       <Section id="overview" title="Overview">
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
@@ -249,6 +291,9 @@ export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
           ))}
         </Table>
         {users.length === 0 && <p className="text-sm text-muted">No users match “{q}”.</p>}
+      </Section>
+      <Section id="delete-account" title="Delete an account" description="For a deletion request: removes the account and everything in it (courses, files, scores, answers). It can't be undone. A program admin with other people must hand over the program first.">
+        <DeleteAccountForm />
       </Section>
     </div>
   );

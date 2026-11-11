@@ -1,7 +1,12 @@
+import { formatInZone } from "@/lib/dates";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { CourseHeader } from "@/components/course/course-header";
+import { DecksCard } from "@/components/course/decks-card";
+import { getDecks } from "@/server/collage";
+import { assignmentsForCopy } from "@/server/classes";
+import { dueText } from "@/components/classes/format";
 import { GenerateButton } from "@/components/course/generate-button";
 import { GenerationProgress } from "@/components/course/generation-progress";
 import { ProcessingStatus } from "@/components/course/processing-status";
@@ -18,7 +23,7 @@ import { rangeText, type SourceKindName } from "@/lib/source-label";
 import { claudeEnabled } from "@/server/env";
 import { getCourseCost, getCourseLessons, getGenerationProgress } from "@/server/generation/lessons";
 import { getGenerationEstimate } from "@/server/outline";
-import { requireUser } from "@/server/session";
+import { requireUser, viewerZone } from "@/server/session";
 import { getStudyOutline } from "@/server/study";
 import { getUnitScores } from "@/server/dashboard";
 import { getCourseAssessments } from "@/server/assessments";
@@ -49,6 +54,7 @@ function pageList(pages: number[]): string {
 
 export default async function CoursePage({ params }: PageProps<"/courses/[courseId]">) {
   const user = await requireUser();
+  const zone = await viewerZone();
   const { courseId } = await params;
   const course = await getCourseOr404(user.id, courseId);
   await markCourseOpened(user.id, courseId);
@@ -73,6 +79,10 @@ export default async function CoursePage({ params }: PageProps<"/courses/[course
         generating ? getStudyOutline(user.id, courseId) : null,
       ])
     : [null, null, null, 0, null];
+  // A copy from a class: the class's work filed under this course.
+  const classWork = course.classCourseId ? await assignmentsForCopy(user.id, courseId) : [];
+  // Slide courses list their decks and can take more (not Hub copies, which share their files).
+  const decks = book.kind === "SLIDES" && outline ? await getDecks(user.id, courseId) : null;
   const [unitScores, assessments] = study ? await Promise.all([getUnitScores(user.id, courseId), getCourseAssessments(user.id, courseId)]) : [[], []];
   const completed = new Set(study?.units.flatMap((u) => u.lessons.filter((l) => l.completed).map((l) => l.id)) ?? []);
   const noKey = claudeEnabled ? undefined : "Lesson generation needs an ANTHROPIC_API_KEY on the server (see the README).";
@@ -80,6 +90,22 @@ export default async function CoursePage({ params }: PageProps<"/courses/[course
   return (
     <div className="mx-auto max-w-3xl">
       <CourseHeader course={course} />
+
+      {classWork.length > 0 && (
+        <Card className="mb-6">
+          <h2 className="mb-3 text-lg font-semibold">Class assignments</h2>
+          <ul className="flex flex-col divide-y divide-border text-sm">
+            {classWork.map((a) => (
+              <li key={a.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
+                <Link href={a.kind === "QUESTIONS" ? `/classes/assignments/${a.id}` : "/classes"} className="font-medium hover:underline">
+                  {a.title}
+                </Link>
+                <span className="text-xs text-muted">{dueText(a.dueAt, undefined, zone)}</span>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      )}
 
       {course.status === "UPLOADING" && (
         <Alert tone="warning" className="mb-6">
@@ -90,7 +116,13 @@ export default async function CoursePage({ params }: PageProps<"/courses/[course
       {status && (
         <Card className="mb-6">
           <h2 className="mb-4 text-lg font-semibold">
-            {course.status === "FAILED" ? "We couldn't process this book" : "Reading your textbook…"}
+            {course.status === "FAILED"
+              ? book.kind === "SLIDES"
+                ? "We couldn't process these slides"
+                : "We couldn't process this book"
+              : book.kind === "SLIDES"
+                ? "Reading your slides…"
+                : "Reading your textbook…"}
           </h2>
           <ProcessingStatus key={course.status} courseId={courseId} initial={status} />
         </Card>
@@ -133,6 +165,9 @@ export default async function CoursePage({ params }: PageProps<"/courses/[course
         </Card>
       )}
       {outline && course.status === "OUTLINE_DRAFT" && <OutlinePreview outline={outline} courseId={courseId} kind={course.book.kind} />}
+      {decks && (decks.decks.length > 0 || !course.catalogEntryId) && (
+        <DecksCard courseId={courseId} decks={decks.decks} pageCount={decks.pageCount} canAdd={!course.catalogEntryId && decks.bookStatus === "READY"} />
+      )}
 
       <Card>
         <h2 className="mb-4 text-lg font-semibold">File</h2>
@@ -149,7 +184,7 @@ export default async function CoursePage({ params }: PageProps<"/courses/[course
             <dt className="text-muted">Uploaded</dt>
             <dd className="font-medium">
               <time dateTime={book.createdAt.toISOString()}>
-                {book.createdAt.toLocaleDateString("en-US", { dateStyle: "medium" })}
+                {formatInZone(book.createdAt, zone, "medium")}
               </time>
             </dd>
           </div>

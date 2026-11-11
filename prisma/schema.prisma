@@ -67,6 +67,43 @@ model User {
   studyDays          StudyDay[]
   studyPlans         StudyPlan[]
   analyticsEvents    AnalyticsEvent[]
+  teaching           Class[]             @relation("teacher")
+  classMemberships   ClassMember[]
+  worksheets         Worksheet[]
+  assignmentAnswers  AssignmentAnswer[]
+  assignmentStarts   AssignmentStart[]
+  programsAdmin      Program[]           @relation("programAdmin")
+  classStaff         ClassStaff[]        @relation("staffUser")
+  groupMemberships   ClassGroupMember[]
+
+  scoreRecords       ScoreRecord[]       @relation("scores")
+  studentProfile     StudentProfile?
+  externalResults    ExternalResult[]
+  diagnosticAttempts DiagnosticAttempt[]
+  mistakes           MistakeItem[]
+  attendance         AttendanceRecord[]
+  guardians          GuardianContact[]
+  /// Staff: a daily email of new alerts.
+  staffDigest        Boolean             @default(false)
+  /// First-login walkthroughs already seen (e.g. "student", "staff").
+  toursSeen          String[]
+  /// Per-type notification choices: { messages: { site, email }, ... }. Missing keys use the defaults in src/lib/notification-prefs.ts.
+  notificationPrefs  Json                @default("{}")
+  /// Private calendar feed link (/api/calendar/<token>.ics). Reset from the calendar page to revoke the old one.
+  calendarToken      String?             @unique
+  notifications      Notification[]
+  threadsAsStudent   MessageThread[]     @relation("threadStudent")
+  threadsAsStaff     MessageThread[]     @relation("threadStaff")
+  messages           Message[]
+  threadReads        ThreadRead[]
+  announcements      Announcement[]
+  badges             Badge[]
+
+  /// Set on every login, for the Staff page.
+  lastLoginAt      DateTime?
+  /// Two-factor login (authenticator app); required for program admins and staff.
+  twoFactorEnabled Boolean?    @default(false)
+  twoFactors       TwoFactor[]
 
   @@map("user")
 }
@@ -167,12 +204,47 @@ model Book {
   updatedAt         DateTime   @updatedAt
 
   course  Course?
+  decks   Deck[]
   pages   Page[]
   figures Figure[]
   chunks  Chunk[]
   jobs    Job[]
 
   @@index([userId, createdAt])
+}
+
+// ─── Slide collages ──────────────────────────────────────────────────────
+// A slides course can be made of several decks. They're merged, in order, into
+// the book's one PDF (so lessons, the viewer and search work as usual); each
+// deck becomes a unit. Decks can be added later without touching what's written.
+
+enum DeckStatus {
+  AWAITING_UPLOAD
+  UPLOADED // stored and checked; waiting to be merged
+  MERGED // its slides are in the book's PDF; its unit isn't made yet
+  READY // in the outline as a unit
+  FAILED
+}
+
+model Deck {
+  id               String     @id @default(cuid())
+  bookId           String
+  book             Book       @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  order            Int
+  title            String
+  originalFilename String
+  storageKey       String // the uploaded PDF or .pptx
+  isPptx           Boolean    @default(false)
+  sizeBytes        BigInt
+  status           DeckStatus @default(AWAITING_UPLOAD)
+  error            String?
+  // Where its slides are in the book's PDF, once merged.
+  pageStart        Int?
+  pageEnd          Int?
+  createdAt        DateTime   @default(now())
+
+  @@unique([bookId, order])
+  @@index([bookId, status])
 }
 
 // ─── Courses (one per book) ──────────────────────────────────────────────
@@ -209,6 +281,10 @@ model Course {
   // Added from the Hub: the provided course it was copied from.
   catalogEntryId  String?
   catalogEntry    CatalogEntry?  @relation("enrollments", fields: [catalogEntryId], references: [id], onDelete: SetNull)
+  // A student's copy of a course their teacher assigned in a class.
+  classCourseId   String?
+  classCourse     ClassCourse?   @relation("classCopies", fields: [classCourseId], references: [id], onDelete: SetNull)
+  sharedInClasses ClassCourse[]  @relation("classSource")
   // This course is the source of a Hub entry (admins only).
   publishedAs     CatalogEntry?  @relation("source")
   createdAt       DateTime       @default(now())
@@ -340,6 +416,8 @@ enum LessonStatus {
 
 model Lesson {
   id                String       @id @default(cuid())
+  // In a copied course (Hub or class): the lesson it was copied from, so a teacher's assignment finds it.
+  sourceLessonId    String?
   unitId            String
   unit              Unit         @relation(fields: [unitId], references: [id], onDelete: Cascade)
   courseId          String
@@ -381,6 +459,7 @@ model Lesson {
   @@index([unitId, order])
   @@index([tsv], type: Gin)
   @@index([courseId])
+  @@index([sourceLessonId])
 }
 
 enum QuestionScope {
@@ -802,6 +881,7 @@ model AssessmentAttempt {
 // ─── Claude API usage (for cost tracking and limits) ─────────────────────
 
 enum UsageFeature {
+  WORKSHEET
   LESSON
   FLASHCARDS
   QUESTIONS
@@ -809,6 +889,10 @@ enum UsageFeature {
   PAGE_REPAIR
   GRADING
   TUTOR
+  CURRICULUM
+  DRAFT
+  SUMMARY
+  ASSISTANT
 }
 
 model UsageEvent {
@@ -935,4 +1019,846 @@ model CatalogEntry {
   enrollments Course[] @relation("enrollments")
 
   @@index([published, subject])
+}
+
+// ─── Classes (teachers and students) ─────────────────────────────────────
+// Anyone can teach: create a class, invite students (by email or join code),
+// and assign their own courses, or chosen lessons, with due dates. Each student
+// gets their own copy of an assigned course (like the Hub), so their progress,
+// notes and answers are theirs; the teacher sees progress on assigned work only.
+
+/// A tutoring program (e.g. The 1600 Project): its classes, staff and settings.
+model Program {
+  id              String       @id @default(cuid())
+  name            String
+  adminId         String
+  admin           User         @relation("programAdmin", fields: [adminId], references: [id], onDelete: Cascade)
+  /// Subject template: only SAT for now.
+  subject         String       @default("SAT")
+  /// Score targets shown on dashboards (e.g. 1200, 1300).
+  targets         Int[]        @default([1200, 1300])
+  /// Days a staff invite link stays valid.
+  inviteDays      Int          @default(7)
+  /// Program-wide AI spending cap per day, in cents (null = no cap beyond each user's allowance).
+  aiDailyCapCents Int?
+  /// UTC day (YYYY-MM-DD) the admin was last emailed that the cap was reached, so it's once a day.
+  aiCapAlertedOn  String?
+  /// Official SAT dates students can pick from (entered by the admin).
+  testDates       DateTime[]
+  /// School calendar: term dates and days with no sessions.
+  termStart       DateTime?
+  termEnd         DateTime?
+  closedDates     DateTime[]
+  /// Public identity (the program's own, not the site's): its address /p/<slug>, badge text and page copy.
+  slug            String?      @unique
+  badge           String?
+  isPublic        Boolean      @default(false)
+  publicBlurb     String?
+  /// Starting point and goal shown on the public page (e.g. a school average of 970 and a +300 gain).
+  schoolAverage   Int?
+  goalGain        Int?
+  diagnostics     Diagnostic[]
+  createdAt       DateTime     @default(now())
+  classes         Class[]
+  auditLogs       AuditLog[]
+
+  @@index([adminId])
+}
+
+/// Staff on a class. A specialist's scope: sections (MATH, RW), domains, groups; empty = no limit on that axis.
+model ClassStaff {
+  id             String    @id @default(cuid())
+  classId        String
+  class          Class     @relation(fields: [classId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User      @relation("staffUser", fields: [userId], references: [id], onDelete: Cascade)
+  role           StaffRole
+  sections       String[]
+  domains        String[]
+  groupIds       String[]
+  canManageStaff Boolean   @default(false)
+  addedById      String?
+  createdAt      DateTime  @default(now())
+
+  @@unique([classId, userId])
+  @@index([userId])
+}
+
+enum StaffRole {
+  TEACHER
+  SPECIALIST
+  VIEWER
+}
+
+model StaffInvite {
+  id             String    @id @default(cuid())
+  classId        String
+  class          Class     @relation(fields: [classId], references: [id], onDelete: Cascade)
+  email          String
+  role           StaffRole
+  sections       String[]
+  domains        String[]
+  groupIds       String[]
+  canManageStaff Boolean   @default(false)
+  /// sha256 of the link's token; the token itself is never stored.
+  tokenHash      String    @unique
+  expiresAt      DateTime
+  invitedById    String
+  acceptedAt     DateTime?
+  cancelledAt    DateTime?
+  createdAt      DateTime  @default(now())
+
+  @@index([classId])
+}
+
+/// Append-only record of staff, role, scope, admin and grade-override changes. Nothing updates or deletes rows.
+model AuditLog {
+  id         String   @id @default(cuid())
+  programId  String
+  program    Program  @relation(fields: [programId], references: [id], onDelete: Cascade)
+  actorId    String?
+  action     String
+  targetType String
+  targetId   String
+  /// Readable summary, e.g. "Specialist (Math) → Teacher". Never students' answers.
+  summary    String   @default("")
+  before     Json?
+  after      Json?
+  createdAt  DateTime @default(now())
+
+  @@index([programId, createdAt])
+}
+
+model ClassGroup {
+  id            String             @id @default(cuid())
+  classId       String
+  class         Class              @relation(fields: [classId], references: [id], onDelete: Cascade)
+  name          String
+  createdAt     DateTime           @default(now())
+  members       ClassGroupMember[]
+  announcements Announcement[]
+
+  @@index([classId])
+}
+
+model ClassGroupMember {
+  groupId String
+  group   ClassGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  userId  String
+  user    User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([groupId, userId])
+  @@index([userId])
+}
+
+model Class {
+  id                String             @id @default(cuid())
+  programId         String
+  program           Program            @relation(fields: [programId], references: [id], onDelete: Cascade)
+  staff             ClassStaff[]
+  staffInvites      StaffInvite[]
+  groups            ClassGroup[]
+  sessions          ClassSession[]
+  alertStates       AlertState[]
+  /// Weekly progress emails to guardians who agreed to receive them.
+  guardianSummaries Boolean            @default(false)
+  curricula         Curriculum[]
+  summaries         AssistantSummary[]
+  draftLessons      DraftLesson[]
+  threads           MessageThread[]
+  announcements     Announcement[]
+  teacherId         String
+  teacher           User               @relation("teacher", fields: [teacherId], references: [id], onDelete: Cascade)
+  name              String
+  joinCode          String             @unique
+  archivedAt        DateTime?
+  createdAt         DateTime           @default(now())
+  members           ClassMember[]
+  invites           ClassInvite[]
+  courses           ClassCourse[]
+  assignments       Assignment[]
+
+  @@index([teacherId])
+  @@index([programId])
+}
+
+model ClassMember {
+  id       String   @id @default(cuid())
+  classId  String
+  class    Class    @relation(fields: [classId], references: [id], onDelete: Cascade)
+  userId   String
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  joinedAt DateTime @default(now())
+
+  @@unique([classId, userId])
+  @@index([userId])
+}
+
+model ClassInvite {
+  id            String    @id @default(cuid())
+  classId       String
+  class         Class     @relation(fields: [classId], references: [id], onDelete: Cascade)
+  email         String
+  createdAt     DateTime  @default(now())
+  /// From a roster import: applied when the student joins.
+  groupName     String?
+  targetScore   Int?
+  baselineTotal Int?
+  baselineOn    DateTime?
+  name          String?
+
+  @@unique([classId, email])
+}
+
+/// A teacher's course shared with a class. Its files are copied to classes/<id>/ so
+/// students' copies keep working even if the teacher changes or deletes the course.
+model ClassCourse {
+  id             String       @id @default(cuid())
+  classId        String
+  class          Class        @relation(fields: [classId], references: [id], onDelete: Cascade)
+  sourceCourseId String?
+  sourceCourse   Course?      @relation("classSource", fields: [sourceCourseId], references: [id], onDelete: SetNull)
+  title          String
+  /// The snapshot, taken when a student first opens the course (null until then).
+  fileKey        String?
+  coverKey       String?
+  figuresPrefix  String?
+  /// The teacher's file the snapshot was taken from (a new snapshot is taken if it changes, e.g. slides added).
+  snapshotOf     String?
+  createdAt      DateTime     @default(now())
+  copies         Course[]     @relation("classCopies")
+  assignments    Assignment[]
+
+  @@unique([classId, sourceCourseId])
+}
+
+enum AssignmentKind {
+  LESSONS // lessons from a course (or the whole course)
+  QUESTIONS // questions from a worksheet the teacher uploaded
+  EXTERNAL
+  DIAGNOSTIC
+}
+
+model Assignment {
+  id                 String              @id @default(cuid())
+  classId            String
+  class              Class               @relation(fields: [classId], references: [id], onDelete: Cascade)
+  kind               AssignmentKind      @default(LESSONS)
+  /// The course it's for: LESSONS come from it; QUESTIONS are filed under it (optional).
+  classCourseId      String?
+  classCourse        ClassCourse?        @relation(fields: [classCourseId], references: [id], onDelete: SetNull)
+  title              String
+  note               String?
+  /// LESSONS: the teacher's lesson ids; empty means the whole course.
+  lessonIds          String[]
+  /// QUESTIONS: the worksheet and which of its questions, in order.
+  worksheetId        String?
+  worksheet          Worksheet?          @relation(fields: [worksheetId], references: [id], onDelete: SetNull)
+  itemIds            String[]
+  /// Optional time limit for a question set, like a timed practice section.
+  timeLimitMin       Int?
+  /// Subject it covers (SAT: MATH or RW) and its domains; staff scopes filter on these. Null = untagged.
+  section            String?
+  domains            String[]
+  dueAt              DateTime?
+  createdAt          DateTime            @default(now())
+  answers            AssignmentAnswer[]
+  starts             AssignmentStart[]
+  /// EXTERNAL: College Board questions by link only: [{ key, questionId, url, section, domain }]. Never content.
+  externalItems      Json                @default("[]")
+  externalResults    ExternalResult[]
+  /// DIAGNOSTIC: which diagnostic, and when it can be taken.
+  diagnosticId       String?
+  diagnostic         Diagnostic?         @relation(fields: [diagnosticId], references: [id], onDelete: Restrict)
+  opensAt            DateTime?
+  closesAt           DateTime?
+  /// Who it's for: empty lists mean the whole class; otherwise these groups and/or students.
+  groupIds           String[]
+  studentIds         String[]
+  diagnosticAttempts DiagnosticAttempt[]
+  retakes            DiagnosticRetake[]
+
+  @@index([classId, dueAt])
+}
+
+enum WorksheetStatus {
+  UPLOADING
+  READING
+  READY
+  FAILED
+}
+
+/// A PDF of questions a teacher uploaded (a worksheet, problem set, practice test).
+/// Claude reads it and lists its questions; the teacher reviews them and makes assignments.
+model Worksheet {
+  id           String          @id @default(cuid())
+  ownerId      String
+  owner        User            @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  title        String
+  fileKey      String
+  sizeBytes    BigInt
+  pageCount    Int?
+  status       WorksheetStatus @default(UPLOADING)
+  error        String?
+  /// Claude found answers in the PDF (an answer key, or worked solutions).
+  hasAnswerKey Boolean         @default(false)
+  /// UPLOAD (a teacher's PDF) or AI_DRAFT (questions Claude drafted, waiting for review).
+  source       String          @default("UPLOAD")
+  createdAt    DateTime        @default(now())
+  items        WorksheetItem[]
+  assignments  Assignment[]
+
+  @@index([ownerId, createdAt])
+}
+
+model WorksheetItem {
+  id             String                 @id @default(cuid())
+  worksheetId    String
+  worksheet      Worksheet              @relation(fields: [worksheetId], references: [id], onDelete: Cascade)
+  order          Int
+  /// The number printed on the worksheet ("3", "4b").
+  label          String
+  type           QuestionType
+  prompt         String
+  choices        String[]
+  correctChoice  Int?
+  answer         String
+  explanation    String
+  steps          String[]
+  pageRefs       Int[]
+  /// Skill or topic, for the score report by skill.
+  topic          String
+  /// Where the answer came from: WORKSHEET (its answer key), CLAUDE (worked out; check it) or TEACHER.
+  answerSource   String                 @default("WORKSHEET")
+  /// SAT tags (src/lib/sat/domains.ts): suggested by Claude, confirmed by staff.
+  section        String?
+  domain         String?
+  skill          String?
+  difficulty     String?
+  desmosSolvable Boolean                @default(false)
+  tagsConfirmed  Boolean                @default(false)
+  /// Bumped each time the question or its answer is edited after students answered it.
+  version        Int                    @default(1)
+  /// Removed from the worksheet after students had answered it: kept so past answers and grades stay.
+  archivedAt     DateTime?
+  /// AI-drafted questions can't be assigned until a staff member approves them.
+  approvedById   String?
+  approvedAt     DateTime?
+  versions       WorksheetItemVersion[]
+  answers        AssignmentAnswer[]
+
+  @@index([worksheetId, order])
+}
+
+/// A student's answer to a worksheet question in an assignment. The latest one counts.
+model AssignmentAnswer {
+  id           String        @id @default(cuid())
+  assignmentId String
+  assignment   Assignment    @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  itemId       String
+  item         WorksheetItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  userId       String
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  choice       Int?
+  response     String?
+  correct      Boolean
+  score        Float
+  verdict      String
+  feedback     String        @default("")
+  gradedBy     String
+  /// A teacher or specialist confirmed or overrode Claude's grade.
+  reviewedById String?
+  reviewedAt   DateTime?
+  /// Claude's score before an override.
+  aiScore      Float?
+  /// The version of the question this answered (editing a question never changes past grades).
+  itemVersion  Int           @default(1)
+  createdAt    DateTime      @default(now())
+
+  @@index([assignmentId, userId])
+  @@index([itemId])
+  /// Domain accuracy, trends and badges read a student's answers by date.
+  @@index([userId, createdAt])
+}
+
+/// When a student started (and handed in) a question set; timed sets use it for the clock.
+model AssignmentStart {
+  id           String     @id @default(cuid())
+  assignmentId String
+  assignment   Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  userId       String
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  startedAt    DateTime   @default(now())
+  submittedAt  DateTime?
+
+  @@unique([assignmentId, userId])
+}
+
+/// Better Auth's two-factor secrets (encrypted) and backup codes.
+model TwoFactor {
+  id                      String    @id
+  secret                  String
+  backupCodes             String
+  userId                  String
+  user                    User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  verified                Boolean?  @default(true)
+  failedVerificationCount Int?      @default(0)
+  lockedUntil             DateTime?
+
+  @@index([userId])
+  @@index([secret])
+  @@map("twoFactor")
+}
+
+/// An earlier version of a worksheet question, kept when it's edited after students answered it.
+model WorksheetItemVersion {
+  id            String        @id @default(cuid())
+  itemId        String
+  item          WorksheetItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  version       Int
+  type          QuestionType
+  prompt        String
+  choices       String[]
+  correctChoice Int?
+  answer        String
+  explanation   String
+  steps         String[]
+  editedById    String?
+  createdAt     DateTime      @default(now())
+
+  @@unique([itemId, version])
+}
+
+enum ScoreSource {
+  DIAGNOSTIC
+  PSAT
+  SAT
+  PRACTICE_BLUEBOOK
+  PRACTICE_OTHER
+}
+
+/// An SAT score: official, practice or our diagnostic. Totals, section scores and missed question numbers only.
+model ScoreRecord {
+  id           String      @id @default(cuid())
+  studentId    String
+  student      User        @relation("scores", fields: [studentId], references: [id], onDelete: Cascade)
+  source       ScoreSource
+  takenOn      DateTime
+  testName     String?
+  total        Int
+  rw           Int?
+  math         Int?
+  /// The score gains are measured from (one per student).
+  isBaseline   Boolean     @default(false)
+  /// Missed questions on an outside test: [{ section, module, number, domain, skill?, reason? }]. No content.
+  missed       Json        @default("[]")
+  /// College Board "Knowledge and Skills" bands from the score report: { domainId: 1–7 }.
+  domainBands  Json        @default("{}")
+  /// A question-by-question review (Bluebook / My Practice): [{ section, module, number, domain, skill, correct }]. No content.
+  review       Json        @default("[]")
+  enteredById  String
+  verifiedById String?
+  verifiedAt   DateTime?
+  createdAt    DateTime    @default(now())
+
+  @@index([studentId, takenOn])
+}
+
+/// A student's own SAT settings.
+model StudentProfile {
+  userId          String    @id
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  targetScore     Int?
+  testDate        DateTime?
+  /// No score yet: they chose to take the diagnostic first.
+  baselinePending Boolean   @default(false)
+  updatedAt       DateTime  @updatedAt
+}
+
+/// A student's result on a College Board question they opened by link (the latest counts).
+model ExternalResult {
+  id           String     @id @default(cuid())
+  assignmentId String
+  assignment   Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  userId       String
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  itemKey      String
+  result       String
+  reason       String?
+  timeSec      Int?
+  createdAt    DateTime   @default(now())
+
+  @@unique([assignmentId, userId, itemKey])
+  @@index([userId, createdAt])
+}
+
+enum DiagnosticStatus {
+  DRAFT
+  PUBLISHED
+}
+
+/// An adaptive SAT-style diagnostic: per section, module 1 then a harder or easier module 2.
+model Diagnostic {
+  id          String             @id @default(cuid())
+  programId   String
+  program     Program            @relation(fields: [programId], references: [id], onDelete: Cascade)
+  createdById String
+  title       String
+  status      DiagnosticStatus   @default(DRAFT)
+  /// Highest estimated section score on each route, e.g. { "hardMax": 800, "easyMax": 640 }. An estimate, never official.
+  conversion  Json               @default("{\"hardMax\": 800, \"easyMax\": 640}")
+  createdAt   DateTime           @default(now())
+  modules     DiagnosticModule[]
+  assignments Assignment[]
+}
+
+/// One timed module. stage: M1, M2_HARD or M2_EASY. Questions are worksheet questions with confirmed tags.
+model DiagnosticModule {
+  id             String     @id @default(cuid())
+  diagnosticId   String
+  diagnostic     Diagnostic @relation(fields: [diagnosticId], references: [id], onDelete: Cascade)
+  section        String
+  stage          String
+  timeLimitSec   Int
+  itemIds        String[]
+  /// Module 1 correct answers needed for the harder module 2.
+  routeThreshold Int        @default(0)
+
+  @@unique([diagnosticId, section, stage])
+}
+
+/// One student's sitting of a diagnostic. The clock is kept here, on the server.
+model DiagnosticAttempt {
+  id              String             @id @default(cuid())
+  assignmentId    String
+  assignment      Assignment         @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  userId          String
+  user            User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  attemptNo       Int                @default(1)
+  /// The modules in the order taken (module ids), filled in as the route is chosen.
+  path            String[]
+  currentModuleId String?
+  moduleStartedAt DateTime?
+  startedAt       DateTime           @default(now())
+  finishedAt      DateTime?
+  /// { sections: [{ section, route, correct, total, estimate }], total } once finished.
+  results         Json?
+  answers         DiagnosticAnswer[]
+
+  @@unique([assignmentId, userId, attemptNo])
+}
+
+model DiagnosticAnswer {
+  id          String            @id @default(cuid())
+  attemptId   String
+  attempt     DiagnosticAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  moduleId    String
+  itemId      String
+  itemVersion Int               @default(1)
+  choice      Int?
+  response    String?
+  correct     Boolean
+  timeMs      Int               @default(0)
+  usedDesmos  Boolean           @default(false)
+  updatedAt   DateTime          @updatedAt
+
+  @@unique([attemptId, itemId])
+}
+
+/// A teacher allowed a student one more attempt.
+model DiagnosticRetake {
+  id           String     @id @default(cuid())
+  assignmentId String
+  assignment   Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  userId       String
+  grantedById  String
+  createdAt    DateTime   @default(now())
+
+  @@index([assignmentId, userId])
+}
+
+/// The mistake log: every wrong answer comes back on a schedule until it's right twice in a row.
+model MistakeItem {
+  id          String    @id @default(cuid())
+  studentId   String
+  student     User      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  /// ASSIGNMENT, DIAGNOSTIC, EXTERNAL (College Board link) or SCORE (a miss on an outside test).
+  sourceType  String
+  sourceId    String
+  /// The question to practise again (a worksheet question), if there is one.
+  itemId      String?
+  /// For College Board misses: the question to retry there.
+  externalUrl String?
+  externalId  String?
+  section     String?
+  domain      String?
+  skill       String?
+  reason      String?
+  label       String
+  due         DateTime
+  streak      Int       @default(0)
+  reviews     Int       @default(0)
+  retiredAt   DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@unique([studentId, sourceType, sourceId])
+  @@index([studentId, retiredAt, due])
+}
+
+/// A tutoring session (one-off or one of a weekly series), for attendance.
+model ClassSession {
+  id          String             @id @default(cuid())
+  classId     String
+  class       Class              @relation(fields: [classId], references: [id], onDelete: Cascade)
+  groupId     String?
+  title       String?
+  startsAt    DateTime
+  endsAt      DateTime
+  createdById String
+  createdAt   DateTime           @default(now())
+  attendance  AttendanceRecord[]
+
+  @@index([classId, startsAt])
+}
+
+/// PRESENT, LATE, ABSENT or EXCUSED.
+model AttendanceRecord {
+  sessionId  String
+  session    ClassSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  studentId  String
+  student    User         @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  status     String
+  markedById String
+  markedAt   DateTime     @default(now())
+
+  @@id([sessionId, studentId])
+  @@index([studentId])
+}
+
+/// A dismissed or snoozed alert (alerts themselves are worked out fresh each time).
+model AlertState {
+  id            String    @id @default(cuid())
+  classId       String
+  class         Class     @relation(fields: [classId], references: [id], onDelete: Cascade)
+  studentId     String
+  kind          String
+  dismissedById String
+  /// Hidden until this time; null = dismissed until the situation changes (a new alert of this kind).
+  until         DateTime?
+  createdAt     DateTime  @default(now())
+
+  @@unique([classId, studentId, kind])
+}
+
+/// A parent or guardian who agreed to a weekly progress email.
+model GuardianContact {
+  id             String    @id @default(cuid())
+  studentId      String
+  student        User      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  name           String
+  email          String
+  relationship   String    @default("")
+  /// When and by whom consent was recorded (required to send anything).
+  consentAt      DateTime
+  consentById    String
+  unsubscribedAt DateTime?
+  unsubToken     String    @unique
+  lastSentOn     String?
+  createdAt      DateTime  @default(now())
+
+  @@unique([studentId, email])
+}
+
+/// Keys of scheduled emails already sent (e.g. "digest:<user>:<day>"), so each goes once.
+model SentNotice {
+  key       String   @id
+  createdAt DateTime @default(now())
+}
+
+/// A class's curriculum: units mapped onto the school calendar. DRAFT until a teacher publishes it.
+model Curriculum {
+  id          String           @id @default(cuid())
+  classId     String
+  class       Class            @relation(fields: [classId], references: [id], onDelete: Cascade)
+  title       String
+  sourceText  String           @default("")
+  status      String           @default("DRAFT")
+  createdById String
+  createdAt   DateTime         @default(now())
+  units       CurriculumUnit[]
+}
+
+model CurriculumUnit {
+  id                 String     @id @default(cuid())
+  curriculumId       String
+  curriculum         Curriculum @relation(fields: [curriculumId], references: [id], onDelete: Cascade)
+  order              Int
+  title              String
+  domains            String[]
+  skills             String[]
+  startsOn           DateTime
+  endsOn             DateTime
+  notes              String     @default("")
+  linkedCourseIds    String[]
+  linkedWorksheetIds String[]
+
+  @@index([curriculumId, order])
+}
+
+/// A short lesson Claude drafted; students see it only after a staff member approves it.
+model DraftLesson {
+  id           String    @id @default(cuid())
+  classId      String
+  class        Class     @relation(fields: [classId], references: [id], onDelete: Cascade)
+  title        String
+  domain       String?
+  skill        String?
+  content      String
+  createdById  String
+  approvedById String?
+  approvedAt   DateTime?
+  createdAt    DateTime  @default(now())
+}
+
+/// The assistant's weekly summary for a class or one of its groups (staff only).
+model AssistantSummary {
+  id          String   @id @default(cuid())
+  classId     String
+  class       Class    @relation(fields: [classId], references: [id], onDelete: Cascade)
+  groupId     String?
+  weekOf      String
+  content     Json
+  model       String
+  createdById String?
+  createdAt   DateTime @default(now())
+
+  @@unique([classId, groupId, weekOf])
+}
+
+/// A server or browser error, grouped by fingerprint. Messages are scrubbed of emails and long numbers; paths have no query string.
+model ErrorEvent {
+  id          String    @id @default(cuid())
+  fingerprint String    @unique
+  kind        String
+  message     String
+  path        String
+  digest      String?
+  count       Int       @default(1)
+  firstAt     DateTime  @default(now())
+  lastAt      DateTime  @default(now())
+  alertedAt   DateTime?
+  resolvedAt  DateTime?
+}
+
+/// "Report a problem": the page, the browser and recent error ids. No form contents.
+model ProblemReport {
+  id         String    @id @default(cuid())
+  userId     String?
+  path       String
+  userAgent  String
+  errorIds   String[]
+  note       String    @default("")
+  createdAt  DateTime  @default(now())
+  resolvedAt DateTime?
+}
+
+/// A conversation between one staff member and one student about one class.
+/// Who may start or read one is decided in src/server/messages.ts from the
+/// staff member's current scope; the program admin can read every thread.
+model MessageThread {
+  id            String       @id @default(cuid())
+  classId       String
+  class         Class        @relation(fields: [classId], references: [id], onDelete: Cascade)
+  studentId     String
+  student       User         @relation("threadStudent", fields: [studentId], references: [id], onDelete: Cascade)
+  staffId       String
+  staff         User         @relation("threadStaff", fields: [staffId], references: [id], onDelete: Cascade)
+  createdAt     DateTime     @default(now())
+  lastMessageAt DateTime     @default(now())
+  messages      Message[]
+  reads         ThreadRead[]
+
+  @@unique([classId, studentId, staffId])
+  @@index([staffId, lastMessageAt])
+  @@index([studentId, lastMessageAt])
+  @@index([classId, lastMessageAt])
+}
+
+model Message {
+  id        String        @id @default(cuid())
+  threadId  String
+  thread    MessageThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  body      String
+  /// Set when the message went to several students at once.
+  bulkId    String?
+  createdAt DateTime      @default(now())
+
+  @@index([threadId, createdAt])
+  @@index([authorId, createdAt])
+}
+
+model ThreadRead {
+  threadId   String
+  thread     MessageThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lastReadAt DateTime
+
+  @@id([threadId, userId])
+  @@index([userId])
+}
+
+/// A post to a whole class or one of its groups, shown on students' Today page.
+model Announcement {
+  id        String      @id @default(cuid())
+  classId   String
+  class     Class       @relation(fields: [classId], references: [id], onDelete: Cascade)
+  groupId   String?
+  group     ClassGroup? @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  authorId  String?
+  author    User?       @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  title     String
+  body      String
+  pinned    Boolean     @default(false)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  @@index([classId, createdAt])
+}
+
+/// The notification center. One row per thing to look at; a new message in
+/// the same thread updates its row (same key) instead of adding another.
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// MESSAGE, ANNOUNCEMENT, ALERT or REVIEW
+  kind      String
+  key       String
+  title     String
+  href      String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  readAt    DateTime?
+
+  @@unique([userId, key])
+  @@index([userId, readAt, updatedAt])
+}
+
+/// A badge a student earned. No leaderboards: badges are only ever shown to the
+/// student and to staff whose scope includes them.
+model Badge {
+  id       String   @id @default(cuid())
+  userId   String
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// STREAK_5, STREAK_10, STREAK_30, MISTAKES_CLEARED, DOMAIN_MASTERED, FIRST_DIAGNOSTIC, GAIN_100, GAIN_200, PERFECT_ATTENDANCE
+  kind     String
+  /// The domain or month, for kinds that can be earned more than once.
+  detail   String   @default("")
+  earnedAt DateTime @default(now())
+
+  @@unique([userId, kind, detail])
+  @@index([userId, earnedAt])
 }

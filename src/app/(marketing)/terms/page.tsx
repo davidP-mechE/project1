@@ -10,11 +10,17 @@ export default function TermsPage() {
   const who = legalName();
   return (
     <LegalPage
+      draft={[
+        "Who may join (anyone, or a program's students and the staff its admin invites) and minimum age",
+        "Acceptable use, including the ban on uploading official College Board or Bluebook questions",
+        "What happens to accounts when a program ends or a student graduates",
+        "Governing law and contact details",
+      ]}
       title="Terms of Service"
       intro={
         <p>
           These terms are the agreement between you and {who} (“we”, “us”) for using Coursebook, a service that turns a textbook you upload into a
-          private, self-paced course. By creating an account you agree to them. If you don’t agree, please don’t use the service.
+          private, self-paced course and that tutoring programs use to run their classes. By creating an account you agree to them. If you don’t agree, please don’t use the service.
         </p>
       }
       sections={[

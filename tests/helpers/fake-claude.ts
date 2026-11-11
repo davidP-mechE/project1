@@ -85,6 +85,17 @@ export class FakeWriter implements LessonWriter {
     };
   }
 
+  worksheetCalls: { title: string; pages: import("@/lib/ai/worksheet").WorksheetPage[] }[] = [];
+  nextWorksheet: import("@/lib/ai/worksheet").WorksheetDraft | AiError | null = null;
+  async readWorksheet(title: string, pages: import("@/lib/ai/worksheet").WorksheetPage[]) {
+    this.worksheetCalls.push({ title, pages });
+    const next = this.nextWorksheet;
+    this.nextWorksheet = null;
+    if (next instanceof AiError) throw next;
+    const value = next ?? sampleWorksheet();
+    return { value, calls: [{ value: null, model: "claude-sonnet-5-5", usage: { inputTokens: 9000, outputTokens: 5000 } }] };
+  }
+
   async repairPage(_png?: Buffer, kind: "book" | "slides" = "book", quality: "standard" | "high" = "standard"): Promise<WriterResult<string>> {
     this.repairCalls += 1;
     this.repairKinds.push(kind);
@@ -159,3 +170,19 @@ export class FakeEmbedder implements Embedder, QueryEmbedder {
     return this.override === undefined ? fakeVector(text) : (this.override as number[]);
   }
 }
+
+/** A small worksheet as Claude would list it: two multiple choice (one with a broken option list) and a written answer. */
+export function sampleWorksheet(): import("@/lib/ai/worksheet").WorksheetDraft {
+  return {
+    readable: true,
+    problem: "",
+    hasAnswerKey: true,
+    items: [
+      { label: "1", type: "multiple_choice", prompt: "If $3x + 5 = 20$, what is $x$?", choices: ["3", "5", "15", "25"], correctChoice: 1, answer: "5", answerFromWorksheet: true, explanation: "Subtract 5, then divide by 3.", steps: [], pageRefs: [1], topic: "Linear equations", satDomain: "algebra", satSkill: "linear equations in one variable", difficulty: "easy", desmosSolvable: false },
+      { label: "2", type: "multiple_choice", prompt: "Which word best fits the blank?", choices: ["only one"], correctChoice: 3, answer: "concise", answerFromWorksheet: true, explanation: "", steps: [], pageRefs: [1, 99], topic: "Words in context", satDomain: "craft-structure", satSkill: "Words in context", difficulty: "medium", desmosSolvable: true },
+      { label: "3", type: "short_answer", prompt: "Explain what a slope of 2 means.", choices: [], correctChoice: -1, answer: "y goes up by 2 when x goes up by 1.", answerFromWorksheet: false, explanation: "Slope is the rate of change.", steps: [], pageRefs: [2], topic: "Linear equations", satDomain: "nonsense", satSkill: "", difficulty: "hard", desmosSolvable: false },
+      { label: "4", type: "short_answer", prompt: "   ", choices: [], correctChoice: -1, answer: "", answerFromWorksheet: false, explanation: "", steps: [], pageRefs: [], topic: "", satDomain: "none", satSkill: "", difficulty: "easy", desmosSolvable: false },
+    ],
+  };
+}
+

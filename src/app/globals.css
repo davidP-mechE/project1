@@ -3,70 +3,91 @@
 /* Dark mode is toggled by a "dark" class on <html> (set by next-themes). */
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* Color tokens. Contrast pairs meet WCAG AA (4.5:1) for body text. */
 /*
- * Colors: "cream and moonlight". Light mode is warm cream paper with deep
- * night-blue ink; dark mode is a moonlit night with cream text and a soft
- * moon-gold accent. The sidebar is night sky in both. Every text/background
- * pair below meets WCAG AA (4.5:1); the browser tests check the real pages.
+ * The 1600 Project design system: "Ink & Gold".
+ * Navy ink on warm paper, with gold as the program's mark. Gold is decoration
+ * (rules, ticks, the seal, the accent button's fill); text in gold uses
+ * --accent-ink, which is dark enough. Every text/background pair meets WCAG AA
+ * (4.5:1); the browser tests check the real pages in both themes.
+ *
+ * Type: Fraunces (display: headings, big numbers) and Inter (everything else).
+ * Radius: 14px cards, 10px controls. Spacing: Tailwind's 4px scale.
  */
 :root {
-  --bg: #f6efe0;
-  --surface: #fffbf2;
-  --surface-2: #efe6d2;
-  --border: #e0d4ba;
-  --text: #1b1f33;
-  --text-muted: #5c5a64;
-  --primary: #28326a;
-  --primary-hover: #1d2550;
-  --primary-text: #fdf7e8;
-  --accent: #d9b45a; /* moon gold: decoration only */
-  --accent-ink: #7a5a12; /* moon gold dark enough for text */
+  --bg: #f7f2e7;
+  --surface: #fffdf8;
+  --surface-2: #f0e8d6;
+  --border: #e3d8c0;
+  --text: #151c2e;
+  --text-muted: #555b6c;
+  --primary: #14213d;
+  --primary-hover: #0c1529;
+  --primary-text: #fbf5e6;
+  --accent: #c9a227; /* gold: fills and decoration */
+  --accent-hover: #b8931d;
+  --accent-text: #14213d; /* navy on gold: 7:1 */
+  --accent-ink: #735709; /* gold dark enough for text on paper */
   --danger: #a3301d;
   --danger-bg: #fbe8e1;
-  --success: #2c6a3c;
-  --success-bg: #e5efdc;
+  --success: #24704a;
+  --success-bg: #e3f0e6;
   --warning: #80520a;
   --warning-bg: #faefd0;
-  --focus: #4a5bd4;
-  --shadow:
-    0 1px 2px rgb(27 31 51 / 0.05), 0 8px 24px -12px rgb(27 31 51 / 0.18);
-  /* Night-sky sidebar and hero cards (the same in both themes) */
-  --nav-bg: #151a30;
-  --nav-text: #f1e8d2;
-  --nav-muted: #b9b09a;
-  --nav-active: #262d52;
-  --hero-from: #1d2448;
-  --hero-to: #2f3b78;
+  --focus: #3550c9;
+  --shadow: 0 1px 0 #e3d8c0, 0 10px 28px -18px rgb(20 33 61 / 0.35);
+  /* Charts: navy line, gold goals and estimate band, then a calm series palette. */
+  --chart-1: #14213d;
+  --chart-2: #c9a227;
+  --chart-3: #4f7cac;
+  --chart-4: #b5654d;
+  --chart-5: #5b8a5f;
+  --chart-grid: #e9dfc9;
+  --chart-band: rgb(201 162 39 / 0.22);
+  /* Ink sidebar and hero cards (the same in both themes) */
+  --nav-bg: #14213d;
+  --nav-text: #f3ead5;
+  --nav-muted: #c3b9a2;
+  --nav-active: #24304f;
+  --hero-from: #14213d;
+  --hero-to: #26375f;
   --hero-text: #fbf3df;
 }
 
 .dark {
-  --bg: #0f1220;
-  --surface: #171b2d;
-  --surface-2: #20253b;
-  --border: #2d3350;
+  --bg: #0d1322;
+  --surface: #151d31;
+  --surface-2: #1d2740;
+  --border: #2b3654;
   --text: #f1ead8;
-  --text-muted: #b2ab9a;
-  --primary: #f0d78f;
-  --primary-hover: #f7e6b4;
-  --primary-text: #141729;
-  --accent: #f0d78f;
-  --accent-ink: #f0d78f;
+  --text-muted: #b5ae9d;
+  --primary: #e3c56a;
+  --primary-hover: #efd58e;
+  --primary-text: #11182b;
+  --accent: #e3c56a;
+  --accent-hover: #efd58e;
+  --accent-text: #11182b;
+  --accent-ink: #e8cd7d;
   --danger: #f3a08f;
   --danger-bg: #3a1a17;
   --success: #9ed8a6;
   --success-bg: #15301d;
   --warning: #f1c56a;
   --warning-bg: #34280c;
-  --focus: #f0d78f;
+  --focus: #e3c56a;
   --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 10px 30px -14px rgb(0 0 0 / 0.6);
-  --nav-bg: #0a0d18;
+  --chart-1: #e3c56a;
+  --chart-2: #9fb5e0;
+  --chart-3: #7fb0d8;
+  --chart-4: #e39a82;
+  --chart-5: #9ccf9f;
+  --chart-grid: #26304b;
+  --chart-band: rgb(227 197 106 / 0.18);
+  --nav-bg: #0a0f1c;
   --nav-text: #f1e8d2;
-  --nav-muted: #a9a18e;
-  --nav-active: #1e2440;
-  --hero-from: #1d2448;
-  --hero-to: #2f3b78;
+  --nav-muted: #ada592;
+  --nav-active: #1c2540;
+  --hero-from: #14213d;
+  --hero-to: #26375f;
   --hero-text: #fbf3df;
 }
 
@@ -89,12 +110,21 @@
   --color-focus: var(--focus);
   --color-accent: var(--accent);
   --color-accent-ink: var(--accent-ink);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-text: var(--accent-text);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-chart-grid: var(--chart-grid);
+  --color-chart-band: var(--chart-band);
   --color-nav: var(--nav-bg);
   --color-nav-text: var(--nav-text);
   --color-nav-muted: var(--nav-muted);
   --color-nav-active: var(--nav-active);
   --font-sans:
-    "Nunito Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    "Inter Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
     Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-display:
     "Fraunces Variable", ui-serif, Georgia, "Times New Roman", serif;
@@ -111,6 +141,24 @@ body {
   background: var(--bg);
   color: var(--text);
   font-family: var(--font-sans);
+  font-feature-settings: "cv11", "ss01";
+}
+
+/* Big numbers (scores, stats) use the display face with even-width figures. */
+.score-num {
+  font-family: var(--font-display);
+  font-variant-numeric: lining-nums tabular-nums;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+/* Small uppercase labels above numbers ("LATEST SCORE"). */
+.eyebrow {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
 }
 
 /* Visible keyboard focus everywhere. */
@@ -732,36 +780,22 @@ h2,
   position: relative;
   overflow: hidden;
   color: var(--hero-text);
-  background:
-    radial-gradient(
-      1.5px 1.5px at 62% 22%,
-      rgb(251 243 223 / 0.9),
-      transparent
-    ),
-    radial-gradient(1px 1px at 74% 64%, rgb(251 243 223 / 0.7), transparent),
-    radial-gradient(
-      1.5px 1.5px at 92% 78%,
-      rgb(251 243 223 / 0.8),
-      transparent
-    ),
-    radial-gradient(1px 1px at 48% 12%, rgb(251 243 223 / 0.6), transparent),
-    radial-gradient(1px 1px at 83% 40%, rgb(251 243 223 / 0.7), transparent),
-    linear-gradient(135deg, var(--hero-from), var(--hero-to));
+  background: linear-gradient(135deg, var(--hero-from), var(--hero-to));
   box-shadow: var(--shadow);
 }
 .hero-card::before {
-  /* the moon: a crescent made with an inset shadow, softly glowing */
+  /* the seal: two thin gold rings, partly off the corner */
   content: "";
   position: absolute;
-  top: -1.25rem;
-  right: 2rem;
-  width: 6rem;
-  height: 6rem;
+  top: -3.5rem;
+  right: -2.5rem;
+  width: 13rem;
+  height: 13rem;
   border-radius: 9999px;
+  border: 2px solid rgb(201 162 39 / 0.55);
   box-shadow:
-    inset -1.35rem 0.6rem 0 0 #f4e4b0,
-    0 0 3rem 0.5rem rgb(244 228 176 / 0.12);
-  transform: rotate(-12deg);
+    inset 0 0 0 1.1rem transparent,
+    inset 0 0 0 calc(1.1rem + 1px) rgb(201 162 39 / 0.35);
   pointer-events: none;
 }
 .hero-card > * {
@@ -769,17 +803,17 @@ h2,
 }
 /* Light-on-night button inside hero cards (plain CSS so it wins over the button's utility classes). */
 .hero-button {
-  background: var(--hero-text);
-  color: #1b1f33;
+  background: #c9a227;
+  color: #14213d;
 }
 .hero-button:hover {
-  background: #fffaf0;
+  background: #d8b33c;
 }
 .hero-card .hero-track {
   background: rgb(251 243 223 / 0.22);
 }
 .hero-card .hero-fill {
-  background: #f4e4b0;
+  background: #c9a227;
 }
 
 /* Soft lift for cards. */

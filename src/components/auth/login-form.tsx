@@ -8,8 +8,10 @@ import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { GoogleButton, OrDivider } from "./google-button";
+import { DEMO_ACCOUNTS, DEMO_PASSWORD } from "@/lib/demo";
 
-export function LoginForm({ googleEnabled, notice }: { googleEnabled: boolean; notice?: string }) {
+/** `next`: where to go after logging in (a path on this site, e.g. a class invite link). */
+export function LoginForm({ googleEnabled, notice, next = "/library", demo = false }: { googleEnabled: boolean; notice?: string; next?: string; demo?: boolean }) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(notice ?? null);
@@ -18,14 +20,14 @@ export function LoginForm({ googleEnabled, notice }: { googleEnabled: boolean; n
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = new FormData(e.currentTarget);
+    await logIn(String(form.get("email")), String(form.get("password")));
+  }
+
+  async function logIn(email: string, password: string) {
     setBusy(true);
     setError(null);
     setInfo(null);
-    const { error } = await authClient.signIn.email({
-      email: String(form.get("email")),
-      password: String(form.get("password")),
-      callbackURL: "/library",
-    });
+    const { data, error } = await authClient.signIn.email({ email, password, callbackURL: next });
     setBusy(false);
     if (error) {
       if (error.status === 403) {
@@ -37,7 +39,12 @@ export function LoginForm({ googleEnabled, notice }: { googleEnabled: boolean; n
       }
       return;
     }
-    router.push("/library");
+    // Two-factor accounts confirm a code from their authenticator app next.
+    if (data && "twoFactorRedirect" in data && data.twoFactorRedirect) {
+      router.push(`/login/two-factor?next=${encodeURIComponent(next)}`);
+      return;
+    }
+    router.push(next);
     router.refresh();
   }
 
@@ -45,7 +52,7 @@ export function LoginForm({ googleEnabled, notice }: { googleEnabled: boolean; n
     <>
       <h1 className="text-xl font-semibold">Log in</h1>
       <p className="mt-1 text-sm text-muted">
-        New here? <Link href="/signup" className="font-medium text-primary underline-offset-2 hover:underline">Create an account</Link>
+        New here? <Link href={next === "/library" ? "/signup" : `/signup?next=${encodeURIComponent(next)}`} className="font-medium text-primary underline-offset-2 hover:underline">Create an account</Link>
       </p>
       {googleEnabled && (
         <>
@@ -63,6 +70,19 @@ export function LoginForm({ googleEnabled, notice }: { googleEnabled: boolean; n
         </div>
         <Button type="submit" disabled={busy}>{busy ? "Logging in…" : "Log in"}</Button>
       </form>
+      {demo && (
+        <section aria-labelledby="demo-logins" className="mt-6 rounded-xl border border-dashed border-border p-4">
+          <h2 id="demo-logins" className="text-sm font-semibold">Try the demo</h2>
+          <p className="mt-1 text-xs text-muted">A made-up program with invented students. Log in as:</p>
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            {DEMO_ACCOUNTS.map((a) => (
+              <Button key={a.email} type="button" variant="secondary" size="sm" disabled={busy} onClick={() => void logIn(a.email, DEMO_PASSWORD)}>
+                {a.role}
+              </Button>
+            ))}
+          </div>
+        </section>
+      )}
     </>
   );
 }

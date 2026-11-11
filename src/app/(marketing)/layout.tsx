@@ -2,25 +2,33 @@ import Link from "next/link";
 import { ThemeToggle } from "@/components/theme";
 import { SiteFooter } from "@/components/site-footer";
 import { ButtonLink } from "@/components/ui/button";
-import { Logo } from "@/components/app-sidebar";
+import { Wordmark } from "@/components/brand/seal";
 
 export default function MarketingLayout({ children }: LayoutProps<"/">) {
   return (
     <>
-      <header className="border-b border-border bg-surface">
-        <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
-          <Link href="/" className="flex items-center gap-2.5" aria-label="Coursebook home">
-            <Logo />
-            <span className="font-display text-xl font-semibold tracking-tight">Coursebook</span>
+      <header className="dark-nav bg-nav">
+        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4">
+          <Link href="/">
+            <Wordmark />
           </Link>
-          <div className="flex items-center gap-2">
-            <ThemeToggle />
-            <ButtonLink href="/login" variant="ghost" size="sm">Log in</ButtonLink>
-            <ButtonLink href="/signup" size="sm">Sign up</ButtonLink>
-          </div>
+          <nav aria-label="Site" className="flex items-center gap-1 sm:gap-2">
+            <Link href="/help" className="hidden rounded-[10px] px-3 py-1.5 text-sm font-semibold text-nav-text hover:bg-nav-active sm:inline-flex">
+              Help
+            </Link>
+            <ThemeToggle className="text-nav-muted hover:bg-nav-active hover:text-nav-text" />
+            <Link href="/login" className="rounded-[10px] px-3 py-1.5 text-sm font-semibold text-nav-text hover:bg-nav-active">
+              Log in
+            </Link>
+            <ButtonLink href="/signup" size="sm" variant="accent">
+              Sign up
+            </ButtonLink>
+          </nav>
         </div>
       </header>
-      <main id="main" className="flex-1">{children}</main>
+      <main id="main" className="flex-1">
+        {children}
+      </main>
       <SiteFooter />
     </>
   );

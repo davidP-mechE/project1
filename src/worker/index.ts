@@ -25,6 +25,8 @@ import { LocalEmbedder } from "@/server/embeddings/local";
 import { booksNeedingEmbeddings, embedBook } from "@/server/embeddings/book";
 import { Queue } from "bullmq";
 import { sendDueReminders } from "@/server/reminders";
+import { runProgramJobs } from "@/server/program-jobs";
+import { recordError } from "@/server/monitoring";
 import { runMaintenance } from "@/server/maintenance";
 import { claudeEnabled } from "@/server/env";
 import { getBatchRunner, getWriter, generationModel } from "@/server/ai/client";
@@ -33,6 +35,8 @@ import { markLessonFailed, runFlashcardsJob, runLessonJob, runQuestionsJob } fro
 import { batchJobFailed, pollBatch, pollDelayMs, submitAssessmentBatch, submitLessonBatch } from "@/server/generation/batch";
 import { markAssessmentFailed, runAssessmentJob } from "@/server/generation/assessments";
 import { renderPagePng } from "@/server/processing/page-images";
+import { markWorksheetFailed } from "@/server/worksheets";
+import { runWorksheetJob } from "@/server/worksheet-job";
 import { OcrPool } from "@/server/processing/ocr";
 import { runProcessBookJob } from "@/server/processing/run-job";
 import { db } from "@/server/db";
@@ -108,6 +112,21 @@ const generator = new Worker<GeneratePayload>(
       return;
     }
 
+    // A teacher's worksheet: Claude lists its questions.
+    if (data.kind === "worksheet") {
+      const lastAttempt = job.attemptsMade + 1 >= (job.opts.attempts ?? 1);
+      try {
+        console.info(`[worksheet] ${data.worksheetId}: ${await runWorksheetJob(data, deps)}`);
+      } catch (err) {
+        const ai = err instanceof AiError ? err : null;
+        console.error(`[worksheet] ${data.worksheetId} attempt ${job.attemptsMade + 1} failed:`, err instanceof Error ? err.message : err);
+        if ((!ai || ai.kind === "retryable") && !lastAttempt) throw err;
+        await markWorksheetFailed(data.worksheetId, ai?.userMessage ?? "Something went wrong reading this worksheet. Try again.");
+        throw new UnrecoverableError("worksheet failed");
+      }
+      return;
+    }
+
     const id = data.kind === "assessment" ? data.assessmentId : data.lessonId;
     const lastAttempt = job.attemptsMade + 1 >= (job.opts.attempts ?? 1);
     try {
@@ -177,6 +196,11 @@ queryEmbedder.on("ready", async () => {
 const reminders = new Worker(
   REMINDERS_QUEUE,
   async (job) => {
+    if (job.name === "program") {
+      const r = await runProgramJobs();
+      if (r.digests + r.summaries > 0) console.info("[program jobs]", r);
+      return;
+    }
     if (job.name === "maintenance") {
       const r = await runMaintenance();
       if (r.uploads + r.rateRows + r.events + r.verifications > 0) console.info("[maintenance]", r);
@@ -193,12 +217,19 @@ void scheduled
   .upsertJobScheduler("every-15-minutes", { every: 15 * 60_000 }, { name: "check", opts: { removeOnComplete: true, removeOnFail: 50 } })
   .catch((err) => console.error("[worker] couldn't schedule reminders:", err.message));
 void scheduled
+  .upsertJobScheduler("hourly-program-jobs", { every: 60 * 60_000 }, { name: "program", opts: { removeOnComplete: true, removeOnFail: 50 } })
+  .catch((err) => console.error("[worker] couldn't schedule program jobs:", err.message));
+void scheduled
   .upsertJobScheduler("hourly-maintenance", { every: 60 * 60_000 }, { name: "maintenance", opts: { removeOnComplete: true, removeOnFail: 50 } })
   .catch((err) => console.error("[worker] couldn't schedule maintenance:", err.message));
 
 worker.on("active", (job) => console.info(`[worker] started job ${job.id} (book ${job.data.bookId})`));
 worker.on("completed", (job) => console.info(`[worker] finished job ${job.id}`));
 worker.on("error", (err) => console.error("[worker] error:", err.message));
+// Failed jobs go to the error log (and the site admins' inbox), by job type only.
+worker.on("failed", (job, err) => {
+  void recordError({ kind: "worker", message: err?.message ?? "Job failed", path: `worker:${job?.name ?? "job"}` }).catch(() => {});
+});
 
 async function shutdown(signal: string) {
   console.info(`[worker] ${signal} received, finishing current job…`);

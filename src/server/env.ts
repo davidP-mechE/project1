@@ -9,6 +9,8 @@ import { z } from "zod";
 const schema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   APP_URL: z.url().default("http://localhost:3000"),
+  /** A program to feature on the public landing page (its /p/<slug> page must be public). Empty: none. */
+  FEATURED_PROGRAM_SLUG: z.string().max(64).optional(),
   DATABASE_URL: z.string().min(1),
   REDIS_URL: z.string().default("redis://localhost:6379"),
   // Background worker tuning
@@ -17,6 +19,8 @@ const schema = z.object({
 
   BETTER_AUTH_SECRET: z.string().min(16, "BETTER_AUTH_SECRET must be at least 16 characters"),
   GOOGLE_CLIENT_ID: z.string().optional(),
+  /** Desmos API key (desmos.com/api), for the built-in graphing calculator on Math questions. Without it, a link opens desmos.com. */
+  DESMOS_API_KEY: z.string().optional(),
   GOOGLE_CLIENT_SECRET: z.string().optional(),
 
   SMTP_HOST: z.string().optional(),
@@ -83,6 +87,30 @@ if (!parsed.success) {
 
 export const env = parsed.data;
 
+/**
+ * The staging copy must never run against the real database: with
+ * APP_ENV=staging, it refuses to start if DATABASE_URL points at the same
+ * host and database as PRODUCTION_DATABASE_URL.
+ */
+export function assertNotProductionDatabase(e: { APP_ENV?: string; DATABASE_URL?: string; PRODUCTION_DATABASE_URL?: string }) {
+  if (e.APP_ENV !== "staging" || !e.PRODUCTION_DATABASE_URL || !e.DATABASE_URL) return;
+  const where = (u: string) => {
+    try {
+      const x = new URL(u);
+      return `${x.hostname}:${x.port || "5432"}${x.pathname}`;
+    } catch {
+      return u;
+    }
+  };
+  if (where(e.DATABASE_URL) === where(e.PRODUCTION_DATABASE_URL)) {
+    throw new Error("APP_ENV=staging but DATABASE_URL is the production database. Staging must use its own database with fake data.");
+  }
+}
+assertNotProductionDatabase({ APP_ENV: process.env.APP_ENV, DATABASE_URL: process.env.DATABASE_URL, PRODUCTION_DATABASE_URL: process.env.PRODUCTION_DATABASE_URL });
+export const isStaging = process.env.APP_ENV === "staging";
+
+/** One-click demo log-ins on /login (DEMO_LOGINS=true), for a demo or staging copy only: never when APP_ENV=production. */
+export const demoLoginsEnabled = process.env.DEMO_LOGINS === "true" && process.env.APP_ENV !== "production";
 export const googleAuthEnabled = Boolean(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET);
 
 // Demo mode is refused in production, except for the end-to-end tests, which

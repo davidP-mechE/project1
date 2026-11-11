@@ -1,17 +1,23 @@
 import { AppSidebar } from "@/components/app-sidebar";
 import { PageTransition } from "@/components/page-transition";
 import { SiteFooter } from "@/components/site-footer";
+import { ErrorCapture } from "@/components/support/report-problem";
 import { requireUser } from "@/server/session";
+import { isStaging } from "@/server/env";
 import { db } from "@/server/db";
 import { getReviewCounts } from "@/server/srs";
 import { getGameSummary } from "@/server/gamification";
+import { unreadCount } from "@/server/notifications";
+import { unreadThreadCount } from "@/server/messages";
 
 export default async function AppLayout({ children }: LayoutProps<"/">) {
   const user = await requireUser();
-  const [counts, prefs, game] = await Promise.all([
+  const [counts, prefs, game, notices, threads] = await Promise.all([
     getReviewCounts(user.id),
     db.user.findUnique({ where: { id: user.id }, select: { timezone: true } }),
     getGameSummary(user.id),
+    unreadCount(user.id),
+    unreadThreadCount(user.id),
   ]);
   return (
     <>
@@ -20,7 +26,14 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
         dueCount={counts.due + counts.new}
         timeZone={prefs?.timezone ?? "UTC"}
         game={{ streak: game.streak, xp: game.xp, level: game.level }}
+        unread={{ notices, threads }}
       />
+      <ErrorCapture />
+      {isStaging && (
+        <div role="note" className="fixed inset-x-0 top-0 z-50 bg-warning px-3 py-1 text-center text-xs font-semibold text-white dark:text-bg">
+          Staging copy: fake data only. Changes here don&apos;t affect the real site.
+        </div>
+      )}
       <div className="flex min-h-dvh flex-col lg:pl-64">
         <main id="main" className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6 lg:px-10">
           <PageTransition>{children}</PageTransition>
