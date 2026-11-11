@@ -30,7 +30,15 @@ export default async function ClassesPage() {
   return (
     <div className="mx-auto flex max-w-4xl flex-col gap-6">
       <BaselineBanner userId={user.id} />
-      <PageHeader title="Classes" description="Work your teachers assign, with due dates. Your progress on it is shared with them." />
+      <PageHeader
+        title="Classes"
+        description="Work your teachers assign, with due dates. Your progress on it is shared with them."
+        actions={
+          <Link href="/teach" className="text-sm font-semibold text-accent-ink underline-offset-2 hover:underline">
+            Teaching a class? Set it up →
+          </Link>
+        }
+      />
       <Card>
         <h2 className="mb-3 text-lg font-semibold">Join a class</h2>
         <JoinCodeForm />

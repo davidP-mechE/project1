@@ -758,6 +758,7 @@ test("the full student journey works, is accessible, and respects the CSP", asyn
   await p2.getByRole("button", { name: "Open menu" }).click();
   await expect(p2.getByRole("dialog", { name: "Menu" })).toBeVisible();
   await a11y(p2, "phone menu");
+  await p2.getByRole("dialog", { name: "Menu" }).getByText("Learn", { exact: true }).click(); // sections fold; Learn holds Slides
   await p2.getByRole("dialog", { name: "Menu" }).getByRole("link", { name: "Slides" }).click();
   await p2.waitForURL(/\/slides$/);
   await expect(p2.getByRole("dialog", { name: "Menu" })).toBeHidden();

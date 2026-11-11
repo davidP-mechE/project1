@@ -9,6 +9,7 @@ import { getReviewCounts } from "@/server/srs";
 import { getGameSummary } from "@/server/gamification";
 import { unreadCount } from "@/server/notifications";
 import { unreadThreadCount } from "@/server/messages";
+import { staffClassIds } from "@/server/access";
 
 export default async function AppLayout({ children }: LayoutProps<"/">) {
   const user = await requireUser();
@@ -19,10 +20,11 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
     unreadCount(user.id),
     unreadThreadCount(user.id),
   ]);
+  const isStaff = (await staffClassIds(user.id)).length > 0;
   return (
     <>
       <AppSidebar
-        user={{ name: user.name, email: user.email, isAdmin: user.role === "ADMIN" }}
+        user={{ name: user.name, email: user.email, isAdmin: user.role === "ADMIN", isStaff }}
         dueCount={counts.due + counts.new}
         timeZone={prefs?.timezone ?? "UTC"}
         game={{ streak: game.streak, xp: game.xp, level: game.level }}
@@ -34,8 +36,8 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
           Staging copy: fake data only. Changes here don&apos;t affect the real site.
         </div>
       )}
-      <div className="flex min-h-dvh flex-col lg:pl-64">
-        <main id="main" className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6 lg:px-10">
+      <div className="paper flex min-h-dvh flex-col lg:pl-60">
+        <main id="main" className="mx-auto w-full max-w-[92rem] flex-1 px-4 py-8 sm:px-6 lg:px-12">
           <PageTransition>{children}</PageTransition>
         </main>
         <SiteFooter />
