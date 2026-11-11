@@ -34,7 +34,7 @@ export function NewSetForm() {
         Title
         <input className={inputClasses} value={title} onChange={(e) => setTitle(e.target.value)} required maxLength={200} />
       </label>
-      <Button disabled={pending}>Create set</Button>
+      <Button type="submit" disabled={pending}>Create set</Button>
       {error && <Alert tone="error">{error}</Alert>}
     </form>
   );
@@ -101,7 +101,7 @@ export function AutoSetForm({ skills }: { skills: Skill[] }) {
         <input type="checkbox" checked={v.publishedOnly} onChange={(e) => setV({ ...v, publishedOnly: e.target.checked })} /> Published questions only
       </label>
       <div className="sm:col-span-2 lg:col-span-4">
-        <Button disabled={pending}>Generate set</Button>
+        <Button type="submit" disabled={pending}>Generate set</Button>
       </div>
       {error && <Alert tone="error" className="sm:col-span-2 lg:col-span-6">{error}</Alert>}
     </form>
