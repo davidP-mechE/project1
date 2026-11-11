@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState, useTransition, type ReactNode } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { Markdown } from "@/components/lesson/markdown";
 import { Alert } from "@/components/ui/alert";
 import { Button, ButtonLink } from "@/components/ui/button";
@@ -9,6 +9,8 @@ import { Card, ProgressBar } from "@/components/ui/misc";
 import { inputClasses } from "@/components/ui/field";
 import { answerPracticeAction, finishPracticeAction, startPracticeAction } from "@/server/actions/bank";
 import { cn } from "@/lib/utils";
+import { CalculatorPanel } from "@/components/desmos/calculator-panel";
+import { QuestionDesmosCheck } from "@/components/desmos/desmos-check";
 
 export type Feedback = {
   given: string;
@@ -84,7 +86,10 @@ export function StartPractice({ setId, assignmentId, hasLimit, forcedTimed }: { 
  * explanation, and "Likely mistake" when a wrong answer matches a distractor.
  * `calculator` and `desmosCheck` are slots for the Desmos panel and check graph.
  */
-export function PracticePlayer({ state, calculator, desmosCheck }: { state: PlayerState; calculator?: ReactNode; desmosCheck?: (state: object) => ReactNode }) {
+export function PracticePlayer({ state, desmosKey }: { state: PlayerState; desmosKey: string | null }) {
+  // One calculator per sitting (kept between questions); none on "by hand" assignments or R&W-only sets.
+  const calculator = state.questions.some((x) => x.section === "math") ? <CalculatorPanel apiKey={desmosKey} storageKey={state.sessionId} byHand={state.calculator === "BY_HAND"} /> : null;
+  const desmosCheck = (s: object) => <QuestionDesmosCheck apiKey={desmosKey} state={s} />;
   const router = useRouter();
   const [i, setI] = useState(() => Math.max(0, state.questions.findIndex((q) => !state.answers[q.id])));
   const [answers, setAnswers] = useState<Record<string, Feedback>>(state.answers);
@@ -239,7 +244,7 @@ export function PracticePlayer({ state, calculator, desmosCheck }: { state: Play
                 <Markdown>{fb.explanation}</Markdown>
               </div>
             )}
-            {fb.desmosState && desmosCheck && desmosCheck(fb.desmosState)}
+            {fb.desmosState && desmosCheck(fb.desmosState)}
             {fb.desmosTechnique && (
               <p className="text-sm text-text">
                 Desmos technique: <span className="font-semibold">{fb.desmosTechnique}</span>

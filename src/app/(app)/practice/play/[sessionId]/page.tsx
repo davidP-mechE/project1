@@ -6,6 +6,7 @@ import { PracticePlayer, type PlayerState } from "@/components/bank/practice-pla
 import { requireUser } from "@/server/session";
 import { NotFoundError } from "@/server/courses";
 import { practiceState } from "@/server/bank";
+import { env } from "@/server/env";
 
 export const metadata: Metadata = { title: "Practice" };
 
@@ -26,7 +27,7 @@ export default async function PlayPage({ params }: PageProps<"/practice/play/[se
         <Link href={s.assignmentId ? "/classes" : "/practice"} className="text-muted hover:underline">← {s.assignmentId ? "Classes" : "Practice sets"}</Link>
       </p>
       <PageHeader title={s.title} />
-      <PracticePlayer state={state} />
+      <PracticePlayer state={state} desmosKey={env.DESMOS_API_KEY ?? null} />
     </div>
   );
 }

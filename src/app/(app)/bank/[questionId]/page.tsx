@@ -6,6 +6,8 @@ import { QuestionEditor, type EditorRecord } from "@/components/bank/question-ed
 import { requireUser } from "@/server/session";
 import { NotFoundError } from "@/server/courses";
 import { getBankQuestion, skillOptions, toRecord } from "@/server/bank";
+import { env } from "@/server/env";
+import { QuestionDesmosEditor } from "@/components/desmos/question-desmos-editor";
 
 export const metadata: Metadata = { title: "Edit question" };
 
@@ -36,6 +38,7 @@ export default async function EditQuestionPage({ params }: PageProps<"/bank/[que
         status={q.status}
         version={q.version}
         skills={await skillOptions()}
+        desmosSlot={q.section === "math" ? <QuestionDesmosEditor questionId={q.id} apiKey={env.DESMOS_API_KEY ?? null} initialState={(q.desmosState as object | null) ?? null} /> : undefined}
       />
       {q.versions.length > 0 && (
         <details className="rounded-lg border border-border bg-surface p-4 text-sm">
