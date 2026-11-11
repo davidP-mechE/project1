@@ -27,7 +27,7 @@ export default async function ProgramDashboardPage({ params, searchParams }: Pag
     throw err;
   }
   return (
-    <div className="mx-auto flex max-w-5xl flex-col gap-6">
+    <div className="mx-auto flex max-w-6xl flex-col gap-6">
       <p className="text-sm">
         <Link href={`/teach/programs/${programId}`} className="text-muted hover:text-text hover:underline">
           ← {d.program.name}

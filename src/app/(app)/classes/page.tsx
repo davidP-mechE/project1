@@ -28,9 +28,10 @@ export default async function ClassesPage() {
   );
   const now = new Date();
   return (
-    <div className="mx-auto flex max-w-4xl flex-col gap-6">
+    <div className="mx-auto flex max-w-6xl flex-col gap-6">
       <BaselineBanner userId={user.id} />
       <PageHeader
+        eyebrow="Your classes"
         title="Classes"
         description="Work your teachers assign, with due dates. Your progress on it is shared with them."
         actions={
@@ -39,19 +40,25 @@ export default async function ClassesPage() {
           </Link>
         }
       />
-      <Card>
-        <h2 className="mb-3 text-lg font-semibold">Join a class</h2>
-        <JoinCodeForm />
+      <Card className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h2 className="font-display text-xl font-semibold">Join a class</h2>
+          <p className="text-sm text-muted">Enter the code your tutor gave you, or open their invite link.</p>
+        </div>
+        <div className="sm:min-w-[24rem]">
+          <JoinCodeForm />
+        </div>
       </Card>
       {classes.length === 0 ? (
         <EmptyState title="No classes yet">Ask your teacher for the class code or an invite link.</EmptyState>
       ) : (
-        classes.map((c) => (
-          <Card key={c.id}>
-            <div className="mb-4 flex flex-wrap items-start justify-between gap-2">
+        classes.map((c, ci) => (
+          <Card key={c.id} className="relative overflow-hidden p-0">
+            <span aria-hidden className="absolute inset-y-0 left-0 w-2" style={{ background: ["var(--chart-1)", "var(--chart-3)", "var(--chart-4)", "var(--chart-5)", "var(--chart-2)"][ci % 5] }} />
+            <div className="flex flex-wrap items-start justify-between gap-2 border-b border-border bg-surface-2/50 px-6 py-5 pl-8">
               <div>
                 <ProgramTag program={c.program} className="mb-1" />
-                <h2 className="font-display text-xl font-semibold">{c.name}</h2>
+                <h2 className="font-display text-2xl font-semibold">{c.name}</h2>
                 {c.teacherName && <p className="text-sm text-muted">Teacher: {c.teacherName}</p>}
                 {attendance.get(c.id) && <p className="text-sm text-muted">Attendance: {attendance.get(c.id)!.attended} of {attendance.get(c.id)!.marked} sessions</p>}
                 {extras.get(c.id)?.plan?.current && <p className="text-sm">This week: <strong>{extras.get(c.id)!.plan!.current!.title}</strong></p>}
@@ -72,10 +79,11 @@ export default async function ClassesPage() {
               <LeaveClassButton classId={c.id} name={c.name} />
             </div>
             {c.assignments.length === 0 ? (
-              <p className="text-sm text-muted">Nothing assigned yet.</p>
+              <p className="px-6 py-5 pl-8 text-sm text-muted">Nothing assigned yet.</p>
             ) : (
-              <ul className="flex flex-col divide-y divide-border">
-                {c.assignments.map((a) => {
+<>
+                {(() => {
+                  const row = (a: (typeof c.assignments)[number]) => {
                   const overdue = a.cell.status !== "done" && a.dueAt && a.dueAt < now;
                   return (
                     <li key={a.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
@@ -91,7 +99,7 @@ export default async function ClassesPage() {
                       <div className="flex items-center gap-3">
                         <div className="text-right text-xs">
                           <p className={cn(overdue ? "font-semibold text-danger" : "text-muted")}>{dueText(a.dueAt, now, zone)}</p>
-                          <p className={cn(a.cell.status === "done" ? "text-success" : "text-muted")}>
+                          <p className={cn("mt-1 inline-block rounded-full px-2 py-0.5", a.cell.status === "done" ? "bg-success-bg font-semibold text-success" : a.cell.status === "in_progress" ? "bg-warning-bg text-warning" : "bg-surface-2 text-muted")}>
                             {STATUS_LABEL[a.cell.status]}
                             {a.kind === "LESSONS" ? ` · ${a.cell.done}/${a.cell.total || "?"}` : a.cell.score !== null && (a.cell.status === "done" || !a.timeLimitMin) ? ` · ${pct(a.cell.score)}` : ""}
                           </p>
@@ -107,8 +115,26 @@ export default async function ClassesPage() {
                       </div>
                     </li>
                   );
-                })}
-              </ul>
+                };
+                  const todo = c.assignments.filter((a) => a.cell.status !== "done");
+                  const done = c.assignments.filter((a) => a.cell.status === "done");
+                  return (
+                    <>
+                      {todo.length > 0 ? (
+                        <ul className="flex flex-col divide-y divide-border px-6 pl-8">{todo.map(row)}</ul>
+                      ) : (
+                        <p className="px-6 py-5 pl-8 text-sm text-success">All caught up in this class.</p>
+                      )}
+                      {done.length > 0 && (
+                        <details className="border-t border-border px-6 py-3 pl-8">
+                          <summary className="cursor-pointer text-sm font-semibold text-muted hover:text-text">Done ({done.length})</summary>
+                          <ul className="mt-1 flex flex-col divide-y divide-border">{done.map(row)}</ul>
+                        </details>
+                      )}
+                    </>
+                  );
+                })()}
+              </>
             )}
           </Card>
         ))

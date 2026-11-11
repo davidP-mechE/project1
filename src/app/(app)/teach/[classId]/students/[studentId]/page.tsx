@@ -46,7 +46,7 @@ export default async function StudentPage({ params }: PageProps<"/teach/[classId
   const weak = await studentWeakSpots(user.id, classId, studentId);
   const sections = { rw: s.scores.some((x) => x.rw !== null) || !s.access.subjects, math: s.scores.some((x) => x.math !== null) || !s.access.subjects };
   return (
-    <div className="mx-auto flex max-w-3xl flex-col gap-6">
+    <div className="mx-auto flex max-w-6xl flex-col gap-6">
       <p className="text-sm">
         <Link href={`/teach/${classId}/scores`} className="text-muted hover:text-text hover:underline">
           ← {s.access.className} scores

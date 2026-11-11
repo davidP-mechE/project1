@@ -44,7 +44,7 @@ export default async function AttendancePage({ params, searchParams }: PageProps
     </li>
   );
   return (
-    <div className="mx-auto flex max-w-4xl flex-col gap-6">
+    <div className="mx-auto flex max-w-6xl flex-col gap-6">
       <ClassNav c={c} active="attendance" />
       {s.access.role !== "VIEWER" && (
         <Card>

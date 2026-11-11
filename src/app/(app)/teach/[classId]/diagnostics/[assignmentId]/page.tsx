@@ -26,7 +26,7 @@ export default async function DiagnosticResultsPage({ params }: PageProps<"/teac
   if (r.assignment.classId !== classId) notFound();
   const canGrade = r.access.role !== "VIEWER";
   return (
-    <div className="mx-auto flex max-w-4xl flex-col gap-6">
+    <div className="mx-auto flex max-w-6xl flex-col gap-6">
       <p className="text-sm">
         <Link href={`/teach/${classId}`} className="text-muted hover:text-text hover:underline">
           ← {r.access.className}

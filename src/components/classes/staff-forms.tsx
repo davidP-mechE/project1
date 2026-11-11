@@ -110,7 +110,7 @@ export function AddStaffForm({ classId, groups, isAdmin }: { classId: string; gr
   const [pending, start] = useTransition();
   return (
     <form
-      className="flex flex-col gap-4"
+      className="max-w-2xl flex flex-col gap-4"
       onSubmit={(e) => {
         e.preventDefault();
         start(async () => {

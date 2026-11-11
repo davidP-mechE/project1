@@ -14,7 +14,7 @@ export function PageTransition({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   return (
     <ViewTransition key={pathname} enter="page-enter" exit="page-exit" default="none">
-      <div>{children}</div>
+      <div className="page-flow">{children}</div>
     </ViewTransition>
   );
 }

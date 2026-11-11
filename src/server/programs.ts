@@ -58,7 +58,7 @@ export async function myPrograms(userId: string) {
   const rows = await db.program.findMany({
     where: { OR: [{ adminId: userId }, { classes: { some: { staff: { some: { userId } } } } }] },
     orderBy: { createdAt: "asc" },
-    select: { id: true, name: true, adminId: true, admin: { select: { name: true } }, _count: { select: { classes: true } } },
+    select: { id: true, name: true, badge: true, adminId: true, admin: { select: { name: true } }, _count: { select: { classes: true } } },
   });
   return rows.map((p) => ({ ...p, isAdmin: p.adminId === userId }));
 }

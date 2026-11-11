@@ -28,7 +28,7 @@ export default async function AssignPage({ params }: PageProps<"/teach/[classId]
   }
   const targetOptions = { groups: g.groups.map((x) => ({ id: x.id, name: x.name })), students: c.members.map((m) => ({ id: m.user.id, name: m.user.name })) };
   return (
-    <div className="mx-auto flex max-w-3xl flex-col gap-6">
+    <div className="mx-auto flex max-w-6xl flex-col gap-6">
       <ClassNav c={c} active="assign" />
       {courses.length === 0 ? (
         <EmptyState title="No courses to assign yet" action={<ButtonLink href="/library">Go to your library</ButtonLink>}>

@@ -26,7 +26,7 @@ export default async function ReviewPage({ params, searchParams }: PageProps<"/t
     throw err;
   }
   return (
-    <div className="mx-auto flex max-w-4xl flex-col gap-6">
+    <div className="mx-auto flex max-w-6xl flex-col gap-6">
       <ClassNav c={c} active="review" />
       <p className="text-sm text-muted">
         Claude grades written answers against your answer key. Check them here: confirm a grade, or override it (students see your grade and feedback).{" "}

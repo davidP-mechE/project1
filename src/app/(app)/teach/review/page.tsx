@@ -23,7 +23,7 @@ export default async function ReviewQueuePage() {
   }
   const empty = !drafts.length && !lessons.length && !grades.length;
   return (
-    <div className="mx-auto flex max-w-3xl flex-col gap-6">
+    <div className="mx-auto flex max-w-6xl flex-col gap-6">
       <PageHeader title="Review queue" description="Nothing Claude writes reaches students until someone here approves it." />
       {empty ? (
         <EmptyState title="All reviewed">No drafts or AI grades are waiting for you.</EmptyState>

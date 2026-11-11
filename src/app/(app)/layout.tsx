@@ -37,7 +37,7 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
         </div>
       )}
       <div className="paper flex min-h-dvh flex-col lg:pl-60">
-        <main id="main" className="mx-auto w-full max-w-[92rem] flex-1 px-4 py-8 sm:px-6 lg:px-12">
+        <main id="main" className="mx-auto w-full min-w-0 max-w-[92rem] flex-1 px-4 py-8 sm:px-6 lg:px-12">
           <PageTransition>{children}</PageTransition>
         </main>
         <SiteFooter />

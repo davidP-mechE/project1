@@ -26,7 +26,7 @@ export default async function CurriculumPage({ params }: PageProps<"/teach/[clas
   }
   const manage = cur.access.role === "ADMIN" || cur.access.role === "TEACHER";
   return (
-    <div className="mx-auto flex max-w-4xl flex-col gap-6">
+    <div className="mx-auto flex max-w-6xl flex-col gap-6">
       <ClassNav c={c} active="curriculum" />
       {sug.suggestions.map((s) => (
         <SuggestionCard key={s.key} classId={classId} s={s} />

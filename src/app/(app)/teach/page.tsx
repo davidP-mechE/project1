@@ -1,3 +1,5 @@
+import { ProgramBadge } from "@/components/brand/seal";
+import { cn } from "@/lib/utils";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ButtonLink } from "@/components/ui/button";
@@ -17,8 +19,9 @@ export default async function TeachPage() {
   const user = await requireUser();
   const [classes, programs, tours] = await Promise.all([listTeaching(user.id), myPrograms(user.id), toursToShow(user.id)]);
   return (
-    <div className="mx-auto flex max-w-4xl flex-col gap-6">
+    <div className="mx-auto flex max-w-6xl flex-col gap-8">
       <PageHeader
+        eyebrow="Teaching"
         title="My classes"
         description="Invite students, assign your courses and worksheets, and see how everyone is doing."
         actions={
@@ -29,25 +32,37 @@ export default async function TeachPage() {
       />
       {tours.staff && <Walkthrough tour="staff" />}
       {programs.length > 0 && (
-        <Card>
-          <h2 className="mb-2 text-lg font-semibold">Your programs</h2>
-          <ul className="flex flex-col gap-1 text-sm">
-            {programs.map((p) => (
-              <li key={p.id}>
-                {p.isAdmin ? (
-                  <Link href={`/teach/programs/${p.id}`} className="font-medium text-primary underline">
-                    {p.name}
-                  </Link>
-                ) : (
-                  <span className="font-medium">{p.name}</span>
-                )}{" "}
-                <span className="text-muted">
-                  · {p.isAdmin ? "you're the admin" : `admin: ${p.admin.name}`} · {p._count.classes} {p._count.classes === 1 ? "class" : "classes"}
-                </span>
-              </li>
-            ))}
+        <section aria-labelledby="programs-title" className="flex flex-col gap-3">
+          <h2 id="programs-title" className="font-display text-2xl font-semibold">
+            Your programs
+          </h2>
+          <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {programs.map((p) => {
+              const inner = (
+                <>
+                  <ProgramBadge program={p} className="size-12" />
+                  <span className="min-w-0">
+                    <span className="block truncate font-display text-lg font-semibold">{p.name}</span>
+                    <span className="block text-xs text-muted">
+                      {p.isAdmin ? "You're the admin" : `Admin: ${p.admin.name}`} · {p._count.classes} {p._count.classes === 1 ? "class" : "classes"}
+                    </span>
+                  </span>
+                </>
+              );
+              return (
+                <li key={p.id}>
+                  {p.isAdmin ? (
+                    <Link href={`/teach/programs/${p.id}`} className="lift flex items-center gap-4 rounded-[1.25rem] border border-border bg-surface p-4 transition-transform hover:-translate-y-0.5">
+                      {inner}
+                    </Link>
+                  ) : (
+                    <div className="flex items-center gap-4 rounded-[1.25rem] border border-border bg-surface p-4">{inner}</div>
+                  )}
+                </li>
+              );
+            })}
           </ul>
-        </Card>
+        </section>
       )}
       {(programs.length === 0 || programs.some((p) => p.isAdmin)) && (
         <Card>
@@ -58,21 +73,38 @@ export default async function TeachPage() {
       {classes.length === 0 ? (
         <EmptyState title="No classes yet">Create a class, then share its code or invite students by email.</EmptyState>
       ) : (
-        <ul className="grid gap-4 sm:grid-cols-2">
-          {classes.map((c) => (
-            <li key={c.id}>
-              <Link href={`/teach/${c.id}`} className="card-hover lift block rounded-2xl border border-border bg-surface p-5">
-                <p className="text-lg font-semibold">{c.name}</p>
-                <p className="mt-1 text-sm text-muted">
-                  {c._count.members} {c._count.members === 1 ? "student" : "students"} · {c._count.assignments} {c._count.assignments === 1 ? "assignment" : "assignments"}
-                </p>
-                <p className="mt-2 text-xs text-muted">
-                  {ROLE_LABEL[c.role]} · {c.program.name} · {c.archivedAt ? "Archived" : `Code ${c.joinCode}`}
-                </p>
-              </Link>
-            </li>
-          ))}
-        </ul>
+        <section aria-labelledby="classes-title" className="flex flex-col gap-3">
+          <h2 id="classes-title" className="font-display text-2xl font-semibold">
+            Classes
+          </h2>
+          <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {classes.map((c, i) => (
+              <li key={c.id}>
+                <Link href={`/teach/${c.id}`} className={cn("lift group relative flex h-full flex-col gap-4 overflow-hidden rounded-[1.25rem] border border-border bg-surface p-5 pl-7 transition-transform hover:-translate-y-0.5", c.archivedAt && "opacity-70")}>
+                  <span aria-hidden className="absolute inset-y-0 left-0 w-3" style={{ background: ["var(--chart-1)", "var(--chart-3)", "var(--chart-4)", "var(--chart-5)", "var(--chart-2)"][i % 5] }} />
+                  <span>
+                    <span className="block font-display text-xl font-semibold group-hover:underline">{c.name}</span>
+                    <span className="mt-0.5 block text-xs text-muted">{c.program.name}</span>
+                  </span>
+                  <span className="grid grid-cols-2 gap-3">
+                    <span>
+                      <span className="score-num block text-3xl">{c._count.members}</span>
+                      <span className="text-xs text-muted">{c._count.members === 1 ? "student" : "students"}</span>
+                    </span>
+                    <span>
+                      <span className="score-num block text-3xl">{c._count.assignments}</span>
+                      <span className="text-xs text-muted">{c._count.assignments === 1 ? "assignment" : "assignments"}</span>
+                    </span>
+                  </span>
+                  <span className="mt-auto flex flex-wrap gap-2 text-xs">
+                    <span className="rounded-full bg-surface-2 px-2.5 py-1 font-semibold">{ROLE_LABEL[c.role]}</span>
+                    <span className="rounded-full bg-surface-2 px-2.5 py-1">{c.archivedAt ? "Archived" : `Code ${c.joinCode}`}</span>
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
       )}
     </div>
   );

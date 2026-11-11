@@ -25,7 +25,7 @@ export default async function AnnouncementsPage({ params }: PageProps<"/teach/[c
   const zone = await viewerZone();
   const groupOnly = a.access.groupIds.length > 0;
   return (
-    <div className="mx-auto flex max-w-4xl flex-col gap-6">
+    <div className="mx-auto flex max-w-6xl flex-col gap-6">
       <ClassNav c={c} active="announcements" />
       {a.canPost && (
         <Card>
