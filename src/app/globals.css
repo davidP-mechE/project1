@@ -1099,3 +1099,35 @@ select,
 textarea {
   border-color: var(--border-strong);
 }
+
+/* Answer choices: the letter sits in a small square; it fills in when chosen. */
+.choice-letter {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  border: 1.5px solid var(--border-strong);
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  font-stretch: 110%;
+}
+label:has(input:checked) .choice-letter {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--primary-text);
+}
+
+/* A flashcard is an index card: a pink band on the question side, cobalt on the answer. */
+.index-card {
+  border: 1.5px solid var(--border);
+  border-top: 0.5rem solid var(--accent);
+  border-radius: 0.5rem;
+  background: var(--surface);
+}
+.index-card-back,
+details.index-card[open] {
+  border-top-color: var(--primary);
+}

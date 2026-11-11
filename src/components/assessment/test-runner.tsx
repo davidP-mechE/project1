@@ -137,7 +137,7 @@ export function TestRunner({ assessmentId, bookId, title, questions, backHref }:
                       )}
                     >
                       <input type="radio" name={q.id} className="sr-only" checked={answers[q.id]?.choice === j} onChange={() => save({ ...answers, [q.id]: { choice: j } })} />
-                      <span className="font-semibold text-muted">{letter(j)}.</span>
+                      <span className="choice-letter">{letter(j)}<span className="sr-only">.</span></span>
                       <Markdown className="flex-1 [&_p]:m-0">{c}</Markdown>
                     </label>
                   ))}

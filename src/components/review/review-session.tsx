@@ -156,7 +156,7 @@ export function ReviewSession({
       >
         <div className="flip-inner">
           <div
-            className="flip-face flex min-h-72 flex-col rounded-2xl border border-border bg-surface p-6 shadow-sm"
+            className="index-card flip-face flex min-h-72 flex-col p-6"
             inert={revealed}
           >
             <p className="text-xs text-muted">
@@ -175,7 +175,7 @@ export function ReviewSession({
             </p>
           </div>
           <div
-            className="flip-face flip-back flex min-h-72 flex-col rounded-2xl border border-border bg-surface p-6 shadow-sm"
+            className="index-card index-card-back flip-face flip-back flex min-h-72 flex-col p-6"
             inert={!revealed}
           >
             <div className="text-sm text-muted">

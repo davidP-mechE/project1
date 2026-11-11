@@ -118,7 +118,7 @@ function QuestionCard({ assignmentId, q, timed, locked, onSaved }: { assignmentI
                   )}
                 >
                   <input type="radio" name={`q-${q.id}`} checked={choice === j} onChange={() => setChoice(j)} className="sr-only" />
-                  <span className="font-semibold text-muted">{letter(j)}.</span>
+                  <span className="choice-letter">{letter(j)}<span className="sr-only">.</span></span>
                   <Markdown className="flex-1 [&_p]:m-0">{c}</Markdown>
                   {right && <span className="text-success" aria-label="correct answer">✓</span>}
                 </label>
