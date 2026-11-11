@@ -43,7 +43,7 @@ export default async function WorksheetsPage({ searchParams }: PageProps<"/teach
                       {w._count.items} questions · used in {w._count.assignments} {w._count.assignments === 1 ? "assignment" : "assignments"}
                     </span>
                   )}
-                  <span className={cn("rounded-full px-2 py-0.5 font-medium", w.status === "READY" ? "bg-success-bg text-success" : w.status === "FAILED" ? "bg-danger-bg text-danger" : "bg-surface-2")}>{STATUS[w.status]}</span>
+                  <span className={cn("rounded px-2 py-0.5 font-medium", w.status === "READY" ? "bg-success-bg text-success" : w.status === "FAILED" ? "bg-danger-bg text-danger" : "bg-surface-2")}>{STATUS[w.status]}</span>
                 </span>
               </li>
             ))}

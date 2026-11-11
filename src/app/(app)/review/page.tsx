@@ -66,7 +66,7 @@ export default async function ReviewPage({ searchParams }: PageProps<"/review">)
       </p>
       {counts.courses.length > 1 && (
         <nav aria-label="Choose a course" className="mb-6 flex flex-wrap gap-2 text-sm">
-          <Link href="/review" aria-current={!courseId ? "page" : undefined} className={cn("rounded-full border px-3 py-1", !courseId ? "border-primary bg-primary/10 font-medium" : "border-border hover:bg-surface-2")}>
+          <Link href="/review" aria-current={!courseId ? "page" : undefined} className={cn("rounded border px-3 py-1", !courseId ? "border-primary bg-primary/10 font-medium" : "border-border hover:bg-surface-2")}>
             All courses <span className="text-muted">({counts.due + counts.new})</span>
           </Link>
           {counts.courses.map((c) => (
@@ -74,7 +74,7 @@ export default async function ReviewPage({ searchParams }: PageProps<"/review">)
               key={c.courseId}
               href={`/review?course=${c.courseId}`}
               aria-current={c.courseId === courseId ? "page" : undefined}
-              className={cn("rounded-full border px-3 py-1", c.courseId === courseId ? "border-primary bg-primary/10 font-medium" : "border-border hover:bg-surface-2")}
+              className={cn("rounded border px-3 py-1", c.courseId === courseId ? "border-primary bg-primary/10 font-medium" : "border-border hover:bg-surface-2")}
             >
               {c.title} <span className="text-muted">({c.due + c.new})</span>
             </Link>

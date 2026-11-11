@@ -52,13 +52,13 @@ export async function ClassNav({
         <h1 className="mt-3 font-display text-3xl font-semibold leading-tight sm:text-4xl">{c.name}</h1>
         <p className="mt-3 flex flex-wrap items-center gap-2 text-sm">
           {c.archivedAt ? (
-            <span className="rounded-full bg-white/10 px-3 py-1">Archived: students can&apos;t see it</span>
+            <span className="rounded bg-white/10 px-3 py-1">Archived: students can&apos;t see it</span>
           ) : (
-            <span className="rounded-full bg-white/10 px-3 py-1">
+            <span className="rounded bg-white/10 px-3 py-1">
               Class code <span className="font-mono font-semibold tracking-wider text-[#e8cd7d]">{c.joinCode}</span>
             </span>
           )}
-          <span className="rounded-full bg-white/10 px-3 py-1">You: {ROLE_LABEL[role]}</span>
+          <span className="rounded bg-white/10 px-3 py-1">You: {ROLE_LABEL[role]}</span>
         </p>
       </header>
       <nav aria-label="Class pages" className="min-w-0">
@@ -69,7 +69,7 @@ export async function ClassNav({
             return (
               <li key={g.label} className="flex flex-wrap items-center gap-1">
                 {gi > 0 && <span aria-hidden className="mx-1 h-6 w-px bg-border" />}
-                <span className="px-2 text-[10px] font-bold uppercase tracking-wider text-muted">{g.label}</span>
+                <span className="px-2 text-xs font-bold text-muted">{g.label}</span>
                 {items.map((t) => (
                   <Link
                     key={t.id}

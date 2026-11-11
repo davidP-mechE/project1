@@ -21,6 +21,7 @@ export type CourseCardData = {
   lastOpenedLabel: string;
   archived: boolean;
   coverUrl: string | null;
+  subject: string | null;
 };
 
 const statusLabels: Record<string, string> = {
@@ -48,7 +49,7 @@ export function CourseCard({ course }: { course: CourseCardData }) {
 
   return (
     <li
-      className="card-hover flex gap-4 rounded-xl border border-border bg-surface p-4 sm:flex-col sm:gap-0"
+      className="card-hover flex gap-4 rounded-lg border-[1.5px] border-border bg-surface p-4 sm:flex-col sm:gap-0"
       aria-busy={pending}
     >
       <Link
@@ -64,7 +65,7 @@ export function CourseCard({ course }: { course: CourseCardData }) {
           default="none"
         >
           <div>
-            <CourseCover title={course.title} coverUrl={course.coverUrl} />
+            <CourseCover title={course.title} coverUrl={course.coverUrl} subject={course.subject} />
           </div>
         </ViewTransition>
       </Link>
@@ -108,7 +109,7 @@ export function CourseCard({ course }: { course: CourseCardData }) {
             </div>
           </form>
         ) : (
-          <h2 className="line-clamp-2 font-semibold leading-snug">
+          <h2 className="line-clamp-2 text-lg leading-snug">
             <Link href={`/courses/${course.id}`} className="hover:underline">
               {course.title}
             </Link>
@@ -179,7 +180,7 @@ export function CourseCard({ course }: { course: CourseCardData }) {
       </div>
       <dialog
         ref={dialogRef}
-        className="m-auto max-w-sm rounded-xl border border-border bg-surface p-6 text-text backdrop:bg-black/50"
+        className="m-auto max-w-sm rounded-lg border-[1.5px] border-border bg-surface p-6 text-text backdrop:bg-black/50"
         aria-labelledby={`del-${course.id}`}
       >
         <h3 id={`del-${course.id}`} className="text-lg font-semibold">

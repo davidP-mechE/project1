@@ -311,7 +311,7 @@ function OutlinePreview({ outline, courseId, kind }: { outline: Awaited<ReturnTy
               </Link>
             </h3>
               {u.lessons.every((l) => l.skip) && (
-                <span className="rounded-full bg-surface-2 px-2 py-0.5 text-xs text-muted">Skipped</span>
+                <span className="rounded bg-surface-2 px-2 py-0.5 text-xs text-muted">Skipped</span>
               )}
             </div>
             {!(u.lessons.length === 1 && u.lessons[0].title === u.title) && (
@@ -388,7 +388,7 @@ function TestRow({ href, label, a }: { href: string; label: string; a: CourseAss
       <span className="flex items-center gap-2 font-medium">
         <span aria-hidden>📝</span> {label}
       </span>
-      <span className={cn("shrink-0 rounded-full px-2 py-0.5 text-xs font-medium", state.tone)}>{state.text}</span>
+      <span className={cn("shrink-0 rounded px-2 py-0.5 text-xs font-medium", state.tone)}>{state.text}</span>
     </Link>
   );
 }
@@ -422,9 +422,9 @@ function LessonList({ courseId, units, completed, assessments }: { courseId: str
                           {l.title}
                         </span>
                         {completed.has(l.id) && l.status === "READY" ? (
-                          <span className="shrink-0 rounded-full bg-success-bg px-2 py-0.5 text-xs font-medium text-success">✓ Done</span>
+                          <span className="shrink-0 rounded bg-success-bg px-2 py-0.5 text-xs font-medium text-success">✓ Done</span>
                         ) : (
-                          <span className={cn("shrink-0 rounded-full px-2 py-0.5 text-xs font-medium", st.tone)}>{st.label}</span>
+                          <span className={cn("shrink-0 rounded px-2 py-0.5 text-xs font-medium", st.tone)}>{st.label}</span>
                         )}
                       </Link>
                     </li>

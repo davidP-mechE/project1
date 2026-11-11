@@ -158,7 +158,7 @@ export function OutlineEditor({ courseId, pageCount, initial, detected }: Props)
           return (
             <li key={unit.key} className={cn("rounded-xl border bg-surface-2/40 p-3 sm:p-4", errorKeys.has(unit.key) ? "border-danger" : "border-border")}>
               <div className="mb-3 flex items-center gap-2">
-                <span className="shrink-0 text-xs font-medium uppercase tracking-wide text-muted">Unit {ui + 1}</span>
+                <span className="shrink-0 text-xs font-medium text-muted">Unit {ui + 1}</span>
                 <input
                   value={unit.title}
                   onChange={(e) => apply((o) => ops.renameUnit(o, ui, e.target.value), undefined, `unit-title-${unit.key}`)}
@@ -170,7 +170,7 @@ export function OutlineEditor({ courseId, pageCount, initial, detected }: Props)
                     unitSkipped && "text-muted",
                   )}
                 />
-                {unitSkipped && <span className="hidden rounded-full bg-surface px-2 py-0.5 text-xs text-muted sm:inline">Skipped</span>}
+                {unitSkipped && <span className="hidden rounded bg-surface px-2 py-0.5 text-xs text-muted sm:inline">Skipped</span>}
                 <Menu
                   label={`Actions for unit ${unitTitle}`}
                   items={[

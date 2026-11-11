@@ -155,7 +155,7 @@ export function TutorChat({ courseId, bookId, lessonId, lessonTitle, threadId: i
             </p>
             <div className="flex flex-wrap gap-2">
               {suggestions.map((s) => (
-                <button key={s} type="button" onClick={() => ask(s)} disabled={busy || Boolean(disabledReason)} className="press rounded-full border border-border bg-surface px-3 py-1.5 text-left text-sm hover:bg-surface-2 disabled:opacity-60">
+                <button key={s} type="button" onClick={() => ask(s)} disabled={busy || Boolean(disabledReason)} className="press rounded border border-border bg-surface px-3 py-1.5 text-left text-sm hover:bg-surface-2 disabled:opacity-60">
                   {s}
                 </button>
               ))}

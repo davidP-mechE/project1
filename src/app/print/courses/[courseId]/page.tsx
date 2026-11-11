@@ -39,7 +39,7 @@ export default async function PrintCoursePage({ params, searchParams }: PageProp
       <PrintToolbar courseId={courseId} answers={answers} flashcards={flashcards} autoPrint={sp.autoprint === "1"} />
       <article className="mx-auto max-w-[46rem] px-6 pb-16">
         <header className="mb-10 border-b-2 border-black pb-6">
-          <p className="text-sm uppercase tracking-widest text-neutral-500">Study guide</p>
+          <p className="text-sm text-neutral-500">Study guide</p>
           <h1 className="mt-2 text-4xl font-bold">{c.title}</h1>
           <p className="mt-3 text-sm text-neutral-600">
             Made with Coursebook from “{c.bookFilename}” on {formatInZone(new Date(), zone, "long")}. Page numbers refer to the original book.

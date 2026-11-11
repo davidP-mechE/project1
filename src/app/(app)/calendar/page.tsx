@@ -114,10 +114,10 @@ export default async function CalendarPage({ searchParams }: PageProps<"/calenda
           )}
         </div>
         <div className="flex gap-2 text-sm">
-          <Link href={`/calendar?month=${key}`} aria-current={view === "auto" ? "page" : undefined} className={cn("rounded-full border px-3 py-1", view === "auto" ? "border-primary bg-primary text-primary-text" : "border-border")}>
+          <Link href={`/calendar?month=${key}`} aria-current={view === "auto" ? "page" : undefined} className={cn("rounded border px-3 py-1", view === "auto" ? "border-primary bg-primary text-primary-text" : "border-border")}>
             Month
           </Link>
-          <Link href={`/calendar?month=${key}&view=agenda`} aria-current={view === "agenda" ? "page" : undefined} className={cn("rounded-full border px-3 py-1", view === "agenda" ? "border-primary bg-primary text-primary-text" : "border-border")}>
+          <Link href={`/calendar?month=${key}&view=agenda`} aria-current={view === "agenda" ? "page" : undefined} className={cn("rounded border px-3 py-1", view === "agenda" ? "border-primary bg-primary text-primary-text" : "border-border")}>
             Agenda
           </Link>
         </div>
@@ -142,7 +142,7 @@ export default async function CalendarPage({ searchParams }: PageProps<"/calenda
             <thead>
               <tr>
                 {WEEKDAYS.map((d) => (
-                  <th key={d} scope="col" className="pb-2 text-left text-xs font-semibold uppercase tracking-wide text-muted">
+                  <th key={d} scope="col" className="pb-2 text-left text-xs font-semibold text-muted">
                     {d}
                   </th>
                 ))}

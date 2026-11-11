@@ -97,8 +97,8 @@ export default async function TeachPage() {
                     </span>
                   </span>
                   <span className="mt-auto flex flex-wrap gap-2 text-xs">
-                    <span className="rounded-full bg-surface-2 px-2.5 py-1 font-semibold">{ROLE_LABEL[c.role]}</span>
-                    <span className="rounded-full bg-surface-2 px-2.5 py-1">{c.archivedAt ? "Archived" : `Code ${c.joinCode}`}</span>
+                    <span className="rounded bg-surface-2 px-2.5 py-1 font-semibold">{ROLE_LABEL[c.role]}</span>
+                    <span className="rounded bg-surface-2 px-2.5 py-1">{c.archivedAt ? "Archived" : `Code ${c.joinCode}`}</span>
                   </span>
                 </Link>
               </li>

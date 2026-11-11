@@ -87,7 +87,7 @@ export default async function HubPage({ searchParams }: PageProps<"/hub">) {
                     )}
                     {admin && (
                       <>
-                        {!e.published && <span className="rounded-full bg-warning-bg px-2 py-0.5 text-xs font-semibold text-warning">Hidden</span>}
+                        {!e.published && <span className="rounded bg-warning-bg px-2 py-0.5 text-xs font-semibold text-warning">Hidden</span>}
                         <PublishToggle entryId={e.id} published={e.published} />
                       </>
                     )}

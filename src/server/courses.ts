@@ -31,6 +31,7 @@ export async function listCourses(userId: string, opts: { archived: boolean; kin
       lastOpenedAt: true,
       createdAt: true,
       archivedAt: true,
+      subject: true,
       book: { select: { id: true, kind: true, coverKey: true, pageCount: true, status: true, error: true } },
       _count: { select: { lessons: true } },
     },

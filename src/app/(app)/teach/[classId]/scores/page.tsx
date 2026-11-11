@@ -46,11 +46,11 @@ export default async function ClassScoresPage({ params, searchParams }: PageProp
       )}
       {g.groups.length > 0 && (
         <nav aria-label="Filter by group" className="flex flex-wrap gap-2 text-sm">
-          <Link href={`/teach/${classId}/scores`} className={cn("rounded-full border px-3 py-1", !groupId ? "border-primary bg-primary/10 font-medium" : "border-border")} aria-current={!groupId ? "page" : undefined}>
+          <Link href={`/teach/${classId}/scores`} className={cn("rounded border px-3 py-1", !groupId ? "border-primary bg-primary/10 font-medium" : "border-border")} aria-current={!groupId ? "page" : undefined}>
             Everyone
           </Link>
           {g.groups.map((x) => (
-            <Link key={x.id} href={`/teach/${classId}/scores?group=${x.id}`} className={cn("rounded-full border px-3 py-1", groupId === x.id ? "border-primary bg-primary/10 font-medium" : "border-border")} aria-current={groupId === x.id ? "page" : undefined}>
+            <Link key={x.id} href={`/teach/${classId}/scores?group=${x.id}`} className={cn("rounded border px-3 py-1", groupId === x.id ? "border-primary bg-primary/10 font-medium" : "border-border")} aria-current={groupId === x.id ? "page" : undefined}>
               {x.name}
             </Link>
           ))}

@@ -49,7 +49,7 @@ export default async function NotesPage({ params }: PageProps<"/courses/[courseI
           <ol className="flex flex-col gap-8">
             {data.lessons.map((l) => (
               <li key={l.id}>
-                <p className="text-xs uppercase tracking-wide text-muted">{l.unitTitle}</p>
+                <p className="text-xs text-muted">{l.unitTitle}</p>
                 <h2 className="text-lg font-semibold">
                   <Link href={`/courses/${courseId}/lessons/${l.id}`} className="hover:underline">
                     {l.title}

@@ -140,7 +140,7 @@ export function LessonRow({
           />
         </div>
         <div className="flex items-center">
-          {lesson.skip && <span className="mr-1 rounded-full bg-surface-2 px-2 py-0.5 text-xs text-muted">Skipped</span>}
+          {lesson.skip && <span className="mr-1 rounded bg-surface-2 px-2 py-0.5 text-xs text-muted">Skipped</span>}
           <button
             type="button"
             onClick={actions.moveUp}

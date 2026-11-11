@@ -133,7 +133,7 @@ export function QuestionCard({
           Question {index + 1} · {TYPE_LABEL[q.type]} · {q.topic}
         </span>
         {!done && last && (
-          <span className={cn("rounded-full px-2 py-0.5", last.correct ? "bg-success-bg text-success" : "bg-surface-2")}>
+          <span className={cn("rounded px-2 py-0.5", last.correct ? "bg-success-bg text-success" : "bg-surface-2")}>
             Last try: {VERDICT[last.verdict].label.toLowerCase()}
           </span>
         )}
