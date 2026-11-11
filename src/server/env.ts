@@ -30,7 +30,7 @@ const schema = z.object({
   SMTP_USER: z.string().optional(),
   SMTP_PASSWORD: z.string().optional(),
   SMTP_SECURE: z.stringbool().default(false),
-  EMAIL_FROM: z.string().default("Coursebook <no-reply@coursebook.local>"),
+  EMAIL_FROM: z.string().default("Coursebook <hello@coursebook.site>"),
 
   STORAGE_DRIVER: z.enum(["local", "s3"]).default("local"),
   LOCAL_STORAGE_DIR: z.string().default("./storage"),

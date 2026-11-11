@@ -45,8 +45,8 @@ as a second safety net.
 ## 1. Before you start
 
 You need accounts at GitHub (with this repo pushed), Vercel, Railway, Neon,
-Cloudflare, Resend and Anthropic. You also need a domain name if you want
-email to come from your own address (recommended).
+Cloudflare, Resend and Anthropic, and the site's domain: **coursebook.site**
+(see [The domain](#the-domain-coursebooksite) below for every place it goes).
 
 Generate the auth secret once. Both the web app and the worker use it:
 
@@ -101,7 +101,7 @@ must be reachable from Vercel.
 ```json
 [
   {
-    "AllowedOrigins": ["https://your-domain.com"],
+    "AllowedOrigins": ["https://coursebook.site"],
     "AllowedMethods": ["GET", "HEAD", "PUT"],
     "AllowedHeaders": ["content-type", "range"],
     "ExposeHeaders": ["ETag", "Content-Length", "Content-Range", "Accept-Ranges"],
@@ -115,14 +115,17 @@ based on `S3_ENDPOINT`.
 
 ## 5. Email: Resend
 
-1. Add and verify your domain (Resend shows the DNS records to add).
+1. **Domains → Add domain →** `coursebook.site`, then add the DNS records
+   Resend shows (an MX and a TXT record for SPF, and a TXT record for DKIM) at
+   the registrar where you bought the domain. Wait until Resend shows
+   **Verified** (usually minutes; DNS can take up to a day).
 2. Create an API key with sending access.
 3. Set `RESEND_API_KEY` to that key (on both Vercel and the worker). This
    sends through Resend's HTTP API, which works on every host; some hosts
    block the SMTP ports. (SMTP still works instead: host `smtp.resend.com`,
    port `465`, secure `true`, user `resend`, the key as the password.)
-4. Set `EMAIL_FROM` to an address on the domain you verified. Resend refuses
-   other senders.
+4. Set `EMAIL_FROM` to `Coursebook <hello@coursebook.site>` (the default if
+   unset). Resend refuses senders on domains it hasn't verified.
 5. After deploying, open **Admin → Email** and press **Send me a test
    email**. It shows how email is sent and, if it fails, exactly why. Failed
    verification and password-reset emails also appear under **Errors**.
@@ -142,7 +145,7 @@ comments, is in `.env.example`.
 
 | Variable | Value |
 |---|---|
-| `APP_URL` | `https://your-domain.com` (no trailing slash) |
+| `APP_URL` | `https://coursebook.site` (no trailing slash) |
 | `DATABASE_URL` | Neon **pooled** URL (Vercel) / **direct** URL (Railway) |
 | `REDIS_URL` | Railway Redis **public** URL (Vercel) / **private** URL (Railway) |
 | `BETTER_AUTH_SECRET` | The random string from step 1 |
@@ -151,7 +154,7 @@ comments, is in `.env.example`.
 | `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY` | From the R2 API token |
 | `RESEND_API_KEY` | Your Resend key (recommended way to send email) |
 | `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASSWORD` | Only if you send over SMTP instead: `smtp.resend.com`, `465`, `true`, `resend`, your Resend key |
-| `EMAIL_FROM` | `Coursebook <hello@your-domain.com>` (a verified domain) |
+| `EMAIL_FROM` | `Coursebook <hello@coursebook.site>` (a verified domain) |
 | `ANTHROPIC_API_KEY` | From step 6 |
 | `LEGAL_NAME`, `CONTACT_EMAIL`, `COPYRIGHT_AGENT` | Shown on the Terms, Privacy and Copyright pages (see [Legal](#legal-pages)) |
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Optional; see [Google sign-in](#google-sign-in) |
@@ -206,7 +209,7 @@ migrations in this repo only ever add things, so a short overlap is harmless.
 
 ## 10. After the first deploy
 
-1. Open `https://your-domain.com/api/health`. It should return `{"ok":true}`.
+1. Open `https://coursebook.site/api/health`. It should return `{"ok":true}`.
 2. Sign up. The verification email should arrive from your domain.
 3. Make yourself an admin, from your computer, using the **direct** database URL:
    ```bash
@@ -222,10 +225,26 @@ migrations in this repo only ever add things, so a short overlap is harmless.
 ### Google sign-in
 
 In Google Cloud Console → Credentials → OAuth client → **Authorized redirect
-URIs**, add `https://your-domain.com/api/auth/callback/google`. Then set
+URIs**, add `https://coursebook.site/api/auth/callback/google`. Then set
 `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` on both services.
 
 ---
+
+## The domain: coursebook.site
+
+Everything the domain touches, in one place:
+
+| Where | What to set |
+|---|---|
+| Vercel → **Settings → Domains** | Add `coursebook.site` (and `www.coursebook.site`, redirecting to it). Vercel shows the DNS records to add at your registrar: an `A` record for `coursebook.site` and a `CNAME` for `www`. |
+| Vercel and Railway variables | `APP_URL=https://coursebook.site` (no trailing slash), then redeploy both. Sign-in only accepts requests from this address, and every link in emails uses it. |
+| Resend | Verify `coursebook.site` (step 5); `EMAIL_FROM=Coursebook <hello@coursebook.site>`. |
+| Cloudflare R2 bucket CORS | `"AllowedOrigins": ["https://coursebook.site"]` (step 4), or uploads from the browser fail. |
+| Google sign-in (if used) | Authorized redirect URI `https://coursebook.site/api/auth/callback/google`. |
+| Legal pages | `CONTACT_EMAIL`, for example `hello@coursebook.site` (you'll need a mailbox or forwarding for it to receive mail; Resend only sends). |
+
+Then open `https://coursebook.site/api/health` (it should say `{"ok":true}`)
+and send yourself a test from **Admin → Email**.
 
 ## Usage limits
 
