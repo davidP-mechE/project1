@@ -126,7 +126,7 @@ export function Recorder({ data, skills, errorTypes }: { data: RecorderData; ski
       const r = await completeAttemptAction(data.id);
       if (!r.ok) return setProblem(r.error);
       setStatus("complete");
-      router.push("/practice-tests");
+      router.push("/practice-tests/insights");
     });
 
   return (

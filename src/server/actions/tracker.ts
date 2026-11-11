@@ -67,3 +67,11 @@ export async function completeAttemptAction(attemptId: string) {
 export async function deleteAttemptAction(attemptId: string) {
   return run((u) => tracker.deleteAttempt(u, id.parse(attemptId)), ["/practice-tests", "/scores"]);
 }
+
+export async function setRedoStatusAction(itemId: string, status: string) {
+  const s = z.enum(["to_redo", "redone_correct", "still_wrong"]).parse(status);
+  return run(async (u) => {
+    const { setRedoStatus } = await import("../insights");
+    await setRedoStatus(u, id.parse(itemId), s);
+  }, ["/practice-tests/redo"]);
+}

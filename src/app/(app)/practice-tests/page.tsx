@@ -22,6 +22,8 @@ export default async function PracticeTestsPage() {
         actions={
           <>
             <ButtonLink href="/practice-tests/new" size="sm">Log a test</ButtonLink>
+            <ButtonLink href="/practice-tests/insights" size="sm" variant="secondary">Insights</ButtonLink>
+            <ButtonLink href="/practice-tests/redo" size="sm" variant="secondary">Redo list</ButtonLink>
           </>
         }
       />
