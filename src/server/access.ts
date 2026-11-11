@@ -1,4 +1,5 @@
 import "server-only";
+import { allowsProgram, programAccess, programIdFilter } from "./program-access";
 import { db } from "./db";
 import { NotFoundError } from "./courses";
 import { allowedDomains, scopeCovers } from "@/lib/sat/domains";
@@ -101,6 +102,8 @@ export async function classAccess(userId: string, classId: string, ability: Abil
     select: { id: true, name: true, programId: true, program: { select: { adminId: true } }, staff: { where: { userId }, take: 1 } },
   });
   if (!c) throw new NotFoundError("Class not found");
+  // Admin → Program access: a person limited to another program, or blocked from this one, can't see it.
+  if (!allowsProgram(await programAccess(userId), c.programId)) throw new NotFoundError("Class not found");
   const staff = c.staff[0];
   const isProgramAdmin = c.program.adminId === userId;
   let access: ClassAccess;
@@ -167,6 +170,7 @@ export async function assignmentAccess(userId: string, assignmentId: string, abi
 
 /** Classes this person teaches, assists or observes (as program admin or staff). */
 export async function staffClassIds(userId: string) {
-  const rows = await db.class.findMany({ where: { OR: [{ program: { adminId: userId } }, { staff: { some: { userId } } }] }, select: { id: true } });
+  const programId = programIdFilter(await programAccess(userId));
+  const rows = await db.class.findMany({ where: { OR: [{ program: { adminId: userId } }, { staff: { some: { userId } } }], ...(programId ? { programId } : {}) }, select: { id: true } });
   return rows.map((r) => r.id);
 }

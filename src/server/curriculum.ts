@@ -1,4 +1,5 @@
 import "server-only";
+import { isAllowedMember } from "./program-access";
 import { z } from "zod";
 import { db } from "./db";
 import { NotFoundError } from "./courses";
@@ -142,8 +143,7 @@ export async function publishCurriculum(userId: string, curriculumId: string) {
 
 /** What a student sees: the published plan only, and this week's unit. */
 export async function publishedPlan(userId: string, classId: string, now = new Date()) {
-  const member = await db.classMember.count({ where: { classId, userId } });
-  if (!member) throw new NotFoundError("Class not found");
+  if (!(await isAllowedMember(userId, classId))) throw new NotFoundError("Class not found");
   const cur = await db.curriculum.findFirst({ where: { classId, status: "ACTIVE" }, include: { units: { orderBy: { order: "asc" } } } });
   if (!cur) return null;
   const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));

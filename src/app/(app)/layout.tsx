@@ -10,6 +10,7 @@ import { getGameSummary } from "@/server/gamification";
 import { unreadCount } from "@/server/notifications";
 import { unreadThreadCount } from "@/server/messages";
 import { staffClassIds } from "@/server/access";
+import { allowsCoursebook, programAccess } from "@/server/program-access";
 
 export default async function AppLayout({ children }: LayoutProps<"/">) {
   const user = await requireUser();
@@ -21,10 +22,12 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
     unreadThreadCount(user.id),
   ]);
   const isStaff = (await staffClassIds(user.id)).length > 0;
+  // Accounts limited to one program (Admin → Program access) don't see the library, slides or Hub.
+  const coursebook = allowsCoursebook(await programAccess(user.id));
   return (
     <>
       <AppSidebar
-        user={{ name: user.name, email: user.email, isAdmin: user.role === "ADMIN", isStaff }}
+        user={{ name: user.name, email: user.email, isAdmin: user.role === "ADMIN", isStaff, coursebook }}
         dueCount={counts.due + counts.new}
         timeZone={prefs?.timezone ?? "UTC"}
         game={{ streak: game.streak, xp: game.xp, level: game.level }}

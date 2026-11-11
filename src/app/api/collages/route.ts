@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { AccessDeniedError, assertCoursebookAllowed } from "@/server/program-access";
 import { z } from "zod";
 import { getSession } from "@/server/session";
 import { RateLimitError } from "@/server/courses";
@@ -16,9 +17,11 @@ export async function POST(request: Request) {
   const parsed = bodySchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return jsonError("Invalid upload request.", 400);
   try {
+    await assertCoursebookAllowed(session.user.id);
     return NextResponse.json(await createCollage(session.user.id, parsed.data));
   } catch (err) {
     if (err instanceof RateLimitError) return jsonError(err.message, 429);
+    if (err instanceof AccessDeniedError) return jsonError(err.message, 403);
     if (err instanceof CollageError) return jsonError(err.message, 400);
     throw err;
   }

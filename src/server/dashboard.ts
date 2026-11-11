@@ -1,3 +1,4 @@
+import { courseAccessWhere, programAccess } from "./program-access";
 import "server-only";
 import { db } from "./db";
 import { getReviewCounts } from "./srs";
@@ -11,32 +12,34 @@ export async function getDashboard(userId: string, now = new Date()) {
   const user = await db.user.findUniqueOrThrow({ where: { id: userId }, select: { name: true, timezone: true, dailyGoalMinutes: true } });
   const today = localDay(now, user.timezone);
   const since = addDays(today, -120);
+  // Admin → Program access: leave out courses this person can't open.
+  const reach = { archivedAt: null, ...courseAccessWhere(await programAccess(userId)) };
   const [days, review, courses, attempts, confusing, leeches, planItems] = await Promise.all([
     db.studyDay.findMany({ where: { userId, day: { gte: since } }, orderBy: { day: "asc" } }),
     getReviewCounts(userId, now),
     db.course.findMany({
-      where: { userId, archivedAt: null, status: { in: ["GENERATING", "ACTIVE"] } },
+      where: { userId, ...reach, status: { in: ["GENERATING", "ACTIVE"] } },
       orderBy: [{ lastOpenedAt: { sort: "desc", nulls: "last" } }, { createdAt: "desc" }],
       take: 8,
       select: { id: true, title: true, progressPct: true, subject: true },
     }),
     db.questionAttempt.findMany({
-      where: { userId, createdAt: { gte: new Date(now.getTime() - 90 * 86_400_000) }, course: { archivedAt: null } },
+      where: { userId, createdAt: { gte: new Date(now.getTime() - 90 * 86_400_000) }, course: reach },
       select: { topic: true, lessonId: true, score: true, createdAt: true, courseId: true },
     }),
     db.lessonProgress.findMany({
-      where: { userId, confusing: true, completedAt: null, lesson: { skip: false }, course: { archivedAt: null } },
+      where: { userId, confusing: true, completedAt: null, lesson: { skip: false }, course: reach },
       take: 5,
       select: { lesson: { select: { id: true, title: true, courseId: true } } },
     }),
     db.cardState.findMany({
-      where: { userId, lapses: { gte: 2 }, course: { archivedAt: null } },
+      where: { userId, lapses: { gte: 2 }, course: reach },
       orderBy: { lapses: "desc" },
       take: 5,
       select: { lapses: true, flashcard: { select: { front: true, courseId: true, lessonId: true } } },
     }),
     db.planItem.findMany({
-      where: { plan: { userId, course: { archivedAt: null } }, day: { lte: today }, kind: "LESSON" },
+      where: { plan: { userId, course: reach }, day: { lte: today }, kind: "LESSON" },
       orderBy: [{ day: "asc" }, { order: "asc" }],
       select: { day: true, minutes: true, plan: { select: { courseId: true, course: { select: { title: true } } } }, lesson: { select: { id: true, title: true, progress: { where: { userId }, select: { completedAt: true } } } } },
     }),

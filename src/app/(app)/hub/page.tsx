@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { LimitedNotice } from "@/components/limited-notice";
+import { allowsCoursebook, programAccess } from "@/server/program-access";
 import Link from "next/link";
 import { EnrollButton, PublishToggle } from "@/components/hub/hub-controls";
 import { PillNav } from "@/components/review/filters";
@@ -17,6 +19,8 @@ export const metadata: Metadata = { title: "Hub" };
 export default async function HubPage({ searchParams }: PageProps<"/hub">) {
   const user = await requireUser();
   const sp = await searchParams;
+  const access = await programAccess(user.id);
+  if (!allowsCoursebook(access)) return <LimitedNotice access={access} />;
   const admin = (await db.user.findUnique({ where: { id: user.id }, select: { role: true } }))?.role === "ADMIN";
   const entries = await listCatalog(user.id, { includeHidden: admin });
   const subjects = [...new Set(entries.map((e) => e.subject))];
@@ -30,6 +34,7 @@ export default async function HubPage({ searchParams }: PageProps<"/hub">) {
         description="Provided courses, ready to study: free, openly licensed textbooks turned into full courses with lessons, practice, flashcards and tests, and The 1600 Project's SAT lesson slides. Add one to your library and it's yours to study."
       />
       {sp.error === "unavailable" && <Alert tone="error">That course isn&apos;t available any more.</Alert>}
+      {sp.error === "limited" && <Alert tone="error">Your account can&apos;t add courses from the Hub.</Alert>}
       {admin && (
         <Alert tone="info">
           You&apos;re an admin: to add a provided course, upload and generate it in your library, then use &quot;Publish to the Hub&quot; at the bottom of its course page.

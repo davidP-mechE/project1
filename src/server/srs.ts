@@ -1,4 +1,5 @@
 import "server-only";
+import { courseAccessWhere, programAccess } from "./program-access";
 import { db } from "./db";
 import { NotFoundError } from "./courses";
 import { bumpActivity } from "./activity";
@@ -16,8 +17,9 @@ export class ReviewError extends Error {}
 const scheduler = createScheduler();
 
 /** Cards that can be studied: from included, written lessons of active (non-archived) courses. */
-const studyable = (userId: string, courseId?: string) => ({
-  course: { userId, archivedAt: null, ...(courseId ? { id: courseId } : {}) },
+const studyable = (userId: string, courseId?: string, access: object = {}) => ({
+  // `access`: Admin → Program access can put some courses out of reach (courseAccessWhere).
+  course: { userId, archivedAt: null, ...(courseId ? { id: courseId } : {}), ...access },
   lesson: { skip: false, generatedAt: { not: null } },
 });
 
@@ -57,7 +59,7 @@ async function newCandidates(userId: string, courseId: string | undefined, take:
   if (take <= 0) return [];
   return db.flashcard.findMany({
     where: {
-      ...studyable(userId, courseId),
+      ...studyable(userId, courseId, courseAccessWhere(await programAccess(userId))),
       states: { none: { userId } },
       lesson: { skip: false, generatedAt: { not: null }, progress: { some: { userId } } },
     },
@@ -92,7 +94,7 @@ export async function getReviewQueue(userId: string, opts: { courseId?: string; 
   const tz = await userTimeZone(userId);
   const [dayStart, dayEnd] = [startOfDay(now, tz), endOfDay(now, tz)];
   const scheduled = await db.cardState.findMany({
-    where: { userId, due: { lt: dayEnd }, flashcard: studyable(userId, opts.courseId) },
+    where: { userId, due: { lt: dayEnd }, flashcard: studyable(userId, opts.courseId, courseAccessWhere(await programAccess(userId))) },
     select: { flashcardId: true, due: true, state: true },
   });
   const [introduced, perDay] = await Promise.all([newIntroducedToday(userId, dayStart), newPerDay(userId)]);
@@ -185,7 +187,7 @@ export async function getReviewCounts(userId: string, now = new Date()) {
   const tz = await userTimeZone(userId);
   const [dayStart, dayEnd] = [startOfDay(now, tz), endOfDay(now, tz)];
   const courses = await db.course.findMany({
-    where: { userId, archivedAt: null, flashcards: { some: {} } },
+    where: { userId, archivedAt: null, flashcards: { some: {} }, ...courseAccessWhere(await programAccess(userId)) },
     orderBy: [{ lastOpenedAt: { sort: "desc", nulls: "last" } }],
     select: { id: true, title: true, _count: { select: { flashcards: true } } },
   });

@@ -1,4 +1,5 @@
 import "server-only";
+import { allowsProgram, programAccess, programDeniedMessage, programIdFilter } from "./program-access";
 import { randomInt } from "node:crypto";
 import { db } from "./db";
 import { env } from "./env";
@@ -69,6 +70,8 @@ export async function createClass(userId: string, name: string, programId?: stri
   const n = name.trim().slice(0, 120);
   if (!n) throw new ClassError("Give the class a name.");
   const program = await ensureProgramFor(userId, programId);
+  const rules = await programAccess(userId);
+  if (!allowsProgram(rules, program.id)) throw new ClassError(programDeniedMessage(rules), 403);
   if ((await db.class.count({ where: { programId: program.id, archivedAt: null } })) >= MAX_CLASSES) throw new ClassError(`A program can have up to ${MAX_CLASSES} classes. Archive old ones first.`);
   for (let i = 0; i < 5; i++) {
     try {
@@ -95,8 +98,9 @@ export async function updateClass(userId: string, classId: string, patch: { name
 
 /** Classes the person is program admin or staff on, with their role in each. */
 export async function listTeaching(userId: string) {
+  const programId = programIdFilter(await programAccess(userId));
   const rows = await db.class.findMany({
-    where: { OR: [{ program: { adminId: userId } }, { staff: { some: { userId } } }] },
+    where: { OR: [{ program: { adminId: userId } }, { staff: { some: { userId } } }], ...(programId ? { programId } : {}) },
     orderBy: [{ archivedAt: { sort: "asc", nulls: "first" } }, { createdAt: "desc" }],
     select: {
       id: true,
@@ -185,8 +189,10 @@ export async function classByCode(code: string) {
 export async function joinClass(userId: string, code: string) {
   const limited = await rateLimit(RATE_RULES.classJoin, userId);
   if (!limited.ok) throw new ClassError("Too many tries. Please wait a while and check the code with your teacher.", 429);
-  const c = await db.class.findUnique({ where: { joinCode: normalizeCode(code) }, select: { id: true, teacherId: true, archivedAt: true, isDemo: true, _count: { select: { members: true } } } });
+  const c = await db.class.findUnique({ where: { joinCode: normalizeCode(code) }, select: { id: true, teacherId: true, archivedAt: true, isDemo: true, programId: true, _count: { select: { members: true } } } });
   if (!c || c.archivedAt) throw new ClassError("No class has that code. Check it with your teacher.", 404);
+  const rules = await programAccess(userId);
+  if (!allowsProgram(rules, c.programId)) throw new ClassError(programDeniedMessage(rules), 403);
   // Demo classes only take demo accounts, so real students never mix with demo data.
   if (c.isDemo && !(await db.user.count({ where: { id: userId, isDemo: true } }))) throw new ClassError("No class has that code. Check it with your teacher.", 404);
   const staff = await db.class.count({ where: { id: c.id, OR: [{ program: { adminId: userId } }, { staff: { some: { userId } } }] } });
@@ -207,8 +213,8 @@ export async function leaveClass(userId: string, classId: string) {
 }
 
 async function membership(userId: string, classId: string) {
-  const m = await db.classMember.findUnique({ where: { classId_userId: { classId, userId } }, select: { id: true } });
-  if (!m) throw new NotFoundError("Class not found");
+  const m = await db.classMember.findUnique({ where: { classId_userId: { classId, userId } }, select: { id: true, class: { select: { programId: true } } } });
+  if (!m || !allowsProgram(await programAccess(userId), m.class.programId)) throw new NotFoundError("Class not found");
 }
 
 // ─── Teacher: assigning work ─────────────────────────────────────────────
@@ -814,8 +820,9 @@ export async function skillsReport(userId: string, classId: string) {
 
 /** The student's classes and assignments, with their own status on each. */
 export async function myClasses(userId: string, now = new Date()) {
+  const programId = programIdFilter(await programAccess(userId));
   const memberships = await db.classMember.findMany({
-    where: { userId, class: { archivedAt: null } },
+    where: { userId, class: { archivedAt: null, ...(programId ? { programId } : {}) } },
     orderBy: { joinedAt: "asc" },
     select: {
       class: {

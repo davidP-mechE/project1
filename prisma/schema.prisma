@@ -1035,16 +1035,16 @@ model CatalogEntry {
 
 /// A tutoring program (e.g. The 1600 Project): its classes, staff and settings.
 model Program {
-  id              String       @id @default(cuid())
+  id              String              @id @default(cuid())
   name            String
   adminId         String
-  admin           User         @relation("programAdmin", fields: [adminId], references: [id], onDelete: Cascade)
+  admin           User                @relation("programAdmin", fields: [adminId], references: [id], onDelete: Cascade)
   /// Subject template: only SAT for now.
-  subject         String       @default("SAT")
+  subject         String              @default("SAT")
   /// Score targets shown on dashboards (e.g. 1200, 1300).
-  targets         Int[]        @default([1200, 1300])
+  targets         Int[]               @default([1200, 1300])
   /// Days a staff invite link stays valid.
-  inviteDays      Int          @default(7)
+  inviteDays      Int                 @default(7)
   /// Program-wide AI spending cap per day, in cents (null = no cap beyond each user's allowance).
   aiDailyCapCents Int?
   /// UTC day (YYYY-MM-DD) the admin was last emailed that the cap was reached, so it's once a day.
@@ -1056,21 +1056,45 @@ model Program {
   termEnd         DateTime?
   closedDates     DateTime[]
   /// Public identity (the program's own, not the site's): its address /p/<slug>, badge text and page copy.
-  slug            String?      @unique
+  slug            String?             @unique
   badge           String?
-  isPublic        Boolean      @default(false)
+  isPublic        Boolean             @default(false)
   publicBlurb     String?
   /// Starting point and goal shown on the public page (e.g. a school average of 970 and a +300 gain).
   schoolAverage   Int?
   goalGain        Int?
   diagnostics     Diagnostic[]
-  createdAt       DateTime     @default(now())
+  createdAt       DateTime            @default(now())
   classes         Class[]
   auditLogs       AuditLog[]
   /// Demo data (Admin → Demo data, or npm run demo:load). Cleared in one step; never mixed with real records.
-  isDemo          Boolean      @default(false)
+  isDemo          Boolean             @default(false)
+  accessRules     ProgramAccessRule[]
 
   @@index([adminId])
+}
+
+/// Site admins limit who may use a program, by email (works before the person signs up).
+/// ONLY: the person may use this program's classes and nothing else in Coursebook (no library uploads, Hub or other programs).
+/// BLOCKED: the person may not join, teach in or see this program's classes; the rest of Coursebook is unaffected.
+enum ProgramAccessMode {
+  ONLY
+  BLOCKED
+}
+
+model ProgramAccessRule {
+  id          String            @id @default(cuid())
+  /// Lowercased.
+  email       String
+  programId   String
+  program     Program           @relation(fields: [programId], references: [id], onDelete: Cascade)
+  mode        ProgramAccessMode
+  note        String?
+  createdById String?
+  createdAt   DateTime          @default(now())
+
+  @@unique([email, programId])
+  @@index([email])
 }
 
 /// Staff on a class. A specialist's scope: sections (MATH, RW), domains, groups; empty = no limit on that axis.
