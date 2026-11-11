@@ -9,6 +9,7 @@ import { ButtonLink } from "@/components/ui/button";
 import { Card, ProgressBar } from "@/components/ui/misc";
 import { formatDay } from "@/lib/planning/dates";
 import { cn } from "@/lib/utils";
+import { allowsCoursebook, programAccess } from "@/server/program-access";
 import { coverColor } from "@/lib/subjects";
 import { getDashboard } from "@/server/dashboard";
 import { getGameSummary } from "@/server/gamification";
@@ -72,7 +73,9 @@ export default async function DashboardPage() {
   const user = await requireUser();
   const tours = await toursToShow(user.id);
   await awardBadges(user.id).catch((err) => console.warn("[badges]", err instanceof Error ? err.message : err));
-  const [d, game, due, programs, news, zone, badges] = await Promise.all([getDashboard(user.id), getGameSummary(user.id), dueAssignments(user.id), studentPrograms(user.id), studentAnnouncements(user.id), viewerZone(), myBadges(user.id)]);
+  const [d, game, due, programs, news, zone, badges, access] = await Promise.all([getDashboard(user.id), getGameSummary(user.id), dueAssignments(user.id), studentPrograms(user.id), studentAnnouncements(user.id), viewerZone(), myBadges(user.id), programAccess(user.id)]);
+  // Accounts limited to a program (Admin → Program access) can't upload: point them to their classes.
+  const canUpload = allowsCoursebook(access);
   const first = d.name.split(" ")[0];
   const goalMet = d.goal.minutes >= d.goal.target;
   const cards = d.review.due + d.review.new;
@@ -105,7 +108,7 @@ export default async function DashboardPage() {
             {greeting(hour)}, {first}
             <span aria-hidden>{hour < 5 || hour >= 18 ? " ☾" : " ☀"}</span>
           </h1>
-          <p className="mt-2 max-w-2xl text-lg text-muted">{step?.course ? `Pick up where you left off in ${step.course}.` : d.courses.length ? "You're all caught up. Nice work." : "Let's set up your first course."}</p>
+          <p className="mt-2 max-w-2xl text-lg text-muted">{step?.course ? `Pick up where you left off in ${step.course}.` : d.courses.length ? "You're all caught up. Nice work." : canUpload ? "Let's set up your first course." : "Your tutors' assignments show up here."}</p>
           {programs.length > 0 && (
             <ul aria-label="Your programs" className="mt-4 flex flex-wrap gap-x-6 gap-y-2">
               {programs.map((p) => (
@@ -161,8 +164,17 @@ export default async function DashboardPage() {
             <p className="max-w-md opacity-90">
               {d.courses.length
                 ? "Nothing is due right now. Try a practice set to lock in what you've learned, or upload something new."
-                : "Upload a textbook or your lecture slides, and Coursebook turns them into a course with lessons, practice and flashcards."}
+                : canUpload
+                  ? "Upload a textbook or your lecture slides, and Coursebook turns them into a course with lessons, practice and flashcards."
+                  : "Open your classes to start the lessons and practice your tutors assign."}
             </p>
+            {!canUpload ? (
+              <div className="flex flex-wrap gap-3">
+                <ButtonLink href="/classes" className="hero-button">
+                  Go to your classes
+                </ButtonLink>
+              </div>
+            ) : (
             <div className="flex flex-wrap gap-3">
               <ButtonLink href="/library/upload" className="hero-button">
                 Upload a textbook
@@ -171,6 +183,7 @@ export default async function DashboardPage() {
                 Upload slides
               </ButtonLink>
             </div>
+            )}
           </div>
         )}
         <div className="flex items-center gap-5 md:flex-col md:gap-3 md:pr-6">

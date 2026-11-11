@@ -1,4 +1,5 @@
 import "server-only";
+import { allowsCoursebook, allowsProgram, ONLY_MESSAGE, programAccess, programIdFilter } from "./program-access";
 import type { Prisma } from "@/generated/prisma/client";
 import { db } from "./db";
 import { env } from "./env";
@@ -42,6 +43,8 @@ export async function ensureProgramFor(userId: string, programId?: string) {
   }
   const mine = await db.program.findFirst({ where: { adminId: userId }, orderBy: { createdAt: "asc" } });
   if (mine) return mine;
+  const rules = await programAccess(userId);
+  if (!allowsCoursebook(rules)) throw new ClassError(ONLY_MESSAGE(rules), 403);
   const user = await db.user.findUniqueOrThrow({ where: { id: userId }, select: { name: true } });
   return db.program.create({ data: { adminId: userId, name: `${user.name?.trim() || "My"}'s tutoring program` } });
 }
@@ -49,14 +52,17 @@ export async function ensureProgramFor(userId: string, programId?: string) {
 export async function createProgram(userId: string, name: string) {
   const n = name.trim().slice(0, 120);
   if (!n) throw new ClassError("Give the program a name.");
+  const rules = await programAccess(userId);
+  if (!allowsCoursebook(rules)) throw new ClassError(ONLY_MESSAGE(rules), 403);
   if ((await db.program.count({ where: { adminId: userId } })) >= 5) throw new ClassError("You can run up to 5 programs.");
   return db.program.create({ data: { adminId: userId, name: n } });
 }
 
 /** Programs the person runs or works in. */
 export async function myPrograms(userId: string) {
+  const allowed = programIdFilter(await programAccess(userId));
   const rows = await db.program.findMany({
-    where: { OR: [{ adminId: userId }, { classes: { some: { staff: { some: { userId } } } } }] },
+    where: { OR: [{ adminId: userId }, { classes: { some: { staff: { some: { userId } } } } }], ...(allowed ? { id: allowed } : {}) },
     orderBy: { createdAt: "asc" },
     select: { id: true, name: true, badge: true, adminId: true, admin: { select: { name: true } }, _count: { select: { classes: true } } },
   });
@@ -65,6 +71,7 @@ export async function myPrograms(userId: string) {
 
 async function adminProgram(userId: string, programId: string) {
   const p = await db.program.findFirst({ where: { id: programId, adminId: userId } });
+  if (p && !allowsProgram(await programAccess(userId), programId)) throw new NotFoundError("Program not found");
   if (!p) {
     // Staff see "only the admin" rather than "not found", since they know it exists.
     const staff = await db.program.count({ where: { id: programId, classes: { some: { staff: { some: { userId } } } } } });
@@ -183,6 +190,7 @@ export async function transferAdmin(actorId: string, programId: string, input: {
   if (input.toUserId === p.adminId) throw new ClassError("They're already the admin.");
   const isStaff = await db.classStaff.count({ where: { userId: input.toUserId, class: { programId } } });
   if (!isStaff) throw new ClassError("Choose someone on the program's staff. Add them to a class first.");
+  if (!allowsProgram(await programAccess(input.toUserId), programId)) throw new ClassError("A site admin has limited that account, so it can't run this program.", 403);
   const [from, to] = await Promise.all([
     db.user.findUniqueOrThrow({ where: { id: p.adminId }, select: { id: true, name: true } }),
     db.user.findUniqueOrThrow({ where: { id: input.toUserId }, select: { id: true, name: true, email: true } }),
@@ -211,8 +219,9 @@ export async function publicProgram(slug: string) {
 
 /** The programs a student is in (through their classes), with those class names. Empty for students in no program class. */
 export async function studentPrograms(userId: string) {
+  const allowed = programIdFilter(await programAccess(userId));
   const rows = await db.classMember.findMany({
-    where: { userId, class: { archivedAt: null } },
+    where: { userId, class: { archivedAt: null, ...(allowed ? { programId: allowed } : {}) } },
     select: { class: { select: { name: true, program: { select: { id: true, name: true, badge: true } } } } },
     orderBy: { joinedAt: "asc" },
   });

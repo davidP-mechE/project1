@@ -16,7 +16,7 @@ import { CoursebookMark, Wordmark } from "@/components/brand/seal";
  */
 
 type Props = {
-  user: { name: string; email: string; isAdmin: boolean; isStaff: boolean };
+  user: { name: string; email: string; isAdmin: boolean; isStaff: boolean; coursebook: boolean };
   dueCount: number;
   timeZone: string;
   game: { streak: number; xp: number; level: number };
@@ -140,7 +140,7 @@ type NavLink = { href: string; label: string; icon: keyof typeof ICONS; badge?: 
  * top, then folding sections (the one you're in opens by itself). Teaching
  * appears for people who teach; Settings and Admin live in the account menu.
  */
-function NavLinks({ isStaff, dueCount, unread, onNavigate }: { isStaff: boolean; dueCount: number; unread: Props["unread"]; onNavigate?: () => void }) {
+function NavLinks({ isStaff, coursebook, dueCount, unread, onNavigate }: { isStaff: boolean; coursebook: boolean; dueCount: number; unread: Props["unread"]; onNavigate?: () => void }) {
   const pathname = usePathname();
   const top: NavLink[] = [
     { href: "/dashboard", label: "Today", icon: "home" },
@@ -153,9 +153,13 @@ function NavLinks({ isStaff, dueCount, unread, onNavigate }: { isStaff: boolean;
       label: "Learn",
       links: [
         { href: "/classes", label: "Classes", icon: "classes" },
-        { href: "/library", label: "Library", icon: "library" },
-        { href: "/slides", label: "Slides", icon: "slides" },
-        { href: "/hub", label: "Hub", icon: "hub" },
+        ...(coursebook
+          ? ([
+              { href: "/library", label: "Library", icon: "library" },
+              { href: "/slides", label: "Slides", icon: "slides" },
+              { href: "/hub", label: "Hub", icon: "hub" },
+            ] as NavLink[])
+          : []),
       ],
     },
     {
@@ -268,15 +272,19 @@ function Stats({ game }: { game: Props["game"] }) {
 }
 
 /** The sections, shared by the top bar's menus and the phone menu. */
-function sections(isStaff: boolean, dueCount: number, unread: Props["unread"]) {
+function sections(isStaff: boolean, coursebook: boolean, dueCount: number, unread: Props["unread"]) {
   const groups: { label: string; links: NavLink[] }[] = [
     {
       label: "Learn",
       links: [
         { href: "/classes", label: "Classes", icon: "classes" },
-        { href: "/library", label: "Library", icon: "library" },
-        { href: "/slides", label: "Slides", icon: "slides" },
-        { href: "/hub", label: "Hub", icon: "hub" },
+        ...(coursebook
+          ? ([
+              { href: "/library", label: "Library", icon: "library" },
+              { href: "/slides", label: "Slides", icon: "slides" },
+              { href: "/hub", label: "Hub", icon: "hub" },
+            ] as NavLink[])
+          : []),
       ],
     },
     {
@@ -381,7 +389,7 @@ function NavMenu({ label, links, activeHref }: { label: string; links: NavLink[]
 export function AppSidebar({ user, dueCount, timeZone, game, unread }: Props) {
   const pathname = usePathname();
   const drawer = useRef<HTMLDialogElement>(null);
-  const { top, groups } = sections(user.isStaff, dueCount, unread);
+  const { top, groups } = sections(user.isStaff, user.coursebook, dueCount, unread);
   const activeHref = useActiveHref([...top, ...groups.flatMap((g) => g.links)]);
 
   // "Today" is the student's day: save the browser's time zone once.
@@ -452,7 +460,7 @@ export function AppSidebar({ user, dueCount, timeZone, game, unread }: Props) {
       {/* Phones and tablets: a tab bar along the bottom; "Menu" opens every link. */}
       <nav aria-label="Main" className="tabbar fixed inset-x-0 bottom-0 z-20 grid grid-cols-5 border-t border-border bg-nav pb-[env(safe-area-inset-bottom)] text-nav-text lg:hidden">
         {tab("/dashboard", "Today", "home")}
-        {tab("/library", "Library", "library")}
+        {user.coursebook ? tab("/library", "Library", "library") : tab("/classes", "Classes", "classes")}
         {tab("/review", "Flashcards", "spaced", dueCount, "cards to review")}
         {tab("/messages", "Messages", "messages", unread.threads, "unread conversations")}
         <button type="button" onClick={() => drawer.current?.showModal()} className="tabbar-item" aria-label="Open menu">
@@ -478,7 +486,7 @@ export function AppSidebar({ user, dueCount, timeZone, game, unread }: Props) {
             </button>
           </div>
           <Stats game={game} />
-          <NavLinks isStaff={user.isStaff} dueCount={dueCount} unread={unread} onNavigate={() => drawer.current?.close()} />
+          <NavLinks isStaff={user.isStaff} coursebook={user.coursebook} dueCount={dueCount} unread={unread} onNavigate={() => drawer.current?.close()} />
           <div className="mt-auto flex items-center justify-between gap-2 border-t border-border pt-4">
             <UserMenu name={user.name} email={user.email} isAdmin={user.isAdmin} placement="up" showName />
             <ThemeToggle className="text-nav-muted hover:bg-nav-active hover:text-nav-text" />

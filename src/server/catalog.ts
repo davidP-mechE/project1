@@ -1,4 +1,5 @@
 import "server-only";
+import { assertCoursebookAllowed } from "./program-access";
 import { randomUUID } from "node:crypto";
 import { db } from "./db";
 import { NotFoundError } from "./courses";
@@ -115,6 +116,7 @@ export async function catalogCoverKey(entryId: string) {
  * questions, flashcards, tests), pointing at the shared catalog files.
  */
 export async function enroll(userId: string, entryId: string): Promise<string> {
+  await assertCoursebookAllowed(userId);
   const already = await db.course.findFirst({ where: { userId, catalogEntryId: entryId }, select: { id: true } });
   if (already) return already.id;
   const entry = await db.catalogEntry.findFirst({ where: { id: entryId, published: true }, select: { id: true, fileKey: true, coverKey: true, subject: true, sourceCourseId: true } });

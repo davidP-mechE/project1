@@ -6,6 +6,7 @@ import { z } from "zod";
 import { requireUser } from "../session";
 import { requireAdmin } from "../admin";
 import { NotFoundError } from "../courses";
+import { AccessDeniedError } from "../program-access";
 import { CatalogError, enroll, publishCourse, setPublished } from "../catalog";
 import { setCourseSubject } from "../subjects";
 import { SUBJECT_IDS } from "@/lib/subjects";
@@ -21,6 +22,7 @@ export async function enrollAction(entryId: string) {
     courseId = await enroll(user.id, id.parse(entryId));
   } catch (err) {
     if (err instanceof NotFoundError) redirect("/hub?error=unavailable");
+    if (err instanceof AccessDeniedError) redirect("/hub?error=limited");
     throw err;
   }
   revalidatePath("/hub");

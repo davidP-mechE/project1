@@ -1,4 +1,5 @@
 import "server-only";
+import { allowsProgram, programAccess, programDeniedMessage } from "./program-access";
 import { createHash, randomBytes } from "node:crypto";
 import { db } from "./db";
 import { env } from "./env";
@@ -115,6 +116,7 @@ export async function addStaff(userId: string, classId: string, rawEmail: string
   const summary = await describe(classId, scope);
   if (existing) {
     if (existing.id === c.program.adminId) throw new ClassError("That's the program admin, who already has full access.");
+    if (!allowsProgram(await programAccess(existing.id), c.programId)) throw new ClassError("A site admin has limited that account, so it can't be added to this program.", 403);
     if (await db.classStaff.findUnique({ where: { classId_userId: { classId, userId: existing.id } } })) throw new ClassError("They're already on this class's staff. Change their role below instead.");
     if (await db.classMember.findUnique({ where: { classId_userId: { classId, userId: existing.id } } })) throw new ClassError("They're a student in this class. Remove them as a student first.");
     await db.$transaction(async (tx) => {
@@ -228,6 +230,8 @@ export async function acceptStaffInvite(userId: string, token: string, now = new
   const user = await db.user.findUniqueOrThrow({ where: { id: userId }, select: { email: true, name: true } });
   if (user.email.toLowerCase() !== inv.email.toLowerCase()) throw new ClassError(`This invite is for ${inv.email}. Sign in with that address to accept it.`, 403);
   if (await db.classMember.findUnique({ where: { classId_userId: { classId: inv.classId, userId } } })) throw new ClassError("You're a student in this class, so you can't also be on its staff.");
+  const rules = await programAccess(userId);
+  if (!allowsProgram(rules, inv.class.programId)) throw new ClassError(programDeniedMessage(rules), 403);
   await db.$transaction(async (tx) => {
     const claimed = await tx.staffInvite.updateMany({ where: { id: inv.id, acceptedAt: null, cancelledAt: null }, data: { acceptedAt: now } });
     if (claimed.count === 0) throw new ClassError("This invite has already been used.", 409);
