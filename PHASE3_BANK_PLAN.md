@@ -75,3 +75,36 @@ New tables use the spec's names where free, and a prefix where they'd clash:
 6. Tutor view: class heatmap, student page additions, comments, `LOG_TEST` / `QUESTION_SET` assignments with calculator setting.
 7. Course Studio (`/studio`) + student catalog (`/learn`), uploads, preview, publish/unpublish, owner-checked file route.
 8. Automated tests (permissions, 404s, import, grading, versioning, analytics hand-count, phone-width e2e) and a summary.
+
+## Status: built (all 8 steps)
+
+### Set up on your PC
+
+1. In `.env`, set `OWNER_EMAIL` to your login email (verified) and `DESMOS_API_KEY` to your Desmos key.
+2. `npm install`, then `npm run db:migrate` (or `npm run db:deploy`), then `npm run db:seed`.
+   The seed prints the import report (240 imported as drafts, 0 failed on a fresh database) and the four week sets.
+3. Restart `npm run dev`. Your account gets the owner role at start-up and at each login.
+
+### Where things are
+
+| Who | Page | What |
+|---|---|---|
+| Owner, tutors | `/bank` | Question bank: filter, search, edit, import (`/bank/import`), sets (`/bank/sets`) |
+| Owner | Admin → Users | Make someone a tutor (role column, owner only) |
+| Everyone | `/practice` | Published practice sets in the player |
+| Students | `/practice-tests` | Log an official practice test; `/practice-tests/insights`; `/practice-tests/redo` |
+| Tutors | Class → SAT practice | Heatmap; student pages → "SAT practice log"; comments on logs |
+| Tutors | Class → Assign | "Log an official practice test" and "Practice set" (calculator allowed / by hand) |
+| Owner | `/studio` | Course Studio; students see published courses at `/learn` |
+
+### To publish the weeks 3–6 material
+
+Open `/bank/sets`, open a week's set, review the questions, then "Publish set and its 60 draft questions".
+Week sets are visible to every student once published; change "Who can play it" to class-only if you prefer.
+
+### Notes
+
+- Misses are questions logged wrong, skipped or guessed. The redo list includes skipped ones too
+  (they count as wrong on the score report).
+- Heatmap shading = misses on a skill per test, over each student's last 3 finished logs.
+- There's no sitemap in this app; if one is added later, list only `PUBLIC_COURSE` courses (src/server/studio.ts).
