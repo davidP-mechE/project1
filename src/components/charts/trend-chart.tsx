@@ -14,9 +14,10 @@ const monthLabel = (m: string) => new Date(`${m}-15T12:00:00Z`).toLocaleString("
 
 export type TrendSeries = { name: string; values: (number | null)[]; counts?: number[] };
 
-export function TrendChart({ title, months, series, unit = "", domain }: { title: string; months: string[]; series: TrendSeries[]; unit?: string; domain?: [number, number] }) {
+/** `labels` (optional) replaces the month labels, e.g. one point per logged test. */
+export function TrendChart({ title, months, series, unit = "", domain, labels, empty }: { title: string; months: string[]; series: TrendSeries[]; unit?: string; domain?: [number, number]; labels?: string[]; empty?: string }) {
   const all = series.flatMap((s) => s.values.filter((v): v is number => v !== null));
-  if (!all.length) return <p className="text-sm text-muted">No data in the last {months.length} months yet.</p>;
+  if (!all.length) return <p className="text-sm text-muted">{empty ?? `No data in the last ${months.length} months yet.`}</p>;
   const lo = domain?.[0] ?? Math.max(0, Math.floor((Math.min(...all) - 20) / 50) * 50);
   const hi = domain?.[1] ?? Math.ceil((Math.max(...all) + 20) / 50) * 50;
   const x = (i: number) => PAD.l + (i / Math.max(1, months.length - 1)) * (W - PAD.l - PAD.r);
@@ -44,7 +45,7 @@ export function TrendChart({ title, months, series, unit = "", domain }: { title
         {months.map((m, i) =>
           i % 2 === months.length % 2 ? null : (
             <text key={m} x={x(i)} y={H - 8} textAnchor="middle" className="fill-muted text-[11px]">
-              {monthLabel(m)}
+              {labels ? labels[months.indexOf(m)] : monthLabel(m)}
             </text>
           ),
         )}
@@ -86,7 +87,7 @@ export function TrendChart({ title, months, series, unit = "", domain }: { title
               {months.map((m, i) => (
                 <tr key={m}>
                   <th scope="row" className="py-1 pr-3 font-normal">
-                    {monthLabel(m)} {m.slice(0, 4)}
+                    {labels ? labels[months.indexOf(m)] : `${monthLabel(m)} ${m.slice(0, 4)}`}
                   </th>
                   {series.map((s) => (
                     <td key={s.name} className="py-1 pr-3 text-right tabular-nums">

@@ -12,6 +12,7 @@ import { NotFoundError } from "@/server/courses";
 import { assignableCourses, getClassForTeacher } from "@/server/classes";
 import { requireUser } from "@/server/session";
 import { listGroups } from "@/server/groups";
+import { AssignLogTestForm, AssignSetForm } from "@/components/classes/practice-assign-forms";
 
 export const metadata: Metadata = { title: "Assign" };
 
@@ -46,6 +47,20 @@ export default async function AssignPage({ params }: PageProps<"/teach/[classId]
           <AssignLessonsForm classId={c.id} courses={courses.map((x) => ({ id: x.id, title: x.title, units: x.units }))} targetOptions={targetOptions} />
         </Card>
       )}
+      <Card>
+        <h2 className="mb-1 text-lg font-semibold">Log an official practice test</h2>
+        <p className="mb-4 text-sm text-muted">&quot;Log Practice Test N by &lt;date&gt;&quot;. Students take it in Bluebook, then log it from their score report (scores and the numbers of the questions they missed). It&apos;s done when they finish the log.</p>
+        <AssignLogTestForm classId={c.id} tests={await db.practiceTest.findMany({ where: { shared: true }, orderBy: { name: "asc" }, select: { id: true, name: true } })} targetOptions={targetOptions} />
+      </Card>
+      <Card>
+        <h2 className="mb-1 text-lg font-semibold">Practice set</h2>
+        <p className="mb-4 text-sm text-muted">A published set from the question bank, played with instant feedback. Choose whether the Desmos calculator is allowed.</p>
+        <AssignSetForm
+          classId={c.id}
+          sets={(await db.questionSet.findMany({ where: { status: "published", visibility: { in: ["class", "public"] } }, orderBy: { title: "asc" }, select: { id: true, title: true, questionIds: true } })).map((x) => ({ id: x.id, title: x.title, count: x.questionIds.length }))}
+          targetOptions={targetOptions}
+        />
+      </Card>
       <Card>
         <h2 className="mb-1 text-lg font-semibold">Diagnostic</h2>
         <p className="mb-4 text-sm text-muted">An adaptive, timed SAT-style diagnostic. Students get one attempt (you can allow retakes); the result becomes their baseline if they don&apos;t have one.</p>

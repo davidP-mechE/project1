@@ -19,6 +19,7 @@ import { TutorDrawer } from "@/components/tutor/tutor-drawer";
 import { StudyTimer } from "@/components/study/study-timer";
 import { Alert } from "@/components/ui/alert";
 import { Card } from "@/components/ui/misc";
+import { CalculatorPanel } from "@/components/desmos/calculator-panel";
 import { getCourseOr404 } from "@/server/course-page";
 import { NotFoundError, markCourseOpened } from "@/server/courses";
 import { claudeEnabled, env } from "@/server/env";
@@ -99,6 +100,7 @@ export default async function LessonPage({ params, searchParams }: PageProps<"/c
         </div>
         <div className="flex flex-wrap items-start gap-2">
           <OpenBookButton page={lesson.pageStart} label={slides ? "See the slides" : "Read the book"} />
+          {course.subject === "math" && <CalculatorPanel apiKey={env.DESMOS_API_KEY ?? null} storageKey={`lesson-${lessonId}`} />}
           {content && (
             <TutorDrawer
               courseId={courseId}

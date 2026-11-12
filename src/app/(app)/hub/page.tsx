@@ -1,3 +1,4 @@
+import { isSiteAdminRole } from "@/server/roles";
 import type { Metadata } from "next";
 import { LimitedNotice } from "@/components/limited-notice";
 import { allowsCoursebook, programAccess } from "@/server/program-access";
@@ -21,7 +22,7 @@ export default async function HubPage({ searchParams }: PageProps<"/hub">) {
   const sp = await searchParams;
   const access = await programAccess(user.id);
   if (!allowsCoursebook(access)) return <LimitedNotice access={access} />;
-  const admin = (await db.user.findUnique({ where: { id: user.id }, select: { role: true } }))?.role === "ADMIN";
+  const admin = isSiteAdminRole((await db.user.findUnique({ where: { id: user.id }, select: { role: true } }))?.role);
   const entries = await listCatalog(user.id, { includeHidden: admin });
   const subjects = [...new Set(entries.map((e) => e.subject))];
   const subject = typeof sp.subject === "string" && subjects.includes(sp.subject) ? sp.subject : null;

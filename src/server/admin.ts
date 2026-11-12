@@ -2,6 +2,7 @@ import "server-only";
 import { notFound } from "next/navigation";
 import { db } from "./db";
 import { getSession } from "./session";
+import { isSiteAdminRole } from "./roles";
 import { periodStart } from "@/lib/usage/limits";
 import { limitsForPlan } from "./limits";
 import { retryProcessing } from "./courses";
@@ -9,7 +10,7 @@ import { startGeneration } from "./generation/lessons";
 import { regenerateAssessment } from "./generation/assessments";
 
 /**
- * The admin page's data and actions. Only for users whose role is ADMIN in the
+ * The admin page's data and actions. Only for users whose role is ADMIN (or OWNER) in the
  * database (checked on every call, not from the session cookie, so removing
  * the role takes effect at once). Everyone else gets a plain 404.
  */
@@ -18,7 +19,7 @@ export async function requireAdmin() {
   const session = await getSession();
   if (!session) notFound();
   const user = await db.user.findUnique({ where: { id: session.user.id }, select: { id: true, email: true, role: true } });
-  if (user?.role !== "ADMIN") notFound();
+  if (!isSiteAdminRole(user?.role)) notFound();
   return user;
 }
 

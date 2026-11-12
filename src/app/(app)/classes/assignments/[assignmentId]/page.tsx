@@ -13,6 +13,7 @@ import { ExternalSet } from "@/components/classes/external-forms";
 import { diagnosticState } from "@/server/diagnostics";
 import { DiagnosticTaker, type DiagnosticView } from "@/components/sat/diagnostic-taker";
 import { env } from "@/server/env";
+import { db } from "@/server/db";
 
 export const metadata: Metadata = { title: "Assignment" };
 
@@ -21,6 +22,10 @@ export default async function AssignmentPage({ params }: PageProps<"/classes/ass
   const user = await requireUser();
   const zone = await viewerZone();
   const { assignmentId } = await params;
+  // Practice-test logs and bank sets open in their own players.
+  const own = await db.assignment.findFirst({ where: { id: assignmentId, class: { members: { some: { userId: user.id } } } }, select: { kind: true, practiceTestId: true, questionSetId: true } });
+  if (own?.kind === "LOG_TEST") redirect(`/practice-tests/new?test=${own.practiceTestId}`);
+  if (own?.kind === "QUESTION_SET") redirect(`/practice/${own.questionSetId}?assignment=${assignmentId}`);
   const diag = await diagnosticState(user.id, assignmentId).catch((err) => {
     if (err instanceof NotFoundError) return null;
     throw err;

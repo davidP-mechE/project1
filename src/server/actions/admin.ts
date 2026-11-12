@@ -5,6 +5,7 @@ import { z } from "zod";
 import { requireAdmin, retryAssessment, retryBook, retryLessons, setUserPlan } from "../admin";
 import { GenerationError } from "../generation/lessons";
 import { LimitError } from "../limits";
+import { RoleError, setSiteRole } from "../roles";
 
 const id = z.string().min(1).max(64);
 type Result = { ok: true; message?: string } | { ok: false; error: string };
@@ -16,7 +17,7 @@ async function run(fn: (adminId: string) => Promise<string | void>): Promise<Res
     revalidatePath("/admin");
     return { ok: true, message: message ?? undefined };
   } catch (err) {
-    if (err instanceof GenerationError || err instanceof LimitError) return { ok: false, error: err.message };
+    if (err instanceof GenerationError || err instanceof LimitError || err instanceof RoleError) return { ok: false, error: err.message };
     if (err instanceof z.ZodError) return { ok: false, error: "Invalid request." };
     console.error(err);
     return { ok: false, error: "Something went wrong." };
@@ -70,6 +71,14 @@ export async function demoDataAction(op: "load" | "clear"): Promise<Result> {
       if (err instanceof ClassError) throw new GenerationError(err.message);
       throw err;
     }
+  });
+}
+
+/** The owner approves (or removes) tutors and site admins. setSiteRole checks the caller is the owner. */
+export async function setRoleAction(userId: string, role: string): Promise<Result> {
+  return run(async (adminId) => {
+    await setSiteRole(adminId, id.parse(userId), z.enum(["USER", "TUTOR", "ADMIN"]).parse(role));
+    return "Role updated.";
   });
 }
 

@@ -1,4 +1,5 @@
 import "server-only";
+import { isSiteAdminRole } from "./roles";
 import { db } from "./db";
 import { NotFoundError, deleteAllUserFiles } from "./courses";
 import { classAccess, ClassError, studentInScope } from "./access";
@@ -89,7 +90,7 @@ export async function purgeStudentFromProgram(actorId: string, programId: string
 /** The site admin deletes a whole account and every file (as the person could themselves from Settings). */
 export async function deleteAccountCompletely(siteAdminId: string, email: string, confirmEmail: string) {
   const admin = await db.user.findUnique({ where: { id: siteAdminId }, select: { role: true } });
-  if (admin?.role !== "ADMIN") throw new ClassError("Only the site admin can do that.", 403);
+  if (!isSiteAdminRole(admin?.role)) throw new ClassError("Only the site admin can do that.", 403);
   if (email.trim().toLowerCase() !== confirmEmail.trim().toLowerCase()) throw new ClassError("Type the email address twice to confirm.");
   const u = await db.user.findFirst({ where: { email: { equals: email.trim(), mode: "insensitive" } }, select: { id: true, role: true } });
   if (!u) throw new NotFoundError("No account has that email.");
