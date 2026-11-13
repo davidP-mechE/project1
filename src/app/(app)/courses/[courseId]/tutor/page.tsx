@@ -10,6 +10,8 @@ import { getCourseOr404 } from "@/server/course-page";
 import { NotFoundError } from "@/server/courses";
 import { claudeEnabled } from "@/server/env";
 import { requireUser } from "@/server/session";
+import { isNoAi, NO_AI_MESSAGE } from "@/server/program-access";
+import { EmptyState } from "@/components/ui/misc";
 import { getThread, listThreads, tutorStatus, type Source } from "@/server/tutor/chat";
 
 export const metadata: Metadata = { title: "Ask the book" };
@@ -19,6 +21,15 @@ export default async function TutorPage({ params, searchParams }: PageProps<"/co
   const { courseId } = await params;
   const sp = await searchParams;
   const course = await getCourseOr404(user.id, courseId);
+  // "SAT only, no AI" accounts: the tutor uses AI, so say so plainly instead.
+  if (await isNoAi(user.id)) {
+    return (
+      <>
+        <CourseHeader course={course} />
+        <EmptyState title="The tutor isn't available on your account">{NO_AI_MESSAGE}</EmptyState>
+      </>
+    );
+  }
   const [threads, status] = await Promise.all([listThreads(user.id, courseId), tutorStatus(user.id, courseId)]);
   const threadId = typeof sp.thread === "string" ? sp.thread : null;
   let thread = null;

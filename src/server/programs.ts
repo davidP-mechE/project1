@@ -107,6 +107,8 @@ export async function getProgram(userId: string, programId: string, opts: { logB
 }
 
 export type ProgramPatch = {
+  /** Students who join a class in this program get an "SAT only, no AI" rule. */
+  newStudentsNoAi?: boolean;
   name?: string;
   targets?: number[];
   inviteDays?: number;
@@ -168,13 +170,19 @@ export async function updateProgram(userId: string, programId: string, patch: Pr
     if (v !== null && (!Number.isInteger(v) || v < (k === "goalGain" ? 10 : 400) || v > (k === "goalGain" ? 1200 : 1600))) throw new ClassError(k === "goalGain" ? "The goal gain is 10 to 1,200 points." : "The starting average is 400 to 1600.");
     data[k] = v;
   }
+  if (patch.newStudentsNoAi !== undefined) data.newStudentsNoAi = Boolean(patch.newStudentsNoAi);
   if (patch.isPublic !== undefined) {
     if (patch.isPublic && !(data.slug ?? p.slug)) throw new ClassError("Choose a page address before making the page public.");
     data.isPublic = patch.isPublic;
   }
   await db.$transaction(async (tx) => {
     await tx.program.update({ where: { id: p.id }, data });
-    await audit(tx, { programId: p.id, actorId: userId, action: "program.update", targetType: "program", targetId: p.id, summary: `Program settings changed: ${Object.keys(data).join(", ")}`, before: { name: p.name, targets: p.targets, inviteDays: p.inviteDays, aiDailyCapCents: p.aiDailyCapCents }, after: data });
+    await audit(tx, { programId: p.id, actorId: userId, action: "program.update", targetType: "program", targetId: p.id, summary:
+        Object.keys(data).length === 1 && data.newStudentsNoAi !== undefined
+          ? data.newStudentsNoAi
+            ? "New students who join are now SAT only, no AI"
+            : "New students who join are no longer set to SAT only, no AI"
+          : `Program settings changed: ${Object.keys(data).join(", ")}`, before: { name: p.name, targets: p.targets, inviteDays: p.inviteDays, aiDailyCapCents: p.aiDailyCapCents }, after: data });
   });
 }
 
@@ -213,7 +221,7 @@ export async function publicProgram(slug: string) {
   if (!/^[a-z0-9-]{1,40}$/.test(slug)) return null;
   return db.program.findFirst({
     where: { slug, isPublic: true },
-    select: { name: true, slug: true, badge: true, subject: true, publicBlurb: true, schoolAverage: true, goalGain: true, targets: true },
+    select: { id: true, name: true, slug: true, badge: true, subject: true, publicBlurb: true, schoolAverage: true, goalGain: true, targets: true },
   });
 }
 
@@ -240,15 +248,15 @@ export async function studentPrograms(userId: string) {
 /** This program's access rules, for its admin. */
 export async function programAccessRules(userId: string, programId: string) {
   await adminProgram(userId, programId);
-  return db.programAccessRule.findMany({ where: { programId }, orderBy: { createdAt: "desc" }, select: { id: true, email: true, mode: true, note: true, createdAt: true } });
+  return db.programAccessRule.findMany({ where: { programId }, orderBy: { createdAt: "desc" }, select: { id: true, email: true, mode: true, noAi: true, note: true, createdAt: true } });
 }
 
 /** The program admin limits an email to this program, or blocks it from this program. Logged in the audit log. */
-export async function setProgramAccessRule(userId: string, programId: string, input: { email: string; mode: "ONLY" | "BLOCKED"; note?: string | null }) {
+export async function setProgramAccessRule(userId: string, programId: string, input: { email: string; mode: "ONLY" | "BLOCKED" | "SAT_ONLY"; note?: string | null }) {
   const p = await adminProgram(userId, programId);
   const me = await db.user.findUniqueOrThrow({ where: { id: userId }, select: { email: true } });
   if (normalizeEmail(input.email) === normalizeEmail(me.email)) throw new ClassError("You can't set a rule for your own account.");
-  const before = await db.programAccessRule.findUnique({ where: { email_programId: { email: normalizeEmail(input.email), programId } }, select: { mode: true } });
+  const before = await db.programAccessRule.findUnique({ where: { email_programId: { email: normalizeEmail(input.email), programId } }, select: { mode: true, noAi: true } });
   let message: string;
   try {
     message = await setAccessRule(userId, { ...input, programId });
@@ -257,14 +265,58 @@ export async function setProgramAccessRule(userId: string, programId: string, in
     throw err;
   }
   const email = normalizeEmail(input.email);
-  await audit(db, { programId, actorId: userId, action: "access.set", targetType: "email", targetId: email, summary: input.mode === "ONLY" ? `Limited ${email} to ${p.name} only` : `Blocked ${email} from ${p.name}`, before: before ?? undefined, after: { mode: input.mode } });
+  await audit(db, { programId, actorId: userId, action: "access.set", targetType: "email", targetId: email, summary: input.mode === "SAT_ONLY" ? `Set ${email} to ${p.name} only, no AI` : input.mode === "ONLY" ? `Limited ${email} to ${p.name} only` : `Blocked ${email} from ${p.name}`, before: before ?? undefined, after: { mode: input.mode } });
   return message;
 }
 
 export async function removeProgramAccessRule(userId: string, programId: string, ruleId: string) {
   const p = await adminProgram(userId, programId);
-  const rule = await db.programAccessRule.findFirst({ where: { id: ruleId, programId }, select: { id: true, email: true, mode: true } });
+  const rule = await db.programAccessRule.findFirst({ where: { id: ruleId, programId }, select: { id: true, email: true, mode: true, noAi: true } });
   if (!rule) throw new NotFoundError("Rule not found");
   await db.programAccessRule.delete({ where: { id: rule.id } });
-  await audit(db, { programId, actorId: userId, action: "access.remove", targetType: "email", targetId: rule.email, summary: `Removed the rule ${rule.mode === "ONLY" ? `limiting ${rule.email} to ${p.name}` : `blocking ${rule.email} from ${p.name}`}`, before: { mode: rule.mode } });
+  await audit(db, { programId, actorId: userId, action: "access.remove", targetType: "email", targetId: rule.email, summary: `Removed the rule ${rule.mode === "ONLY" ? `limiting ${rule.email} to ${p.name}${rule.noAi ? " with no AI" : ""}` : `blocking ${rule.email} from ${p.name}`}`, before: { mode: rule.mode, noAi: rule.noAi } });
+}
+
+/**
+ * A student just joined one of this program's classes: if the program's
+ * "New students who join are SAT only, no AI" setting is on, give them that rule
+ * (unless they already have a rule for this program, or are a site admin, the
+ * owner or the program's admin). Logged in the program's audit log.
+ */
+export async function applyNewStudentDefault(userId: string, programId: string) {
+  const p = await db.program.findUnique({ where: { id: programId }, select: { id: true, name: true, adminId: true, newStudentsNoAi: true } });
+  if (!p?.newStudentsNoAi || p.adminId === userId) return false;
+  const u = await db.user.findUnique({ where: { id: userId }, select: { email: true, role: true } });
+  if (!u || u.role === "ADMIN" || u.role === "OWNER") return false;
+  const email = normalizeEmail(u.email);
+  if (await db.programAccessRule.findUnique({ where: { email_programId: { email, programId } }, select: { id: true } })) return false;
+  await db.$transaction(async (tx) => {
+    await tx.programAccessRule.create({ data: { email, programId, mode: "ONLY", noAi: true, note: "Joined a class while new students were set to SAT only, no AI" } });
+    await audit(tx, { programId, actorId: null, action: "access.set", targetType: "email", targetId: email, summary: `Set ${email} to ${p.name} only, no AI (joined a class; the program's default for new students)`, after: { mode: "SAT_ONLY" } });
+  });
+  return true;
+}
+
+/**
+ * Sign-up choice "As a <program> mentee": at the account's first sign-in (only
+ * possible once the email is verified), give it that program's "SAT only, no AI"
+ * rule, unless it already has a rule there, then clear the choice. Only the
+ * address's owner can trigger this, so nobody can put someone else's email into
+ * the mode. Logged in the program's audit log.
+ */
+export async function applySignupMentee(userId: string) {
+  const u = await db.user.findUnique({ where: { id: userId }, select: { email: true, role: true, emailVerified: true, signupProgramId: true } });
+  if (!u?.signupProgramId || !u.emailVerified) return false;
+  const programId = u.signupProgramId;
+  await db.user.update({ where: { id: userId }, data: { signupProgramId: null } });
+  if (u.role === "ADMIN" || u.role === "OWNER") return false;
+  const p = await db.program.findFirst({ where: { id: programId, isPublic: true }, select: { id: true, name: true, adminId: true } });
+  if (!p || p.adminId === userId) return false;
+  const email = normalizeEmail(u.email);
+  if (await db.programAccessRule.findUnique({ where: { email_programId: { email, programId } }, select: { id: true } })) return false;
+  await db.$transaction(async (tx) => {
+    await tx.programAccessRule.create({ data: { email, programId, mode: "ONLY", noAi: true, note: "Signed up as a mentee" } });
+    await audit(tx, { programId, actorId: userId, action: "access.set", targetType: "email", targetId: email, summary: `${email} signed up as a ${p.name} mentee (${p.name} only, no AI)`, after: { mode: "SAT_ONLY" } });
+  });
+  return true;
 }

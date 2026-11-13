@@ -8,6 +8,7 @@ import {
 } from "@/server/actions/generation";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { NoAiNote, useNoAi } from "@/components/ai-access";
 
 type Estimate = {
   lessons: number;
@@ -34,6 +35,7 @@ export function GenerateButton({
   mode?: "start" | "regenerateAll";
   disabledReason?: string;
 }) {
+  const noAi = useNoAi();
   const router = useRouter();
   const dialog = useRef<HTMLDialogElement>(null);
   const [error, setError] = useState<string | null>(null);
@@ -56,6 +58,7 @@ export function GenerateButton({
       router.refresh();
     });
 
+  if (noAi) return <NoAiNote>Generating lessons uses AI, which isn&apos;t available on your account.</NoAiNote>;
   return (
     <>
       <Button

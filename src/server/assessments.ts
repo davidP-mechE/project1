@@ -1,4 +1,5 @@
 import "server-only";
+import { isNoAi } from "./program-access";
 import { db } from "./db";
 import { env } from "./env";
 import { NotFoundError } from "./courses";
@@ -113,7 +114,9 @@ export async function submitTest(userId: string, assessmentId: string, answers: 
   const input = (id: string): AttemptInput => (answers && typeof answers === "object" && answers[id] && typeof answers[id] === "object" ? answers[id] : {});
   const answered = (q: (typeof questions)[number]) => (q.type === "MULTIPLE_CHOICE" ? typeof input(q.id).choice === "number" : typeof input(q.id).response === "string" && String(input(q.id).response).trim() !== "");
 
-  const claudeNeeded = questions.filter((q) => answered(q) && needsClaude(q, input(q.id))).length;
+  // "SAT only, no AI" accounts: written answers are saved as not checked (gradeAnswer), never sent to Claude.
+  const noAi = await isNoAi(userId);
+  const claudeNeeded = noAi ? 0 : questions.filter((q) => answered(q) && needsClaude(q, input(q.id))).length;
   if (claudeNeeded > 0) {
     if (!deps.grader) throw new StudyError("Written answers can't be checked on this server (no Claude API key).", 503);
     if ((await claudeGradesLastHour(userId)) + claudeNeeded > env.GRADING_PER_HOUR) {
@@ -125,7 +128,7 @@ export async function submitTest(userId: string, assessmentId: string, answers: 
   const graded = new Map<string, Graded>();
   const queue = questions.filter(answered);
   const workers = Array.from({ length: Math.min(MAX_PARALLEL_GRADING, queue.length) }, async () => {
-    for (let q = queue.shift(); q; q = queue.shift()) graded.set(q.id, await gradeAnswer(userId, q, input(q.id), deps, { skipLimit: true }));
+    for (let q = queue.shift(); q; q = queue.shift()) graded.set(q.id, await gradeAnswer(userId, q, input(q.id), deps, { skipLimit: true, recordUnchecked: noAi }));
   });
   await Promise.all(workers);
 

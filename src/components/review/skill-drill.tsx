@@ -10,6 +10,7 @@ import { HAMMER_STREAK } from "@/lib/mastery/review";
 import { requeue } from "@/lib/mastery/mastery";
 import { cn } from "@/lib/utils";
 import type { AttemptView } from "@/server/study";
+import { useNoAi } from "@/components/ai-access";
 
 type Item = { question: PracticeQuestion; lesson: { id: string; title: string } | null; last: AttemptView | null };
 
@@ -19,7 +20,10 @@ type Item = { question: PracticeQuestion; lesson: { id: string; title: string } 
  * five more on the same skill, so it keeps going until the student gets
  * HAMMER_STREAK right in a row (and after that, as long as they like).
  */
-export function SkillDrill({ courseId, bookId, skillKey, topic, items, grading, canGenerate }: { courseId: string; bookId: string; skillKey: string; topic: string; items: Item[]; grading: "claude" | "demo" | null; canGenerate: boolean }) {
+export function SkillDrill({ courseId, bookId, skillKey, topic, items, grading, canGenerate: canGenerateProp }: { courseId: string; bookId: string; skillKey: string; topic: string; items: Item[]; grading: "claude" | "demo" | null; canGenerate: boolean }) {
+  // "SAT only, no AI" accounts drill the questions that exist; no new ones are written.
+  const noAi = useNoAi();
+  const canGenerate = canGenerateProp && !noAi;
   const [pool, setPool] = useState(() => new Map(items.map((i) => [i.question.id, i])));
   const [queue, setQueue] = useState(() => items.map((i) => i.question.id));
   const [answered, setAnswered] = useState<AttemptView | null>(null);
@@ -162,7 +166,7 @@ export function SkillDrill({ courseId, bookId, skillKey, topic, items, grading, 
           ) : (
             <>
               <p className="font-semibold">That&apos;s every question on this skill for now.</p>
-              {genError ? <p className="text-sm text-danger">{genError}</p> : !canGenerate && <p className="text-sm text-muted">New questions need Claude (an API key on the server).</p>}
+              {genError ? <p className="text-sm text-danger">{genError}</p> : !canGenerate && <p className="text-sm text-muted">{noAi ? "Writing new questions uses AI, which isn't available on your account." : "New questions need Claude (an API key on the server)."}</p>}
               <div className="flex flex-wrap justify-center gap-2">
                 {canGenerate && <Button onClick={() => void writeMore()}>Write more questions</Button>}
                 <Button variant="secondary" onClick={() => window.location.reload()}>

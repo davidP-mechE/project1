@@ -55,7 +55,7 @@ export default async function ProgramPage({ params }: PageProps<"/p/[slug]">) {
           </p>
           {avg && p.goalGain && p.publicBlurb && <p className="max-w-xl opacity-90">{p.publicBlurb}</p>}
           <div className="flex flex-wrap gap-3">
-            <ButtonLink href="/signup" className="program-button">
+            <ButtonLink href={`/signup?program=${p.slug}`} className="program-button">
               Sign up
             </ButtonLink>
             <ButtonLink href="/login" variant="ghost" className="hero-ghost">

@@ -169,6 +169,7 @@ export function AccessRuleForm({ programs }: { programs: { id: string; name: str
         Rule
         <select name="mode" required className={inputClasses} defaultValue="ONLY">
           <option value="ONLY">Only this program</option>
+          <option value="SAT_ONLY">Only this program, no AI (SAT only)</option>
           <option value="BLOCKED">Blocked from this program</option>
         </select>
       </label>

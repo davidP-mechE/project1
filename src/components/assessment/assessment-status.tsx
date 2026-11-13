@@ -5,6 +5,7 @@ import { useEffect, useState, useTransition } from "react";
 import { createAssessmentsAction, regenerateAssessmentAction } from "@/server/actions/assessments";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/misc";
+import { NoAiNote, useNoAi } from "@/components/ai-access";
 
 /** Refreshes the page every few seconds while a test is being written. */
 export function AssessmentPoller({ active }: { active: boolean }) {
@@ -26,6 +27,7 @@ export function RegenerateButton({ courseId, assessmentId, label = "Write new qu
   const router = useRouter();
   const [pending, start] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  if (useNoAi()) return null; // writing questions uses AI ("SAT only, no AI" accounts)
   return (
     <span className="inline-flex flex-col gap-1">
       <Button
@@ -51,6 +53,7 @@ export function CreateAssessmentsButton({ courseId }: { courseId: string }) {
   const router = useRouter();
   const [pending, start] = useTransition();
   const [msg, setMsg] = useState<string | null>(null);
+  if (useNoAi()) return <NoAiNote>Writing unit tests uses AI, which isn&apos;t available on your account.</NoAiNote>;
   return (
     <span className="inline-flex flex-col items-start gap-1">
       <Button

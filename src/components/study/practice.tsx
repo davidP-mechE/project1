@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { useSourceKind } from "@/components/course/source-kind";
 import { sourceNoun, unitWord } from "@/lib/source-label";
 import type { AttemptView } from "@/server/study";
+import { useNoAi } from "@/components/ai-access";
 
 export type PracticeQuestion = {
   id: string;
@@ -68,7 +69,7 @@ export function QuestionCard({
   index,
   bookId,
   last,
-  grading,
+  grading: gradingProp,
   onAttempt,
 }: {
   q: PracticeQuestion;
@@ -79,6 +80,9 @@ export function QuestionCard({
   onAttempt: (a: AttemptView) => void;
 }) {
   const id = useId();
+  // "SAT only, no AI" accounts: written answers are never sent for AI grading.
+  const noAi = useNoAi();
+  const grading = noAi ? null : gradingProp;
   const noun = sourceNoun(useSourceKind());
   const [choice, setChoice] = useState<number | null>(null);
   const [text, setText] = useState("");
@@ -209,7 +213,7 @@ export function QuestionCard({
             Show the answer
           </Button>
         )}
-        {!mcq && !done && grading === null && <span className="text-xs text-muted">Only exact matches can be checked on this server.</span>}
+        {!mcq && !done && grading === null && <span className="text-xs text-muted">{noAi ? "Written answers aren't checked automatically on your account. Show the answer to compare yours." : "Only exact matches can be checked on this server."}</span>}
       </div>
 
       {error && (

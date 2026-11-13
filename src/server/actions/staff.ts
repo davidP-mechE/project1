@@ -93,6 +93,7 @@ export async function updateProgramAction(programId: string, patch: programs.Pro
       publicBlurb: z.string().max(2000).nullable().optional(),
       schoolAverage: z.number().int().nullable().optional(),
       goalGain: z.number().int().nullable().optional(),
+      newStudentsNoAi: z.boolean().optional(),
     })
     .parse(patch);
   return run((u) => programs.updateProgram(u, id.parse(programId), p), [`/teach/programs/${programId}`]);
@@ -102,7 +103,7 @@ export async function transferAdminAction(programId: string, toUserId: string, c
 }
 
 export async function setProgramAccessRuleAction(programId: string, input: { email: string; mode: string; note?: string }) {
-  const parsed = z.object({ email: z.string().max(254), mode: z.enum(["ONLY", "BLOCKED"]), note: z.string().max(200).optional() }).parse(input);
+  const parsed = z.object({ email: z.string().max(254), mode: z.enum(["ONLY", "BLOCKED", "SAT_ONLY"]), note: z.string().max(200).optional() }).parse(input);
   return run(async (u) => ({ message: await programs.setProgramAccessRule(u, id.parse(programId), parsed) }), [`/teach/programs/${programId}`]);
 }
 export async function removeProgramAccessRuleAction(programId: string, ruleId: string) {
