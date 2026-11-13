@@ -35,6 +35,7 @@ export async function createAssessmentsAction(courseId: string): Promise<{ ok: b
     return { ok: true, queued };
   } catch (err) {
     if (err instanceof NotFoundError) return { ok: false, error: "That course no longer exists." };
+    if (err instanceof LimitError) return { ok: false, error: err.message };
     console.error(err);
     return { ok: false, error: "Something went wrong. Please try again." };
   }

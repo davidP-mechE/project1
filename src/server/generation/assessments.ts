@@ -4,7 +4,7 @@ import { NotFoundError } from "../courses";
 import { enqueueGeneration } from "../queue";
 import { recordUsage } from "../usage";
 import { AiError, type LessonWriter } from "../ai/writer";
-import { assertAiBudget, ensureAiBudget } from "../limits";
+import { assertAiAllowed, assertAiBudget, ensureAiBudget } from "../limits";
 import { has, parseSettings, type CourseSettings } from "@/lib/course/settings";
 import { LessonContentSchema } from "@/lib/ai/lesson-schema";
 import { normalizeAssessment, questionCountFor, type AssessmentDraft, type AssessmentLesson, type AssessmentPromptInput } from "@/lib/ai/assessment";
@@ -186,6 +186,7 @@ export async function regenerateAssessment(userId: string, assessmentId: string)
 
 /** For courses written before unit tests existed: create whatever is possible now. */
 export async function createMissingAssessments(userId: string, courseId: string) {
+  await assertAiAllowed(userId);
   const c = await db.course.findFirst({ where: { id: courseId, userId }, select: { id: true } });
   if (!c) throw new NotFoundError("Course not found");
   return queueReadyAssessments(courseId, { batch: false }); // the student asked: write them now

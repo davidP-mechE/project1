@@ -9,10 +9,12 @@ import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { GoogleButton, OrDivider } from "./google-button";
 
-export function SignupForm({ googleEnabled, next = "/library" }: { googleEnabled: boolean; next?: string }) {
+export function SignupForm({ googleEnabled, next = "/library", program = null, menteeFirst = false }: { googleEnabled: boolean; next?: string; program?: { id: string; name: string } | null; menteeFirst?: boolean }) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  // "As a <program> mentee": SAT practice in that program only, with no AI features (applied once the email is verified).
+  const [mentee, setMentee] = useState(Boolean(program && menteeFirst));
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -29,8 +31,9 @@ export function SignupForm({ googleEnabled, next = "/library" }: { googleEnabled
       name: String(form.get("name")).trim(),
       email,
       password,
-      callbackURL: next, // where the verification link lands (e.g. back to a class invite)
-    });
+      callbackURL: mentee && next === "/library" ? "/classes" : next, // where the verification link lands (e.g. back to a class invite)
+      ...(mentee && program ? { signupProgramId: program.id } : {}),
+    } as Parameters<typeof authClient.signUp.email>[0]);
     setBusy(false);
     if (error) {
       setError(
@@ -49,7 +52,26 @@ export function SignupForm({ googleEnabled, next = "/library" }: { googleEnabled
       <p className="mt-1 text-sm text-muted">
         Already have one? <Link href={next === "/library" ? "/login" : `/login?next=${encodeURIComponent(next)}`} className="font-medium text-primary underline-offset-2 hover:underline">Log in</Link>
       </p>
-      {googleEnabled && (
+      {program && (
+        <fieldset className="mt-6 flex flex-col gap-2">
+          <legend className="mb-2 text-sm font-semibold">How will you use Coursebook?</legend>
+          <label className="flex cursor-pointer gap-3 rounded-md border-[1.5px] border-border p-3 has-[:checked]:border-primary">
+            <input type="radio" name="use" className="mt-1" checked={!mentee} onChange={() => setMentee(false)} />
+            <span>
+              <span className="block font-semibold">On my own</span>
+              <span className="block text-sm text-muted">Turn your own textbooks and slides into courses, with AI lessons, practice and a tutor.</span>
+            </span>
+          </label>
+          <label className="flex cursor-pointer gap-3 rounded-md border-[1.5px] border-border p-3 has-[:checked]:border-primary">
+            <input type="radio" name="use" className="mt-1" checked={mentee} onChange={() => setMentee(true)} />
+            <span>
+              <span className="block font-semibold">As a mentee in {program.name}</span>
+              <span className="block text-sm text-muted">SAT practice with your mentors: your classes, practice sets, the SAT practice log and Desmos. No AI features.</span>
+            </span>
+          </label>
+        </fieldset>
+      )}
+      {googleEnabled && !mentee && (
         <>
           <div className="mt-6"><GoogleButton /></div>
           <OrDivider />

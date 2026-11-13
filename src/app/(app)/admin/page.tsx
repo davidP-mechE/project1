@@ -3,7 +3,7 @@ import { viewerZone } from "@/server/session";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { AccessRuleForm, DemoDataControls, PlanSelect, RemoveRuleButton, RetryButton, RoleSelect, TestEmailButton } from "@/components/admin/admin-controls";
-import { listAccessRules } from "@/server/program-access";
+import { listAccessRules, ruleLabel } from "@/server/program-access";
 import { emailStatus } from "@/server/email";
 import { DEMO_MODE_DOMAIN, DEMO_MODE_PASSWORD, DEMO_TUTOR_EMAIL, demoStatus } from "@/server/demo-data";
 import { Card, PageHeader } from "@/components/ui/misc";
@@ -153,7 +153,7 @@ export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
       <Section
         id="access"
         title="Program access"
-        description="Limit an account to one program, or keep it out of one. Rules go by email, so they also apply to people who haven't signed up yet. Only this program: the person can use that program's classes, assignments and class courses, and nothing else (no own uploads, Hub or other programs; their own courses are kept but can't be opened). Blocked from this program: they can't join, teach in or see its classes; the rest of Coursebook works as usual."
+        description="Limit an account to one program, or keep it out of one. Rules go by email, so they also apply to people who haven't signed up yet. Only this program: the person can use that program's classes, assignments and class courses, and nothing else (no own uploads, Hub or other programs; their own courses are kept but can't be opened). Only this program, no AI: the same, and the account can never use AI (no tutor, AI grading or generation; it practises with the question bank and reads courses that already exist). Blocked from this program: they can't join, teach in or see its classes; the rest of Coursebook works as usual."
       >
         <Card className="flex flex-col gap-4 p-4">
           {access.programs.length === 0 ? <p className="text-sm text-muted">There are no programs yet.</p> : <AccessRuleForm programs={access.programs} />}
@@ -165,7 +165,7 @@ export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
                 <td className={td}>{r.email}</td>
                 <td className={td}>
                   <span className={r.mode === "ONLY" ? "rounded bg-surface-2 px-1.5 py-0.5 text-xs font-semibold" : "rounded bg-danger-bg px-1.5 py-0.5 text-xs font-semibold text-danger"}>
-                    {r.mode === "ONLY" ? `Only ${r.program.name}` : `Blocked from ${r.program.name}`}
+                    {ruleLabel(r, r.program.name)}
                   </span>
                 </td>
                 <td className={`${td} text-muted`}>{r.note ?? ""}</td>

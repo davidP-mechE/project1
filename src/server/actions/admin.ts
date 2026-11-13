@@ -85,7 +85,7 @@ export async function setRoleAction(userId: string, role: string): Promise<Resul
 /** Admin → Program access: add or change a rule for an email and a program. */
 export async function setAccessRuleAction(input: { email: string; programId: string; mode: string; note?: string }): Promise<Result> {
   const admin = await requireAdmin();
-  const parsed = z.object({ email: z.string().max(254), programId: id, mode: z.enum(["ONLY", "BLOCKED"]), note: z.string().max(200).optional() }).safeParse(input);
+  const parsed = z.object({ email: z.string().max(254), programId: id, mode: z.enum(["ONLY", "BLOCKED", "SAT_ONLY"]), note: z.string().max(200).optional() }).safeParse(input);
   if (!parsed.success) return { ok: false, error: "Check the email, program and rule." };
   const { AccessRuleError, setAccessRule } = await import("../program-access");
   try {

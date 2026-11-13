@@ -1,4 +1,5 @@
 import "server-only";
+import { isNoAi } from "./program-access";
 import { db } from "./db";
 import { env } from "./env";
 import { NotFoundError } from "./courses";
@@ -245,8 +246,16 @@ export async function claudeGradesLastHour(userId: string) {
   return db.questionAttempt.count({ where: { userId, gradedBy: "CLAUDE", createdAt: { gte: since } } });
 }
 
-/** Grade one answer (without saving it). Throws StudyError with a message for the student. */
-export async function gradeAnswer(userId: string, q: GradeQuestion, input: AttemptInput, deps: AttemptDeps, opts: { skipLimit?: boolean } = {}): Promise<Graded> {
+/** What a "SAT only, no AI" student sees instead of AI grading of a written answer. */
+export const NO_AI_GRADING = "Written answers aren't checked automatically on your account. Use Show the answer to compare yours.";
+
+/**
+ * Grade one answer (without saving it). Throws StudyError with a message for the student.
+ * "SAT only, no AI" accounts never reach the grader: multiple choice and exact
+ * matches are still checked; other written answers are refused (practice) or,
+ * with `recordUnchecked` (tests), saved as not checked with the model answer shown.
+ */
+export async function gradeAnswer(userId: string, q: GradeQuestion, input: AttemptInput, deps: AttemptDeps, opts: { skipLimit?: boolean; recordUnchecked?: boolean } = {}): Promise<Graded> {
   if (q.type === "MULTIPLE_CHOICE") {
     const r = gradeMultipleChoice(q, input.choice);
     if ("error" in r) throw new StudyError(r.error);
@@ -257,6 +266,12 @@ export async function gradeAnswer(userId: string, q: GradeQuestion, input: Attem
   const response = checked.text;
   if (quickCheck(q.answer, response) === "correct") {
     return { result: { verdict: "CORRECT", correct: true, score: 1, feedback: "Correct! That matches the model answer." }, gradedBy: "LOCAL", model: null, choice: null, response };
+  }
+  if (await isNoAi(userId)) {
+    if (opts.recordUnchecked) {
+      return { result: { verdict: "INCORRECT", correct: false, score: 0, feedback: "Not checked: written answers aren't graded automatically on your account. Compare yours with the model answer." }, gradedBy: "LOCAL", model: null, choice: null, response };
+    }
+    throw new StudyError(NO_AI_GRADING, 403);
   }
   if (!deps.grader) {
     throw new StudyError("Answer checking isn't set up on this server (no Claude API key). Compare your answer with the model answer.", 503);

@@ -16,6 +16,7 @@ import { getGenerationEstimate } from "./outline";
 import { sendEmail } from "./email";
 import { aiCapMessage } from "./email/templates";
 import { AiError } from "./ai/writer";
+import { isNoAi, NO_AI_MESSAGE } from "./program-access";
 
 /**
  * Enforces the plan limits in src/lib/usage/limits.ts. Every check reads the
@@ -24,7 +25,30 @@ import { AiError } from "./ai/writer";
  */
 
 export class LimitError extends Error {
-  readonly status = 429;
+  readonly status: number = 429;
+}
+
+/** A "SAT only, no AI" account (Admin → Program access) tried something that would call Claude. */
+export class NoAiError extends LimitError {
+  override readonly status = 403;
+  constructor() {
+    super(NO_AI_MESSAGE);
+  }
+}
+
+/**
+ * The one gate in front of every Claude call: "SAT only, no AI" accounts are
+ * refused here. assertAiBudget, assertCanGenerate and ensureAiBudget all start
+ * with it, and the worker calls ensureAiAllowed right before each job's Claude
+ * calls, so a rule added after a job was queued still stops it.
+ */
+export async function assertAiAllowed(userId: string) {
+  if (await isNoAi(userId)) throw new NoAiError();
+}
+
+/** For the worker and AI modules: the same gate, as an AiError("limit") their error handling already shows to the student. */
+export async function ensureAiAllowed(userId: string) {
+  if (await isNoAi(userId)) throw new AiError("limit", NO_AI_MESSAGE);
 }
 
 const PLAN_LIMITS = limitsFromEnv(process.env);
@@ -84,6 +108,7 @@ export async function getUsage(userId: string, now = new Date()): Promise<{ plan
 
 /** Before anything calls Claude for this student: is there allowance left this month, and in their programs today? */
 export async function assertAiBudget(userId: string, now = new Date()) {
+  await assertAiAllowed(userId);
   const [plan, aiUsd] = await Promise.all([planOf(userId), aiUsdThisMonth(userId, now)]);
   const check = checkAiBudget({ aiUsd }, limitsForPlan(plan), now);
   if (!check.ok) throw new LimitError(check.error);
@@ -134,6 +159,7 @@ export async function assertProgramAiCap(userId: string, now = new Date()) {
 
 /** Before queueing lessons to be written: do their pages and estimated cost fit this month's allowance? */
 export async function assertCanGenerate(userId: string, courseId: string, lessonIds: string[], now = new Date()) {
+  await assertAiAllowed(userId);
   if (lessonIds.length === 0) return;
   const { limits, usage } = await getUsage(userId, now);
   const already = new Set(await lessonsWrittenThisMonth(userId, now));

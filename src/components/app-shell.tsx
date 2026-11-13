@@ -12,7 +12,8 @@ import { unreadCount } from "@/server/notifications";
 import { unreadThreadCount } from "@/server/messages";
 import { staffClassIds } from "@/server/access";
 import { isSiteAdminRole, roleOf } from "@/server/roles";
-import { allowsCoursebook, programAccess } from "@/server/program-access";
+import { allowsAi, allowsCoursebook, programAccess } from "@/server/program-access";
+import { AiAccessProvider } from "@/components/ai-access";
 
 /** The signed-in app's chrome (top bar, footer, staging note), shared by the app, the Studio and the course catalog. */
 export async function AppShell({ user, children }: { user: CurrentUser; children: ReactNode }) {
@@ -26,7 +27,10 @@ export async function AppShell({ user, children }: { user: CurrentUser; children
   const isStaff = (await staffClassIds(user.id)).length > 0;
   const roles = await roleOf(user.id);
   // Accounts limited to one program (Admin → Program access) don't see the library, slides or Hub.
-  const coursebook = allowsCoursebook(await programAccess(user.id));
+  const access = await programAccess(user.id);
+  const coursebook = allowsCoursebook(access);
+  // "SAT only, no AI" accounts: AI controls read this and show a note instead.
+  const noAi = !allowsAi(access);
   return (
     <>
       <AppSidebar
@@ -44,7 +48,9 @@ export async function AppShell({ user, children }: { user: CurrentUser; children
       )}
       <div className="paper flex min-h-dvh flex-col pb-16 lg:pb-0">
         <main id="main" className="mx-auto w-full min-w-0 max-w-[92rem] flex-1 px-4 py-8 sm:px-6 lg:px-12">
-          <PageTransition>{children}</PageTransition>
+          <AiAccessProvider noAi={noAi}>
+            <PageTransition>{children}</PageTransition>
+          </AiAccessProvider>
         </main>
         <SiteFooter />
       </div>

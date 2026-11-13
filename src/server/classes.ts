@@ -1,5 +1,5 @@
 import "server-only";
-import { allowsProgram, programAccess, programDeniedMessage, programIdFilter } from "./program-access";
+import { allowsProgram, isNoAi, programAccess, programDeniedMessage, programIdFilter } from "./program-access";
 import { randomInt } from "node:crypto";
 import { db } from "./db";
 import { env } from "./env";
@@ -19,7 +19,7 @@ import { gradeMultipleChoice, normalizeGrade, type GradeResult } from "@/lib/gra
 import { checkResponse, quickCheck } from "@/lib/grading/normalize";
 import { assignmentAccess, assignmentInScope, classAccess, ClassError, memberWhere, type ClassAccess } from "./access";
 import { scopeCovers, isSection, isDomain, workDomains } from "@/lib/sat/domains";
-import { ensureProgramFor } from "./programs";
+import { applyNewStudentDefault, ensureProgramFor } from "./programs";
 import { externalItemsOf } from "./external";
 import { addMistakes } from "./mistakes";
 import { applyRosterDetails } from "./roster";
@@ -202,6 +202,8 @@ export async function joinClass(userId: string, code: string) {
   if (c._count.members >= MAX_STUDENTS) throw new ClassError("This class is full. Ask your teacher.");
   const user = await db.user.findUniqueOrThrow({ where: { id: userId }, select: { email: true } });
   await db.classMember.create({ data: { classId: c.id, userId } });
+  // The program's "New students who join are SAT only, no AI" setting.
+  await applyNewStudentDefault(userId, c.programId);
   // A roster import may have set their group, goal and baseline.
   await applyRosterDetails(c.id, userId, user.email);
   await db.classInvite.deleteMany({ where: { classId: c.id, email: user.email.toLowerCase() } });
@@ -571,7 +573,9 @@ export async function answerQuestion(
   return a.timeLimitMin ? { saved: true as const } : { saved: true as const, ...g.result, gradedBy: g.gradedBy, answer: { correctChoice: item.correctChoice, answer: item.answer, explanation: item.explanation, steps: item.steps } };
 }
 
-async function gradeItem(userId: string, item: ItemForGrading, input: { choice?: unknown; response?: unknown }, deps: { grader: Grader | null }) {
+async function gradeItem(userId: string, item: ItemForGrading, input: { choice?: unknown; response?: unknown }, given: { grader: Grader | null }) {
+  // "SAT only, no AI" accounts: written answers are saved for the tutor, never sent to Claude.
+  const deps = (await isNoAi(userId)) ? { grader: null } : given;
   if (item.type === "MULTIPLE_CHOICE") {
     const r = gradeMultipleChoice(item, input.choice);
     if ("error" in r) throw new ClassError(r.error);

@@ -10,7 +10,7 @@ import { CalendarForm } from "@/components/classes/assistant-forms";
 import { NotFoundError } from "@/server/courses";
 import { ClassError } from "@/server/access";
 import { getProgram, programAccessRules } from "@/server/programs";
-import { ProgramAccessRules } from "@/components/classes/program-access";
+import { NewStudentsNoAi, ProgramAccessRules } from "@/components/classes/program-access";
 import { requireUser, viewerZone } from "@/server/session";
 
 export const metadata: Metadata = { title: "Program" };
@@ -74,9 +74,13 @@ export default async function ProgramPage({ params, searchParams }: PageProps<"/
         <h2 className="mb-1 text-lg font-semibold">Program access</h2>
         <p className="mb-4 text-sm text-muted">
           By email, so it also covers people who haven&apos;t signed up yet. <strong className="font-semibold text-text">Only {program.name}</strong>: they can use this program&apos;s classes and nothing else in Coursebook (no uploads, Hub or other programs; their own courses are kept but can&apos;t be opened).{" "}
+          <strong className="font-semibold text-text">{program.name} only, no AI</strong>: the same, and the account can never use AI (no tutor, AI grading or generation); it practises with your question sets and reads courses that already exist.{" "}
           <strong className="font-semibold text-text">Blocked from {program.name}</strong>: they can&apos;t join, teach in or see its classes. Nothing is deleted; removing a rule gives everything back. Changes appear in the audit log.
         </p>
-        <ProgramAccessRules programId={program.id} programName={program.name} rules={rules.map((r) => ({ ...r, createdAt: r.createdAt.toISOString() }))} />
+        <div className="flex flex-col gap-4">
+          <NewStudentsNoAi programId={program.id} on={program.newStudentsNoAi} />
+          <ProgramAccessRules programId={program.id} programName={program.name} rules={rules.map((r) => ({ ...r, createdAt: r.createdAt.toISOString() }))} />
+        </div>
       </Card>
       <Card>
         <h2 className="mb-1 text-lg font-semibold">School calendar</h2>

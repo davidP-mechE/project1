@@ -6,6 +6,7 @@ import { sourceNoun } from "@/lib/source-label";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { TutorChat } from "./tutor-chat";
+import { NoAiNote, useNoAi } from "@/components/ai-access";
 
 /**
  * "Ask the book" from inside a lesson: a panel that slides in from the side,
@@ -13,6 +14,7 @@ import { TutorChat } from "./tutor-chat";
  * Clicking a page reference in an answer closes the panel and opens the book.
  */
 export function TutorDrawer({ courseId, bookId, lessonId, lessonTitle, disabledReason }: { courseId: string; bookId: string; lessonId: string; lessonTitle: string; disabledReason: string | null }) {
+  const noAi = useNoAi();
   const kind = useSourceKind();
   const noun = sourceNoun(kind);
   const [open, setOpen] = useState(false);
@@ -25,6 +27,8 @@ export function TutorDrawer({ courseId, bookId, lessonId, lessonTitle, disabledR
     return () => window.removeEventListener("keydown", onKey);
   }, [open]);
 
+  // "SAT only, no AI" accounts: a note instead of the tutor (after every hook above).
+  if (noAi) return <NoAiNote className="py-1">The tutor isn&apos;t available on your account.</NoAiNote>;
   return (
     <>
       <button

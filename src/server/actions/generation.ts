@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { LimitError } from "../limits";
 import { z } from "zod";
 import { requireUser } from "../session";
 import { NotFoundError } from "../courses";
@@ -12,7 +13,7 @@ export type Result<T = object> = ({ ok: true } & T) | { ok: false; error: string
 const id = z.string().min(1).max(64);
 
 function fail(err: unknown): { ok: false; error: string } {
-  if (err instanceof GenerationError) return { ok: false, error: err.message };
+  if (err instanceof GenerationError || err instanceof LimitError) return { ok: false, error: err.message };
   if (err instanceof NotFoundError) return { ok: false, error: "That course or lesson no longer exists." };
   console.error(err);
   return { ok: false, error: "Something went wrong. Please try again." };

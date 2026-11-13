@@ -1,5 +1,5 @@
 import "server-only";
-import { courseAccessWhere, programAccess } from "../program-access";
+import { courseAccessWhere, isNoAi, NO_AI_MESSAGE, programAccess } from "../program-access";
 import type { Prisma } from "@/generated/prisma/client";
 import { db } from "../db";
 import { env } from "../env";
@@ -103,6 +103,7 @@ export async function askTutor(userId: string, input: AskInput, deps: AskDeps, e
   if (!question) throw new TutorError("Type a question first.");
   if (question.length > MAX_QUESTION_CHARS) throw new TutorError(`Please keep questions under ${MAX_QUESTION_CHARS.toLocaleString("en-US")} characters.`);
 
+  if (await isNoAi(userId)) throw new TutorError(NO_AI_MESSAGE, 403);
   const course = await ownedCourse(userId, input.courseId);
   if (course.book.status !== "READY") throw new TutorError("The book is still being read. The tutor will be ready when processing finishes.", 409);
   if (!deps.tutor) throw new TutorError("The tutor isn't set up on this server yet (no Claude API key).", 503);

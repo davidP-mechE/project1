@@ -7,6 +7,7 @@ import { regenerateLessonAction } from "@/server/actions/generation";
 import { Alert } from "@/components/ui/alert";
 import { Button, buttonClasses } from "@/components/ui/button";
 import { DotsIcon, Menu } from "@/components/ui/menu";
+import { NoAiNote, useNoAi } from "@/components/ai-access";
 
 /** Polls a lesson that's being written and refreshes the page when its status changes. */
 export function LessonStatusPoller({ courseId, lessonId, status }: { courseId: string; lessonId: string; status: string }) {
@@ -37,6 +38,7 @@ export function LessonActions({ courseId, lessonId, status, hasContent, userEdit
   const [pending, startTransition] = useTransition();
   const confirm = useRef<HTMLDialogElement>(null);
   const busy = status === "QUEUED" || status === "GENERATING";
+  const noAi = useNoAi();
 
   const run = (mode: "lesson" | "questions", allowThin = false) =>
     startTransition(async () => {
@@ -54,6 +56,7 @@ export function LessonActions({ courseId, lessonId, status, hasContent, userEdit
             Edit
           </Link>
         )}
+        {!noAi && (
         <Menu
           label="Lesson actions"
           items={[
@@ -64,6 +67,7 @@ export function LessonActions({ courseId, lessonId, status, hasContent, userEdit
         >
           <DotsIcon />
         </Menu>
+        )}
       </div>
       {error && <Alert tone="error">{error}</Alert>}
       <dialog ref={confirm} aria-labelledby="regen-title" className="m-auto w-full max-w-sm rounded-xl border border-border bg-surface p-6 text-text backdrop:bg-black/50">
@@ -92,6 +96,7 @@ export function LessonActions({ courseId, lessonId, status, hasContent, userEdit
 
 /** Buttons shown on a flagged or failed lesson. */
 export function LessonRecovery({ courseId, lessonId, kind }: { courseId: string; lessonId: string; kind: "flagged" | "failed" | "pending" }) {
+  const noAi = useNoAi();
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -102,6 +107,7 @@ export function LessonRecovery({ courseId, lessonId, kind }: { courseId: string;
       if (!res.ok) setError(res.error);
       else router.refresh();
     });
+  if (noAi) return <NoAiNote>Writing lessons uses AI, which isn&apos;t available on your account.</NoAiNote>;
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-wrap gap-2">

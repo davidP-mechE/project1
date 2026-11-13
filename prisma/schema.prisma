@@ -36,13 +36,15 @@ enum Plan {
 }
 
 model User {
-  id            String   @id
-  name          String
-  email         String   @unique
-  emailVerified Boolean  @default(false)
-  image         String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id              String   @id
+  name            String
+  email           String   @unique
+  emailVerified   Boolean  @default(false)
+  /// Sign-up choice "As a <program> mentee": becomes an "SAT only, no AI" rule at the first sign-in (after the email is verified), then cleared.
+  signupProgramId String?
+  image           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   role     Role   @default(USER)
   plan     Plan   @default(FREE)
@@ -104,13 +106,13 @@ model User {
   badges             Badge[]
 
   // Phase 3b: SAT practice tracker, question bank, Course Studio
-  testAttempts       TestAttempt[]
-  attemptComments    AttemptComment[]
-  bankQuestions      BankQuestion[]      @relation("bankAuthor")
-  questionSets       QuestionSet[]       @relation("setAuthor")
-  practiceSessions   PracticeSession[]
-  bankAttempts       BankAttempt[]
-  customTests        PracticeTest[]      @relation("testCreator")
+  testAttempts     TestAttempt[]
+  attemptComments  AttemptComment[]
+  bankQuestions    BankQuestion[]    @relation("bankAuthor")
+  questionSets     QuestionSet[]     @relation("setAuthor")
+  practiceSessions PracticeSession[]
+  bankAttempts     BankAttempt[]
+  customTests      PracticeTest[]    @relation("testCreator")
 
   /// Set on every login, for the Staff page.
   lastLoginAt      DateTime?
@@ -1083,6 +1085,8 @@ model Program {
   /// Demo data (Admin → Demo data, or npm run demo:load). Cleared in one step; never mixed with real records.
   isDemo          Boolean             @default(false)
   accessRules     ProgramAccessRule[]
+  /// Students who join one of this program's classes get an "SAT only, no AI" rule (unless they already have a rule).
+  newStudentsNoAi Boolean             @default(false)
 
   @@index([adminId])
 }
@@ -1102,6 +1106,8 @@ model ProgramAccessRule {
   programId   String
   program     Program           @relation(fields: [programId], references: [id], onDelete: Cascade)
   mode        ProgramAccessMode
+  /// With ONLY: "SAT only, no AI". The account can never cause a Claude call (src/server/limits.ts assertAiAllowed).
+  noAi        Boolean           @default(false)
   note        String?
   createdById String?
   createdAt   DateTime          @default(now())
@@ -1503,30 +1509,30 @@ enum ScoreSource {
 
 /// An SAT score: official, practice or our diagnostic. Totals, section scores and missed question numbers only.
 model ScoreRecord {
-  id           String      @id @default(cuid())
-  studentId    String
-  student      User        @relation("scores", fields: [studentId], references: [id], onDelete: Cascade)
-  source       ScoreSource
-  takenOn      DateTime
-  testName     String?
-  total        Int
-  rw           Int?
-  math         Int?
+  id            String       @id @default(cuid())
+  studentId     String
+  student       User         @relation("scores", fields: [studentId], references: [id], onDelete: Cascade)
+  source        ScoreSource
+  takenOn       DateTime
+  testName      String?
+  total         Int
+  rw            Int?
+  math          Int?
   /// The score gains are measured from (one per student).
-  isBaseline   Boolean     @default(false)
+  isBaseline    Boolean      @default(false)
   /// Missed questions on an outside test: [{ section, module, number, domain, skill?, reason? }]. No content.
-  missed       Json        @default("[]")
+  missed        Json         @default("[]")
   /// College Board "Knowledge and Skills" bands from the score report: { domainId: 1–7 }.
-  domainBands  Json        @default("{}")
+  domainBands   Json         @default("{}")
   /// A question-by-question review (Bluebook / My Practice): [{ section, module, number, domain, skill, correct }]. No content.
-  review       Json        @default("[]")
-  enteredById  String
+  review        Json         @default("[]")
+  enteredById   String
   /// Written from a completed practice-test log (the tracker); kept in step with it.
-  testAttemptId String?    @unique
+  testAttemptId String?      @unique
   testAttempt   TestAttempt? @relation(fields: [testAttemptId], references: [id], onDelete: Cascade)
-  verifiedById String?
-  verifiedAt   DateTime?
-  createdAt    DateTime    @default(now())
+  verifiedById  String?
+  verifiedAt    DateTime?
+  createdAt     DateTime     @default(now())
 
   @@index([studentId, takenOn])
 }
@@ -2181,20 +2187,20 @@ enum SetVisibility {
 }
 
 model QuestionSet {
-  id          String          @id @default(cuid())
-  title       String
-  description String?
-  authorId    String?         @map("author_id")
-  author      User?           @relation("setAuthor", fields: [authorId], references: [id], onDelete: SetNull)
-  questionIds String[]        @map("question_ids")
-  visibility  SetVisibility   @default(private)
-  status      PublishStatus   @default(draft)
+  id           String        @id @default(cuid())
+  title        String
+  description  String?
+  authorId     String?       @map("author_id")
+  author       User?         @relation("setAuthor", fields: [authorId], references: [id], onDelete: SetNull)
+  questionIds  String[]      @map("question_ids")
+  visibility   SetVisibility @default(private)
+  status       PublishStatus @default(draft)
   /// Skills its questions cover (kept in step on save), for "Focus next".
-  skillIds    String[]        @map("skill_ids")
+  skillIds     String[]      @map("skill_ids")
   /// Optional time limit for timed play.
-  timeLimitMin Int?           @map("time_limit_min")
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
+  timeLimitMin Int?          @map("time_limit_min")
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
 
   sessions    PracticeSession[]
   attempts    BankAttempt[]
@@ -2205,16 +2211,16 @@ model QuestionSet {
 
 /// One sitting of a set in the practice player (its clock, and the calculator's lifetime).
 model PracticeSession {
-  id           String      @id @default(cuid())
+  id           String            @id @default(cuid())
   userId       String
-  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user         User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   setId        String
-  set          QuestionSet @relation(fields: [setId], references: [id], onDelete: Cascade)
+  set          QuestionSet       @relation(fields: [setId], references: [id], onDelete: Cascade)
   assignmentId String?
-  assignment   Assignment? @relation(fields: [assignmentId], references: [id], onDelete: SetNull)
+  assignment   Assignment?       @relation(fields: [assignmentId], references: [id], onDelete: SetNull)
   timeLimitSec Int?
   calculator   CalculatorSetting @default(ALLOWED)
-  startedAt    DateTime    @default(now())
+  startedAt    DateTime          @default(now())
   finishedAt   DateTime?
 
   attempts BankAttempt[]
@@ -2298,9 +2304,9 @@ model StudioCourseShare {
 }
 
 model StudioUnit {
-  id       String        @id @default(cuid())
+  id       String         @id @default(cuid())
   courseId String
-  course   StudioCourse  @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  course   StudioCourse   @relation(fields: [courseId], references: [id], onDelete: Cascade)
   order    Int
   title    String
   lessons  StudioLesson[]

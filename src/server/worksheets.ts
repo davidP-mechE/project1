@@ -1,4 +1,5 @@
 import "server-only";
+import { isNoAi, NO_AI_MESSAGE } from "./program-access";
 import { db } from "./db";
 import { enqueueGeneration } from "./queue";
 import { storage, storageKeys } from "./storage";
@@ -22,6 +23,7 @@ export class WorksheetError extends Error {}
 
 /** Step 1: check the upload and hand back a URL to put the PDF at. */
 export async function createWorksheetUpload(userId: string, input: { filename: string; size: number; contentType: string; rightsConfirmed: boolean }) {
+  if (await isNoAi(userId)) throw new WorksheetError(NO_AI_MESSAGE);
   const check = validateUploadRequest({ ...input, kind: "book" });
   if (!check.ok) throw new WorksheetError(check.error.replace("this textbook", "this worksheet"));
   const limited = await rateLimit(RATE_RULES.worksheetUpload, userId);
@@ -182,6 +184,7 @@ export async function retryWorksheet(userId: string, worksheetId: string) {
   const ws = await db.worksheet.findFirst({ where: { id: worksheetId, ownerId: userId }, select: { id: true, status: true, fileKey: true } });
   if (!ws) throw new NotFoundError("Worksheet not found");
   if (ws.status !== "FAILED") return;
+  if (await isNoAi(userId)) throw new WorksheetError(NO_AI_MESSAGE);
   if (!(await storage.head(ws.fileKey))) throw new WorksheetError("The PDF is no longer stored. Upload it again.");
   await db.worksheet.update({ where: { id: ws.id }, data: { status: "READING", error: null } });
   await enqueueGeneration([{ payload: { kind: "worksheet", worksheetId: ws.id }, priority: 2 }]);

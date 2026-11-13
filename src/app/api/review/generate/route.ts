@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { isNoAi, NO_AI_MESSAGE } from "@/server/program-access";
 import { z } from "zod";
 import { getWriter } from "@/server/ai/client";
 import { claudeEnabled } from "@/server/env";
@@ -22,6 +23,7 @@ export async function POST(request: Request) {
   if (!claudeEnabled) return jsonError("Writing new questions needs an ANTHROPIC_API_KEY on the server.", 503);
   const parsed = body.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return jsonError("Invalid request.", 400);
+  if (await isNoAi(session.user.id)) return jsonError(NO_AI_MESSAGE, 403);
   const limited = await limitOrResponse(RATE_RULES.skillQuestions, session.user.id);
   if (limited) return limited;
   try {

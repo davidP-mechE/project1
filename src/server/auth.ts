@@ -69,6 +69,8 @@ export const auth = betterAuth({
     additionalFields: {
       role: { type: "string", input: false, defaultValue: "USER" },
       plan: { type: "string", input: false, defaultValue: "FREE" },
+      // Sign-up choice "As a <program> mentee" (only a public program; checked below). Never sent back to the browser.
+      signupProgramId: { type: "string", input: true, required: false, returned: false },
     },
     changeEmail: {
       enabled: true,
@@ -119,6 +121,17 @@ export const auth = betterAuth({
 
   // Must be last: lets Server Actions set auth cookies.
   databaseHooks: {
+    user: {
+      create: {
+        // A mentee choice must name a public program; anything else is dropped.
+        before: async (user) => {
+          const pid = (user as { signupProgramId?: unknown }).signupProgramId;
+          if (pid === undefined || pid === null) return;
+          const ok = typeof pid === "string" && pid.length <= 64 && (await db.program.count({ where: { id: pid, isPublic: true } })) > 0;
+          return { data: { ...user, signupProgramId: ok ? pid : null } };
+        },
+      },
+    },
     session: {
       create: {
         // Last login, for the Staff page.
@@ -126,6 +139,8 @@ export const auth = betterAuth({
           await db.user.update({ where: { id: session.userId }, data: { lastLoginAt: new Date() } }).catch(() => {});
           // OWNER_EMAIL may belong to an account made (or verified) after the server started.
           await syncOwnerRole().catch(() => {});
+          // Signed up as a program's mentee: their "SAT only, no AI" rule starts now (the email is verified).
+          await import("./programs").then((m) => m.applySignupMentee(session.userId)).catch((err) => console.warn("[auth] mentee rule not applied:", err instanceof Error ? err.message : err));
         },
       },
     },
