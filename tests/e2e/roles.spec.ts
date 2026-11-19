@@ -110,6 +110,7 @@ async function account(browser: Browser, name: string, email: string, next = "/l
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Password", { exact: true }).fill(password);
   await page.getByLabel("Confirm password").fill(password);
+  await page.getByLabel(/13 or older/).check();
   await Promise.all([page.waitForResponse((r) => r.url().includes("/api/auth/sign-up")), page.getByRole("button", { name: "Create account" }).click()]);
   await sql(`UPDATE "user" SET "emailVerified" = true WHERE email = $1`, [email]);
   await sql(`DELETE FROM "rateLimit" WHERE key LIKE '127.0.0.1%'`);

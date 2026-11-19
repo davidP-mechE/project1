@@ -55,6 +55,8 @@ const schema = z.object({
   // Send whole-course generation through the Message Batches API: half price, results usually
   // within an hour (up to 24h). Regenerating one lesson, questions and drills stay instant.
   CLAUDE_BATCH_GENERATION: z.stringbool().default(true),
+  // Reading official College Board questions from an upload (Question bank → College Board): accuracy matters most.
+  CLAUDE_MODEL_IMPORT: z.string().default("claude-opus-5-5"),
   // Grading written answers to practice questions (needs good judgement, short replies).
   CLAUDE_MODEL_GRADING: z.string().default("claude-opus-5-5"),
   CLAUDE_EFFORT_GRADING: z.enum(["low", "medium", "high", "xhigh", "max"]).default("low"),

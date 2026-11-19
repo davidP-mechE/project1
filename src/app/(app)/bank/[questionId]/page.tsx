@@ -29,7 +29,7 @@ export default async function EditQuestionPage({ params }: PageProps<"/bank/[que
       </p>
       <PageHeader
         title={q.externalId ? `Question ${q.externalId}` : "Question"}
-        description={`${q.status === "published" ? "Published" : "Draft"} · version ${q.version} · ${q._count.attempts} answer${q._count.attempts === 1 ? "" : "s"} so far · by ${q.author?.name ?? "the 1600 Project"} · source: original`}
+        description={`${q.status === "published" ? "Published" : "Draft"} · version ${q.version} · ${q._count.attempts} answer${q._count.attempts === 1 ? "" : "s"} so far · by ${q.author?.name ?? "the 1600 Project"} · source: ${q.source === "college_board" ? "College Board" : "original"}`}
       />
       <QuestionEditor
         key={`${q.id}:${q.version}:${q.updatedAt.toISOString()}`}

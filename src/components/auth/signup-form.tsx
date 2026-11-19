@@ -9,12 +9,10 @@ import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { GoogleButton, OrDivider } from "./google-button";
 
-export function SignupForm({ googleEnabled, next = "/library", program = null, menteeFirst = false }: { googleEnabled: boolean; next?: string; program?: { id: string; name: string } | null; menteeFirst?: boolean }) {
+export function SignupForm({ googleEnabled, next = "/library", programName = null }: { googleEnabled: boolean; next?: string; programName?: string | null }) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  // "As a <program> mentee": SAT practice in that program only, with no AI features (applied once the email is verified).
-  const [mentee, setMentee] = useState(Boolean(program && menteeFirst));
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -31,9 +29,8 @@ export function SignupForm({ googleEnabled, next = "/library", program = null, m
       name: String(form.get("name")).trim(),
       email,
       password,
-      callbackURL: mentee && next === "/library" ? "/classes" : next, // where the verification link lands (e.g. back to a class invite)
-      ...(mentee && program ? { signupProgramId: program.id } : {}),
-    } as Parameters<typeof authClient.signUp.email>[0]);
+      callbackURL: programName && next === "/library" ? "/classes" : next, // where the verification link lands (e.g. back to a class invite)
+    });
     setBusy(false);
     if (error) {
       setError(
@@ -52,28 +49,16 @@ export function SignupForm({ googleEnabled, next = "/library", program = null, m
       <p className="mt-1 text-sm text-muted">
         Already have one? <Link href={next === "/library" ? "/login" : `/login?next=${encodeURIComponent(next)}`} className="font-medium text-primary underline-offset-2 hover:underline">Log in</Link>
       </p>
-      {program && (
-        <fieldset className="mt-6 flex flex-col gap-2">
-          <legend className="mb-2 text-sm font-semibold">How will you use Coursebook?</legend>
-          <label className="flex cursor-pointer gap-3 rounded-md border-[1.5px] border-border p-3 has-[:checked]:border-primary">
-            <input type="radio" name="use" className="mt-1" checked={!mentee} onChange={() => setMentee(false)} />
-            <span>
-              <span className="block font-semibold">On my own</span>
-              <span className="block text-sm text-muted">Turn your own textbooks and slides into courses, with AI lessons, practice and a tutor.</span>
-            </span>
-          </label>
-          <label className="flex cursor-pointer gap-3 rounded-md border-[1.5px] border-border p-3 has-[:checked]:border-primary">
-            <input type="radio" name="use" className="mt-1" checked={mentee} onChange={() => setMentee(true)} />
-            <span>
-              <span className="block font-semibold">As a mentee in {program.name}</span>
-              <span className="block text-sm text-muted">SAT practice with your mentors: your classes, practice sets, the SAT practice log and Desmos. No AI features.</span>
-            </span>
-          </label>
-        </fieldset>
+      {programName && (
+        <p className="mt-6 rounded-md border-[1.5px] border-border p-3 text-sm">
+          <span className="block font-semibold">You&apos;re joining {programName}</span>
+          <span className="block text-muted">SAT practice with your mentors: your classes, practice sets, the SAT practice log and Desmos. A program admin can change what your account can use.</span>
+        </p>
       )}
-      {googleEnabled && !mentee && (
+      {googleEnabled && (
         <>
           <div className="mt-6"><GoogleButton /></div>
+          <p className="mt-2 text-xs text-muted">By continuing with Google you confirm you&apos;re 13 or older and, if you&apos;re under 18, that your parent or guardian agrees to the Terms.</p>
           <OrDivider />
         </>
       )}
@@ -83,6 +68,10 @@ export function SignupForm({ googleEnabled, next = "/library", program = null, m
         <Field label="Email" name="email" type="email" autoComplete="email" required />
         <Field label="Password" name="password" type="password" autoComplete="new-password" required minLength={8} maxLength={128} hint="At least 8 characters." />
         <Field label="Confirm password" name="confirm" type="password" autoComplete="new-password" required minLength={8} />
+        <label className="flex gap-2 text-sm">
+          <input type="checkbox" name="age" required className="mt-1" />
+          <span>I&apos;m 13 or older. If I&apos;m under 18, my parent or guardian knows I&apos;m signing up and agrees to the Terms.</span>
+        </label>
         <p className="text-xs text-muted">
           By signing up you agree to the <Link href="/terms" className="underline">Terms</Link> and{" "}
           <Link href="/privacy" className="underline">Privacy Policy</Link>.

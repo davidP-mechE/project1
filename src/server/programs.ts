@@ -298,7 +298,7 @@ export async function applyNewStudentDefault(userId: string, programId: string) 
 }
 
 /**
- * Sign-up choice "As a <program> mentee": at the account's first sign-in (only
+ * Every new account starts as a mentee of the featured program: at its first sign-in (only
  * possible once the email is verified), give it that program's "SAT only, no AI"
  * rule, unless it already has a rule there, then clear the choice. Only the
  * address's owner can trigger this, so nobody can put someone else's email into
@@ -310,7 +310,8 @@ export async function applySignupMentee(userId: string) {
   const programId = u.signupProgramId;
   await db.user.update({ where: { id: userId }, data: { signupProgramId: null } });
   if (u.role === "ADMIN" || u.role === "OWNER") return false;
-  const p = await db.program.findFirst({ where: { id: programId, isPublic: true }, select: { id: true, name: true, adminId: true } });
+  // signupProgramId is only ever set on the server (the featured program, src/server/auth.ts), so any program is accepted here.
+  const p = await db.program.findUnique({ where: { id: programId }, select: { id: true, name: true, adminId: true } });
   if (!p || p.adminId === userId) return false;
   const email = normalizeEmail(u.email);
   if (await db.programAccessRule.findUnique({ where: { email_programId: { email, programId } }, select: { id: true } })) return false;

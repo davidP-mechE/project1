@@ -30,7 +30,7 @@ export default async function ImportPage() {
             <li>distractor_notes: for MCQ, the mistake behind each wrong letter ({`{"A": "…"}`}); for grid-ins, each likely wrong value. In a CSV, write it as JSON text.</li>
             <li>skill: the skill&apos;s name (e.g. Linear equations in one variable). difficulty: 1, 2 or 3. section: math or rw.</li>
             <li>desmos_technique (optional): {DESMOS_TECHNIQUES.join(", ")}.</li>
-            <li>source, if given, must be original. Official College Board questions can&apos;t be imported.</li>
+            <li>source (optional): original or college_board. To read College Board questions from a PDF or screenshots, use <Link href="/bank/college-board" className="underline">College Board</Link>.</li>
           </ul>
         </details>
       </Card>

@@ -225,7 +225,7 @@ async function reopen(attemptId: string) {
  * question numbers, domains and skills: never question content.
  */
 async function syncScoreRecord(attemptId: string) {
-  const a = await db.testAttempt.findUniqueOrThrow({ where: { id: attemptId }, include: { test: true, items: { include: { skill: true } } } });
+  const a = await db.testAttempt.findUniqueOrThrow({ where: { id: attemptId }, include: { test: true, items: { include: { skill: true }, orderBy: [{ section: "desc" }, { module: "asc" }, { questionNumber: "asc" }] } } });
   if (a.total === null) return;
   const missed = a.items
     .filter((i) => i.result !== "correct")

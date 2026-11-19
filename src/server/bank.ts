@@ -8,7 +8,8 @@ import { checkBankAnswer, LETTERS } from "@/lib/bank/answers";
 import { readRecords, skillResolver, techniqueFromDb, techniqueToDb, validateRecord, validateRecords, type ImportedQuestion, type RowResult } from "@/lib/bank/import";
 
 /**
- * The question bank: original questions only (source is always "original").
+ * The question bank: original questions, and official College Board questions
+ * added from the College Board upload page (source "college_board", private to the program).
  *
  * Who can do what (checked here, on the server, for every page and route):
  *   owner, approved tutors   see every question; create, import, edit and build sets.
@@ -255,7 +256,7 @@ export async function runImport(text: string, format: "csv" | "json", opts: { co
     await db.$transaction(async (tx) => {
       for (const r of todo) {
         const d = r.data!;
-        const q = await tx.bankQuestion.create({ data: { ...contentOf(d), externalId: d.externalId, authorId, source: "original", status: "draft", ...(d.desmosState ? { desmosState: d.desmosState as Prisma.InputJsonValue } : {}) }, select: { id: true } });
+        const q = await tx.bankQuestion.create({ data: { ...contentOf(d), externalId: d.externalId, authorId, source: d.source, status: "draft", ...(d.desmosState ? { desmosState: d.desmosState as Prisma.InputJsonValue } : {}) }, select: { id: true } });
         questionIds.push(q.id);
       }
     });
@@ -386,7 +387,7 @@ async function playAccess(userId: string, setId: string, assignmentId?: string |
 /** Questions as the player shows them: never the answer, explanation or notes (those come back after answering). */
 async function playableQuestions(setIds: string[], isAuthor: boolean) {
   const qs = await db.bankQuestion.findMany({
-    where: { id: { in: setIds }, source: "original", ...(isAuthor ? {} : { status: "published" }) },
+    where: { id: { in: setIds }, ...(isAuthor ? {} : { status: "published" }) },
     select: { id: true, version: true, type: true, section: true, stem: true, choices: true, imageUrl: true, difficulty: true, skill: { select: { name: true } } },
   });
   const byId = new Map(qs.map((q) => [q.id, q]));

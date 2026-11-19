@@ -13,22 +13,17 @@ The final review of Coursebook and The 1600 Project's setup on it, most serious 
 
    Complete them with your school and remove the `draft` lists in `src/app/(marketing)/privacy/page.tsx` and `terms/page.tsx`.
 
-2. **Sign-up has no age check or parental consent step.** Anyone with an email address can create an account. If the school requires consent for minors, add it to sign-up (or invite-only sign-up) before launch. This is tied to item 1.
+2. **Sign-up has an age confirmation, not a parental consent step.** Sign-up now asks people to confirm they're 13 or older and, if under 18, that a parent or guardian agrees (a checkbox; the Google button shows the same statement). It isn't verified. If the school requires recorded parental consent for minors, add it (or invite-only sign-up) before launch. This is tied to item 1.
 
 3. **Confirm that the program admin may read every message thread.** Students are told on the messages page and in Help. Get the school's agreement that this matches its safeguarding policy.
 
-4. **Sign-in limit vs. a classroom on one network.** Sign-in is limited to 5 attempts per minute per IP address (`src/server/auth.ts`, the `"/sign-in/email"` rule). A class logging in together from school Wi-Fi shares one IP, so the 6th student in a minute is told to wait. Decide whether to:
-   - raise the limit (for example to 30 a minute),
-   - stagger log-ins, or
-   - accept it.
-
-   The browser tests work around it by clearing the limiter between test accounts. The limit itself is unchanged.
+4. **Sign-in limit vs. a classroom on one network:** resolved. Sign-in now allows 30 attempts per minute per IP address and sign-up 20 (`src/server/auth.ts`), enough for a class logging in together on school Wi-Fi.
 
 5. **Production settings to double-check:**
    - `STAFF_TWO_FACTOR` must be unset (two-factor login enforced for staff).
    - `DEMO_LOGINS` must be unset or `false`. It's ignored when `APP_ENV=production`, but don't rely on that alone.
    - `SMTP_*` must be set. Without it, invites, notification emails and password resets fail. Failures are logged, not shown.
-   - `FEATURED_PROGRAM_SLUG` should be `1600` on your school's deployment.
+   - `FEATURED_PROGRAM_SLUG` must be `1600` on your school's deployment. Every new account starts in that program as a mentee (SAT only, no AI); without it, new accounts start unrestricted.
    - The 1600 Project's public page must be switched on from the program page: address `1600`, starting average 970, goal gain 300, "Public page is live".
 
 ## High

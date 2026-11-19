@@ -204,19 +204,20 @@ describe("turning it on", () => {
     expect(await isNoAi(later.id)).toBe(false);
   });
 
-  it("signing up as a mentee becomes the rule once the email is verified, for a public program only", async () => {
+  it("the sign-up program becomes the rule once the email is verified, and only once", async () => {
     const f = await fixture();
-    await db.program.update({ where: { id: f.program.id }, data: { slug: "1600", isPublic: true } });
+    await db.program.update({ where: { id: f.program.id }, data: { slug: "1600" } });
     const mentee = await db.user.create({ data: { id: `m-${Date.now()}`, name: "Mentee", email: "mentee@example.com", emailVerified: false, signupProgramId: f.program.id } });
     expect(await applySignupMentee(mentee.id)).toBe(false); // not verified yet
     await db.user.update({ where: { id: mentee.id }, data: { emailVerified: true } });
     expect(await applySignupMentee(mentee.id)).toBe(true);
     expect(await isNoAi(mentee.id)).toBe(true);
     expect((await db.user.findUniqueOrThrow({ where: { id: mentee.id } })).signupProgramId).toBeNull();
+    expect(await applySignupMentee(mentee.id)).toBe(false); // already applied
 
-    const hidden = await createProgram(f.admin.id, "Private program");
-    const other = await db.user.create({ data: { id: `o-${Date.now()}`, name: "Other", email: "other@example.com", emailVerified: true, signupProgramId: hidden.id } });
-    expect(await applySignupMentee(other.id)).toBe(false);
-    expect(await isNoAi(other.id)).toBe(false);
+    // An admin's later change sticks: the rule isn't re-created.
+    await db.programAccessRule.deleteMany({ where: { email: "mentee@example.com" } });
+    expect(await applySignupMentee(mentee.id)).toBe(false);
+    expect(await isNoAi(mentee.id)).toBe(false);
   });
 });

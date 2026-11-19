@@ -69,8 +69,8 @@ export const auth = betterAuth({
     additionalFields: {
       role: { type: "string", input: false, defaultValue: "USER" },
       plan: { type: "string", input: false, defaultValue: "FREE" },
-      // Sign-up choice "As a <program> mentee" (only a public program; checked below). Never sent back to the browser.
-      signupProgramId: { type: "string", input: true, required: false, returned: false },
+      // The program every new account starts in (FEATURED_PROGRAM_SLUG), set below on the server. Never sent by or back to the browser.
+      signupProgramId: { type: "string", input: false, required: false, returned: false },
     },
     changeEmail: {
       enabled: true,
@@ -104,8 +104,11 @@ export const auth = betterAuth({
     window: 60,
     max: 100,
     customRules: {
-      "/sign-in/email": { window: 60, max: 5 },
-      "/sign-up/email": { window: 60, max: 5 },
+      // Per IP address. A class on school Wi-Fi shares one address, so these allow a whole class
+      // signing in (or up) in the same minute. Passwords stay safe: a wrong password still costs a try,
+      // and 30 a minute is far too slow to guess an 8+ character password.
+      "/sign-in/email": { window: 60, max: 30 },
+      "/sign-up/email": { window: 60, max: 20 },
       "/request-password-reset": { window: 300, max: 3 },
       "/send-verification-email": { window: 300, max: 3 },
       // Two-factor codes: 5 tries a minute stops guessing (the plugin also locks after repeated failures).
@@ -123,12 +126,12 @@ export const auth = betterAuth({
   databaseHooks: {
     user: {
       create: {
-        // A mentee choice must name a public program; anything else is dropped.
+        // Every new account starts in the featured program (The 1600 Project) as a mentee: that program only, no AI.
+        // Only an admin can change it afterwards (Admin → Access, or the program's Access rules). Applied at the first verified sign-in.
         before: async (user) => {
-          const pid = (user as { signupProgramId?: unknown }).signupProgramId;
-          if (pid === undefined || pid === null) return;
-          const ok = typeof pid === "string" && pid.length <= 64 && (await db.program.count({ where: { id: pid, isPublic: true } })) > 0;
-          return { data: { ...user, signupProgramId: ok ? pid : null } };
+          const slug = env.FEATURED_PROGRAM_SLUG;
+          const program = slug ? await db.program.findUnique({ where: { slug }, select: { id: true } }) : null;
+          return { data: { ...user, signupProgramId: program?.id ?? null } };
         },
       },
     },

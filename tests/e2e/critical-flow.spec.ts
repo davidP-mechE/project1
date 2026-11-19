@@ -171,6 +171,7 @@ test("the full student journey works, is accessible, and respects the CSP", asyn
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Password", { exact: true }).fill(password);
   await page.getByLabel("Confirm password").fill(password);
+  await page.getByLabel(/13 or older/).check();
   await Promise.all([page.waitForResponse((r) => r.url().includes("/api/auth/sign-up")), page.getByRole("button", { name: "Create account" }).click()]);
   await sql(`UPDATE "user" SET "emailVerified" = true WHERE email = $1`, [email]);
   await page.goto("/login");
@@ -451,6 +452,7 @@ test("the full student journey works, is accessible, and respects the CSP", asyn
   await sp.getByLabel("Email").fill(studentEmail);
   await sp.getByLabel("Password", { exact: true }).fill(password);
   await sp.getByLabel("Confirm password").fill(password);
+  await sp.getByLabel(/13 or older/).check();
   await Promise.all([sp.waitForResponse((r) => r.url().includes("/api/auth/sign-up")), sp.getByRole("button", { name: "Create account" }).click()]);
   await sql(`UPDATE "user" SET "emailVerified" = true WHERE email = $1`, [studentEmail]);
   await sp.goto(`/login?next=${encodeURIComponent(`/join/${code}`)}`);
@@ -514,6 +516,7 @@ test("the full student journey works, is accessible, and respects the CSP", asyn
   await xp.getByLabel("Email").fill(specEmail);
   await xp.getByLabel("Password", { exact: true }).fill(password);
   await xp.getByLabel("Confirm password").fill(password);
+  await xp.getByLabel(/13 or older/).check();
   await Promise.all([xp.waitForResponse((r) => r.url().includes("/api/auth/sign-up")), xp.getByRole("button", { name: "Create account" }).click()]);
   await sql(`UPDATE "user" SET "emailVerified" = true WHERE email = $1`, [specEmail]);
   await xp.goto("/login");

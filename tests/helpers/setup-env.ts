@@ -16,4 +16,5 @@ process.env.BETTER_AUTH_SECRET ||= "test-secret-test-secret-test-secret";
 // they inject a fake writer (tests/helpers/fake-claude.ts).
 process.env.ANTHROPIC_API_KEY = "test-key-not-real";
 process.env.STAFF_TWO_FACTOR = "off"; // the permission tests turn it on where they check it
+process.env.FEATURED_PROGRAM_SLUG = "1600"; // every sign-up starts in the program with this address (when one exists)
 process.env.CLAUDE_BATCH_GENERATION = "false"; // the direct path; batch tests drive the batch path themselves

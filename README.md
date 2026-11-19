@@ -32,7 +32,7 @@ npm install                 # also generates the database client
 cp .env.example .env        # then edit .env (see below)
 docker compose up -d        # starts Postgres, Redis and Mailpit
 npm run db:migrate          # creates the database tables
-npm run db:seed             # SAT skills, error types, practice-test catalog, studio drafts, the weeks 3–6 questions
+npm run db:seed             # SAT skills, error types, practice-test catalog, studio drafts, the weeks 3–6 math and R&W lesson 1–4 questions
 npm run dev                 # web app: http://localhost:3000
 ```
 

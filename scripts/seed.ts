@@ -11,7 +11,7 @@
 import { ensureReferenceData } from "../src/server/seed/reference";
 import { syncOwnerRole } from "../src/server/roles";
 import { db } from "../src/server/db";
-import { QUESTION_FILE, seedQuestionFile } from "../src/server/seed/questions";
+import { ELA_QUESTION_FILE, QUESTION_FILE, seedQuestionFile } from "../src/server/seed/questions";
 
 async function main() {
   const ref = await ensureReferenceData({ onlyIfEmpty: false });
@@ -21,6 +21,9 @@ async function main() {
   const { report } = q;
   console.log(`${QUESTION_FILE}: ${report.rows.length} rows, ${report.imported} imported as drafts, ${report.skipped.length} already in the bank, ${report.failed} failed.`);
   for (const r of report.rows.filter((x) => !x.ok)) console.log(`  row ${r.row} (${r.externalId ?? "no id"}): ${r.errors.join(" ")}`);
+  const ela = q.elaReport;
+  console.log(`${ELA_QUESTION_FILE}: ${ela.rows.length} rows, ${ela.imported} imported as drafts, ${ela.skipped.length} already in the bank, ${ela.failed} failed.`);
+  for (const r of ela.rows.filter((x) => !x.ok)) console.log(`  row ${r.row} (${r.externalId ?? "no id"}): ${r.errors.join(" ")}`);
   for (const s of q.sets) console.log(`  Set "${s.title}": ${s.count} questions${s.created ? " (created, draft)" : " (already there)"}`);
   if (!q.authorFound) console.log("  No owner account yet: the questions have no author until the OWNER_EMAIL account exists and you run this again.");
   console.log(process.env.OWNER_EMAIL ? `Owner role: ${roles.promoted ? "given to OWNER_EMAIL" : "already set (or that account doesn't exist yet)"}.` : "OWNER_EMAIL isn't set: no owner.");

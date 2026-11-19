@@ -33,6 +33,7 @@ const FEATURE_LABELS: Record<string, string> = {
   DRAFT: "Drafted questions and lessons",
   SUMMARY: "Weekly summaries",
   ASSISTANT: "Assistant questions",
+  QUESTION_IMPORT: "College Board uploads",
 };
 
 function Section({ id, title, description, children }: { id: string; title: string; description?: string; children: ReactNode }) {

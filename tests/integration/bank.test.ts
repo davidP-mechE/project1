@@ -5,7 +5,7 @@ import { NotFoundError } from "@/server/courses";
 import * as bank from "@/server/bank";
 import { syncOwnerRole } from "@/server/roles";
 import { ensureReferenceData } from "@/server/seed/reference";
-import { seedQuestionFile, WEEK_SETS } from "@/server/seed/questions";
+import { ELA_SETS, seedQuestionFile, WEEK_SETS } from "@/server/seed/questions";
 import { createUser, resetDb } from "../helpers/db";
 
 const root = path.resolve(import.meta.dirname, "../..");
@@ -49,10 +49,10 @@ describe("question bank", () => {
 
   it("imports all 240 questions from the 1600 Project file as drafts, with the four week sets", async () => {
     const { owner } = await people();
-    const { report, sets } = await seedQuestionFile(root);
+    const { report, elaReport, sets } = await seedQuestionFile(root);
     expect(report.failed).toBe(0);
     expect(report.imported).toBe(240);
-    expect(await db.bankQuestion.count({ where: { status: "draft", source: "original", authorId: owner.id } })).toBe(240);
+    expect(await db.bankQuestion.count({ where: { status: "draft", source: "original", authorId: owner.id } })).toBe(240 + 33);
     const q = await db.bankQuestion.findUniqueOrThrow({ where: { externalId: "W3-01" }, include: { skill: true } });
     expect(q).toMatchObject({ week: 3, lesson: "1.1", blueprint: "L1", answer: "D", answerText: "3", type: "mcq" });
     expect(q.skill?.name).toBe("Linear equations in one variable");
@@ -60,27 +60,50 @@ describe("question bank", () => {
     const g = await db.bankQuestion.findUniqueOrThrow({ where: { externalId: "W3-25" } });
     expect(g.type).toBe("grid_in");
     expect(g.distractorNotes).toHaveProperty("−5");
-    expect(sets.map((s) => [s.title, s.count])).toEqual(WEEK_SETS.map((w) => [w.title, 60]));
-    expect(await db.questionSet.count({ where: { status: "draft" } })).toBe(4);
+    expect(sets.slice(0, 4).map((s) => [s.title, s.count])).toEqual(WEEK_SETS.map((w) => [w.title, 60]));
+    // The Reading and Writing file: 33 questions, one set per lesson, in blueprint order (E9 before E10).
+    expect(elaReport.failed).toBe(0);
+    expect(elaReport.imported).toBe(33);
+    expect(sets.slice(4).map((s) => [s.title, s.count])).toEqual(ELA_SETS.map((l, i) => [l.title, [3, 9, 15, 6][i]]));
+    const e = await db.bankQuestion.findUniqueOrThrow({ where: { externalId: "ELA-E1-1" }, include: { skill: true } });
+    expect(e).toMatchObject({ section: "rw", lesson: "ELA-W2", answer: "C", type: "mcq", source: "original", authorId: owner.id });
+    expect(e.skill?.name).toBe("Boundaries");
+    const w4 = await db.questionSet.findFirstOrThrow({ where: { title: ELA_SETS[3].title } });
+    const w4Qs = await db.bankQuestion.findMany({ where: { id: { in: w4.questionIds } }, select: { id: true, externalId: true } });
+    expect(w4.questionIds.map((id) => w4Qs.find((q) => q.id === id)?.externalId)).toEqual(["ELA-E9-1", "ELA-E9-2", "ELA-E9-3", "ELA-E10-1", "ELA-E10-2", "ELA-E10-3"]);
+    expect(await db.questionSet.count({ where: { status: "draft" } })).toBe(8);
     // Running it again adds nothing.
     const again = await seedQuestionFile(root);
     expect(again.report.imported).toBe(0);
     expect(again.report.skipped).toHaveLength(240);
-    expect(await db.questionSet.count()).toBe(4);
+    expect(again.elaReport.imported).toBe(0);
+    expect(await db.questionSet.count()).toBe(8);
   });
 
   it("previews row-level errors, imports the good rows, and ignores unknown fields", async () => {
     const { tutor } = await people();
-    const rows = [{ ...mcq, mystery_field: "ignored" }, { ...mcq, external_id: "T-bad", answer: "E" }, { ...mcq, external_id: "T-cb", source: "college board" }, { ...grid }];
+    const rows = [{ ...mcq, mystery_field: "ignored" }, { ...mcq, external_id: "T-bad", answer: "E" }, { ...mcq, external_id: "T-src", source: "textbook" }, { ...grid }];
     const preview = await bank.importQuestions(tutor.id, JSON.stringify(rows), "json", { commit: false });
     expect(preview.failed).toBe(2);
     expect(preview.imported).toBe(2);
     expect(preview.rows[1].errors.join(" ")).toMatch(/letter A–D/);
-    expect(preview.rows[2].errors.join(" ")).toMatch(/Only original/);
+    expect(preview.rows[2].errors.join(" ")).toMatch(/Source must be/);
     expect(await db.bankQuestion.count()).toBe(0);
     const done = await bank.importQuestions(tutor.id, JSON.stringify(rows), "json", { commit: true });
     expect(done.imported).toBe(2);
     expect(await db.bankQuestion.count({ where: { status: "draft" } })).toBe(2);
+  });
+
+  it("imports College Board questions with their source, and plays them in sets", async () => {
+    const { tutor } = await people();
+    const r = await bank.importQuestions(tutor.id, JSON.stringify([{ ...mcq, external_id: "CB-abc123", source: "college_board" }]), "json", { commit: true });
+    expect(r.imported).toBe(1);
+    const q = await db.bankQuestion.findUniqueOrThrow({ where: { externalId: "CB-abc123" } });
+    expect(q.source).toBe("college_board");
+    const set = await bank.createSet(tutor.id, { title: "CB set", questionIds: [q.id] });
+    const s = await bank.startPractice(tutor.id, set.id);
+    const state = await bank.practiceState(tutor.id, s.sessionId);
+    expect(JSON.stringify(state)).toContain(q.id);
   });
 
   it("imports CSV with JSON distractor notes", async () => {

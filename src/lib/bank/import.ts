@@ -13,8 +13,12 @@ export type DesmosTechniqueName = (typeof DESMOS_TECHNIQUES)[number];
 export const techniqueToDb = (t: DesmosTechniqueName) => t.replace(/-/g, "_") as "intersection" | "overlap" | "shading" | "sliders" | "regression" | "list_plug_in" | "table";
 export const techniqueFromDb = (t: string) => t.replace(/_/g, "-") as DesmosTechniqueName;
 
+/** Where a question comes from: written for the program, or an official College Board question (kept private to the program). */
+export type QuestionSourceName = "original" | "college_board";
+
 export type ImportedQuestion = {
   externalId: string | null;
+  source: QuestionSourceName;
   section: "math" | "rw";
   skillId: string;
   type: "mcq" | "grid_in";
@@ -151,7 +155,14 @@ const opt = (v: unknown, max = 200) => {
 function sectionOf(v: unknown): "math" | "rw" | null {
   const s = str(v).toLowerCase();
   if (!s || s === "math") return s ? "math" : null;
-  if (["rw", "r&w", "ebrw", "reading and writing", "reading & writing"].includes(s)) return "rw";
+  if (["rw", "r&w", "ebrw", "reading and writing", "reading & writing", "reading-writing", "reading-and-writing", "reading/writing"].includes(s)) return "rw";
+  return null;
+}
+
+function sourceOf(v: unknown): QuestionSourceName | null {
+  const s = str(v).toLowerCase().replace(/[\s-]+/g, "_");
+  if (!s || s === "original") return "original";
+  if (["college_board", "collegeboard", "cb", "official"].includes(s)) return "college_board";
   return null;
 }
 
@@ -191,8 +202,8 @@ export function validateRecord(rec: Record<string, unknown>, row: number, resolv
   const errors: string[] = [];
   const warnings: string[] = [];
   const externalId = opt(rec.external_id ?? rec.id, 64);
-  const source = str(rec.source).toLowerCase();
-  if (source && source !== "original") errors.push(`Only original questions can be imported (source is "${str(rec.source)}").`);
+  const source = sourceOf(rec.source);
+  if (!source) errors.push(`Source must be "original" or "college_board" (got "${str(rec.source)}").`);
 
   const section = sectionOf(rec.section ?? "math");
   if (!section) errors.push(`Section must be "math" or "rw" (got "${str(rec.section)}").`);
@@ -255,6 +266,7 @@ export function validateRecord(rec: Record<string, unknown>, row: number, resolv
     errors.length === 0
       ? {
           externalId,
+          source: source!,
           section: section!,
           skillId: skillId!,
           type: type!,

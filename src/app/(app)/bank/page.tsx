@@ -51,6 +51,7 @@ export default async function BankPage({ searchParams }: PageProps<"/bank">) {
           <>
             <ButtonLink href="/bank/new" size="sm">New question</ButtonLink>
             <ButtonLink href="/bank/import" size="sm" variant="secondary">Import</ButtonLink>
+            <ButtonLink href="/bank/college-board" size="sm" variant="secondary">College Board</ButtonLink>
             <ButtonLink href="/bank/sets" size="sm" variant="secondary">Sets</ButtonLink>
           </>
         }

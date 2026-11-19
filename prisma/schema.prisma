@@ -914,6 +914,8 @@ enum UsageFeature {
   DRAFT
   SUMMARY
   ASSISTANT
+  /// Reading College Board questions from an upload (Question bank → College Board).
+  QUESTION_IMPORT
 }
 
 model UsageEvent {
@@ -2095,6 +2097,8 @@ model AttemptComment {
 
 enum QuestionSource {
   original
+  /// An official College Board question added from Question bank → College Board (kept private to the program).
+  college_board
 }
 
 enum BankQuestionType {
