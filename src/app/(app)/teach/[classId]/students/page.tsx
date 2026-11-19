@@ -142,14 +142,6 @@ export default async function StudentsPage({
         </Card>
       )}
       {manage && (
-        <Card className="flex flex-col gap-3">
-          <h2 className="text-lg font-semibold">Parent progress emails</h2>
-          <p className="text-sm text-muted">
-            Weekly or monthly progress emails go to guardians who agreed (add them on each student&apos;s page). The program admin turns them on for the whole program on the program page. Preview a student&apos;s email from their page.
-          </p>
-        </Card>
-      )}
-      {manage && (
         <Card className="flex flex-col gap-4">
           <h2 className="text-lg font-semibold">Class settings</h2>
           <RenameClassForm classId={c.id} name={c.name} />

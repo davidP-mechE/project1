@@ -190,25 +190,6 @@ export function staffDigestMessage(input: { to: string; lines: { className: stri
   return { to: input.to, subject: `Coursebook: ${total} ${total === 1 ? "alert" : "alerts"} today`, text: `${intro}\n\n${body}\n\n${input.url}\n\n${outro}`, html: layout("Today's alerts", `${intro} ${input.lines.map((l) => l.examples.join("; ")).join("; ")}`, "Open your classes", input.url, outro) };
 }
 
-/** A guardian's weekly summary: fixed wording from the data, with a one-click unsubscribe. */
-export function guardianSummaryMessage(input: { to: string; guardianName: string; studentName: string; doneThisWeek: number; overdue: string[]; attended: number; sessions: number; latestScore: string | null; focus: string | null; unsubscribeUrl: string }): EmailMessage {
-  const lines = [
-    `Assignments finished this week: ${input.doneThisWeek}.`,
-    input.overdue.length ? `Overdue: ${input.overdue.slice(0, 5).join(", ")}${input.overdue.length > 5 ? ` and ${input.overdue.length - 5} more` : ""}.` : "Nothing overdue.",
-    input.sessions ? `Sessions attended: ${input.attended} of ${input.sessions}.` : null,
-    input.latestScore ? `Latest SAT score: ${input.latestScore}.` : null,
-    input.focus ? `Suggested focus for next week: ${input.focus}.` : null,
-  ].filter(Boolean) as string[];
-  const intro = `Hi ${input.guardianName}, here's ${input.studentName}'s week in their SAT tutoring program. ${lines.join(" ")}`;
-  const outro = "You're receiving this because you agreed to weekly updates. To stop them, use the link below.";
-  return {
-    to: input.to,
-    subject: `${input.studentName}'s week in SAT tutoring`,
-    text: `Hi ${input.guardianName},\n\nHere's ${input.studentName}'s week in their SAT tutoring program.\n\n${lines.map((l) => `- ${l}`).join("\n")}\n\n${outro}\nUnsubscribe: ${input.unsubscribeUrl}`,
-    html: layout(`${input.studentName}'s week`, intro, "Unsubscribe", input.unsubscribeUrl, outro),
-  };
-}
-
 /** A new (or recurring) error on the site, for the site admins. */
 export function errorAlertMessage(input: { to: string; kind: string; message: string; path: string; count: number; url: string }): EmailMessage {
   const intro = `A ${input.kind} error ${input.count > 1 ? `has happened ${input.count} times` : "just happened"}${input.path ? ` on ${input.path}` : ""}: "${input.message}".`;
@@ -250,48 +231,6 @@ export function attentionMessage(input: { to: string; count: number; url: string
   const intro = `${n} on your needs-attention list today. Log in to see why, and to message them, assign practice or mark them handled.`;
   const outro = `To stop these emails, change Settings → Notifications (${input.settingsUrl}).`;
   return { to: input.to, subject: `${n} need${input.count === 1 ? "s" : ""} attention`, text: `${intro}\n\n${input.url}\n\n${outro}`, html: layout(`${n} need${input.count === 1 ? "s" : ""} attention`, intro, "Open needs attention", input.url, outro) };
-}
-
-export type GuardianProgress = {
-  period: "week" | "month";
-  minutes: number;
-  answered: number;
-  accuracy: number | null;
-  previousAccuracy: number | null;
-  latestScore: { total: number; label: string } | null;
-  estimate: { low: number; high: number } | null;
-  focus: string | null;
-  testDate: string | null;
-};
-
-/** The weekly or monthly progress email to a guardian who agreed to it. Facts from the data; no AI. */
-export function guardianProgressMessage(input: { to: string; guardianName: string; studentName: string; programName: string; report: GuardianProgress; unsubscribeUrl: string }): EmailMessage {
-  const r = input.report;
-  const pct = (x: number) => `${Math.round(x * 100)}%`;
-  const trend =
-    r.accuracy === null
-      ? "No practice questions answered this " + r.period + "."
-      : r.previousAccuracy === null
-        ? `Accuracy: ${pct(r.accuracy)}.`
-        : `Accuracy: ${pct(r.accuracy)} (${r.accuracy > r.previousAccuracy + 0.02 ? "up" : r.accuracy < r.previousAccuracy - 0.02 ? "down" : "about the same"} from ${pct(r.previousAccuracy)} the ${r.period} before).`;
-  const lines = [
-    `Practice time: ${r.minutes} minute${r.minutes === 1 ? "" : "s"}.`,
-    `Questions answered: ${r.answered}.`,
-    trend,
-    r.latestScore ? `Latest score: ${r.latestScore.total} (${r.latestScore.label}).` : "No SAT score recorded yet.",
-    r.estimate ? `Estimated score now: ${r.estimate.low}–${r.estimate.high} (an estimate from recent scores and practice, not an official score).` : null,
-    r.focus ? `Focus for next week: ${r.focus}.` : null,
-    r.testDate ? `Upcoming test date: ${r.testDate}.` : null,
-  ].filter(Boolean) as string[];
-  const title = `${input.studentName}'s ${r.period} in ${input.programName}`;
-  const intro = `Hi ${input.guardianName}, here's ${input.studentName}'s ${r.period} of SAT practice. ${lines.join(" ")}`;
-  const outro = `You're receiving this because you agreed to ${r.period === "week" ? "weekly" : "monthly"} updates from ${input.programName}. To stop them, use the link below.`;
-  return {
-    to: input.to,
-    subject: title,
-    text: `Hi ${input.guardianName},\n\nHere's ${input.studentName}'s ${r.period} of SAT practice in ${input.programName}.\n\n${lines.map((l) => `- ${l}`).join("\n")}\n\n${outro}\nUnsubscribe: ${input.unsubscribeUrl}`,
-    html: layout(title, intro, "Unsubscribe", input.unsubscribeUrl, outro),
-  };
 }
 
 /** Office hours: booked, cancelled, or tomorrow's reminder. */

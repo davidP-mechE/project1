@@ -6,14 +6,12 @@ import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import {
-  addGuardianAction,
   createSessionsAction,
   deleteSessionAction,
   dismissAlertAction,
   importRosterAction,
   markAttendanceAction,
   previewRosterAction,
-  removeGuardianAction,
 } from "@/server/actions/cohort";
 import { cn } from "@/lib/utils";
 
@@ -202,60 +200,6 @@ export function RosterImport({ classId }: { classId: string }) {
       )}
       {bad > 0 && <Alert tone="error">Fix the {bad} {bad === 1 ? "row" : "rows"} in red; nothing is sent until every row is OK.</Alert>}
       {msg && <Alert tone={msg.tone}>{msg.text}</Alert>}
-    </div>
-  );
-}
-
-export function GuardianForm({ classId, studentId, guardians }: { classId: string; studentId: string; guardians: { id: string; name: string; email: string; relationship: string; unsubscribedAt: Date | null }[] }) {
-  const router = useRouter();
-  const [form, setForm] = useState({ name: "", email: "", relationship: "", consent: false });
-  const [error, setError] = useState<string | null>(null);
-  const [pending, start] = useTransition();
-  return (
-    <div className="flex flex-col gap-3">
-      {guardians.length > 0 && (
-        <ul className="flex flex-col divide-y divide-border text-sm">
-          {guardians.map((g) => (
-            <li key={g.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
-              <span>
-                {g.name}
-                {g.relationship && ` (${g.relationship})`} · {g.email}
-                {g.unsubscribedAt && <span className="ml-2 text-xs text-muted">unsubscribed</span>}
-              </span>
-              <Button size="sm" variant="ghost" disabled={pending} onClick={() => start(async () => { await removeGuardianAction(classId, studentId, g.id); router.refresh(); })}>
-                Remove
-              </Button>
-            </li>
-          ))}
-        </ul>
-      )}
-      <form
-        className="grid gap-3 sm:grid-cols-3"
-        onSubmit={(e) => {
-          e.preventDefault();
-          start(async () => {
-            const r = await addGuardianAction(classId, studentId, form);
-            if (!r.ok) return setError(r.error);
-            setError(null);
-            setForm({ name: "", email: "", relationship: "", consent: false });
-            router.refresh();
-          });
-        }}
-      >
-        <Field label="Guardian's name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
-        <Field label="Email" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required />
-        <Field label="Relationship (optional)" value={form.relationship} onChange={(e) => setForm({ ...form, relationship: e.target.value })} placeholder="e.g. Mother" />
-        <label className="flex items-start gap-2 text-sm sm:col-span-3">
-          <input type="checkbox" checked={form.consent} onChange={(e) => setForm({ ...form, consent: e.target.checked })} className="mt-0.5 size-4 accent-[var(--primary)]" required />
-          The student and this guardian agreed to weekly progress emails. (Required; recorded with your name and the date.)
-        </label>
-        {error && <Alert tone="error" className="sm:col-span-3">{error}</Alert>}
-        <div className="sm:col-span-3">
-          <Button type="submit" variant="secondary" disabled={pending}>
-            Add guardian
-          </Button>
-        </div>
-      </form>
     </div>
   );
 }

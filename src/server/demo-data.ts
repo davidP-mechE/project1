@@ -538,15 +538,13 @@ export async function loadDemoData(now = new Date()) {
       // A student reported a question on the tutor's worksheet, so it's in the tutor's Question reports.
       await tx.questionReport.create({ data: { reporterId: students[3].user.id, worksheetItemId: items[2].id, reason: "CONFUSING", note: "Not sure what it's asking", answerGiven: "B" } });
 
-      // A saved reply, a message scheduled for tomorrow, and a guardian who agreed to weekly emails.
+      // A saved reply and a message scheduled for tomorrow.
       await tx.savedReply.create({ data: { ownerId: tutor.id, programId: program.id, title: "Missing work nudge", body: "Hi {first_name}, your next {class} assignment is due {due_date}. Reply if you're stuck!" } });
       await tx.scheduledSend.create({ data: { authorId: tutor.id, classId: cls.id, kind: "MESSAGE", studentIds: students.filter((x) => x.level === "struggling").map((x) => x.user.id), groupIds: [], body: "Hi {first_name}, let's go over percentages on Thursday. Your next assignment is due {due_date}.", sendAt: new Date(t0 + DAY) } });
-      await tx.program.update({ where: { id: program.id }, data: { guardianFrequency: "WEEKLY" } });
       // Office hours on Tuesdays and Thursdays after school, and one booking two days from now.
       for (const weekday of [2, 4]) await tx.officeHours.create({ data: { staffId: tutor.id, programId: program.id, weekday, startMinute: 15 * 60 + 30, endMinute: 17 * 60, timezone: "America/New_York", slotMinutes: 30, bufferMinutes: 0, maxPerDay: 3, validFrom: new Date(t0 - 30 * DAY).toISOString().slice(0, 10), location: "Room 12" } });
       const bookStart = new Date(Math.floor((t0 + 2 * DAY) / DAY) * DAY + 20 * 3600_000 + 30 * 60_000);
       await tx.booking.create({ data: { programId: program.id, classId: cls.id, staffId: tutor.id, studentId: students[8].user.id, startsAt: bookStart, endsAt: new Date(bookStart.getTime() + 30 * 60_000), location: "Room 12", note: "Percentages", staffSlot: `${tutor.id}:${bookStart.toISOString()}`, studentSlot: `${students[8].user.id}:${bookStart.toISOString()}` } });
-      await tx.guardianContact.create({ data: { studentId: students[2].user.id, name: "Elena Sandoval", email: `guardian1@${DEMO_MODE_DOMAIN}`, relationship: "Mother", consentAt: at(40), consentById: tutor.id, unsubToken: `demomode-unsub-${Math.floor(rand() * 1e9)}` } });
 
       return { tutorEmail: tutor.email, password: DEMO_MODE_PASSWORD, classId: cls.id, joinCode: cls.joinCode, students: students.length };
     },

@@ -6,7 +6,6 @@ import { NotFoundError } from "@/server/courses";
 import { ClassError } from "@/server/access";
 import { createClass } from "@/server/classes";
 import { addScore } from "@/server/scores";
-import { addGuardian } from "@/server/cohort";
 import { recordError, reportProblem, scrub } from "@/server/monitoring";
 import { deleteAccountCompletely, exportStudentForStaff, purgeStudentFromProgram, studentRecords } from "@/server/student-data";
 import { backupKey, runBackup } from "@/server/backups";
@@ -69,7 +68,6 @@ describe("student data export and deletion", () => {
     await db.classMember.create({ data: { classId: c.id, userId: ana.id } });
     await db.classStaff.create({ data: { classId: c.id, userId: teacher.id, role: "TEACHER" } });
     await addScore(ana.id, ana.id, { source: "PSAT", takenOn: "2026-09-01", total: 980 });
-    await addGuardian(admin.id, c.id, ana.id, { name: "Mom", email: "mom@home.org", consent: true });
     return { admin, teacher, other, ana, siteAdmin, c, elsewhere };
   }
 
@@ -77,7 +75,7 @@ describe("student data export and deletion", () => {
     const f = await fixture();
     const mine = await studentRecords(f.ana.id);
     expect(mine.scores).toHaveLength(1);
-    expect(mine.guardians[0]).toMatchObject({ email: "mom@home.org" });
+    expect(mine).not.toHaveProperty("guardians");
     expect(await outcome(() => exportStudentForStaff(f.teacher.id, f.c.id, f.ana.id))).toBe("ok");
     expect(await outcome(() => exportStudentForStaff(f.other.id, f.c.id, f.ana.id))).toBe("hidden");
     expect(await outcome(() => exportStudentForStaff(f.ana.id, f.c.id, f.ana.id))).toBe("hidden");
@@ -91,7 +89,6 @@ describe("student data export and deletion", () => {
     await purgeStudentFromProgram(f.admin.id, f.c.programId, f.ana.id, "Ana");
     expect(await db.classMember.count({ where: { userId: f.ana.id } })).toBe(0);
     expect(await db.scoreRecord.count({ where: { studentId: f.ana.id } })).toBe(0);
-    expect(await db.guardianContact.count({ where: { studentId: f.ana.id } })).toBe(0);
     expect(await db.user.count({ where: { id: f.ana.id } })).toBe(1); // the account itself stays
     expect(await db.auditLog.count({ where: { action: "student.purge" } })).toBe(1);
   });

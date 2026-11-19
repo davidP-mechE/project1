@@ -12,7 +12,7 @@ import { ClassError } from "@/server/access";
 import { getProgram, programAccessRules } from "@/server/programs";
 import { NewStudentsNoAi, ProgramAccessRules } from "@/components/classes/program-access";
 import { requireUser, viewerZone } from "@/server/session";
-import { GuardianFrequencyForm, InactiveDaysForm } from "@/components/attention/caseload-forms";
+import { InactiveDaysForm } from "@/components/attention/caseload-forms";
 
 export const metadata: Metadata = { title: "Program" };
 
@@ -67,11 +67,6 @@ export default async function ProgramPage({ params, searchParams }: PageProps<"/
         <h2 className="mb-1 text-lg font-semibold">Needs attention</h2>
         <p className="mb-4 text-sm text-muted">Staff see a ranked list of students who may need a nudge (Teaching → Needs attention). Choose when a quiet student counts as inactive.</p>
         <InactiveDaysForm programId={program.id} days={program.inactiveDays} />
-      </Card>
-      <Card>
-        <h2 className="mb-1 text-lg font-semibold">Parent progress emails</h2>
-        <p className="mb-4 text-sm text-muted">A short summary for each guardian who agreed (staff add them, with consent, on a student&apos;s page): practice time, questions answered, the accuracy trend, the latest score or estimate, a focus skill for next week and the next test date. Every email has an unsubscribe link. Staff can preview any student&apos;s email from their page.</p>
-        <GuardianFrequencyForm programId={program.id} frequency={program.guardianFrequency} />
       </Card>
       <Card>
         <h2 className="mb-1 text-lg font-semibold">Public page</h2>

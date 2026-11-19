@@ -479,17 +479,12 @@ test("each role's journey: admin sets up, student works, specialist grades withi
   await a11y(ap, "admin: scheduled sends");
   await ap.getByRole("button", { name: "Cancel sending" }).click();
   await expect(ap.getByText("Cancelled", { exact: true })).toBeVisible();
-  // Parent progress emails: the admin turns them on, then previews Sol's.
+  // Parent progress emails were removed: no setting on the program page, no preview page.
   await ap.goto(`/teach/programs/${programId}`);
-  await ap.getByLabel("Weekly (Sunday evening)").check();
-  await ap.getByRole("button", { name: "Save" }).filter({ hasText: /^Save$/ }).last().click();
-  await expect(ap.getByText("Saved.").last()).toBeVisible();
+  await expect(ap.getByRole("heading", { name: "Needs attention" })).toBeVisible();
+  await expect(ap.getByText("Parent progress emails")).toHaveCount(0);
   await a11y(ap, "admin: program page");
-  await ap.goto(`${classUrl}/students/${studentId}/progress-email`);
-  await expect(ap.getByRole("heading", { name: "Progress email preview" })).toBeVisible();
-  await expect(ap.getByText(/Sent weekly/)).toBeVisible();
-  await expect(ap.getByText(/Sol Student's week in /)).toBeVisible();
-  await a11y(ap, "admin: progress email preview");
+  expect((await ap.goto(`${classUrl}/students/${studentId}/progress-email`))!.status()).toBe(404);
 
   // ── Phase 4: office hours ──
   const tomorrowDay = new Date(Date.now() + 86_400_000);

@@ -4,17 +4,14 @@ import { NotFoundError } from "@/server/courses";
 import { ClassError } from "@/server/access";
 import { createClass } from "@/server/classes";
 import { createGroup } from "@/server/groups";
-import { addGuardian } from "@/server/cohort";
 import { bulkMessage } from "@/server/messages";
 import { createSavedReply, deleteSavedReply, listSavedReplies, updateSavedReply } from "@/server/saved-replies";
 import { cancelScheduled, listScheduled, runScheduledSend, scheduleSend, sweepScheduledSends, updateScheduled } from "@/server/scheduled";
-import { currentPeriod, previewGuardianEmail, sendGuardianProgress, setGuardianFrequency } from "@/server/guardian-progress";
 import { createUser, resetDb } from "../helpers/db";
 
 const sent: { to: string; subject: string; text: string }[] = [];
 vi.mock("@/server/email", () => ({ sendEmail: async (m: { to: string; subject: string; text: string }) => void sent.push(m) }));
 
-const DAY = 86_400_000;
 const NOW = new Date("2026-11-18T15:00:00Z");
 const later = (h: number) => new Date(NOW.getTime() + h * 3600_000);
 
@@ -120,61 +117,5 @@ describe("scheduled messages and announcements", () => {
     expect(await db.announcement.count()).toBe(0);
     expect(await sweepScheduledSends(later(1))).toBe(1);
     expect(await db.announcement.findFirstOrThrow()).toMatchObject({ title: "Practice test", body: "SAT Fall: practice test Saturday, everyone!", pinned: true, authorId: f.teacher.id });
-  });
-});
-
-describe("parent progress emails", () => {
-  it("periods: Sunday 17:00 UTC weekly, the 1st at 17:00 UTC monthly", () => {
-    expect(currentPeriod("WEEKLY", new Date("2026-11-18T15:00:00Z"))).toMatchObject({ key: "W2026-11-15", days: 7 });
-    expect(currentPeriod("WEEKLY", new Date("2026-11-15T16:59:00Z")).key).toBe("W2026-11-08");
-    expect(currentPeriod("MONTHLY", new Date("2026-11-18T15:00:00Z"))).toMatchObject({ key: "M2026-11", days: 31 });
-    expect(currentPeriod("MONTHLY", new Date("2026-12-01T10:00:00Z")).key).toBe("M2026-11");
-  });
-
-  it("only when the admin turns them on; the numbers; once a period; a cap per hour; unsubscribe stops them", async () => {
-    const f = await fixture();
-    await addGuardian(f.admin.id, f.c.id, f.ana.id, { name: "Rosa", email: "rosa@home.org", consent: true });
-    await addGuardian(f.admin.id, f.c.id, f.ben.id, { name: "Ken", email: "ken@home.org", consent: true });
-    const sunday = new Date("2026-11-15T18:00:00Z");
-    const day = (d: number) => new Date(sunday.getTime() - d * DAY).toISOString().slice(0, 10);
-    await db.studyDay.createMany({ data: [
-      { userId: f.ana.id, day: day(2), minutes: 30, questionsAnswered: 10, questionsCorrect: 8 },
-      { userId: f.ana.id, day: day(4), minutes: 15, questionsAnswered: 10, questionsCorrect: 6 },
-      { userId: f.ana.id, day: day(10), minutes: 20, questionsAnswered: 10, questionsCorrect: 5 },
-    ] });
-    await db.scoreRecord.create({ data: { studentId: f.ana.id, source: "PSAT", takenOn: new Date("2026-10-15T00:00:00Z"), total: 1010, isBaseline: true, enteredById: f.admin.id } });
-    await db.studentProfile.create({ data: { userId: f.ana.id, testDate: new Date("2026-12-05T12:00:00Z") } });
-    expect(await sendGuardianProgress(sunday)).toBe(0);
-    expect(await outcome(() => setGuardianFrequency(f.teacher.id, f.programId, "WEEKLY"))).toBe("hidden");
-    await setGuardianFrequency(f.admin.id, f.programId, "WEEKLY");
-    // A cap of one an hour: one now, the other the next hour; then nothing until next week.
-    expect(await sendGuardianProgress(sunday, { limit: 1 })).toBe(1);
-    expect(await sendGuardianProgress(new Date(sunday.getTime() + 3600_000), { limit: 1 })).toBe(1);
-    expect(await sendGuardianProgress(new Date(sunday.getTime() + 2 * 3600_000))).toBe(0);
-    const rosa = sent.find((m) => m.to === "rosa@home.org")!;
-    expect(rosa.subject).toBe("Ana Diaz's week in Admin's tutoring program");
-    expect(rosa.text).toContain("Practice time: 45 minutes.");
-    expect(rosa.text).toContain("Questions answered: 20.");
-    expect(rosa.text).toContain("Accuracy: 70% (up from 50% the week before).");
-    expect(rosa.text).toContain("Latest score: 1010 (PSAT).");
-    expect(rosa.text).toContain("Upcoming test date: Dec 5, 2026.");
-    expect(rosa.text).toMatch(/Unsubscribe: .*\/unsubscribe\//);
-    expect(rosa.text).not.toContain("Ben");
-    // Monthly: the 1st.
-    await setGuardianFrequency(f.admin.id, f.programId, "MONTHLY");
-    expect(await sendGuardianProgress(new Date("2026-12-01T17:30:00Z"))).toBe(2);
-    expect(sent.at(-1)!.subject).toMatch(/'s month in /);
-  });
-
-  it("staff in scope can preview a student's email; others can't", async () => {
-    const f = await fixture();
-    await addGuardian(f.admin.id, f.c.id, f.ben.id, { name: "Ken", email: "ken@home.org", consent: true });
-    const p = await previewGuardianEmail(f.groupTutor.id, f.c.id, f.ben.id, NOW);
-    expect(p.message.to).toBe("ken@home.org");
-    expect(p.message.text).toContain("Hi Ken,");
-    expect(p.frequency).toBe("OFF");
-    expect(await outcome(() => previewGuardianEmail(f.groupTutor.id, f.c.id, f.ana.id, NOW))).toBe("hidden");
-    expect(await outcome(() => previewGuardianEmail(f.outsider.id, f.c.id, f.ben.id, NOW))).toBe("hidden");
-    expect(sent).toHaveLength(0); // a preview never sends
   });
 });

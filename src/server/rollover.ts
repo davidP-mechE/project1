@@ -46,7 +46,6 @@ export async function startSemester(userId: string, programId: string, input: Ro
       id: true,
       name: true,
       teacherId: true,
-      guardianSummaries: true,
       staff: { select: { userId: true, role: true, sections: true, domains: true, groupIds: true, canManageStaff: true } },
       groups: { select: { id: true, name: true } },
       members: { select: { user: { select: { email: true } } } },
@@ -66,7 +65,7 @@ export async function startSemester(userId: string, programId: string, input: Ro
   await db.$transaction(async (tx) => {
     for (const c of classes) {
       const name = `${baseName(c.name)} (${semester})`.slice(0, 120);
-      const fresh = await tx.class.create({ data: { programId, teacherId: c.teacherId, name, joinCode: newJoinCode(), guardianSummaries: c.guardianSummaries } });
+      const fresh = await tx.class.create({ data: { programId, teacherId: c.teacherId, name, joinCode: newJoinCode() } });
       const groupMap = new Map<string, string>();
       for (const g of c.groups) groupMap.set(g.id, (await tx.classGroup.create({ data: { classId: fresh.id, name: g.name } })).id);
       await tx.classStaff.createMany({

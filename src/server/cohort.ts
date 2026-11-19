@@ -1,5 +1,4 @@
 import "server-only";
-import { randomBytes } from "node:crypto";
 import { db } from "./db";
 import { NotFoundError } from "./courses";
 import { can, classAccess, ClassError, memberWhere, studentInScope, type ClassAccess } from "./access";
@@ -9,8 +8,7 @@ import { stalling } from "@/lib/sat/scores";
 
 /**
  * Running a cohort: tutoring sessions and attendance, alerts (missing work,
- * dropping scores, inactive students, repeated absences), and guardians who
- * agreed to a weekly email.
+ * dropping scores, inactive students, repeated absences).
  */
 
 const STATUSES = ["PRESENT", "LATE", "ABSENT", "EXCUSED"] as const;
@@ -186,54 +184,3 @@ export async function dismissAlert(userId: string, classId: string, studentId: s
   await db.alertState.upsert({ where: { classId_studentId_kind: { classId, studentId, kind } }, create: { classId, studentId, kind, dismissedById: userId, until }, update: { dismissedById: userId, until, createdAt: now } });
 }
 
-// ─── Guardians ───────────────────────────────────────────────────────────
-
-const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-/** Teachers record a guardian contact, with consent (required: nothing is sent without it). */
-export async function addGuardian(userId: string, classId: string, studentId: string, input: { name: string; email: string; relationship?: string; consent: boolean }, now = new Date()) {
-  const access = await classAccess(userId, classId, "manageClass");
-  if (!(await studentInScope(access, studentId))) throw new NotFoundError("Student not found");
-  if (!input.consent) throw new ClassError("Record that the family agreed to these emails first.");
-  const email = input.email.trim().toLowerCase();
-  if (!EMAIL.test(email) || email.length > 254) throw new ClassError("Enter a valid email address.");
-  const name = input.name.trim().slice(0, 120);
-  if (!name) throw new ClassError("Enter the guardian's name.");
-  if ((await db.guardianContact.count({ where: { studentId } })) >= 4) throw new ClassError("Up to 4 guardians per student.");
-  await db.$transaction(async (tx) => {
-    const g = await tx.guardianContact.upsert({
-      where: { studentId_email: { studentId, email } },
-      create: { studentId, email, name, relationship: input.relationship?.trim().slice(0, 40) ?? "", consentAt: now, consentById: userId, unsubToken: randomBytes(24).toString("base64url") },
-      update: { name, relationship: input.relationship?.trim().slice(0, 40) ?? "", consentAt: now, consentById: userId, unsubscribedAt: null },
-    });
-    await audit(tx, { programId: access.programId, actorId: userId, action: "guardian.add", targetType: "guardian", targetId: g.id, summary: "Added a guardian contact with recorded consent" });
-  });
-}
-
-export async function removeGuardian(userId: string, classId: string, guardianId: string) {
-  const access = await classAccess(userId, classId, "manageClass");
-  const g = await db.guardianContact.findUnique({ where: { id: guardianId } });
-  if (!g || !(await studentInScope(access, g.studentId))) throw new NotFoundError("Guardian not found");
-  await db.$transaction(async (tx) => {
-    await tx.guardianContact.delete({ where: { id: g.id } });
-    await audit(tx, { programId: access.programId, actorId: userId, action: "guardian.remove", targetType: "guardian", targetId: g.id, summary: "Removed a guardian contact" });
-  });
-}
-
-/** Guardians for one student: staff who manage the class see them; the student sees their own. */
-export async function guardiansOf(viewerId: string, studentId: string, classId?: string) {
-  if (viewerId !== studentId) {
-    if (!classId) throw new NotFoundError("Student not found");
-    const access = await classAccess(viewerId, classId, "manageClass");
-    if (!(await studentInScope(access, studentId))) throw new NotFoundError("Student not found");
-  }
-  return db.guardianContact.findMany({ where: { studentId }, orderBy: { createdAt: "asc" }, select: { id: true, name: true, email: true, relationship: true, consentAt: true, unsubscribedAt: true } });
-}
-
-/** One-click unsubscribe from the link in the email. */
-export async function unsubscribeGuardian(token: string, now = new Date()) {
-  const g = await db.guardianContact.findUnique({ where: { unsubToken: token } });
-  if (!g) return false;
-  if (!g.unsubscribedAt) await db.guardianContact.update({ where: { id: g.id }, data: { unsubscribedAt: now } });
-  return true;
-}

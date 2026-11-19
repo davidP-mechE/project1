@@ -76,8 +76,6 @@ const schema = z.object({
   CONTACT_EMAIL: z.string().default("hello@coursebook.site"),
   COPYRIGHT_AGENT: z.string().optional(), // name and postal address of your designated copyright agent ("\n" for new lines)
   LEGAL_UPDATED: z.string().default("November 11, 2026"),
-  // Parent progress emails sent per hour at most (the rest go out the following hours).
-  GUARDIAN_EMAILS_PER_HOUR: z.coerce.number().int().min(1).max(10_000).default(200),
   // Development only: write placeholder "demo" lessons without calling Claude (free).
   FAKE_CLAUDE: z.stringbool().default(false),
 });

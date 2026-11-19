@@ -386,8 +386,7 @@ async function main() {
     ),
   });
 
-  // Saved replies (a shared one, and personal ones), messages and an announcement scheduled for later,
-  // and guardians who agreed to weekly progress emails (turned on for the program).
+  // Saved replies (a shared one, and personal ones), and messages and an announcement scheduled for later.
   await db.savedReply.createMany({
     data: [
       { ownerId: admin.id, programId: program.id, title: "Missing work nudge", body: "Hi {first_name}, a quick reminder: your next {class} assignment is due {due_date}. Reply here if you're stuck and we'll sort it out together." },
@@ -401,10 +400,6 @@ async function main() {
       { authorId: admin.id, classId: A.id, kind: "MESSAGE", groupIds: [groups[A.id][0].id], studentIds: [], body: "Hi {first_name}, your next {class} assignment is due {due_date}. See you Thursday!", sendAt: new Date(now.getTime() + 2 * DAY) },
       { authorId: teacher.id, classId: B.id, kind: "ANNOUNCEMENT", groupIds: [], studentIds: [], title: "Practice test Saturday", body: "Full practice test in room 204 at 9am. Bring a charged laptop for Bluebook.", pinned: true, sendAt: new Date(now.getTime() + 3 * DAY) },
     ],
-  });
-  await db.program.update({ where: { id: program.id }, data: { guardianFrequency: "WEEKLY" } });
-  await db.guardianContact.createMany({
-    data: students.slice(0, 12).map((s, i) => ({ studentId: s.id, name: `Parent of ${s.name.split(" ")[0]}`, email: `parent${i + 1}@${DEMO_DOMAIN}`, relationship: i % 2 ? "Father" : "Mother", consentAt: start, consentById: admin.id, unsubToken: `demo-unsub-${i + 1}-${Math.floor(rand() * 1e9)}` })),
   });
 
   // Office hours: Morgan on Tuesdays and Thursdays, Lena on Wednesdays; a few bookings, one turned into a session.

@@ -10,14 +10,11 @@ import { generateSummary } from "./assistant";
 import { runBackup } from "./backups";
 import { recordError } from "./monitoring";
 import { buildWeeklyBatches } from "./auto-practice";
-import { sendGuardianProgress } from "./guardian-progress";
 
 /**
  * Scheduled program emails, run hourly by the worker. Each is sent at most
  * once (keys in SentNotice), so a missed or repeated hour can't double-send.
  *  - Staff who opted in get a daily digest of new alerts at 7am their time.
- *  - Guardians who agreed get a weekly or monthly progress email, when the
- *    program admin turned them on (src/server/guardian-progress.ts). No AI.
  */
 
 async function once(key: string) {
@@ -73,7 +70,7 @@ export async function writeWeeklySummaries(now = new Date(), opts: { force?: boo
 }
 
 export async function runProgramJobs(now = new Date()) {
-  const [digests, summaries, weekly] = await Promise.all([sendStaffDigests(now), sendGuardianProgress(now), writeWeeklySummaries(now)]);
+  const [digests, weekly] = await Promise.all([sendStaffDigests(now), writeWeeklySummaries(now)]);
   // Weekly auto-assigned practice: any class without this week's batch gets one (rules only, no AI).
   await buildWeeklyBatches(now).catch((err) => recordError({ kind: "worker", message: `Weekly practice failed: ${err instanceof Error ? err.message : String(err)}`, path: "worker:auto-practice" }));
   await awardBadgesForActive(now).catch((err) => recordError({ kind: "worker", message: `Badges failed: ${err instanceof Error ? err.message : String(err)}`, path: "worker:badges" }));
@@ -83,5 +80,5 @@ export async function runProgramJobs(now = new Date()) {
     return null;
   });
   if (backup) console.info(`[backup] saved ${backup.key} (${backup.bytes} bytes)`);
-  return { digests, summaries: summaries + weekly };
+  return { digests, summaries: weekly };
 }

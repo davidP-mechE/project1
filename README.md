@@ -489,7 +489,7 @@ Tests: `tests/integration/security.test.ts`.
 
 - **Scores** (`src/server/scores.ts`, `src/lib/sat/scores.ts`). Students in a program are asked for a **baseline** (SAT, PSAT, a practice test, or "I'll take the diagnostic"). Scores are entered with section scores and the **numbers and topics** of missed questions only; the server refuses any other field, so test content can't be saved.
   - **Students:** see their history chart (official tests filled, practice hollow, goal lines) and an **estimated range** (a trend, labelled as an estimate, never official). They also get a goal and test date, and a **weekly plan back from test day** (`src/server/pacing.ts`).
-  - **Staff:** see the class's **Scores** tab (gain, on track, distance to 1200 and 1300, stalling, missing baselines; viewers with fewer than 5 students see numbers only). Each student's page shows their scores, open mistakes, plan and guardians. The admin sees the **program dashboard**.
+  - **Staff:** see the class's **Scores** tab (gain, on track, distance to 1200 and 1300, stalling, missing baselines; viewers with fewer than 5 students see numbers only). Each student's page shows their scores, open mistakes and plan. The admin sees the **program dashboard**.
 - **College Board questions by link** (`src/server/external.ts`): attach Question Bank links and question IDs to an assignment; students answer on College Board and record right, wrong or skipped. Only `collegeboard.org` links are accepted, and no content is stored.
 - **Diagnostics** (`src/server/diagnostics.ts`). **Teaching → Diagnostics** builds an adaptive test from the program's tagged questions: per section, module 1, then a harder or easier module 2 depending on how module 1 went.
   - **The clock** is kept on the server: late answers are refused, a reload doesn't reset it, and expired modules hand themselves in.
@@ -504,7 +504,6 @@ Tests: `tests/integration/security.test.ts`.
   - **Alerts:** overdue work, dropping scores, inactive for 7 days, 2 absences in a row. They can be snoozed or dismissed, with an optional 7am email digest.
   - **Roster CSV import:** previewed row by row; nothing is sent if any row is bad. Group, goal and baseline apply on joining.
   - **Grade export:** CSV with formula-safe cells; emails only on request, for managers.
-  - **Parent progress emails:** weekly or monthly (the program admin chooses), only with recorded consent, with one-click unsubscribe and a staff preview.
 - **Curriculum and the assistant** (`src/server/curriculum.ts`, `src/server/assistant.ts`, `src/server/ai/assistant.ts`):
   - **Curriculum:** paste a syllabus (Sonnet turns it into units) or start from the SAT template (no AI). Units are laid out on school weeks, skipping closed days, and stay drafts until published.
   - **Pacing suggestions:** decided by rules, worded by Haiku. Accepting one adds a week and moves later units.

@@ -18,8 +18,6 @@ import { db } from "@/server/db";
 import { planFor } from "@/server/pacing";
 import { openMistakesByDomain } from "@/server/mistakes";
 import { PlanView } from "@/components/sat/plan-view";
-import { GuardianForm } from "@/components/classes/cohort-forms";
-import { guardiansOf } from "@/server/cohort";
 import { PurgeStudentForm } from "@/components/support/data-forms";
 
 export const metadata: Metadata = { title: "Student" };
@@ -121,16 +119,6 @@ export default async function StudentPage({ params }: PageProps<"/teach/[classId
         </Card>
       )}
       {(s.access.role === "ADMIN" || s.access.role === "TEACHER") && (
-        <Card>
-          <h2 className="mb-1 text-lg font-semibold">Guardians</h2>
-          <p className="mb-3 text-sm text-muted">
-            Progress emails go only to guardians who agreed, weekly or monthly, when the program admin has turned them on.{" "}
-            <Link href={`/teach/${classId}/students/${studentId}/progress-email`} className="text-primary underline underline-offset-2">Preview the email</Link>
-          </p>
-          <GuardianForm classId={classId} studentId={studentId} guardians={await guardiansOf(user.id, studentId, classId)} />
-        </Card>
-      )}
-      {(s.access.role === "ADMIN" || s.access.role === "TEACHER") && (
         <Card className="flex flex-col gap-3">
           <h2 className="text-lg font-semibold">Records</h2>
           <p className="text-sm text-muted">Download everything this program holds about {s.student.name || "this student"} (for a records request). Exports are logged.</p>
@@ -142,7 +130,7 @@ export default async function StudentPage({ params }: PageProps<"/teach/[classId
           {s.access.isProgramAdmin && (
             <details className="rounded-lg border border-border p-3">
               <summary className="cursor-pointer text-sm font-medium">Delete this student&apos;s data from the program</summary>
-              <p className="my-2 text-sm text-muted">Removes them from the program&apos;s classes and deletes their answers, diagnostics, attendance and (if they&apos;re in no other program) their scores, mistake log, goals and guardian contacts. It can&apos;t be undone.</p>
+              <p className="my-2 text-sm text-muted">Removes them from the program&apos;s classes and deletes their answers, diagnostics, attendance and (if they&apos;re in no other program) their scores, mistake log and goals. It can&apos;t be undone.</p>
               <PurgeStudentForm programId={s.access.programId} studentId={studentId} name={s.student.name} />
             </details>
           )}

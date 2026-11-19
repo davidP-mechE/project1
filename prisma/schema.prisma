@@ -89,7 +89,6 @@ model User {
   diagnosticAttempts DiagnosticAttempt[]
   mistakes           MistakeItem[]
   attendance         AttendanceRecord[]
-  guardians          GuardianContact[]
   /// Staff: a daily email of new alerts.
   staffDigest        Boolean             @default(false)
   /// First-login walkthroughs already seen (e.g. "student", "staff").
@@ -1066,52 +1065,50 @@ model CatalogEntry {
 
 /// A tutoring program (e.g. The 1600 Project): its classes, staff and settings.
 model Program {
-  id                String              @id @default(cuid())
-  name              String
-  adminId           String
-  admin             User                @relation("programAdmin", fields: [adminId], references: [id], onDelete: Cascade)
+  id              String              @id @default(cuid())
+  name            String
+  adminId         String
+  admin           User                @relation("programAdmin", fields: [adminId], references: [id], onDelete: Cascade)
   /// Subject template: only SAT for now.
-  subject           String              @default("SAT")
+  subject         String              @default("SAT")
   /// Score targets shown on dashboards (e.g. 1200, 1300).
-  targets           Int[]               @default([1200, 1300])
+  targets         Int[]               @default([1200, 1300])
   /// Days a staff invite link stays valid.
-  inviteDays        Int                 @default(7)
+  inviteDays      Int                 @default(7)
   /// Program-wide AI spending cap per day, in cents (null = no cap beyond each user's allowance).
-  aiDailyCapCents   Int?
+  aiDailyCapCents Int?
   /// UTC day (YYYY-MM-DD) the admin was last emailed that the cap was reached, so it's once a day.
-  aiCapAlertedOn    String?
+  aiCapAlertedOn  String?
   /// Official SAT dates students can pick from (entered by the admin).
-  testDates         DateTime[]
+  testDates       DateTime[]
   /// School calendar: term dates and days with no sessions.
-  termStart         DateTime?
-  termEnd           DateTime?
-  closedDates       DateTime[]
+  termStart       DateTime?
+  termEnd         DateTime?
+  closedDates     DateTime[]
   /// Public identity (the program's own, not the site's): its address /p/<slug>, badge text and page copy.
-  slug              String?             @unique
-  badge             String?
-  isPublic          Boolean             @default(false)
-  publicBlurb       String?
+  slug            String?             @unique
+  badge           String?
+  isPublic        Boolean             @default(false)
+  publicBlurb     String?
   /// Starting point and goal shown on the public page (e.g. a school average of 970 and a +300 gain).
-  schoolAverage     Int?
-  goalGain          Int?
-  diagnostics       Diagnostic[]
-  createdAt         DateTime            @default(now())
-  classes           Class[]
-  auditLogs         AuditLog[]
+  schoolAverage   Int?
+  goalGain        Int?
+  diagnostics     Diagnostic[]
+  createdAt       DateTime            @default(now())
+  classes         Class[]
+  auditLogs       AuditLog[]
   /// Demo data (Admin → Demo data, or npm run demo:load). Cleared in one step; never mixed with real records.
-  isDemo            Boolean             @default(false)
-  accessRules       ProgramAccessRule[]
+  isDemo          Boolean             @default(false)
+  accessRules     ProgramAccessRule[]
   /// Students who join one of this program's classes get an "SAT only, no AI" rule (unless they already have a rule).
-  newStudentsNoAi   Boolean             @default(false)
+  newStudentsNoAi Boolean             @default(false)
   /// Needs attention: days with no login and no practice before a student is listed as inactive.
-  inactiveDays      Int                 @default(7)
-  /// Parent progress emails to guardians who agreed: OFF, WEEKLY (Sunday evening) or MONTHLY (the 1st).
-  guardianFrequency String              @default("OFF")
-  savedReplies      SavedReply[]
-  officeHours       OfficeHours[]
-  bookings          Booking[]
-  attentionStates   AttentionState[]
-  primaryTutors     PrimaryTutor[]
+  inactiveDays    Int                 @default(7)
+  savedReplies    SavedReply[]
+  officeHours     OfficeHours[]
+  bookings        Booking[]
+  attentionStates AttentionState[]
+  primaryTutors   PrimaryTutor[]
 
   @@index([adminId])
 }
@@ -1228,36 +1225,34 @@ model ClassGroupMember {
 }
 
 model Class {
-  id                String              @id @default(cuid())
-  programId         String
-  program           Program             @relation(fields: [programId], references: [id], onDelete: Cascade)
-  staff             ClassStaff[]
-  staffInvites      StaffInvite[]
-  groups            ClassGroup[]
-  sessions          ClassSession[]
-  autoBatches       AutoPracticeBatch[]
-  scheduledSends    ScheduledSend[]
-  liveRuns          LiveRun[]
-  alertStates       AlertState[]
-  /// Retired: parent progress emails are now switched on per program (Program.guardianFrequency).
-  guardianSummaries Boolean             @default(false)
-  curricula         Curriculum[]
-  summaries         AssistantSummary[]
-  draftLessons      DraftLesson[]
-  threads           MessageThread[]
-  announcements     Announcement[]
-  teacherId         String
-  teacher           User                @relation("teacher", fields: [teacherId], references: [id], onDelete: Cascade)
-  name              String
-  joinCode          String              @unique
-  archivedAt        DateTime?
-  createdAt         DateTime            @default(now())
-  members           ClassMember[]
-  invites           ClassInvite[]
-  courses           ClassCourse[]
-  assignments       Assignment[]
+  id             String              @id @default(cuid())
+  programId      String
+  program        Program             @relation(fields: [programId], references: [id], onDelete: Cascade)
+  staff          ClassStaff[]
+  staffInvites   StaffInvite[]
+  groups         ClassGroup[]
+  sessions       ClassSession[]
+  autoBatches    AutoPracticeBatch[]
+  scheduledSends ScheduledSend[]
+  liveRuns       LiveRun[]
+  alertStates    AlertState[]
+  curricula      Curriculum[]
+  summaries      AssistantSummary[]
+  draftLessons   DraftLesson[]
+  threads        MessageThread[]
+  announcements  Announcement[]
+  teacherId      String
+  teacher        User                @relation("teacher", fields: [teacherId], references: [id], onDelete: Cascade)
+  name           String
+  joinCode       String              @unique
+  archivedAt     DateTime?
+  createdAt      DateTime            @default(now())
+  members        ClassMember[]
+  invites        ClassInvite[]
+  courses        ClassCourse[]
+  assignments    Assignment[]
   /// Demo data (Admin → Demo data, or npm run demo:load). Cleared in one step; never mixed with real records.
-  isDemo            Boolean             @default(false)
+  isDemo         Boolean             @default(false)
 
   @@index([teacherId])
   @@index([programId])
@@ -1754,25 +1749,6 @@ model AlertState {
   createdAt     DateTime  @default(now())
 
   @@unique([classId, studentId, kind])
-}
-
-/// A parent or guardian who agreed to a weekly progress email.
-model GuardianContact {
-  id             String    @id @default(cuid())
-  studentId      String
-  student        User      @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  name           String
-  email          String
-  relationship   String    @default("")
-  /// When and by whom consent was recorded (required to send anything).
-  consentAt      DateTime
-  consentById    String
-  unsubscribedAt DateTime?
-  unsubToken     String    @unique
-  lastSentOn     String?
-  createdAt      DateTime  @default(now())
-
-  @@unique([studentId, email])
 }
 
 /// Keys of scheduled emails already sent (e.g. "digest:<user>:<day>"), so each goes once.

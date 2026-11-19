@@ -7,9 +7,8 @@ import { NotFoundError, RateLimitError } from "../courses";
 import { ClassError } from "../access";
 import * as replies from "../saved-replies";
 import * as scheduled from "../scheduled";
-import { setGuardianFrequency } from "../guardian-progress";
 
-/** Server Actions for saved replies, scheduled sends and parent progress emails. The functions they call check role and scope. */
+/** Server Actions for saved replies and scheduled sends. The functions they call check role and scope. */
 
 export type Result<T = object> = ({ ok: true } & T) | { ok: false; error: string };
 const id = z.string().min(1).max(64);
@@ -55,9 +54,4 @@ export async function updateScheduledAction(sendId: string, patch: { body?: stri
 }
 export async function cancelScheduledAction(sendId: string) {
   return run((u) => scheduled.cancelScheduled(u, id.parse(sendId)), ["/messages/scheduled"]);
-}
-
-export async function setGuardianFrequencyAction(programId: string, frequency: string) {
-  const f = z.enum(["OFF", "WEEKLY", "MONTHLY"]).parse(frequency);
-  return run((u) => setGuardianFrequency(u, id.parse(programId), f), [`/teach/programs/${programId}`]);
 }

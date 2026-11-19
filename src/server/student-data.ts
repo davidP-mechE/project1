@@ -15,7 +15,7 @@ import { audit } from "./programs";
 
 export async function studentRecords(studentId: string, opts: { classIds?: string[] } = {}) {
   const classFilter = opts.classIds ? { classId: { in: opts.classIds } } : {};
-  const [user, profile, scores, answers, external, diagnostics, attendance, mistakes, guardians, memberships] = await Promise.all([
+  const [user, profile, scores, answers, external, diagnostics, attendance, mistakes, memberships] = await Promise.all([
     db.user.findUniqueOrThrow({ where: { id: studentId }, select: { name: true, email: true, createdAt: true, timezone: true } }),
     db.studentProfile.findUnique({ where: { userId: studentId }, select: { targetScore: true, testDate: true } }),
     db.scoreRecord.findMany({ where: { studentId }, orderBy: { takenOn: "asc" }, select: { source: true, takenOn: true, testName: true, total: true, rw: true, math: true, isBaseline: true, missed: true, domainBands: true, review: true, verifiedAt: true } }),
@@ -24,7 +24,6 @@ export async function studentRecords(studentId: string, opts: { classIds?: strin
     db.diagnosticAttempt.findMany({ where: { userId: studentId, assignment: classFilter }, select: { attemptNo: true, startedAt: true, finishedAt: true, results: true, assignment: { select: { title: true } } } }),
     db.attendanceRecord.findMany({ where: { studentId, session: classFilter }, select: { status: true, session: { select: { startsAt: true, title: true, class: { select: { name: true } } } } } }),
     db.mistakeItem.findMany({ where: { studentId }, select: { label: true, domain: true, skill: true, reason: true, streak: true, retiredAt: true, createdAt: true } }),
-    db.guardianContact.findMany({ where: { studentId }, select: { name: true, email: true, relationship: true, consentAt: true, unsubscribedAt: true } }),
     db.classMember.findMany({ where: { userId: studentId, ...classFilter }, select: { joinedAt: true, class: { select: { name: true } } } }),
   ]);
   return {
@@ -38,7 +37,6 @@ export async function studentRecords(studentId: string, opts: { classIds?: strin
     diagnostics: diagnostics.map((d) => ({ diagnostic: d.assignment.title, attempt: d.attemptNo, started: d.startedAt, finished: d.finishedAt, results: d.results })),
     attendance: attendance.map((a) => ({ class: a.session.class.name, session: a.session.startsAt, title: a.session.title, status: a.status })),
     mistakeLog: mistakes,
-    guardians,
   };
 }
 
@@ -55,7 +53,7 @@ export async function exportStudentForStaff(actorId: string, classId: string, st
 /**
  * The program admin removes everything the program holds about a student:
  * their place in its classes, answers, College Board results, diagnostics,
- * attendance, groups and alerts there. Scores, mistakes, goals and guardians
+ * attendance, groups and alerts there. Scores, mistakes and goals
  * belong to the student and are removed too when they have no other program.
  */
 export async function purgeStudentFromProgram(actorId: string, programId: string, studentId: string, confirmName: string) {
@@ -81,7 +79,6 @@ export async function purgeStudentFromProgram(actorId: string, programId: string
       await tx.scoreRecord.deleteMany({ where: { studentId } });
       await tx.mistakeItem.deleteMany({ where: { studentId } });
       await tx.studentProfile.deleteMany({ where: { userId: studentId } });
-      await tx.guardianContact.deleteMany({ where: { studentId } });
     }
     await audit(tx, { programId, actorId, action: "student.purge", targetType: "user", targetId: studentId, summary: `Deleted the program's data about a student${elsewhere ? " (they're in another program, so their own scores stay)" : ""}` });
   });
