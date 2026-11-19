@@ -7,6 +7,7 @@ import { Alert } from "@/components/ui/alert";
 import { inputClasses } from "@/components/ui/field";
 import { TargetPicker, type TargetValue } from "@/components/classes/target-picker";
 import { PlaceholderHint, SavedReplyPicker, SendLater, type SavedReplyOption } from "./compose-tools";
+import { AttachmentPicker, type PendingFile } from "./attachments";
 import { scheduleSendAction } from "@/server/actions/comms";
 import { bulkMessageAction, createAnnouncementAction, deleteAnnouncementAction, markNotificationsReadAction, sendMessageAction, startThreadAction, updateAnnouncementAction } from "@/server/actions/messages";
 
@@ -26,18 +27,22 @@ function Counter({ n }: { n: number }) {
 /** Reply box at the bottom of a conversation. */
 export function ReplyForm({ threadId, replies }: { threadId: string; replies?: SavedReplyOption[] }) {
   const [body, setBody] = useState("");
+  const [files, setFiles] = useState<PendingFile[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
   const router = useRouter();
+  const ready = files.filter((f) => f.id && !f.error).map((f) => f.id!);
+  const uploading = files.some((f) => !f.id && !f.error);
   return (
     <form
       className="flex flex-col gap-2"
       onSubmit={(e) => {
         e.preventDefault();
         start(async () => {
-          const r = await sendMessageAction(threadId, body);
+          const r = await sendMessageAction(threadId, body, ready);
           if (!r.ok) return setError(r.error);
           setBody("");
+          setFiles([]);
           setError(null);
           router.refresh();
         });
@@ -46,7 +51,8 @@ export function ReplyForm({ threadId, replies }: { threadId: string; replies?: S
       <label htmlFor="reply" className="text-sm font-medium">
         Reply
       </label>
-      <textarea id="reply" value={body} onChange={(e) => setBody(e.target.value)} className={area} required maxLength={MAX + 100} />
+      <textarea id="reply" value={body} onChange={(e) => setBody(e.target.value)} className={area} required={!ready.length} maxLength={MAX + 100} />
+      <AttachmentPicker threadId={threadId} files={files} setFiles={setFiles} disabled={pending} />
       {replies && (
         <>
           <SavedReplyPicker replies={replies} onInsert={(t) => setBody((b) => append(b, t))} />
@@ -56,7 +62,7 @@ export function ReplyForm({ threadId, replies }: { threadId: string; replies?: S
       {error && <Alert tone="error">{error}</Alert>}
       <div className="flex items-center justify-between text-xs">
         <Counter n={body.length} />
-        <Button type="submit" disabled={pending || !body.trim() || body.length > MAX}>
+        <Button type="submit" disabled={pending || uploading || (!body.trim() && !ready.length) || body.length > MAX}>
           {pending ? "Sending…" : "Send"}
         </Button>
       </div>

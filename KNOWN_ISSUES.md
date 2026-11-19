@@ -32,7 +32,7 @@ The final review of Coursebook and The 1600 Project's setup on it, most serious 
 
 7. **Bulk messages and announcements sent *now* still send their emails during the request.** A message to 30 students sends up to 30 emails before the page answers (a few seconds with a slow mail server). Anything **scheduled** ("Send later") is sent entirely by the worker queue, so for those the page never waits. If immediate sends become slow, schedule them a minute ahead or move the "send now" path to the queue as well.
 
-8. **Courses aren't copied by "Start a new semester".** Staff, scopes and groups carry over, but teachers re-add courses from each new class's Assign tab. This is noted in the admin guide and on the rollover form.
+8. ~~**Courses aren't copied by "Start a new semester".**~~ Fixed: a checkbox per class copies its courses and its course-lesson and question-set assignments (undated). Not copied: worksheet, College Board link, diagnostic and practice-test-log assignments, work aimed at particular students, and students' weekly practice sets. Courses whose original was deleted can't be copied.
 
 ## Medium
 
@@ -82,6 +82,14 @@ The final review of Coursebook and The 1600 Project's setup on it, most serious 
 16i. **Office hours** are set in the staff member's time zone (saved with each open time; changing your time zone later doesn't move existing ones, edit them). Students can book up to 4 weeks ahead, not within the next hour, and hold at most 3 upcoming bookings. The database stops two bookings of the same slot (and a student booking two things that start at the same moment); a student booking two different tutors at overlapping but different times is caught by a check that isn't race-proof. Reminders go out about 24 hours before, from the worker's 15-minute job. Removing an open time doesn't cancel bookings already made.
 
 16j. **Question reports and stats.** Reports are capped at 20 a day per student, one open report per student per question (sending another updates it). Reviewers never see who reported. Bank reports go to every author, so a busy bank means a shared queue; there's no assigning a report to one person. The flag thresholds (10 answers; 30 points below 75/55/35% expected; a wrong choice beating the right one; 3 open reports) are fixed in code. When sorting or filtering by stats, the bank list loads all matching questions and sorts in memory (fine for a few thousand questions; a much larger bank would need stored stats). Worksheet questions don't get stats here.
+
+16k. **Message attachments.**
+- PNG, JPG and PDF only, up to 10 MB each and 5 per message; 30 uploads an hour per person.
+- Files go only in replies inside a conversation, including the first message once it's started. Group messages, scheduled sends, saved replies and announcements are text only.
+- Files are checked by their first bytes, not scanned for viruses or stripped of photo location data.
+- Files are served through the app, so each view uses the web server's bandwidth; that's fine at 10 MB and class sizes.
+- When a whole class or program is deleted, its message files stay in storage until their uploader's account is deleted. Deleting an account deletes that person's files.
+- Archived classes keep their files readable.
 
 ## Low
 

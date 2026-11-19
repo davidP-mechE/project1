@@ -67,6 +67,29 @@ async function noSideScroll(page: Page) {
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(400);
 }
 
+
+/** Axe in light and dark themes, with animations off so colors are final. */
+const axe = async (page: Page, name: string) => {
+  await page.waitForLoadState("networkidle").catch(() => {});
+  for (const theme of ["light", "dark"] as const) {
+    await page.evaluate((t) => {
+      // No transitions or animations, so colors are measured as they finally appear.
+      if (!document.getElementById("e2e-still")) {
+        const style = document.createElement("style");
+        style.id = "e2e-still";
+        style.textContent = "*,*::before,*::after{transition:none!important;animation:none!important}";
+        document.head.append(style);
+      }
+      document.documentElement.classList.remove("light", "dark");
+      document.documentElement.classList.add(t);
+      document.documentElement.style.colorScheme = t;
+    }, theme);
+    // @axe-core/playwright is typed against its own copy of Playwright; the page is the same object.
+    const r = await new AxeBuilder({ page: page as never }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze();
+    expect(r.violations.map((v) => `${name} (${theme}): ${v.id} ${v.nodes.map((n) => n.html).join(" | ")}`)).toEqual([]);
+  }
+};
+
 test.describe.configure({ mode: "serial" });
 
 test.beforeAll(async () => {
@@ -148,26 +171,6 @@ test("practice player: likely mistake, grid-in equivalence, calculator kept betw
 });
 
 test("report a question; the author reviews it; stats show on the bank (accessible at phone width)", async ({ browser }) => {
-  const axe = async (page: Page, name: string) => {
-    await page.waitForLoadState("networkidle").catch(() => {});
-    for (const theme of ["light", "dark"] as const) {
-      await page.evaluate((t) => {
-        // No transitions or animations, so colors are measured as they finally appear.
-        if (!document.getElementById("e2e-still")) {
-          const style = document.createElement("style");
-          style.id = "e2e-still";
-          style.textContent = "*,*::before,*::after{transition:none!important;animation:none!important}";
-          document.head.append(style);
-        }
-        document.documentElement.classList.remove("light", "dark");
-        document.documentElement.classList.add(t);
-        document.documentElement.style.colorScheme = t;
-      }, theme);
-      // @axe-core/playwright is typed against its own copy of Playwright; the page is the same object.
-      const r = await new AxeBuilder({ page: page as never }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze();
-      expect(r.violations.map((v) => `${name} (${theme}): ${v.id} ${v.nodes.map((n) => n.html).join(" | ")}`)).toEqual([]);
-    }
-  };
   const page = await phone(browser, email("student"));
   await page.goto(`/practice/${ids.set}`);
   await page.getByRole("button", { name: "Start" }).click();
@@ -287,4 +290,65 @@ test("a tutor can't load a student outside their classes (API)", async ({ browse
   expect((await tutor.request.get(`/api/classes/${ids.class}/students/${ids.outsider}/practice`)).status()).toBe(404);
   const outsider = await phone(browser, email("outsider"));
   expect((await outsider.request.get(`/api/classes/${ids.class}/students/${ids.student}/practice`)).status()).toBe(404);
+});
+
+const PNG = Buffer.concat([Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]), Buffer.from("0000000d49484452000000010000000108060000001f15c4890000000d49444154789c63d0b2bef81f0003ff02360cacd5980000000049454e44ae426082", "hex")]);
+
+test("message attachments: checked by contents, shown inline, private to the conversation (phone width, accessible)", async ({ browser }) => {
+  ids.thread = `e2e3b_thread_${run}`;
+  await sql(`INSERT INTO "MessageThread"(id, "classId", "studentId", "staffId") VALUES ($1,$2,$3,$4)`, [ids.thread, ids.class, ids.student, ids.tutor]);
+  await sql(`INSERT INTO "Message"(id, "threadId", "authorId", body) VALUES ($1,$2,$3,'Send me your graph?')`, [`${ids.thread}_m`, ids.thread, ids.tutor]);
+  const page = await phone(browser, email("student"));
+  await page.goto(`/messages/${ids.thread}`);
+  const input = page.getByLabel("Attach a file");
+  // A web page renamed .png is refused by the server after upload.
+  await input.setInputFiles({ name: "graph.png", mimeType: "image/png", buffer: Buffer.from("<html><script>alert(1)</script></html>") });
+  await expect(page.getByText("That file isn't a real PNG, JPG or PDF.")).toBeVisible();
+  await page.getByRole("button", { name: "Remove graph.png" }).click();
+  // Wrong kinds are refused before uploading.
+  await input.setInputFiles({ name: "notes.txt", mimeType: "text/plain", buffer: Buffer.from("hi") });
+  await expect(page.getByText("Only PNG, JPG and PDF files.")).toBeVisible();
+  await page.getByRole("button", { name: "Remove notes.txt" }).click();
+  // A real PNG and a PDF.
+  await input.setInputFiles([
+    { name: "my-graph.png", mimeType: "image/png", buffer: PNG },
+    { name: "work.pdf", mimeType: "application/pdf", buffer: Buffer.from("%PDF-1.4\n%%EOF\n") },
+  ]);
+  await expect(page.getByText("Ready")).toHaveCount(2);
+  await axe(page, "student: reply with attachments");
+  await noSideScroll(page);
+  await page.getByRole("button", { name: "Send" }).click();
+  const img = page.getByRole("img", { name: "my-graph.png" });
+  await expect(img).toBeVisible();
+  await expect.poll(() => img.evaluate((el) => (el as HTMLImageElement).naturalWidth)).toBe(1);
+  await expect(page.getByRole("link", { name: /work\.pdf/ })).toBeVisible();
+  const src = await img.getAttribute("src");
+
+  const tutor = await phone(browser, email("tutor"));
+  await tutor.goto(`/messages/${ids.thread}`);
+  await expect(tutor.getByRole("img", { name: "my-graph.png" })).toBeVisible();
+  const r = await tutor.request.get(src!);
+  expect(r.status()).toBe(200);
+  expect(r.headers()["content-type"]).toBe("image/png");
+  expect(r.headers()["x-content-type-options"]).toBe("nosniff");
+  await axe(tutor, "tutor: conversation with attachments");
+  const outsider = await phone(browser, email("outsider"));
+  expect((await outsider.request.get(src!)).status()).toBe(404);
+  const anon = await phone(browser, null);
+  expect((await anon.request.get(src!)).status()).toBe(401);
+});
+
+test("new semester copies the class's courses and question sets when ticked (accessible)", async ({ browser }) => {
+  const page = await phone(browser, email("tutor"));
+  await page.goto(`/teach/programs/${ids.program}`);
+  await page.getByLabel("Semester name").fill("Spring 2099");
+  const copy = page.getByLabel("Copy courses and question sets for E2E Class");
+  await expect(copy).toBeChecked();
+  await axe(page, "admin: new semester form");
+  await noSideScroll(page);
+  page.once("dialog", (d) => d.accept());
+  await page.getByRole("button", { name: "Start the new semester" }).click();
+  await expect(page.getByText(/E2E Class \(Spring 2099\) \(code \w+, 0 courses and 1 assignment copied\)/)).toBeVisible();
+  const [copied] = await sql<{ title: string; calculator: string; due: Date | null }>(`SELECT a.title, a.calculator, a."dueAt" AS due FROM "Assignment" a JOIN "Class" c ON c.id = a."classId" WHERE c."programId" = $1 AND c.name = 'E2E Class (Spring 2099)'`, [ids.program]);
+  expect(copied).toEqual({ title: "By hand set", calculator: "BY_HAND", due: null });
 });

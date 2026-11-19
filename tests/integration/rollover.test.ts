@@ -53,4 +53,50 @@ describe("semester rollover", () => {
     // An archived class can't be carried forward again.
     await expect(startSemester(admin.id, program.id, { semester: "Summer 2027", classIds: [c.id], reinvite: false })).rejects.toThrow(/aren't active/);
   });
+
+  it("copies courses and question sets for the classes ticked, undated; leaves per-student work behind", async () => {
+    const [admin, ana] = await Promise.all(["Admin", "Ana"].map((n) => createUser(n)));
+    const c = await createClass(admin.id, "SAT Math (Fall 2026)");
+    const plain = await createClass(admin.id, "Reading club");
+    await db.classMember.create({ data: { classId: c.id, userId: ana.id } });
+    const g = await createGroup(admin.id, c.id, "Group B", [ana.id]);
+    const program = await db.program.findFirstOrThrow({ where: { adminId: admin.id } });
+    const book = await db.book.create({ data: { userId: admin.id, originalFilename: "b.pdf", storageKey: "k", sizeBytes: BigInt(1), status: "READY", pageCount: 1 } });
+    const course = await db.course.create({ data: { userId: admin.id, bookId: book.id, title: "Algebra notes", status: "ACTIVE", settings: {} } });
+    const book2 = await db.book.create({ data: { userId: admin.id, originalFilename: "c.pdf", storageKey: "k2", sizeBytes: BigInt(1), status: "READY", pageCount: 1 } });
+    const gone = await db.course.create({ data: { userId: admin.id, bookId: book2.id, title: "Deleted later", status: "ACTIVE", settings: {} } });
+    const cc = await db.classCourse.create({ data: { classId: c.id, sourceCourseId: course.id, title: "Algebra notes", fileKey: "snap", snapshotOf: "x" } });
+    await db.classCourse.create({ data: { classId: c.id, sourceCourseId: gone.id, title: "Deleted later" } });
+    await db.course.delete({ where: { id: gone.id } });
+    await db.classCourse.create({ data: { classId: plain.id, sourceCourseId: course.id, title: "Algebra notes" } });
+    const set = await db.questionSet.create({ data: { title: "Linear drill", questionIds: [], status: "published", visibility: "class", authorId: admin.id } });
+    const privateSet = await db.questionSet.create({ data: { title: "Mine", questionIds: [], status: "published", visibility: "private", authorId: admin.id } });
+    const autoSet = await db.questionSet.create({ data: { title: "Weekly: Ana", questionIds: [], status: "published", visibility: "class", autoForStudentId: ana.id } });
+    const due = new Date("2026-10-01T00:00:00Z");
+    await db.assignment.createMany({
+      data: [
+        { classId: c.id, kind: "LESSONS", classCourseId: cc.id, title: "Chapter 1", lessonIds: ["l1"], dueAt: due },
+        { classId: c.id, kind: "QUESTION_SET", questionSetId: set.id, title: "Linear drill", dueAt: due, timeLimitMin: 20, calculator: "BY_HAND", groupIds: [g.id] },
+        { classId: c.id, kind: "QUESTION_SET", questionSetId: set.id, title: "Just Ana", studentIds: [ana.id] },
+        { classId: c.id, kind: "QUESTION_SET", questionSetId: privateSet.id, title: "Private" },
+        { classId: c.id, kind: "QUESTION_SET", questionSetId: autoSet.id, title: "Weekly", studentIds: [ana.id] },
+        { classId: c.id, kind: "EXTERNAL", title: "CB link" },
+      ],
+    });
+
+    // Copying is only for classes being carried forward.
+    await expect(startSemester(admin.id, program.id, { semester: "Spring 2027", classIds: [c.id], reinvite: false, copyWork: [plain.id] })).rejects.toBeInstanceOf(ClassError);
+    const r = await startSemester(admin.id, program.id, { semester: "Spring 2027", classIds: [c.id, plain.id], reinvite: false, copyWork: [c.id] });
+    const [a, b] = r.created;
+    expect([a.courses, a.assignments, b.courses, b.assignments]).toEqual([1, 2, 0, 0]);
+    const fresh = await db.class.findUniqueOrThrow({ where: { id: a.id }, include: { courses: true, groups: true, assignments: { orderBy: { title: "asc" } } } });
+    expect(fresh.courses).toMatchObject([{ sourceCourseId: course.id, title: "Algebra notes", fileKey: null, snapshotOf: null }]);
+    expect(fresh.assignments.map((x) => ({ title: x.title, kind: x.kind, dueAt: x.dueAt, classCourseId: x.classCourseId, groupIds: x.groupIds, studentIds: x.studentIds, timeLimitMin: x.timeLimitMin, calculator: x.calculator }))).toEqual([
+      { title: "Chapter 1", kind: "LESSONS", dueAt: null, classCourseId: fresh.courses[0].id, groupIds: [], studentIds: [], timeLimitMin: null, calculator: "ALLOWED" },
+      { title: "Linear drill", kind: "QUESTION_SET", dueAt: null, classCourseId: null, groupIds: [fresh.groups[0].id], studentIds: [], timeLimitMin: 20, calculator: "BY_HAND" },
+    ]);
+    // The unticked class gets nothing; the old class keeps its work.
+    expect(await db.classCourse.count({ where: { classId: b.id } })).toBe(0);
+    expect(await db.assignment.count({ where: { classId: c.id } })).toBe(6);
+  });
 });

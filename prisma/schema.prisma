@@ -36,15 +36,16 @@ enum Plan {
 }
 
 model User {
-  id              String   @id
-  name            String
-  email           String   @unique
-  emailVerified   Boolean  @default(false)
+  messageAttachments MessageAttachment[] @relation("messageAttachments")
+  id                 String              @id
+  name               String
+  email              String              @unique
+  emailVerified      Boolean             @default(false)
   /// Sign-up choice "As a <program> mentee": becomes an "SAT only, no AI" rule at the first sign-in (after the email is verified), then cleared.
-  signupProgramId String?
-  image           String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  signupProgramId    String?
+  image              String?
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
 
   role     Role   @default(USER)
   plan     Plan   @default(FREE)
@@ -115,17 +116,17 @@ model User {
   customTests      PracticeTest[]    @relation("testCreator")
 
   // Needs attention and caseloads
-  questionReports  QuestionReport[]
-  officeHours      OfficeHours[]
-  staffBookings    Booking[]        @relation("bookingStaff")
-  studentBookings  Booking[]        @relation("bookingStudent")
-  savedReplies     SavedReply[]
-  scheduledSends   ScheduledSend[]
-  autoPractice     AutoPracticeItem[]
-  liveAnswers      LiveAnswer[]
-  attentionStates  AttentionState[] @relation("attentionStudent")
-  tutorOf          PrimaryTutor[]   @relation("primaryTutorStudent")
-  caseload         PrimaryTutor[]   @relation("primaryTutor")
+  questionReports QuestionReport[]
+  officeHours     OfficeHours[]
+  staffBookings   Booking[]          @relation("bookingStaff")
+  studentBookings Booking[]          @relation("bookingStudent")
+  savedReplies    SavedReply[]
+  scheduledSends  ScheduledSend[]
+  autoPractice    AutoPracticeItem[]
+  liveAnswers     LiveAnswer[]
+  attentionStates AttentionState[]   @relation("attentionStudent")
+  tutorOf         PrimaryTutor[]     @relation("primaryTutorStudent")
+  caseload        PrimaryTutor[]     @relation("primaryTutor")
 
   /// Set on every login, for the Staff page.
   lastLoginAt      DateTime?
@@ -1065,52 +1066,52 @@ model CatalogEntry {
 
 /// A tutoring program (e.g. The 1600 Project): its classes, staff and settings.
 model Program {
-  id              String              @id @default(cuid())
-  name            String
-  adminId         String
-  admin           User                @relation("programAdmin", fields: [adminId], references: [id], onDelete: Cascade)
+  id                String              @id @default(cuid())
+  name              String
+  adminId           String
+  admin             User                @relation("programAdmin", fields: [adminId], references: [id], onDelete: Cascade)
   /// Subject template: only SAT for now.
-  subject         String              @default("SAT")
+  subject           String              @default("SAT")
   /// Score targets shown on dashboards (e.g. 1200, 1300).
-  targets         Int[]               @default([1200, 1300])
+  targets           Int[]               @default([1200, 1300])
   /// Days a staff invite link stays valid.
-  inviteDays      Int                 @default(7)
+  inviteDays        Int                 @default(7)
   /// Program-wide AI spending cap per day, in cents (null = no cap beyond each user's allowance).
-  aiDailyCapCents Int?
+  aiDailyCapCents   Int?
   /// UTC day (YYYY-MM-DD) the admin was last emailed that the cap was reached, so it's once a day.
-  aiCapAlertedOn  String?
+  aiCapAlertedOn    String?
   /// Official SAT dates students can pick from (entered by the admin).
-  testDates       DateTime[]
+  testDates         DateTime[]
   /// School calendar: term dates and days with no sessions.
-  termStart       DateTime?
-  termEnd         DateTime?
-  closedDates     DateTime[]
+  termStart         DateTime?
+  termEnd           DateTime?
+  closedDates       DateTime[]
   /// Public identity (the program's own, not the site's): its address /p/<slug>, badge text and page copy.
-  slug            String?             @unique
-  badge           String?
-  isPublic        Boolean             @default(false)
-  publicBlurb     String?
+  slug              String?             @unique
+  badge             String?
+  isPublic          Boolean             @default(false)
+  publicBlurb       String?
   /// Starting point and goal shown on the public page (e.g. a school average of 970 and a +300 gain).
-  schoolAverage   Int?
-  goalGain        Int?
-  diagnostics     Diagnostic[]
-  createdAt       DateTime            @default(now())
-  classes         Class[]
-  auditLogs       AuditLog[]
+  schoolAverage     Int?
+  goalGain          Int?
+  diagnostics       Diagnostic[]
+  createdAt         DateTime            @default(now())
+  classes           Class[]
+  auditLogs         AuditLog[]
   /// Demo data (Admin → Demo data, or npm run demo:load). Cleared in one step; never mixed with real records.
-  isDemo          Boolean             @default(false)
-  accessRules     ProgramAccessRule[]
+  isDemo            Boolean             @default(false)
+  accessRules       ProgramAccessRule[]
   /// Students who join one of this program's classes get an "SAT only, no AI" rule (unless they already have a rule).
-  newStudentsNoAi Boolean             @default(false)
+  newStudentsNoAi   Boolean             @default(false)
   /// Needs attention: days with no login and no practice before a student is listed as inactive.
-  inactiveDays    Int                 @default(7)
+  inactiveDays      Int                 @default(7)
   /// Parent progress emails to guardians who agreed: OFF, WEEKLY (Sunday evening) or MONTHLY (the 1st).
-  guardianFrequency String            @default("OFF")
-  savedReplies    SavedReply[]
-  officeHours     OfficeHours[]
-  bookings        Booking[]
-  attentionStates AttentionState[]
-  primaryTutors   PrimaryTutor[]
+  guardianFrequency String              @default("OFF")
+  savedReplies      SavedReply[]
+  officeHours       OfficeHours[]
+  bookings          Booking[]
+  attentionStates   AttentionState[]
+  primaryTutors     PrimaryTutor[]
 
   @@index([adminId])
 }
@@ -1227,9 +1228,9 @@ model ClassGroupMember {
 }
 
 model Class {
-  id                String             @id @default(cuid())
+  id                String              @id @default(cuid())
   programId         String
-  program           Program            @relation(fields: [programId], references: [id], onDelete: Cascade)
+  program           Program             @relation(fields: [programId], references: [id], onDelete: Cascade)
   staff             ClassStaff[]
   staffInvites      StaffInvite[]
   groups            ClassGroup[]
@@ -1239,24 +1240,24 @@ model Class {
   liveRuns          LiveRun[]
   alertStates       AlertState[]
   /// Retired: parent progress emails are now switched on per program (Program.guardianFrequency).
-  guardianSummaries Boolean            @default(false)
+  guardianSummaries Boolean             @default(false)
   curricula         Curriculum[]
   summaries         AssistantSummary[]
   draftLessons      DraftLesson[]
   threads           MessageThread[]
   announcements     Announcement[]
   teacherId         String
-  teacher           User               @relation("teacher", fields: [teacherId], references: [id], onDelete: Cascade)
+  teacher           User                @relation("teacher", fields: [teacherId], references: [id], onDelete: Cascade)
   name              String
-  joinCode          String             @unique
+  joinCode          String              @unique
   archivedAt        DateTime?
-  createdAt         DateTime           @default(now())
+  createdAt         DateTime            @default(now())
   members           ClassMember[]
   invites           ClassInvite[]
   courses           ClassCourse[]
   assignments       Assignment[]
   /// Demo data (Admin → Demo data, or npm run demo:load). Cleared in one step; never mixed with real records.
-  isDemo            Boolean            @default(false)
+  isDemo            Boolean             @default(false)
 
   @@index([teacherId])
   @@index([programId])
@@ -1443,9 +1444,9 @@ model WorksheetItem {
   approvedAt     DateTime?
   versions       WorksheetItemVersion[]
   answers        AssignmentAnswer[]
+  reports        QuestionReport[]
 
   @@index([worksheetId, order])
-  reports        QuestionReport[]
 }
 
 /// A student's answer to a worksheet question in an assignment. The latest one counts.
@@ -1871,17 +1872,18 @@ model ProblemReport {
 /// Who may start or read one is decided in src/server/messages.ts from the
 /// staff member's current scope; the program admin can read every thread.
 model MessageThread {
-  id            String       @id @default(cuid())
+  id            String              @id @default(cuid())
   classId       String
-  class         Class        @relation(fields: [classId], references: [id], onDelete: Cascade)
+  class         Class               @relation(fields: [classId], references: [id], onDelete: Cascade)
   studentId     String
-  student       User         @relation("threadStudent", fields: [studentId], references: [id], onDelete: Cascade)
+  student       User                @relation("threadStudent", fields: [studentId], references: [id], onDelete: Cascade)
   staffId       String
-  staff         User         @relation("threadStaff", fields: [staffId], references: [id], onDelete: Cascade)
-  createdAt     DateTime     @default(now())
-  lastMessageAt DateTime     @default(now())
+  staff         User                @relation("threadStaff", fields: [staffId], references: [id], onDelete: Cascade)
+  createdAt     DateTime            @default(now())
+  lastMessageAt DateTime            @default(now())
   messages      Message[]
   reads         ThreadRead[]
+  attachments   MessageAttachment[]
 
   @@unique([classId, studentId, staffId])
   @@index([staffId, lastMessageAt])
@@ -1890,18 +1892,46 @@ model MessageThread {
 }
 
 model Message {
-  id        String        @id @default(cuid())
-  threadId  String
-  thread    MessageThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
-  authorId  String
-  author    User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  body      String
+  id          String              @id @default(cuid())
+  threadId    String
+  thread      MessageThread       @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  authorId    String
+  author      User                @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  body        String
   /// Set when the message went to several students at once.
-  bulkId    String?
-  createdAt DateTime      @default(now())
+  bulkId      String?
+  createdAt   DateTime            @default(now())
+  attachments MessageAttachment[]
 
   @@index([threadId, createdAt])
   @@index([authorId, createdAt])
+}
+
+enum AttachmentStatus {
+  UPLOADING
+  READY
+}
+
+/// A PNG, JPG or PDF sent in a conversation (up to 10 MB). Uploaded straight to storage, checked by its first bytes, then linked to a message when sent. Served only through /api/messages/attachments/[id].
+model MessageAttachment {
+  id          String           @id @default(cuid())
+  threadId    String
+  thread      MessageThread    @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  uploaderId  String
+  uploader    User             @relation("messageAttachments", fields: [uploaderId], references: [id], onDelete: Cascade)
+  messageId   String?
+  message     Message?         @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  fileKey     String           @unique
+  filename    String
+  /// Checked from the file's contents: image/png, image/jpeg or application/pdf.
+  contentType String
+  sizeBytes   Int
+  status      AttachmentStatus @default(UPLOADING)
+  createdAt   DateTime         @default(now())
+
+  @@index([messageId])
+  @@index([uploaderId, createdAt])
+  @@index([status, createdAt])
 }
 
 model ThreadRead {
@@ -2222,22 +2252,22 @@ enum SetVisibility {
 }
 
 model QuestionSet {
-  id           String        @id @default(cuid())
-  title        String
-  description  String?
-  authorId     String?       @map("author_id")
-  author       User?         @relation("setAuthor", fields: [authorId], references: [id], onDelete: SetNull)
-  questionIds  String[]      @map("question_ids")
-  visibility   SetVisibility @default(private)
-  status       PublishStatus @default(draft)
+  id               String        @id @default(cuid())
+  title            String
+  description      String?
+  authorId         String?       @map("author_id")
+  author           User?         @relation("setAuthor", fields: [authorId], references: [id], onDelete: SetNull)
+  questionIds      String[]      @map("question_ids")
+  visibility       SetVisibility @default(private)
+  status           PublishStatus @default(draft)
   /// Skills its questions cover (kept in step on save), for "Focus next".
-  skillIds     String[]      @map("skill_ids")
+  skillIds         String[]      @map("skill_ids")
   /// Optional time limit for timed play.
-  timeLimitMin Int?          @map("time_limit_min")
+  timeLimitMin     Int?          @map("time_limit_min")
   /// Weekly auto-assigned practice: the student this set was built for. Such sets are hidden from the bank's set lists and the catalog.
-  autoForStudentId String?   @map("auto_for_student_id")
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  autoForStudentId String?       @map("auto_for_student_id")
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
 
   sessions    PracticeSession[]
   attempts    BankAttempt[]
@@ -2543,29 +2573,29 @@ model SavedReply {
 /// A message, bulk message or announcement to send later, from the worker queue. The author's access is
 /// checked again when it sends. PENDING until then; it can be edited or CANCELLED before; SENT or FAILED after.
 model ScheduledSend {
-  id        String    @id @default(cuid())
-  authorId  String
-  author    User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  classId   String
-  class     Class     @relation(fields: [classId], references: [id], onDelete: Cascade)
+  id         String    @id @default(cuid())
+  authorId   String
+  author     User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  classId    String
+  class      Class     @relation(fields: [classId], references: [id], onDelete: Cascade)
   /// MESSAGE (to the chosen students, each in their own conversation) or ANNOUNCEMENT.
-  kind      String
+  kind       String
   studentIds String[]
-  groupIds  String[]
+  groupIds   String[]
   /// Announcements: the title, the group (null = whole class) and whether it's pinned.
-  title     String?
-  groupId   String?
-  pinned    Boolean   @default(false)
-  body      String
-  sendAt    DateTime
+  title      String?
+  groupId    String?
+  pinned     Boolean   @default(false)
+  body       String
+  sendAt     DateTime
   /// PENDING, SENDING, SENT, CANCELLED or FAILED.
-  status    String    @default("PENDING")
-  sentAt    DateTime?
-  error     String?
+  status     String    @default("PENDING")
+  sentAt     DateTime?
+  error      String?
   /// How many it reached.
-  reached   Int?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  reached    Int?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
 
   @@index([status, sendAt])
   @@index([authorId, status])
@@ -2605,30 +2635,30 @@ model OfficeHours {
 /// hold "<person>:<start>", and their unique indexes make double-booking impossible, even when two
 /// people book at the same moment. Cancelling clears them.
 model Booking {
-  id              String        @id @default(cuid())
-  programId       String
-  program         Program       @relation(fields: [programId], references: [id], onDelete: Cascade)
+  id             String        @id @default(cuid())
+  programId      String
+  program        Program       @relation(fields: [programId], references: [id], onDelete: Cascade)
   /// The class the two share (for scope, and the session if it becomes one).
-  classId         String
-  staffId         String
-  staff           User          @relation("bookingStaff", fields: [staffId], references: [id], onDelete: Cascade)
-  studentId       String
-  student         User          @relation("bookingStudent", fields: [studentId], references: [id], onDelete: Cascade)
-  startsAt        DateTime
-  endsAt          DateTime
-  location        String?
-  note            String?
+  classId        String
+  staffId        String
+  staff          User          @relation("bookingStaff", fields: [staffId], references: [id], onDelete: Cascade)
+  studentId      String
+  student        User          @relation("bookingStudent", fields: [studentId], references: [id], onDelete: Cascade)
+  startsAt       DateTime
+  endsAt         DateTime
+  location       String?
+  note           String?
   /// BOOKED or CANCELLED.
-  status          String        @default("BOOKED")
-  staffSlot       String?       @unique
-  studentSlot     String?       @unique
-  cancelledById   String?
-  cancelledAt     DateTime?
-  reminderSentAt  DateTime?
+  status         String        @default("BOOKED")
+  staffSlot      String?       @unique
+  studentSlot    String?       @unique
+  cancelledById  String?
+  cancelledAt    DateTime?
+  reminderSentAt DateTime?
   /// Set when staff turn it into a class session (with attendance).
-  sessionId       String?       @unique
-  session         ClassSession? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
-  createdAt       DateTime      @default(now())
+  sessionId      String?       @unique
+  session        ClassSession? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+  createdAt      DateTime      @default(now())
 
   @@index([staffId, startsAt])
   @@index([studentId, startsAt])
@@ -2641,11 +2671,11 @@ model Booking {
 /// worksheet question (in an assignment). Authors (bank) or the worksheet's owner review them.
 /// One open report per student per question; reporting again updates it.
 model QuestionReport {
-  id              String        @id @default(cuid())
+  id              String         @id @default(cuid())
   reporterId      String
-  reporter        User          @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+  reporter        User           @relation(fields: [reporterId], references: [id], onDelete: Cascade)
   bankQuestionId  String?
-  bankQuestion    BankQuestion? @relation(fields: [bankQuestionId], references: [id], onDelete: Cascade)
+  bankQuestion    BankQuestion?  @relation(fields: [bankQuestionId], references: [id], onDelete: Cascade)
   /// The bank question's version the student saw.
   questionVersion Int?
   worksheetItemId String?
@@ -2657,13 +2687,13 @@ model QuestionReport {
   /// The student's latest answer to it, if they answered.
   answerGiven     String?
   /// OPEN or RESOLVED.
-  status          String        @default("OPEN")
+  status          String         @default("OPEN")
   /// FIXED, NO_CHANGE or UNPUBLISHED.
   resolution      String?
   resolvedById    String?
   resolvedAt      DateTime?
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
 
   @@index([bankQuestionId, status])
   @@index([worksheetItemId, status])

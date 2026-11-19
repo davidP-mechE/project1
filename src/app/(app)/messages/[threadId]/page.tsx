@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { Alert } from "@/components/ui/alert";
 import { Card, PageHeader } from "@/components/ui/misc";
 import { ReplyForm } from "@/components/messages/forms";
+import { AttachmentList } from "@/components/messages/attachment-list";
 import { getThread } from "@/server/messages";
 import { NotFoundError } from "@/server/courses";
 import { listSavedReplies } from "@/server/saved-replies";
@@ -46,7 +47,8 @@ export default async function ThreadPage({ params, searchParams }: PageProps<"/m
             const who = m.authorId === thread.staffId ? thread.staffName : thread.studentName;
             return (
               <li key={m.id} className={cn("flex flex-col", mine ? "items-end" : "items-start")}>
-                <div className={cn("max-w-[85%] whitespace-pre-wrap break-words rounded-2xl px-4 py-2.5 text-sm", mine ? "bg-primary text-primary-text" : "bg-surface-2 text-text")}>{m.body}</div>
+                {m.body && <div className={cn("max-w-[85%] whitespace-pre-wrap break-words rounded-2xl px-4 py-2.5 text-sm", mine ? "bg-primary text-primary-text" : "bg-surface-2 text-text")}>{m.body}</div>}
+                <AttachmentList files={m.attachments} mine={mine} />
                 <span className="mt-1 text-xs text-muted">
                   {mine ? "You" : who} · <time dateTime={m.createdAt.toISOString()}>{formatInZone(m.createdAt, zone, "dayTime")}</time>
                 </span>

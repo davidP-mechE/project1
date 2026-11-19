@@ -91,7 +91,7 @@ export async function getProgram(userId: string, programId: string, opts: { logB
     where: { id: programId },
     include: {
       admin: { select: { id: true, name: true, email: true } },
-      classes: { orderBy: { createdAt: "asc" }, select: { id: true, name: true, archivedAt: true, _count: { select: { members: true } } } },
+      classes: { orderBy: { createdAt: "asc" }, select: { id: true, name: true, archivedAt: true, _count: { select: { members: true, courses: true, assignments: { where: { kind: { in: ["LESSONS", "QUESTION_SET"] } } } } } } },
     },
   });
   const staff = await db.classStaff.findMany({

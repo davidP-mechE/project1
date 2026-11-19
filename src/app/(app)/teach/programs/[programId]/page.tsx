@@ -107,7 +107,7 @@ export default async function ProgramPage({ params, searchParams }: PageProps<"/
       <Card>
         <h2 className="mb-1 text-lg font-semibold">Start a new semester</h2>
         <p className="mb-4 text-sm text-muted">Copy this semester&apos;s classes into fresh ones and archive the old ones.</p>
-        <NewSemesterForm programId={program.id} classes={program.classes.filter((c) => !c.archivedAt).map((c) => ({ id: c.id, name: c.name, students: c._count.members }))} />
+        <NewSemesterForm programId={program.id} classes={program.classes.filter((c) => !c.archivedAt).map((c) => ({ id: c.id, name: c.name, students: c._count.members, courses: c._count.courses, work: c._count.assignments }))} />
       </Card>
       <Card>
         <h2 className="mb-1 text-lg font-semibold">Hand over the admin role</h2>

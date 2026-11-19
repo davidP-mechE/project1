@@ -207,7 +207,7 @@ const reminders = new Worker(
     }
     if (job.name === "maintenance") {
       const r = await runMaintenance();
-      if (r.uploads + r.rateRows + r.events + r.verifications > 0) console.info("[maintenance]", r);
+      if (r.uploads + r.rateRows + r.events + r.verifications + r.attachments > 0) console.info("[maintenance]", r);
       return;
     }
     const n = await sendDueReminders();

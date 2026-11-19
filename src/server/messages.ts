@@ -12,6 +12,7 @@ import { audit } from "./programs";
 import { assignedTo, groupsByClass } from "./targets";
 import { fillPlaceholders, firstNameOf, hasPlaceholders } from "@/lib/messaging/placeholders";
 import { formatInZone } from "@/lib/dates";
+import { MAX_ATTACHMENTS_PER_MESSAGE } from "@/lib/files/sniff";
 
 /**
  * Messages between staff and students. Rules (checked here, on every call):
@@ -122,6 +123,13 @@ const threadSelect = {
   staff: { select: { name: true } },
 } as const;
 
+/** Who may see a thread (its two participants, staff only while still in scope, and the program admin), or "not found". */
+export async function threadViewer(userId: string, threadId: string) {
+  const t = await db.messageThread.findUnique({ where: { id: threadId }, select: threadSelect });
+  if (!t) throw notFound();
+  return { thread: t, viewer: await viewerOf(userId, t) };
+}
+
 /** One thread's messages (newest page last), marking it read for a participant. */
 export async function getThread(userId: string, threadId: string, opts: { before?: string } = {}, now = new Date()) {
   const t = await db.messageThread.findUnique({ where: { id: threadId }, select: threadSelect });
@@ -132,7 +140,7 @@ export async function getThread(userId: string, threadId: string, opts: { before
     orderBy: [{ createdAt: "desc" }, { id: "desc" }],
     take: PAGE + 1,
     ...(opts.before ? { cursor: { id: opts.before }, skip: 1 } : {}),
-    select: { id: true, authorId: true, body: true, createdAt: true },
+    select: { id: true, authorId: true, body: true, createdAt: true, attachments: { where: { status: "READY" }, orderBy: { createdAt: "asc" }, select: { id: true, filename: true, contentType: true, sizeBytes: true } } },
   });
   if (viewer.mode !== "admin") {
     await db.threadRead.upsert({ where: { threadId_userId: { threadId, userId } }, create: { threadId, userId, lastReadAt: now }, update: { lastReadAt: now } });
@@ -200,17 +208,27 @@ async function deliver(threadId: string, authorId: string, recipientId: string, 
 }
 
 /** Reply in a thread. Only its two participants, and only while the pair is still in scope. */
-export async function sendMessage(userId: string, threadId: string, body: string, now = new Date()) {
+export async function sendMessage(userId: string, threadId: string, body: string, now = new Date(), attachmentIds: string[] = []) {
   const t = await db.messageThread.findUnique({ where: { id: threadId }, select: threadSelect });
   if (!t) throw notFound();
   const viewer = await viewerOf(userId, t);
   if (viewer.mode === "admin") throw new ClassError("The program admin can read this conversation but not reply in it.", 403);
   if (!viewer.canReply) throw new ClassError("This conversation is closed: the student or tutor is no longer in this class or group.", 403);
+  // Files: the sender's own checked uploads to this thread, not yet sent.
+  const fileIds = [...new Set(attachmentIds)];
+  if (fileIds.length > MAX_ATTACHMENTS_PER_MESSAGE) throw new ClassError(`Attach up to ${MAX_ATTACHMENTS_PER_MESSAGE} files to a message.`);
+  if (fileIds.length && (await db.messageAttachment.count({ where: { id: { in: fileIds }, threadId, uploaderId: userId, status: "READY", messageId: null } })) !== fileIds.length) throw new ClassError("One of those files isn't ready. Remove it and attach it again.");
+  // A message can be just files.
+  const raw = fileIds.length && !(body ?? "").trim() ? "" : cleanBody(body);
   // Staff messages can use placeholders ({first_name}, {class}, {due_date}); students' are sent as typed.
-  const text = viewer.mode === "staff" ? await personalize(cleanBody(body), t.classId, t.studentId, now) : cleanBody(body);
+  const text = raw && viewer.mode === "staff" ? await personalize(raw, t.classId, t.studentId, now) : raw;
   await checkRate(userId, now);
   const msg = await db.$transaction(async (tx) => {
     const m = await tx.message.create({ data: { threadId, authorId: userId, body: text, createdAt: now }, select: { id: true } });
+    if (fileIds.length) {
+      const linked = await tx.messageAttachment.updateMany({ where: { id: { in: fileIds }, threadId, uploaderId: userId, status: "READY", messageId: null }, data: { messageId: m.id } });
+      if (linked.count !== fileIds.length) throw new ClassError("One of those files isn't ready. Remove it and attach it again.");
+    }
     await tx.messageThread.update({ where: { id: threadId }, data: { lastMessageAt: now } });
     await tx.threadRead.upsert({ where: { threadId_userId: { threadId, userId } }, create: { threadId, userId, lastReadAt: now }, update: { lastReadAt: now } });
     return m;
@@ -294,7 +312,7 @@ export async function listThreads(userId: string, opts: { view?: "mine" | "progr
       className: t.class.name,
       other: view === "program" ? `${t.staff.name} ↔ ${t.student.name}` : t.studentId === userId ? t.staff.name : t.student.name,
       lastMessageAt: t.lastMessageAt,
-      preview: (t.messages[0]?.authorId === userId ? "You: " : "") + (t.messages[0]?.body ?? "").slice(0, 120),
+      preview: (t.messages[0]?.authorId === userId ? "You: " : "") + (t.messages[0] ? t.messages[0].body || "Sent a file" : "").slice(0, 120),
       unread: view === "mine" && t.messages[0]?.authorId !== userId && (!t.reads[0] || t.reads[0].lastReadAt < t.lastMessageAt),
     })),
     next: rows.length > PAGE ? rows[PAGE - 1].id : null,

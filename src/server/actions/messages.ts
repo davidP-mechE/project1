@@ -39,9 +39,9 @@ export async function startThreadAction(input: { classId: string; studentId?: st
   }, ["/messages"]);
 }
 
-export async function sendMessageAction(threadId: string, body: string) {
+export async function sendMessageAction(threadId: string, body: string, attachmentIds: string[] = []) {
   return run(async (u) => {
-    await messages.sendMessage(u, id.parse(threadId), z.string().max(10_000).parse(body));
+    await messages.sendMessage(u, id.parse(threadId), z.string().max(10_000).parse(body), new Date(), z.array(id).max(10).parse(attachmentIds));
   }, [`/messages/${threadId}`, "/messages"]);
 }
 

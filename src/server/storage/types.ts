@@ -52,5 +52,7 @@ export const storageKeys = {
   deckSource: (userId: string, bookId: string, deckId: string, pptx: boolean) => `users/${userId}/books/${bookId}/decks/${deckId}.${pptx ? "pptx" : "pdf"}`,
   /** A collage's merged PDF (a new name each time decks are added, so a half-finished merge never replaces the old one). */
   combinedPdf: (userId: string, bookId: string, stamp: number) => `users/${userId}/books/${bookId}/combined-${stamp}.pdf`,
+  /** A file attached to a message (under its uploader's folder, so it goes when their account does). */
+  messageAttachment: (userId: string, attachmentId: string) => `users/${userId}/messages/${attachmentId}`,
   userPrefix: (userId: string) => `users/${userId}/`,
 };

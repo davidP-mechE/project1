@@ -436,10 +436,11 @@ export function ProgramPublicPageForm({ program }: { program: { id: string; slug
 }
 
 /** Start a new semester: carry chosen classes forward (fresh copies) and archive the old ones. */
-export function NewSemesterForm({ programId, classes }: { programId: string; classes: { id: string; name: string; students: number }[] }) {
+export function NewSemesterForm({ programId, classes }: { programId: string; classes: { id: string; name: string; students: number; courses: number; work: number }[] }) {
   const router = useRouter();
   const [semester, setSemester] = useState("");
   const [chosen, setChosen] = useState<string[]>(classes.map((c) => c.id));
+  const [copy, setCopy] = useState<string[]>(classes.filter((c) => c.courses || c.work).map((c) => c.id));
   const [reinvite, setReinvite] = useState(false);
   const [msg, setMsg] = useState<{ tone: "success" | "error"; text: string } | null>(null);
   const [pending, start] = useTransition();
@@ -451,9 +452,10 @@ export function NewSemesterForm({ programId, classes }: { programId: string; cla
         e.preventDefault();
         if (!confirm(`Start ${semester || "the new semester"}? ${chosen.length} class${chosen.length === 1 ? "" : "es"} will be copied, and last semester's will be archived (read-only). Student records stay.`)) return;
         start(async () => {
-          const res = await startSemesterAction(programId, { semester, classIds: chosen, reinvite });
+          const res = await startSemesterAction(programId, { semester, classIds: chosen, reinvite, copyWork: copy.filter((id) => chosen.includes(id)) });
           if (!res.ok) return setMsg({ tone: "error", text: res.error });
-          setMsg({ tone: "success", text: `Started. New classes: ${res.created.map((c) => `${c.name} (code ${c.joinCode}${c.invited ? `, ${c.invited} invited` : ""})`).join("; ")}.` });
+          const copied = (c: { courses: number; assignments: number }) => (c.courses || c.assignments ? `, ${c.courses} course${c.courses === 1 ? "" : "s"} and ${c.assignments} assignment${c.assignments === 1 ? "" : "s"} copied` : "");
+          setMsg({ tone: "success", text: `Started. New classes: ${res.created.map((c) => `${c.name} (code ${c.joinCode}${copied(c)}${c.invited ? `, ${c.invited} invited` : ""})`).join("; ")}.` });
           router.refresh();
         });
       }}
@@ -462,17 +464,27 @@ export function NewSemesterForm({ programId, classes }: { programId: string; cla
       <fieldset className="flex flex-col gap-2 text-sm">
         <legend className="mb-1 font-medium">Classes to carry forward</legend>
         {classes.map((c) => (
-          <label key={c.id} className="flex items-center gap-2">
-            <input type="checkbox" checked={chosen.includes(c.id)} onChange={(e) => setChosen(e.target.checked ? [...chosen, c.id] : chosen.filter((x) => x !== c.id))} className="size-4 accent-[var(--primary)]" />
-            {c.name} <span className="text-muted">({c.students} student{c.students === 1 ? "" : "s"})</span>
-          </label>
+          <div key={c.id} className="flex flex-col gap-1">
+            <label className="flex items-center gap-2">
+              <input type="checkbox" checked={chosen.includes(c.id)} onChange={(e) => setChosen(e.target.checked ? [...chosen, c.id] : chosen.filter((x) => x !== c.id))} className="size-4 accent-[var(--primary)]" />
+              {c.name} <span className="text-muted">({c.students} student{c.students === 1 ? "" : "s"})</span>
+            </label>
+            {chosen.includes(c.id) && (c.courses > 0 || c.work > 0) && (
+              <label className="ml-6 flex items-center gap-2">
+                <input type="checkbox" checked={copy.includes(c.id)} onChange={(e) => setCopy(e.target.checked ? [...copy, c.id] : copy.filter((x) => x !== c.id))} className="size-4 accent-[var(--primary)]" aria-label={`Copy courses and question sets for ${c.name}`} />
+                <span>
+                  Copy its courses and question sets <span className="text-muted">({c.courses} course{c.courses === 1 ? "" : "s"}, {c.work} assignment{c.work === 1 ? "" : "s"})</span>
+                </span>
+              </label>
+            )}
+          </div>
         ))}
       </fieldset>
       <label className="flex items-center gap-2 text-sm">
         <input type="checkbox" checked={reinvite} onChange={(e) => setReinvite(e.target.checked)} className="size-4 accent-[var(--primary)]" />
         Email last semester&apos;s students an invite to the new classes
       </label>
-      <p className="text-xs text-muted">Each new class keeps its teacher, staff, roles, scopes and groups (empty), with a new join code. Scores, answers, attendance and mistake logs stay with the students. Courses are added again from the new class&apos;s Assign tab.</p>
+      <p className="text-xs text-muted">Each new class keeps its teacher, staff, roles, scopes and groups (empty), with a new join code. Scores, answers, attendance and mistake logs stay with the students. Copied courses and question sets arrive with no due dates: set new ones on each class&apos;s Assign tab. Work for particular students isn&apos;t copied.</p>
       {msg && <Alert tone={msg.tone}>{msg.text}</Alert>}
       <div>
         <Button type="submit" disabled={pending || !chosen.length}>

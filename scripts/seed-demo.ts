@@ -15,6 +15,8 @@ import { DEMO_DOMAIN, DEMO_PASSWORD } from "../src/lib/demo";
 import { demoBankQuestions } from "../src/lib/demo-bank";
 import { buildBatch } from "../src/server/auto-practice";
 import { zonedToUtc } from "../src/lib/office-hours/slots";
+import { deflateSync } from "node:zlib";
+import { storage, storageKeys } from "../src/server/storage";
 
 // Deterministic randomness, so the demo looks the same every time.
 let seed = 1600;
@@ -67,9 +69,50 @@ async function removeDemo() {
   await db.liveRun.deleteMany({ where: { set: { OR: [{ authorId: { in: users.map((u) => u.id) } }, { title: { startsWith: "Demo:" } }] } } });
   await db.questionSet.deleteMany({ where: { OR: [{ authorId: { in: users.map((u) => u.id) } }, { title: { startsWith: "Demo:" } }] } });
   await db.bankQuestion.deleteMany({ where: { externalId: { startsWith: "DEMO-" } } });
+  // Their stored files (message attachments live under each user's folder).
+  for (const u of users) await storage.deletePrefix(storageKeys.userPrefix(u.id)).catch(() => {});
   // Programs cascade from their admin; classes from programs.
   await db.user.deleteMany({ where: { id: { in: users.map((u) => u.id) } } });
   return users.length;
+}
+
+/** A small real PNG (a bar chart sketch), so the demo shows an image attachment. */
+function demoPng(): Buffer {
+  const w = 160, h = 90;
+  const rows: number[] = [];
+  const bars = [30, 55, 42, 75];
+  for (let y = 0; y < h; y++) {
+    rows.push(0);
+    for (let x = 0; x < w; x++) {
+      const bar = Math.floor((x - 10) / 37);
+      const inBar = x >= 10 && bar < 4 && (x - 10) % 37 < 28 && h - y <= bars[bar];
+      const [r, g, b] = inBar ? [42, 59, 209] : y === h - 1 ? [80, 80, 80] : [255, 255, 255];
+      rows.push(r, g, b);
+    }
+  }
+  const crcTable = Array.from({ length: 256 }, (_, n) => {
+    let c = n;
+    for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
+    return c >>> 0;
+  });
+  const crc = (buf: Buffer) => {
+    let c = 0xffffffff;
+    for (const byte of buf) c = crcTable[(c ^ byte) & 0xff] ^ (c >>> 8);
+    return (c ^ 0xffffffff) >>> 0;
+  };
+  const chunk = (type: string, data: Buffer) => {
+    const len = Buffer.alloc(4);
+    len.writeUInt32BE(data.length);
+    const td = Buffer.concat([Buffer.from(type), data]);
+    const c = Buffer.alloc(4);
+    c.writeUInt32BE(crc(td));
+    return Buffer.concat([len, td, c]);
+  };
+  const ihdr = Buffer.alloc(13);
+  ihdr.writeUInt32BE(w, 0);
+  ihdr.writeUInt32BE(h, 4);
+  ihdr.set([8, 2, 0, 0, 0], 8);
+  return Buffer.concat([Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]), chunk("IHDR", ihdr), chunk("IDAT", deflateSync(Buffer.from(rows))), chunk("IEND", Buffer.alloc(0))]);
 }
 
 async function makeUser(name: string, local: string, hash: string, extra: { timezone?: string } = {}) {
@@ -264,6 +307,18 @@ async function main() {
         { threadId: t.id, authorId: admin.id, body: "Yes! Bring it on Thursday and we'll look at question 3 together.", createdAt: new Date(now.getTime() - DAY) },
       ],
     });
+  }
+  // One student sends a picture of their work (a real PNG, in storage like any upload).
+  {
+    const s = roster[A.id][0];
+    const t = await db.messageThread.findFirstOrThrow({ where: { classId: A.id, studentId: s.id, staffId: admin.id } });
+    const m = await db.message.create({ data: { threadId: t.id, authorId: s.id, body: "Here's my chart from question 3. Is the trend right?", createdAt: new Date(now.getTime() - DAY / 2) } });
+    const png = demoPng();
+    const a = await db.messageAttachment.create({ data: { threadId: t.id, uploaderId: s.id, messageId: m.id, fileKey: `pending-${m.id}`, filename: "question-3-chart.png", contentType: "image/png", sizeBytes: png.length, status: "READY", createdAt: m.createdAt } });
+    const fileKey = storageKeys.messageAttachment(s.id, a.id);
+    await storage.put(fileKey, png, "image/png");
+    await db.messageAttachment.update({ where: { id: a.id }, data: { fileKey } });
+    await db.messageThread.update({ where: { id: t.id }, data: { lastMessageAt: m.createdAt } });
   }
   // Caseloads: group 1 of A is Morgan's, group 2 of A is Lena's (she tutors that group), class B is Priya's.
   await db.primaryTutor.createMany({

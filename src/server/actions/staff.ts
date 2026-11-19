@@ -117,8 +117,8 @@ export async function regradeQuestionAction(classId: string, assignmentId: strin
 export async function reviewGradeAction(classId: string, answerId: string, input: { score?: number; feedback?: string }) {
   return run((u) => review.reviewAiGrade(u, id.parse(answerId), z.object({ score: z.number().min(0).max(1).optional(), feedback: z.string().max(2000).optional() }).parse(input)), [`/teach/${classId}/review`]);
 }
-export async function startSemesterAction(programId: string, input: { semester: string; classIds: string[]; reinvite: boolean }) {
+export async function startSemesterAction(programId: string, input: { semester: string; classIds: string[]; reinvite: boolean; copyWork?: string[] }) {
   const { startSemester } = await import("../rollover");
-  const p = z.object({ semester: z.string().max(80), classIds: z.array(id).min(1).max(50), reinvite: z.boolean() }).parse(input);
+  const p = z.object({ semester: z.string().max(80), classIds: z.array(id).min(1).max(50), reinvite: z.boolean(), copyWork: z.array(id).max(50).optional() }).parse(input);
   return run(async (u) => startSemester(u, id.parse(programId), p), [`/teach/programs/${programId}`, "/teach"]);
 }
