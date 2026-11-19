@@ -236,11 +236,3 @@ export async function unsubscribeGuardian(token: string, now = new Date()) {
   if (!g.unsubscribedAt) await db.guardianContact.update({ where: { id: g.id }, data: { unsubscribedAt: now } });
   return true;
 }
-
-export async function setGuardianSummaries(userId: string, classId: string, on: boolean) {
-  const access = await classAccess(userId, classId, "manageClass");
-  await db.$transaction(async (tx) => {
-    await tx.class.update({ where: { id: classId }, data: { guardianSummaries: on } });
-    await audit(tx, { programId: access.programId, actorId: userId, action: "class.guardian-summaries", targetType: "class", targetId: classId, summary: `Weekly guardian emails turned ${on ? "on" : "off"} for ${access.className}` });
-  });
-}

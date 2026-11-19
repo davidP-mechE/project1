@@ -6,6 +6,7 @@ import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { inputClasses } from "@/components/ui/field";
 import { assignTutorAction, assignTutorToClassAction, importCaseloadAction, setInactiveDaysAction } from "@/server/actions/attention";
+import { setGuardianFrequencyAction } from "@/server/actions/comms";
 
 type Tutor = { id: string; name: string };
 type Klass = { id: string; name: string; groups: { id: string; name: string }[] };
@@ -193,6 +194,38 @@ export function InactiveDaysForm({ programId, days }: { programId: string; days:
       <Button type="submit" variant="secondary" disabled={pending}>Save</Button>
       <p id={`${id}-hint`} className="basis-full text-xs text-muted">Students with no login and no practice for this many days appear on everyone&apos;s needs-attention list.</p>
       {msg && <Alert tone={msg.tone} className="basis-full">{msg.text}</Alert>}
+    </form>
+  );
+}
+
+/** Program setting: parent progress emails off, weekly or monthly. */
+export function GuardianFrequencyForm({ programId, frequency }: { programId: string; frequency: string }) {
+  const router = useRouter();
+  const [value, setValue] = useState(frequency);
+  const [msg, setMsg] = useState<{ tone: "success" | "error"; text: string } | null>(null);
+  const [pending, start] = useTransition();
+  return (
+    <form
+      className="flex flex-col gap-3"
+      onSubmit={(e) => {
+        e.preventDefault();
+        start(async () => {
+          const r = await setGuardianFrequencyAction(programId, value);
+          setMsg(r.ok ? { tone: "success", text: "Saved." } : { tone: "error", text: r.error });
+          if (r.ok) router.refresh();
+        });
+      }}
+    >
+      <fieldset className="flex flex-wrap gap-5 text-sm">
+        <legend className="mb-1 font-medium">Parent progress emails</legend>
+        {[["OFF", "Off"], ["WEEKLY", "Weekly (Sunday evening)"], ["MONTHLY", "Monthly (the 1st)"]].map(([v, label]) => (
+          <label key={v} className="flex items-center gap-2">
+            <input type="radio" name={`guardian-${programId}`} checked={value === v} onChange={() => setValue(v)} /> {label}
+          </label>
+        ))}
+      </fieldset>
+      <div><Button type="submit" variant="secondary" disabled={pending || value === frequency}>Save</Button></div>
+      {msg && <Alert tone={msg.tone}>{msg.text}</Alert>}
     </form>
   );
 }

@@ -132,7 +132,7 @@ export default async function DashboardPage() {
                   Your tutor{tutors.length > 1 ? ` in ${t.program.name}` : ""}: <strong className="font-semibold">{t.tutor.name}</strong>
                 </span>
               ))}{" "}
-              · <Link href="/messages/new" className="text-primary underline-offset-2 hover:underline">Message your tutors</Link>
+              · <Link href="/messages/new" className="text-primary underline underline-offset-2">Message your tutors</Link>
             </p>
           )}
         </div>

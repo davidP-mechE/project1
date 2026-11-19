@@ -535,6 +535,12 @@ export async function loadDemoData(now = new Date()) {
       }
       await tx.bankAttempt.createMany({ data: attempts });
 
+      // A saved reply, a message scheduled for tomorrow, and a guardian who agreed to weekly emails.
+      await tx.savedReply.create({ data: { ownerId: tutor.id, programId: program.id, title: "Missing work nudge", body: "Hi {first_name}, your next {class} assignment is due {due_date}. Reply if you're stuck!" } });
+      await tx.scheduledSend.create({ data: { authorId: tutor.id, classId: cls.id, kind: "MESSAGE", studentIds: students.filter((x) => x.level === "struggling").map((x) => x.user.id), groupIds: [], body: "Hi {first_name}, let's go over percentages on Thursday. Your next assignment is due {due_date}.", sendAt: new Date(t0 + DAY) } });
+      await tx.program.update({ where: { id: program.id }, data: { guardianFrequency: "WEEKLY" } });
+      await tx.guardianContact.create({ data: { studentId: students[2].user.id, name: "Elena Sandoval", email: `guardian1@${DEMO_MODE_DOMAIN}`, relationship: "Mother", consentAt: at(40), consentById: tutor.id, unsubToken: `demomode-unsub-${Math.floor(rand() * 1e9)}` } });
+
       return { tutorEmail: tutor.email, password: DEMO_MODE_PASSWORD, classId: cls.id, joinCode: cls.joinCode, students: students.length };
     },
     { timeout: 120_000 },

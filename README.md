@@ -504,7 +504,7 @@ Tests: `tests/integration/security.test.ts`.
   - **Alerts:** overdue work, dropping scores, inactive for 7 days, 2 absences in a row. They can be snoozed or dismissed, with an optional 7am email digest.
   - **Roster CSV import:** previewed row by row; nothing is sent if any row is bad. Group, goal and baseline apply on joining.
   - **Grade export:** CSV with formula-safe cells; emails only on request, for managers.
-  - **Guardian emails:** weekly, opt-in per class, only with recorded consent, with one-click unsubscribe.
+  - **Parent progress emails:** weekly or monthly (the program admin chooses), only with recorded consent, with one-click unsubscribe and a staff preview.
 - **Curriculum and the assistant** (`src/server/curriculum.ts`, `src/server/assistant.ts`, `src/server/ai/assistant.ts`):
   - **Curriculum:** paste a syllabus (Sonnet turns it into units) or start from the SAT template (no AI). Units are laid out on school weeks, skipping closed days, and stay drafts until published.
   - **Pacing suggestions:** decided by rules, worded by Haiku. Accepting one adds a week and moves later units.

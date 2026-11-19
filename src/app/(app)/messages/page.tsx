@@ -4,6 +4,7 @@ import { ButtonLink } from "@/components/ui/button";
 import { Card, EmptyState, PageHeader } from "@/components/ui/misc";
 import { listThreads } from "@/server/messages";
 import { db } from "@/server/db";
+import { staffClassIds } from "@/server/access";
 import { requireUser, viewerZone } from "@/server/session";
 import { relativeTime } from "@/lib/dates";
 import { cn } from "@/lib/utils";
@@ -14,13 +15,24 @@ export default async function MessagesPage({ searchParams }: PageProps<"/message
   const user = await requireUser();
   const sp = await searchParams;
   const isProgramAdmin = (await db.program.count({ where: { adminId: user.id } })) > 0;
+  const isStaff = (await staffClassIds(user.id)).length > 0;
   const view = sp.view === "program" && isProgramAdmin ? "program" : "mine";
   const before = typeof sp.before === "string" ? sp.before : undefined;
   const [{ threads, next }, zone] = await Promise.all([listThreads(user.id, { view, before }), viewerZone()]);
   const qs = (extra: Record<string, string>) => `/messages?${new URLSearchParams({ ...(view === "program" ? { view } : {}), ...extra })}`;
   return (
     <div className="mx-auto max-w-3xl">
-      <PageHeader title="Messages" description="Conversations between students and their tutors." actions={<ButtonLink href="/messages/new">New message</ButtonLink>} />
+      <PageHeader title="Messages" description="Conversations between students and their tutors." actions={
+          <>
+            <ButtonLink href="/messages/new">New message</ButtonLink>
+            {isStaff && (
+              <>
+                <ButtonLink href="/messages/scheduled" variant="secondary">Scheduled</ButtonLink>
+                <ButtonLink href="/messages/replies" variant="secondary">Saved replies</ButtonLink>
+              </>
+            )}
+          </>
+        } />
       <p role="note" className="mb-4 rounded-lg border border-border bg-surface-2 px-3 py-2 text-xs text-muted">
         Your program admin can read conversations in your program, to keep everyone safe. Please don&apos;t share passwords or anything private.
       </p>

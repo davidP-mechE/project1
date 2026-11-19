@@ -9,6 +9,9 @@ import { cleanTargets, studentsTargeted } from "./targets";
 import { markReadByKey, notify } from "./notifications";
 import { newMessageMessage } from "./email/templates";
 import { audit } from "./programs";
+import { assignedTo, groupsByClass } from "./targets";
+import { fillPlaceholders, firstNameOf, hasPlaceholders } from "@/lib/messaging/placeholders";
+import { formatInZone } from "@/lib/dates";
 
 /**
  * Messages between staff and students. Rules (checked here, on every call):
@@ -143,6 +146,33 @@ export async function getThread(userId: string, threadId: string, opts: { before
   };
 }
 
+/**
+ * Placeholder values ({first_name}, {class}, {due_date}) for students of a
+ * class: their first name, the class's name, and when their next assignment
+ * in the class is due, in their own time zone.
+ */
+export async function placeholderValues(classId: string, studentIds: string[], now = new Date()) {
+  const [c, users, upcoming] = await Promise.all([
+    db.class.findUniqueOrThrow({ where: { id: classId }, select: { name: true } }),
+    db.user.findMany({ where: { id: { in: studentIds } }, select: { id: true, name: true, timezone: true } }),
+    db.assignment.findMany({ where: { classId, dueAt: { gt: now } }, orderBy: { dueAt: "asc" }, take: 50, select: { dueAt: true, groupIds: true, studentIds: true } }),
+  ]);
+  const out = new Map<string, { firstName: string; className: string; dueDate: string | null }>();
+  for (const u of users) {
+    const groups = (await groupsByClass(u.id, [classId])).get(classId) ?? new Set<string>();
+    const next = upcoming.find((a) => assignedTo(a, u.id, groups));
+    out.set(u.id, { firstName: firstNameOf(u.name), className: c.name, dueDate: next?.dueAt ? formatInZone(next.dueAt, u.timezone, "full") : null });
+  }
+  return out;
+}
+
+/** Fill placeholders for one student (only when the text uses any). */
+async function personalize(text: string, classId: string, studentId: string, now: Date) {
+  if (!hasPlaceholders(text)) return text;
+  const v = (await placeholderValues(classId, [studentId], now)).get(studentId);
+  return v ? fillPlaceholders(text, v) : text;
+}
+
 async function checkRate(authorId: string, now: Date, adding = 1) {
   const recent = await db.message.count({ where: { authorId, createdAt: { gte: new Date(now.getTime() - 10 * 60_000) }, bulkId: null } });
   if (recent + adding > PER_10_MIN) throw new RateLimitError("You've sent a lot of messages in the last few minutes. Wait a little and try again.");
@@ -176,7 +206,8 @@ export async function sendMessage(userId: string, threadId: string, body: string
   const viewer = await viewerOf(userId, t);
   if (viewer.mode === "admin") throw new ClassError("The program admin can read this conversation but not reply in it.", 403);
   if (!viewer.canReply) throw new ClassError("This conversation is closed: the student or tutor is no longer in this class or group.", 403);
-  const text = cleanBody(body);
+  // Staff messages can use placeholders ({first_name}, {class}, {due_date}); students' are sent as typed.
+  const text = viewer.mode === "staff" ? await personalize(cleanBody(body), t.classId, t.studentId, now) : cleanBody(body);
   await checkRate(userId, now);
   const msg = await db.$transaction(async (tx) => {
     const m = await tx.message.create({ data: { threadId, authorId: userId, body: text, createdAt: now }, select: { id: true } });
@@ -194,7 +225,7 @@ export async function sendMessage(userId: string, threadId: string, body: string
  * inside the sender's scope. Each student gets it in their own thread, so
  * replies stay private.
  */
-export async function bulkMessage(userId: string, classId: string, input: { groupIds?: string[]; studentIds?: string[]; body: string }, now = new Date()) {
+export async function bulkMessage(userId: string, classId: string, input: { groupIds?: string[]; studentIds?: string[]; body: string }, now = new Date(), opts: { scheduled?: boolean } = {}) {
   const access = await classAccess(userId, classId, "teach");
   const text = cleanBody(input.body);
   const c = await db.class.findUnique({ where: { id: classId }, select: { archivedAt: true, name: true } });
@@ -203,15 +234,20 @@ export async function bulkMessage(userId: string, classId: string, input: { grou
   const inScope = await studentIdsInScope(access);
   const recipients = [...(await studentsTargeted({ ...targets, classId }, inScope))].filter((id) => id !== userId);
   if (!recipients.length) throw new ClassError("No students match. Choose a group or students in your scope.");
-  const recentBulk = await db.message.findMany({ where: { authorId: userId, bulkId: { not: null }, createdAt: { gte: new Date(now.getTime() - 3600_000) } }, distinct: ["bulkId"], select: { bulkId: true } });
-  if (recentBulk.length >= BULK_PER_HOUR) throw new RateLimitError(`You can send up to ${BULK_PER_HOUR} group messages an hour.`);
+  // A scheduled send was checked when it was scheduled; it doesn't count against the hourly limit.
+  if (!opts.scheduled) {
+    const recentBulk = await db.message.findMany({ where: { authorId: userId, bulkId: { not: null }, createdAt: { gte: new Date(now.getTime() - 3600_000) } }, distinct: ["bulkId"], select: { bulkId: true } });
+    if (recentBulk.length >= BULK_PER_HOUR) throw new RateLimitError(`You can send up to ${BULK_PER_HOUR} group messages an hour.`);
+  }
+  const values = hasPlaceholders(text) ? await placeholderValues(classId, recipients, now) : null;
   const bulkId = randomUUID();
   const me = await db.user.findUniqueOrThrow({ where: { id: userId }, select: { name: true } });
   const threadIds: string[] = [];
   for (const studentId of recipients) {
     const pair = { classId, studentId, staffId: userId };
     const t = await db.messageThread.upsert({ where: { classId_studentId_staffId: pair }, create: { ...pair, lastMessageAt: now }, update: { lastMessageAt: now }, select: { id: true } });
-    await db.message.create({ data: { threadId: t.id, authorId: userId, body: text, bulkId, createdAt: now } });
+    const v = values?.get(studentId);
+    await db.message.create({ data: { threadId: t.id, authorId: userId, body: v ? fillPlaceholders(text, v) : text, bulkId, createdAt: now } });
     await db.threadRead.upsert({ where: { threadId_userId: { threadId: t.id, userId } }, create: { threadId: t.id, userId, lastReadAt: now }, update: { lastReadAt: now } });
     threadIds.push(t.id);
   }

@@ -6,6 +6,7 @@ import { Card, PageHeader } from "@/components/ui/misc";
 import { ReplyForm } from "@/components/messages/forms";
 import { getThread } from "@/server/messages";
 import { NotFoundError } from "@/server/courses";
+import { listSavedReplies } from "@/server/saved-replies";
 import { requireUser, viewerZone } from "@/server/session";
 import { formatInZone } from "@/lib/dates";
 import { cn } from "@/lib/utils";
@@ -56,7 +57,7 @@ export default async function ThreadPage({ params, searchParams }: PageProps<"/m
       </Card>
       {viewer.canReply ? (
         <Card>
-          <ReplyForm threadId={thread.id} />
+          <ReplyForm threadId={thread.id} replies={viewer.mode === "staff" ? (await listSavedReplies(user.id)).replies.map((r) => ({ id: r.id, title: r.title, body: r.body, programName: r.programName })) : undefined} />
         </Card>
       ) : (
         viewer.mode !== "admin" && <Alert tone="info">This conversation is closed: the student or tutor is no longer in this class or group.</Alert>

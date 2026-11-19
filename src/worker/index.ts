@@ -15,7 +15,9 @@ import {
   GENERATE_QUEUE,
   PROCESS_BOOK_QUEUE,
   REMINDERS_QUEUE,
+  SCHEDULED_QUEUE,
   redisConnection,
+  type ScheduledPayload,
   type EmbedBookPayload,
   type EmbedQueryPayload,
   type GeneratePayload,
@@ -26,6 +28,7 @@ import { booksNeedingEmbeddings, embedBook } from "@/server/embeddings/book";
 import { Queue } from "bullmq";
 import { sendDueReminders } from "@/server/reminders";
 import { runProgramJobs } from "@/server/program-jobs";
+import { runScheduledSend, sweepScheduledSends } from "@/server/scheduled";
 import { recordError } from "@/server/monitoring";
 import { runMaintenance } from "@/server/maintenance";
 import { claudeEnabled } from "@/server/env";
@@ -208,10 +211,24 @@ const reminders = new Worker(
     }
     const n = await sendDueReminders();
     if (n > 0) console.info(`[reminders] sent ${n}`);
+    // Scheduled messages and announcements the queue missed (e.g. Redis restarted).
+    const swept = await sweepScheduledSends().catch((err) => (console.error("[scheduled] sweep failed:", err instanceof Error ? err.message : err), 0));
+    if (swept > 0) console.info(`[scheduled] sent ${swept} from the sweep`);
   },
   { connection: redisConnection(), concurrency: 1 },
 );
 reminders.on("error", (err) => console.error("[worker] reminders error:", err.message));
+// Scheduled messages and announcements: one delayed job each, sent at their time.
+const scheduledSends = new Worker<ScheduledPayload>(
+  SCHEDULED_QUEUE,
+  async (job) => {
+    const r = await runScheduledSend(job.data.id);
+    if (r !== "skipped") console.info(`[scheduled] ${job.data.id}: ${r}`);
+  },
+  { connection: redisConnection(), concurrency: 2 },
+);
+scheduledSends.on("error", (err) => console.error("[worker] scheduled sends error:", err.message));
+
 const scheduled = new Queue(REMINDERS_QUEUE, { connection: redisConnection() });
 void scheduled
   .upsertJobScheduler("every-15-minutes", { every: 15 * 60_000 }, { name: "check", opts: { removeOnComplete: true, removeOnFail: 50 } })
@@ -233,7 +250,7 @@ worker.on("failed", (job, err) => {
 
 async function shutdown(signal: string) {
   console.info(`[worker] ${signal} received, finishing current job…`);
-  await Promise.all([worker.close(), generator.close(), bookEmbedder.close(), queryEmbedder.close(), reminders.close()]);
+  await Promise.all([worker.close(), generator.close(), bookEmbedder.close(), queryEmbedder.close(), reminders.close(), scheduledSends.close()]);
   await ocr.close();
   await db.$disconnect();
   process.exit(0);

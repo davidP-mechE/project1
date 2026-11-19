@@ -14,7 +14,6 @@ import {
   markAttendanceAction,
   previewRosterAction,
   removeGuardianAction,
-  setGuardianSummariesAction,
 } from "@/server/actions/cohort";
 import { cn } from "@/lib/utils";
 
@@ -204,19 +203,6 @@ export function RosterImport({ classId }: { classId: string }) {
       {bad > 0 && <Alert tone="error">Fix the {bad} {bad === 1 ? "row" : "rows"} in red; nothing is sent until every row is OK.</Alert>}
       {msg && <Alert tone={msg.tone}>{msg.text}</Alert>}
     </div>
-  );
-}
-
-export function GuardianSummariesToggle({ classId, on }: { classId: string; on: boolean }) {
-  const router = useRouter();
-  const [pending, start] = useTransition();
-  return (
-    <label className="flex items-start gap-2 text-sm">
-      <input type="checkbox" defaultChecked={on} disabled={pending} onChange={(e) => start(async () => { await setGuardianSummariesAction(classId, e.target.checked); router.refresh(); })} className="mt-0.5 size-4 accent-[var(--primary)]" />
-      <span>
-        Send a weekly progress email to guardians who agreed to it (Sunday evening). Add guardians on each student&apos;s page.
-      </span>
-    </label>
   );
 }
 

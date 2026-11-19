@@ -3,7 +3,7 @@
  * site's notification center and whether it's also emailed. Stored per user
  * as JSON; anything missing uses these defaults.
  */
-export const NOTICE_KINDS = ["messages", "announcements", "alerts", "attention", "review"] as const;
+export const NOTICE_KINDS = ["messages", "announcements", "alerts", "attention", "review", "scheduled"] as const;
 export type NoticeKind = (typeof NOTICE_KINDS)[number];
 export type Channel = { site: boolean; email: boolean };
 export type NotificationPrefs = Record<NoticeKind, Channel>;
@@ -13,6 +13,7 @@ export const NOTICE_LABELS: Record<NoticeKind, { label: string; help: string; st
   announcements: { label: "Announcements", help: "Posts to your class or group." },
   alerts: { label: "Student alerts", help: "Overdue work, dropping scores, absences in your classes.", staffOnly: true },
   attention: { label: "Needs attention and caseload", help: "A daily count of students on your needs-attention list, and changes to your caseload.", staffOnly: true },
+  scheduled: { label: "Scheduled sends", help: "When a message or announcement you scheduled has gone out, or couldn't be sent.", staffOnly: true },
   review: { label: "Waiting for review", help: "Drafted questions and lessons, and answers that need a grade.", staffOnly: true },
 };
 
@@ -22,6 +23,7 @@ export const DEFAULT_PREFS: NotificationPrefs = {
   alerts: { site: true, email: false },
   attention: { site: true, email: false },
   review: { site: true, email: false },
+  scheduled: { site: true, email: false },
 };
 
 /** Read stored JSON safely, filling gaps with defaults. */

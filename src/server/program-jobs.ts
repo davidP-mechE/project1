@@ -4,22 +4,20 @@ import { awardBadgesForActive } from "./badges";
 import { db } from "./db";
 import { env } from "./env";
 import { sendEmail } from "./email";
-import { guardianSummaryMessage, staffDigestMessage } from "./email/templates";
+import { staffDigestMessage } from "./email/templates";
 import { classAlerts } from "./cohort";
-import { myClasses } from "./classes";
-import { domainAccuracy } from "./pacing";
-import { domainName } from "@/lib/sat/domains";
 import { generateSummary } from "./assistant";
 import { runBackup } from "./backups";
 import { recordError } from "./monitoring";
 import { buildWeeklyBatches } from "./auto-practice";
+import { sendGuardianProgress } from "./guardian-progress";
 
 /**
  * Scheduled program emails, run hourly by the worker. Each is sent at most
  * once (keys in SentNotice), so a missed or repeated hour can't double-send.
  *  - Staff who opted in get a daily digest of new alerts at 7am their time.
- *  - Guardians who agreed get a weekly summary on Sunday evening (17:00 UTC),
- *    for classes that turned it on. Fixed wording from the data; no AI.
+ *  - Guardians who agreed get a weekly or monthly progress email, when the
+ *    program admin turned them on (src/server/guardian-progress.ts). No AI.
  */
 
 async function once(key: string) {
@@ -58,57 +56,6 @@ export async function sendStaffDigests(now = new Date()) {
   return sent;
 }
 
-/** ISO week key (e.g. 2026-W46), so a summary goes once a week. */
-function weekKey(d: Date) {
-  const t = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
-  const day = t.getUTCDay() || 7;
-  t.setUTCDate(t.getUTCDate() + 4 - day);
-  const y = new Date(Date.UTC(t.getUTCFullYear(), 0, 1));
-  return `${t.getUTCFullYear()}-W${String(Math.ceil(((t.getTime() - y.getTime()) / 86_400_000 + 1) / 7)).padStart(2, "0")}`;
-}
-
-export async function sendGuardianSummaries(now = new Date(), opts: { force?: boolean } = {}) {
-  if (!opts.force && !(now.getUTCDay() === 0 && now.getUTCHours() === 17)) return 0;
-  const week = weekKey(now);
-  const since = new Date(now.getTime() - 7 * 86_400_000);
-  const guardians = await db.guardianContact.findMany({
-    where: { unsubscribedAt: null, student: { classMemberships: { some: { class: { guardianSummaries: true, archivedAt: null } } } } },
-    include: { student: { select: { id: true, name: true } } },
-  });
-  let sent = 0;
-  for (const g of guardians) {
-    if (g.lastSentOn === week) continue;
-    const classes = await myClasses(g.studentId, now);
-    const enabled = await db.class.findMany({ where: { id: { in: classes.map((c) => c.id) }, guardianSummaries: true }, select: { id: true } });
-    const on = new Set(enabled.map((c) => c.id));
-    const work = classes.filter((c) => on.has(c.id)).flatMap((c) => c.assignments);
-    const doneThisWeek = work.filter((a) => a.cell.status === "done" && a.cell.lastActive && a.cell.lastActive >= since).length;
-    const overdue = work.filter((a) => a.dueAt && a.dueAt < now && a.cell.status !== "done").map((a) => a.title);
-    const attendance = await db.attendanceRecord.findMany({ where: { studentId: g.studentId, session: { startsAt: { gte: since, lte: now }, classId: { in: [...on] } } }, select: { status: true } });
-    const latest = await db.scoreRecord.findFirst({ where: { studentId: g.studentId }, orderBy: [{ takenOn: "desc" }, { createdAt: "desc" }], select: { total: true, source: true } });
-    const acc = await domainAccuracy(g.studentId, now);
-    const weakest = Object.entries(acc).filter(([, v]) => v !== null).sort((a, b) => a[1]! - b[1]!)[0];
-    const claimed = await db.guardianContact.updateMany({ where: { id: g.id, OR: [{ lastSentOn: null }, { lastSentOn: { not: week } }] }, data: { lastSentOn: week } });
-    if (!claimed.count) continue;
-    await sendEmail(
-      guardianSummaryMessage({
-        to: g.email,
-        guardianName: g.name,
-        studentName: g.student.name || "Your student",
-        doneThisWeek,
-        overdue,
-        attended: attendance.filter((r) => r.status === "PRESENT" || r.status === "LATE").length,
-        sessions: attendance.filter((r) => r.status !== "EXCUSED").length,
-        latestScore: latest ? `${latest.total}${latest.source === "DIAGNOSTIC" || latest.source.startsWith("PRACTICE") ? " (practice estimate)" : ""}` : null,
-        focus: weakest ? domainName(weakest[0]) : null,
-        unsubscribeUrl: `${env.APP_URL}/unsubscribe/${g.unsubToken}`,
-      }),
-    ).catch((err) => console.warn("[jobs] guardian summary not sent:", err instanceof Error ? err.message : err));
-    sent++;
-  }
-  return sent;
-}
-
 /** Sunday 20:00 UTC: the assistant's weekly summary for each class with a published curriculum and some activity. */
 export async function writeWeeklySummaries(now = new Date(), opts: { force?: boolean } = {}) {
   if (!opts.force && !(now.getUTCDay() === 0 && now.getUTCHours() === 20)) return 0;
@@ -126,7 +73,7 @@ export async function writeWeeklySummaries(now = new Date(), opts: { force?: boo
 }
 
 export async function runProgramJobs(now = new Date()) {
-  const [digests, summaries, weekly] = await Promise.all([sendStaffDigests(now), sendGuardianSummaries(now), writeWeeklySummaries(now)]);
+  const [digests, summaries, weekly] = await Promise.all([sendStaffDigests(now), sendGuardianProgress(now), writeWeeklySummaries(now)]);
   // Weekly auto-assigned practice: any class without this week's batch gets one (rules only, no AI).
   await buildWeeklyBatches(now).catch((err) => recordError({ kind: "worker", message: `Weekly practice failed: ${err instanceof Error ? err.message : String(err)}`, path: "worker:auto-practice" }));
   await awardBadgesForActive(now).catch((err) => recordError({ kind: "worker", message: `Badges failed: ${err instanceof Error ? err.message : String(err)}`, path: "worker:badges" }));

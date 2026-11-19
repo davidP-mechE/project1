@@ -6,17 +6,25 @@ import { Button } from "@/components/ui/button";
 import { Alert } from "@/components/ui/alert";
 import { inputClasses } from "@/components/ui/field";
 import { TargetPicker, type TargetValue } from "@/components/classes/target-picker";
+import { PlaceholderHint, SavedReplyPicker, SendLater, type SavedReplyOption } from "./compose-tools";
+import { scheduleSendAction } from "@/server/actions/comms";
 import { bulkMessageAction, createAnnouncementAction, deleteAnnouncementAction, markNotificationsReadAction, sendMessageAction, startThreadAction, updateAnnouncementAction } from "@/server/actions/messages";
 
 const area = "min-h-28 w-full rounded-lg border border-border bg-surface p-3 text-sm text-text placeholder:text-muted focus-visible:border-focus";
 const MAX = 4000;
+
+/** Add inserted text after what's already written. */
+const append = (cur: string, add: string) => (cur.trim() ? `${cur.replace(/\s+$/, "")}\n\n${add}` : add);
+/** A datetime-local value as an ISO time (the browser reads it in the viewer's zone). */
+const iso = (local: string) => new Date(local).toISOString();
+const whenText = (local: string) => new Date(local).toLocaleString("en-US", { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
 
 function Counter({ n }: { n: number }) {
   return <span className={n > MAX ? "text-danger" : "text-muted"}>{n.toLocaleString("en-US")} / {MAX.toLocaleString("en-US")}</span>;
 }
 
 /** Reply box at the bottom of a conversation. */
-export function ReplyForm({ threadId }: { threadId: string }) {
+export function ReplyForm({ threadId, replies }: { threadId: string; replies?: SavedReplyOption[] }) {
   const [body, setBody] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
@@ -39,6 +47,12 @@ export function ReplyForm({ threadId }: { threadId: string }) {
         Reply
       </label>
       <textarea id="reply" value={body} onChange={(e) => setBody(e.target.value)} className={area} required maxLength={MAX + 100} />
+      {replies && (
+        <>
+          <SavedReplyPicker replies={replies} onInsert={(t) => setBody((b) => append(b, t))} />
+          <PlaceholderHint />
+        </>
+      )}
       {error && <Alert tone="error">{error}</Alert>}
       <div className="flex items-center justify-between text-xs">
         <Counter n={body.length} />
@@ -56,7 +70,7 @@ type Contacts = {
 };
 
 /** Start a conversation: students pick a tutor; staff pick one student, or send to many. */
-export function NewMessageForm({ contacts }: { contacts: Contacts }) {
+export function NewMessageForm({ contacts, replies = [] }: { contacts: Contacts; replies?: SavedReplyOption[] }) {
   const router = useRouter();
   const isStaff = contacts.staffClasses.length > 0;
   const [to, setTo] = useState<"tutor" | "student" | "many">(isStaff ? "student" : "tutor");
@@ -65,6 +79,7 @@ export function NewMessageForm({ contacts }: { contacts: Contacts }) {
   const [tutor, setTutor] = useState("");
   const [targets, setTargets] = useState<TargetValue>({ groupIds: [], studentIds: [] });
   const [body, setBody] = useState("");
+  const [sendAt, setSendAt] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState<string | null>(null);
   const [pending, start] = useTransition();
@@ -80,6 +95,16 @@ export function NewMessageForm({ contacts }: { contacts: Contacts }) {
         setError(null);
         setDone(null);
         start(async () => {
+          // Staff can send later: the worker sends it at that time (to one student, or many).
+          if (to !== "tutor" && sendAt) {
+            const who = to === "many" ? targets : { groupIds: [], studentIds: [studentId] };
+            const r = await scheduleSendAction({ classId, kind: "MESSAGE", ...who, body, sendAt: iso(sendAt) });
+            if (!r.ok) return setError(r.error);
+            setBody("");
+            setDone(`Scheduled for ${whenText(sendAt)}. You can change or cancel it under Scheduled sends until then.`);
+            setSendAt(null);
+            return router.refresh();
+          }
           if (to === "many") {
             const r = await bulkMessageAction(classId, { ...targets, body });
             if (!r.ok) return setError(r.error);
@@ -155,11 +180,18 @@ export function NewMessageForm({ contacts }: { contacts: Contacts }) {
           <Counter n={body.length} />
         </p>
       </div>
+      {isStaff && to !== "tutor" && (
+        <>
+          <SavedReplyPicker replies={replies} onInsert={(t) => setBody((b) => append(b, t))} />
+          <PlaceholderHint />
+          <SendLater value={sendAt} onChange={setSendAt} />
+        </>
+      )}
       {error && <Alert tone="error">{error}</Alert>}
       {done && <Alert tone="success">{done}</Alert>}
       <div>
-        <Button type="submit" disabled={pending || !body.trim() || body.length > MAX}>
-          {pending ? "Sending…" : "Send"}
+        <Button type="submit" disabled={pending || !body.trim() || body.length > MAX || sendAt === ""}>
+          {pending ? "Sending…" : sendAt ? "Schedule" : "Send"}
         </Button>
       </div>
     </form>
@@ -195,12 +227,14 @@ export function MarkAllRead() {
 }
 
 /** Post an announcement to the class or one group. */
-export function AnnouncementForm({ classId, groups, groupOnly }: { classId: string; groups: { id: string; name: string }[]; groupOnly: boolean }) {
+export function AnnouncementForm({ classId, groups, groupOnly, replies = [] }: { classId: string; groups: { id: string; name: string }[]; groupOnly: boolean; replies?: SavedReplyOption[] }) {
   const router = useRouter();
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [groupId, setGroupId] = useState(groupOnly ? (groups[0]?.id ?? "") : "");
   const [pinned, setPinned] = useState(false);
+  const [sendAt, setSendAt] = useState<string | null>(null);
+  const [done, setDone] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
   return (
@@ -208,7 +242,18 @@ export function AnnouncementForm({ classId, groups, groupOnly }: { classId: stri
       className="flex flex-col gap-3"
       onSubmit={(e) => {
         e.preventDefault();
+        setDone(null);
         start(async () => {
+          if (sendAt) {
+            const s = await scheduleSendAction({ classId, kind: "ANNOUNCEMENT", title, body, groupId: groupId || null, pinned, sendAt: iso(sendAt) });
+            if (!s.ok) return setError(s.error);
+            setTitle("");
+            setBody("");
+            setError(null);
+            setDone(`Scheduled for ${whenText(sendAt)}. Change or cancel it under Scheduled sends.`);
+            setSendAt(null);
+            return;
+          }
           const r = await createAnnouncementAction(classId, { title, body, groupId: groupId || null, pinned });
           if (!r.ok) return setError(r.error);
           setTitle("");
@@ -243,10 +288,14 @@ export function AnnouncementForm({ classId, groups, groupOnly }: { classId: stri
           <input type="checkbox" checked={pinned} onChange={(e) => setPinned(e.target.checked)} className="size-4 accent-[var(--primary)]" /> Pin to the top
         </label>
       </div>
+      <SavedReplyPicker replies={replies} onInsert={(t) => setBody((b) => append(b, t))} />
+      <PlaceholderHint announcement />
+      <SendLater value={sendAt} onChange={setSendAt} />
       {error && <Alert tone="error">{error}</Alert>}
+      {done && <Alert tone="success">{done}</Alert>}
       <div>
-        <Button type="submit" disabled={pending}>
-          {pending ? "Posting…" : "Post announcement"}
+        <Button type="submit" disabled={pending || sendAt === ""}>
+          {pending ? "Posting…" : sendAt ? "Schedule announcement" : "Post announcement"}
         </Button>
       </div>
     </form>

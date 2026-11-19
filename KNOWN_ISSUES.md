@@ -30,7 +30,7 @@ The final review of Coursebook and The 1600 Project's setup on it, most serious 
 
 6. **Some "not found" pages answer with HTTP 200.** Pages with a loading screen stream their content, so when the server decides a page is out of scope (for example a Math specialist opening a Reading and Writing assignment), the browser gets the "Page not found" page with status 200 rather than 404. Nothing is shown: the browser tests assert on the content. Search engines and monitoring tools that read status codes may still count these as ordinary pages.
 
-7. **Bulk messages and announcements send their emails during the request.** A message to 30 students sends up to 30 emails before the page answers. That's a few seconds with a slow mail server. If it becomes a problem, move notification emails to the worker queue.
+7. **Bulk messages and announcements sent *now* still send their emails during the request.** A message to 30 students sends up to 30 emails before the page answers (a few seconds with a slow mail server). Anything **scheduled** ("Send later") is sent entirely by the worker queue, so for those the page never waits. If immediate sends become slow, schedule them a minute ahead or move the "send now" path to the queue as well.
 
 8. **Courses aren't copied by "Start a new semester".** Staff, scopes and groups carry over, but teachers re-add courses from each new class's Assign tab. This is noted in the admin guide and on the rollover form.
 
@@ -72,6 +72,12 @@ The final review of Coursebook and The 1600 Project's setup on it, most serious 
 16d. **Live runs update by polling** (every 3 seconds for staff, 4 for students), not live push, so numbers can lag a few seconds and each open screen makes a small request that often. Sets are limited to 20 questions. A student answers each question once and can't change it.
 
 16e. **Small groups use each student's single weakest skill.** A student appears in one group only. Program-wide groups can be messaged and assigned across classes, but a session is created class by class.
+
+16f. **Scheduled sends need the worker.** Each one is a delayed queue job; the worker also checks every 15 minutes for anything due that the queue missed (for example after a Redis restart), so a send can be up to 15 minutes late but isn't lost. Times are entered in the browser's own time zone. Access is checked again when it sends: students who left the author's scope are skipped, and if the author lost the class entirely it fails with a notice. Scheduled messages can't be "pinned" or edited after they're sent, like any message.
+
+16g. **Placeholders in announcements** fill only `{class}`: an announcement is one post for many readers, so `{first_name}` reads "everyone" and `{due_date}` reads "soon".
+
+16h. **Parent progress emails are per program now.** The program admin chooses off, weekly (from Sunday 17:00 UTC) or monthly (from the 1st, 17:00 UTC). The old per-class "weekly guardian emails" switch is retired; the migration set programs that had it on for any class to weekly. A student in two programs gets the email from the program they joined first. At most `GUARDIAN_EMAILS_PER_HOUR` (default 200) go out each hour; the rest follow in the next hours, within 3 days. The email states facts from the data (no AI) and a "focus" skill from the last 30 days.
 
 ## Low
 

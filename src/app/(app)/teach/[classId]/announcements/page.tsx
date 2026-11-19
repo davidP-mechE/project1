@@ -7,6 +7,7 @@ import { NotFoundError } from "@/server/courses";
 import { getClassForTeacher } from "@/server/classes";
 import { classAnnouncements } from "@/server/announcements";
 import { requireUser, viewerZone } from "@/server/session";
+import { listSavedReplies } from "@/server/saved-replies";
 import { formatInZone } from "@/lib/dates";
 
 export const metadata: Metadata = { title: "Announcements" };
@@ -31,7 +32,7 @@ export default async function AnnouncementsPage({ params }: PageProps<"/teach/[c
         <Card>
           <h2 className="mb-1 text-lg font-semibold">New announcement</h2>
           <p className="mb-4 text-sm text-muted">{groupOnly ? "You can post to your own groups." : "It shows on students' Today page, pinned posts first."}</p>
-          {groupOnly && a.groups.length === 0 ? <p className="text-sm text-muted">You don&apos;t have any groups in this class yet.</p> : <AnnouncementForm classId={classId} groups={a.groups} groupOnly={groupOnly} />}
+          {groupOnly && a.groups.length === 0 ? <p className="text-sm text-muted">You don&apos;t have any groups in this class yet.</p> : <AnnouncementForm classId={classId} groups={a.groups} groupOnly={groupOnly} replies={(await listSavedReplies(user.id)).replies.map((r) => ({ id: r.id, title: r.title, body: r.body, programName: r.programName }))} />}
         </Card>
       )}
       {a.rows.length === 0 ? (

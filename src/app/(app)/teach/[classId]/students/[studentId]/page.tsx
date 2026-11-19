@@ -123,7 +123,10 @@ export default async function StudentPage({ params }: PageProps<"/teach/[classId
       {(s.access.role === "ADMIN" || s.access.role === "TEACHER") && (
         <Card>
           <h2 className="mb-1 text-lg font-semibold">Guardians</h2>
-          <p className="mb-3 text-sm text-muted">Weekly progress emails go only to guardians who agreed, and only when the class has them turned on.</p>
+          <p className="mb-3 text-sm text-muted">
+            Progress emails go only to guardians who agreed, weekly or monthly, when the program admin has turned them on.{" "}
+            <Link href={`/teach/${classId}/students/${studentId}/progress-email`} className="text-primary underline underline-offset-2">Preview the email</Link>
+          </p>
           <GuardianForm classId={classId} studentId={studentId} guardians={await guardiansOf(user.id, studentId, classId)} />
         </Card>
       )}

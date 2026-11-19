@@ -314,6 +314,27 @@ async function main() {
     ),
   });
 
+  // Saved replies (a shared one, and personal ones), messages and an announcement scheduled for later,
+  // and guardians who agreed to weekly progress emails (turned on for the program).
+  await db.savedReply.createMany({
+    data: [
+      { ownerId: admin.id, programId: program.id, title: "Missing work nudge", body: "Hi {first_name}, a quick reminder: your next {class} assignment is due {due_date}. Reply here if you're stuck and we'll sort it out together." },
+      { ownerId: admin.id, programId: program.id, title: "Great progress", body: "Nice work this week, {first_name}! Your practice in {class} is really paying off. Keep it going." },
+      { ownerId: tutor.id, title: "Group 2 check-in", body: "Hi {first_name}, how did the Reading and Writing set go? Bring one question you'd like to go over on Thursday." },
+      { ownerId: teacher.id, title: "Practice test reminder", body: "Practice test this Saturday at 9am. Bring a charged laptop for Bluebook and a pencil." },
+    ],
+  });
+  await db.scheduledSend.createMany({
+    data: [
+      { authorId: admin.id, classId: A.id, kind: "MESSAGE", groupIds: [groups[A.id][0].id], studentIds: [], body: "Hi {first_name}, your next {class} assignment is due {due_date}. See you Thursday!", sendAt: new Date(now.getTime() + 2 * DAY) },
+      { authorId: teacher.id, classId: B.id, kind: "ANNOUNCEMENT", groupIds: [], studentIds: [], title: "Practice test Saturday", body: "Full practice test in room 204 at 9am. Bring a charged laptop for Bluebook.", pinned: true, sendAt: new Date(now.getTime() + 3 * DAY) },
+    ],
+  });
+  await db.program.update({ where: { id: program.id }, data: { guardianFrequency: "WEEKLY" } });
+  await db.guardianContact.createMany({
+    data: students.slice(0, 12).map((s, i) => ({ studentId: s.id, name: `Parent of ${s.name.split(" ")[0]}`, email: `parent${i + 1}@${DEMO_DOMAIN}`, relationship: i % 2 ? "Father" : "Mother", consentAt: start, consentById: admin.id, unsubToken: `demo-unsub-${i + 1}-${Math.floor(rand() * 1e9)}` })),
+  });
+
   await db.badge.createMany({ data: students.slice(0, 12).map((s) => ({ userId: s.id, kind: "STREAK_5", earnedAt: new Date(now.getTime() - 3 * DAY) })), skipDuplicates: true });
 
   console.log(

@@ -14,7 +14,7 @@ import {
 } from "@/components/classes/teacher-forms";
 import { NotFoundError } from "@/server/courses";
 import { getClassForTeacher } from "@/server/classes";
-import { GuardianSummariesToggle, RosterImport } from "@/components/classes/cohort-forms";
+import { RosterImport } from "@/components/classes/cohort-forms";
 import { requireUser, viewerZone } from "@/server/session";
 
 export const metadata: Metadata = { title: "Students" };
@@ -143,8 +143,10 @@ export default async function StudentsPage({
       )}
       {manage && (
         <Card className="flex flex-col gap-3">
-          <h2 className="text-lg font-semibold">Weekly guardian emails</h2>
-          <GuardianSummariesToggle classId={c.id} on={c.guardianSummaries} />
+          <h2 className="text-lg font-semibold">Parent progress emails</h2>
+          <p className="text-sm text-muted">
+            Weekly or monthly progress emails go to guardians who agreed (add them on each student&apos;s page). The program admin turns them on for the whole program on the program page. Preview a student&apos;s email from their page.
+          </p>
         </Card>
       )}
       {manage && (

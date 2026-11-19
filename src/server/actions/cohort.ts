@@ -48,9 +48,6 @@ export async function addGuardianAction(classId: string, studentId: string, inpu
 export async function removeGuardianAction(classId: string, studentId: string, guardianId: string) {
   return run((u) => cohort.removeGuardian(u, id.parse(classId), id.parse(guardianId)), [`/teach/${classId}/students/${studentId}`]);
 }
-export async function setGuardianSummariesAction(classId: string, on: boolean) {
-  return run((u) => cohort.setGuardianSummaries(u, id.parse(classId), z.boolean().parse(on)), [`/teach/${classId}/students`]);
-}
 export async function previewRosterAction(classId: string, text: string) {
   return run(async (u) => ({ rows: await roster.previewRoster(u, id.parse(classId), z.string().max(200_000).parse(text)) }));
 }

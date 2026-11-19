@@ -6,7 +6,7 @@ import { assignQuestions, classProgress, createClass, joinClass, myClasses, getQ
 import { createGroup, updateGroup } from "@/server/groups";
 import { addGuardian, attendanceVsGains, classAlerts, createSessions, dismissAlert, guardiansOf, markAttendance, sessionRegister, unsubscribeGuardian } from "@/server/cohort";
 import { exportGrades, importRoster, previewRoster, readRoster } from "@/server/roster";
-import { sendGuardianSummaries } from "@/server/program-jobs";
+import { sendGuardianProgress } from "@/server/guardian-progress";
 import { addScore } from "@/server/scores";
 import { createUser, resetDb } from "../helpers/db";
 
@@ -161,7 +161,7 @@ describe("grade export", () => {
 });
 
 describe("guardian emails", () => {
-  it("need recorded consent, the class setting, and stop after unsubscribing", async () => {
+  it("need recorded consent, the program setting, and stop after unsubscribing", async () => {
     const f = await fixture();
     await expect(addGuardian(f.admin.id, f.c.id, f.ana.id, { name: "Mom", email: "mom@home.org", consent: false })).rejects.toThrow("agreed");
     expect(await outcome(() => addGuardian(f.tutor.id, f.c.id, f.ben.id, { name: "Dad", email: "dad@home.org", consent: true }))).toBe("denied");
@@ -169,16 +169,16 @@ describe("guardian emails", () => {
     expect(await guardiansOf(f.ana.id, f.ana.id)).toHaveLength(1); // the student sees who gets it
     expect(await outcome(() => guardiansOf(f.ben.id, f.ana.id))).toBe("hidden");
     const sunday = new Date("2026-11-15T17:00:00Z");
-    expect(await sendGuardianSummaries(sunday)).toBe(0); // the class hasn't turned it on
-    await db.class.update({ where: { id: f.c.id }, data: { guardianSummaries: true } });
-    expect(await sendGuardianSummaries(new Date("2026-11-14T17:00:00Z"))).toBe(0); // only Sunday evenings
-    expect(await sendGuardianSummaries(sunday)).toBe(1);
-    expect(await sendGuardianSummaries(sunday)).toBe(0); // once a week
+    expect(await sendGuardianProgress(sunday)).toBe(0); // the program hasn't turned them on
+    await db.program.update({ where: { id: f.c.programId! }, data: { guardianFrequency: "WEEKLY" } });
+    expect(await sendGuardianProgress(new Date("2026-11-14T17:00:00Z"))).toBe(0); // last week's window has passed
+    expect(await sendGuardianProgress(sunday)).toBe(1);
+    expect(await sendGuardianProgress(new Date("2026-11-16T09:00:00Z"))).toBe(0); // once a week
     const mail = sent.find((m) => m.to === "mom@home.org")!;
-    expect(mail.text).toContain("Ana's week");
+    expect(mail.text).toContain("Ana's week of SAT practice");
     expect(mail.text).not.toMatch(/@example\.com/); // no other students' details
     const token = /unsubscribe\/([\w-]+)/.exec(mail.text)![1];
     expect(await unsubscribeGuardian(token)).toBe(true);
-    expect(await sendGuardianSummaries(new Date("2026-11-22T17:00:00Z"))).toBe(0);
+    expect(await sendGuardianProgress(new Date("2026-11-22T17:00:00Z"))).toBe(0);
   });
 });

@@ -115,6 +115,8 @@ model User {
   customTests      PracticeTest[]    @relation("testCreator")
 
   // Needs attention and caseloads
+  savedReplies     SavedReply[]
+  scheduledSends   ScheduledSend[]
   autoPractice     AutoPracticeItem[]
   liveAnswers      LiveAnswer[]
   attentionStates  AttentionState[] @relation("attentionStudent")
@@ -1098,6 +1100,9 @@ model Program {
   newStudentsNoAi Boolean             @default(false)
   /// Needs attention: days with no login and no practice before a student is listed as inactive.
   inactiveDays    Int                 @default(7)
+  /// Parent progress emails to guardians who agreed: OFF, WEEKLY (Sunday evening) or MONTHLY (the 1st).
+  guardianFrequency String            @default("OFF")
+  savedReplies    SavedReply[]
   attentionStates AttentionState[]
   primaryTutors   PrimaryTutor[]
 
@@ -1224,9 +1229,10 @@ model Class {
   groups            ClassGroup[]
   sessions          ClassSession[]
   autoBatches       AutoPracticeBatch[]
+  scheduledSends    ScheduledSend[]
   liveRuns          LiveRun[]
   alertStates       AlertState[]
-  /// Weekly progress emails to guardians who agreed to receive them.
+  /// Retired: parent progress emails are now switched on per program (Program.guardianFrequency).
   guardianSummaries Boolean            @default(false)
   curricula         Curriculum[]
   summaries         AssistantSummary[]
@@ -2502,4 +2508,54 @@ model LiveAnswer {
   createdAt   DateTime @default(now())
 
   @@unique([runId, questionId, studentId])
+}
+
+// ─── Saved replies and scheduled sends ───────────────────────────────────
+
+/// A staff member's reusable message. Placeholders {first_name}, {class} and {due_date} are filled in for
+/// each student when it's sent. With programId it's shared with that program's staff; without, it's personal.
+model SavedReply {
+  id        String   @id @default(cuid())
+  ownerId   String
+  owner     User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  programId String?
+  program   Program? @relation(fields: [programId], references: [id], onDelete: Cascade)
+  title     String
+  body      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([ownerId])
+  @@index([programId])
+}
+
+/// A message, bulk message or announcement to send later, from the worker queue. The author's access is
+/// checked again when it sends. PENDING until then; it can be edited or CANCELLED before; SENT or FAILED after.
+model ScheduledSend {
+  id        String    @id @default(cuid())
+  authorId  String
+  author    User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  classId   String
+  class     Class     @relation(fields: [classId], references: [id], onDelete: Cascade)
+  /// MESSAGE (to the chosen students, each in their own conversation) or ANNOUNCEMENT.
+  kind      String
+  studentIds String[]
+  groupIds  String[]
+  /// Announcements: the title, the group (null = whole class) and whether it's pinned.
+  title     String?
+  groupId   String?
+  pinned    Boolean   @default(false)
+  body      String
+  sendAt    DateTime
+  /// PENDING, SENDING, SENT, CANCELLED or FAILED.
+  status    String    @default("PENDING")
+  sentAt    DateTime?
+  error     String?
+  /// How many it reached.
+  reached   Int?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([status, sendAt])
+  @@index([authorId, status])
 }

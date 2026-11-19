@@ -30,10 +30,15 @@ describe("loading demo data", () => {
     const items = await db.autoPracticeItem.findMany();
     expect(items.length).toBeGreaterThanOrEqual(5);
     expect(items.every((i) => i.status === "PENDING" && i.questionIds.length >= 8)).toBe(true);
+    // A saved reply, a scheduled message and a guardian for the progress emails.
+    expect(await db.savedReply.count()).toBe(1);
+    expect(await db.scheduledSend.count({ where: { status: "PENDING" } })).toBe(1);
+    expect(await db.program.count({ where: { isDemo: true, guardianFrequency: "WEEKLY" } })).toBe(1);
     // Clearing removes the demo questions and sets too.
     await clearDemoData();
     expect(await db.bankQuestion.count({ where: { externalId: { startsWith: "DEMOMODE-" } } })).toBe(0);
     expect(await db.questionSet.count()).toBe(0);
+    expect(await db.scheduledSend.count()).toBe(0);
   });
 
   it("creates one tutor, the class and 10 students, all flagged as demo", async () => {

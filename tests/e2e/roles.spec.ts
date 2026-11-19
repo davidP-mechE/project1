@@ -391,7 +391,8 @@ test("each role's journey: admin sets up, student works, specialist grades withi
   await expect(mp.getByText(/Primary tutor: you/)).toBeVisible();
   // Marking it handled hides it for everyone in the program.
   await ap.goto("/teach/attention");
-  // One at a time: each click refreshes the list.
+  // One at a time: each click refreshes the list. Wait for the list to load before counting.
+  await expect(ap.getByRole("button", { name: "Mark handled" }).first()).toBeVisible();
   for (let i = 1; i <= 10; i++) {
     const handled = ap.getByRole("button", { name: "Mark handled" });
     if ((await handled.count()) === 0) break;
@@ -452,6 +453,43 @@ test("each role's journey: admin sets up, student works, specialist grades withi
   await sql(`DELETE FROM "LiveRun" WHERE "setId" = $1`, [`e2e-live-set-${run}`]);
   await sql(`DELETE FROM question_sets WHERE id = $1`, [`e2e-live-set-${run}`]);
   await sql(`DELETE FROM bank_questions WHERE id = ANY($1)`, [liveQ]);
+
+  // ── Phase 3: saved replies, scheduled sends, parent progress emails ──
+  await ap.goto("/messages/replies");
+  await ap.getByLabel("Name").fill("Nudge");
+  await ap.getByLabel("Who can use it").selectOption({ index: 1 });
+  await ap.getByLabel("Text").fill("Hi {first_name}, your next {class} work is due {due_date}.");
+  await ap.getByRole("button", { name: "Save reply" }).click();
+  await expect(ap.getByRole("heading", { name: "Nudge" })).toBeVisible();
+  await a11y(ap, "admin: saved replies");
+  await ap.goto("/messages/new");
+  await ap.getByRole("combobox", { name: "Student", exact: true }).selectOption({ label: "Sol Student" });
+  await ap.getByLabel("Saved reply").selectOption({ index: 1 });
+  await ap.getByRole("button", { name: "Insert" }).click();
+  await expect(ap.getByLabel("Message", { exact: true })).toHaveValue(/Hi \{first_name\}/);
+  await ap.getByLabel("Send later").check();
+  const tomorrow = new Date(Date.now() + 86_400_000);
+  const local = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, "0")}-${String(tomorrow.getDate()).padStart(2, "0")}T10:00`;
+  await ap.getByLabel("Send at").fill(local);
+  await a11y(ap, "admin: new message (send later)");
+  await ap.getByRole("button", { name: "Schedule" }).click();
+  await expect(ap.getByText(/^Scheduled for /)).toBeVisible();
+  await ap.goto("/messages/scheduled");
+  await expect(ap.getByText(/Sends /)).toBeVisible();
+  await a11y(ap, "admin: scheduled sends");
+  await ap.getByRole("button", { name: "Cancel sending" }).click();
+  await expect(ap.getByText("Cancelled", { exact: true })).toBeVisible();
+  // Parent progress emails: the admin turns them on, then previews Sol's.
+  await ap.goto(`/teach/programs/${programId}`);
+  await ap.getByLabel("Weekly (Sunday evening)").check();
+  await ap.getByRole("button", { name: "Save" }).filter({ hasText: /^Save$/ }).last().click();
+  await expect(ap.getByText("Saved.").last()).toBeVisible();
+  await a11y(ap, "admin: program page");
+  await ap.goto(`${classUrl}/students/${studentId}/progress-email`);
+  await expect(ap.getByRole("heading", { name: "Progress email preview" })).toBeVisible();
+  await expect(ap.getByText(/Sent weekly/)).toBeVisible();
+  await expect(ap.getByText(/Sol Student's week in /)).toBeVisible();
+  await a11y(ap, "admin: progress email preview");
 
   // Logged-out pages not covered elsewhere.
   const anon = await browser.newContext();

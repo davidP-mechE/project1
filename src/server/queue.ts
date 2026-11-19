@@ -178,3 +178,38 @@ export const workerQueryEmbedder: QueryEmbedder = {
 
 // ─── Daily reminders (Phase 8) ──────────────────────────────────────────
 export const REMINDERS_QUEUE = "reminders";
+
+// ─── Scheduled messages and announcements (Phase 3) ──────────────────────
+// A delayed job per scheduled send; the worker also sweeps for due sends every
+// 15 minutes, so a lost job only delays a send, never drops it.
+
+export const SCHEDULED_QUEUE = "scheduled-sends";
+export type ScheduledPayload = { id: string };
+
+let scheduledQueue: Queue<ScheduledPayload> | null = null;
+function getScheduledQueue() {
+  scheduledQueue ??= new Queue<ScheduledPayload>(SCHEDULED_QUEUE, {
+    connection: redisConnection(),
+    defaultJobOptions: { attempts: 3, backoff: { type: "exponential", delay: 60_000 }, removeOnComplete: true, removeOnFail: { age: 7 * 24 * 3600 } },
+  });
+  return scheduledQueue;
+}
+
+const scheduledJobId = (id: string) => `send-${id}`;
+
+/** (Re)queue a scheduled send for its time. Never throws: the worker's sweep is the fallback. */
+export async function enqueueScheduledSend(id: string, sendAt: Date, now = new Date()) {
+  if (process.env.NODE_ENV === "test") return;
+  try {
+    const q = getScheduledQueue();
+    await q.remove(scheduledJobId(id)).catch(() => 0);
+    await q.add("send", { id }, { jobId: scheduledJobId(id), delay: Math.max(0, sendAt.getTime() - now.getTime()) });
+  } catch (err) {
+    console.warn("[queue] scheduled send not queued (the sweep will pick it up):", err instanceof Error ? err.message : err);
+  }
+}
+
+export async function dequeueScheduledSend(id: string) {
+  if (process.env.NODE_ENV === "test") return;
+  await getScheduledQueue().remove(scheduledJobId(id)).catch(() => 0);
+}

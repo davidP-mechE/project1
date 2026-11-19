@@ -4,6 +4,7 @@ import { Card, PageHeader } from "@/components/ui/misc";
 import { NewMessageForm } from "@/components/messages/forms";
 import { contacts } from "@/server/messages";
 import { requireUser } from "@/server/session";
+import { listSavedReplies } from "@/server/saved-replies";
 
 export const metadata: Metadata = { title: "New message" };
 
@@ -18,7 +19,7 @@ export default async function NewMessagePage() {
       </Link>
       <PageHeader title="New message" description={isStaff ? "Message one student, or several at once (each gets their own private conversation)." : "Message one of your tutors."} />
       <Card>
-        <NewMessageForm contacts={c} />
+        <NewMessageForm contacts={c} replies={isStaff ? (await listSavedReplies(user.id)).replies.map((r) => ({ id: r.id, title: r.title, body: r.body, programName: r.programName })) : []} />
       </Card>
       <p className="mt-4 text-xs text-muted">Your program admin can read conversations in your program.</p>
     </div>
