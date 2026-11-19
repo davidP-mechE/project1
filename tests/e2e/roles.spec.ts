@@ -359,6 +359,42 @@ test("each role's journey: admin sets up, student works, specialist grades withi
   await expect(mp.getByText("Only the subjects you cover are shown.")).toBeVisible();
   await expect(mp.getByText("Craft and Structure")).toHaveCount(0);
 
+  // ── Needs attention and caseloads ──
+  // Sol's goal is far above his scores with the test close, and his baseline was 2 months ago: he's below target pace.
+  await sql(`UPDATE "ScoreRecord" SET "takenOn" = now() - interval '60 days' WHERE "studentId" = $1 AND "isBaseline"`, [studentId]);
+  await sql(`INSERT INTO "StudentProfile" ("userId", "targetScore", "testDate", "baselinePending", "updatedAt") VALUES ($1, 1550, now() + interval '20 days', false, now()) ON CONFLICT ("userId") DO UPDATE SET "targetScore" = 1550, "testDate" = now() + interval '20 days'`, [studentId]);
+  await ap.goto("/dashboard");
+  await expect(ap.getByRole("heading", { name: "Needs attention" })).toBeVisible();
+  await ap.goto("/teach/attention");
+  await expect(ap.getByRole("link", { name: "Sol Student" })).toBeVisible();
+  await expect(ap.getByText("Below target pace").first()).toBeVisible();
+  await ap.getByRole("button", { name: "Snooze…" }).first().click();
+  await expect(ap.getByRole("group", { name: "Snooze Sol Student" })).toBeVisible();
+  await a11y(ap, "admin: needs attention");
+  await shot(ap, "admin-needs-attention");
+  // Caseloads: the admin gives the class to the Math specialist; it shows on her "My caseload" filter.
+  await ap.goto(`/teach/programs/${programId}/caseloads`);
+  await expect(ap.getByRole("heading", { name: "No tutor yet" })).toBeVisible();
+  await ap.getByLabel("Primary tutor", { exact: true }).selectOption({ label: "Milo Math" });
+  await ap.getByRole("button", { name: "Assign", exact: true }).click();
+  await expect(ap.getByText(/1 student updated/)).toBeVisible();
+  await expect(ap.getByRole("heading", { name: "Milo Math" })).toBeVisible();
+  await a11y(ap, "admin: caseloads");
+  await shot(ap, "admin-caseloads");
+  await mp.goto("/teach/attention?mine=1");
+  await expect(mp.getByRole("link", { name: "Sol Student" })).toBeVisible();
+  await expect(mp.getByText("Your caseload").first()).toBeVisible();
+  await a11y(mp, "specialist: needs attention (my caseload)");
+  await mp.goto(`${classUrl}/students/${studentId}`);
+  await expect(mp.getByText(/Primary tutor: you/)).toBeVisible();
+  // Marking it handled hides it for everyone in the program.
+  await ap.goto("/teach/attention");
+  for (const b of await ap.getByRole("button", { name: "Mark handled" }).all()) await b.click().catch(() => {});
+  await expect(ap.getByRole("heading", { name: "Nobody needs attention right now" })).toBeVisible();
+  await a11y(ap, "admin: needs attention (empty)");
+  await sp.goto("/dashboard");
+  await expect(sp.getByText(/Your tutor: /)).toBeVisible();
+
   // Logged-out pages not covered elsewhere.
   const anon = await browser.newContext();
   const np = await anon.newPage();

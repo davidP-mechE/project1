@@ -121,6 +121,7 @@ export type ProgramPatch = {
   publicBlurb?: string | null;
   schoolAverage?: number | null;
   goalGain?: number | null;
+  inactiveDays?: number;
 };
 
 const RESERVED_SLUGS = new Set(["new", "admin", "api", "login", "signup", "help"]);
@@ -171,6 +172,10 @@ export async function updateProgram(userId: string, programId: string, patch: Pr
     data[k] = v;
   }
   if (patch.newStudentsNoAi !== undefined) data.newStudentsNoAi = Boolean(patch.newStudentsNoAi);
+  if (patch.inactiveDays !== undefined) {
+    if (!Number.isInteger(patch.inactiveDays) || patch.inactiveDays < 2 || patch.inactiveDays > 60) throw new ClassError("Inactive after 2 to 60 days.");
+    data.inactiveDays = patch.inactiveDays;
+  }
   if (patch.isPublic !== undefined) {
     if (patch.isPublic && !(data.slug ?? p.slug)) throw new ClassError("Choose a page address before making the page public.");
     data.isPublic = patch.isPublic;

@@ -22,6 +22,10 @@ import { awardBadges, myBadges } from "@/server/badges";
 import { BadgeList } from "@/components/badges";
 import { dueAssignments } from "@/server/classes";
 import { dueText } from "@/components/classes/format";
+import { Suspense } from "react";
+import { staffClassIds } from "@/server/access";
+import { AttentionSummary, AttentionSummarySkeleton } from "@/components/attention/attention-summary";
+import { primaryTutorsOf } from "@/server/caseloads";
 
 export const metadata: Metadata = { title: "Today" };
 
@@ -73,7 +77,7 @@ export default async function DashboardPage() {
   const user = await requireUser();
   const tours = await toursToShow(user.id);
   await awardBadges(user.id).catch((err) => console.warn("[badges]", err instanceof Error ? err.message : err));
-  const [d, game, due, programs, news, zone, badges, access] = await Promise.all([getDashboard(user.id), getGameSummary(user.id), dueAssignments(user.id), studentPrograms(user.id), studentAnnouncements(user.id), viewerZone(), myBadges(user.id), programAccess(user.id)]);
+  const [d, game, due, programs, news, zone, badges, access, teaching, tutors] = await Promise.all([getDashboard(user.id), getGameSummary(user.id), dueAssignments(user.id), studentPrograms(user.id), studentAnnouncements(user.id), viewerZone(), myBadges(user.id), programAccess(user.id), staffClassIds(user.id), primaryTutorsOf(user.id)]);
   // Accounts limited to a program (Admin → Program access) can't upload: point them to their classes.
   const canUpload = allowsCoursebook(access);
   const first = d.name.split(" ")[0];
@@ -118,6 +122,17 @@ export default async function DashboardPage() {
               ))}
             </ul>
           )}
+          {tutors.length > 0 && (
+            <p className="mt-3 text-sm">
+              {tutors.map((t, i) => (
+                <span key={t.programId}>
+                  {i > 0 && " · "}
+                  Your tutor{tutors.length > 1 ? ` in ${t.program.name}` : ""}: <strong className="font-semibold">{t.tutor.name}</strong>
+                </span>
+              ))}{" "}
+              · <Link href="/messages/new" className="text-primary underline-offset-2 hover:underline">Message your tutors</Link>
+            </p>
+          )}
         </div>
         <div className={cn("flex items-center gap-3 self-start rounded-md border-[1.5px] px-4 py-2.5 md:self-auto md:py-3", d.streak.current > 0 ? "border-transparent bg-accent text-accent-text" : "border-border bg-surface")}>
           <span aria-hidden className="text-2xl md:text-3xl">{d.streak.current > 0 ? "🔥" : "✦"}</span>
@@ -127,6 +142,12 @@ export default async function DashboardPage() {
           </span>
         </div>
       </header>
+
+      {teaching.length > 0 && (
+        <Suspense fallback={<AttentionSummarySkeleton />}>
+          <AttentionSummary userId={user.id} />
+        </Suspense>
+      )}
 
       {/* ── Next step, with today's goal ── */}
       <section aria-labelledby="next-step" className="hero-card rise grid items-center gap-8 rounded-lg py-8 pb-12 pl-9 pr-5 sm:py-10 sm:pb-14 sm:pl-[4.5rem] sm:pr-10 md:grid-cols-[1fr_auto]" style={{ ["--d" as string]: "60ms" }}>

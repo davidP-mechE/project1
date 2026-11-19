@@ -12,6 +12,7 @@ const GENERAL: QA[] = [
 ];
 
 const STUDENT: QA[] = [
+  { q: "Who is my tutor?", a: <>If your program gave you a primary tutor, Today shows their name. You can message them (and your other tutors) from <strong>Messages</strong>.</> },
   { q: "How do I join my class?", a: <>Open the invite link your tutor sent, or go to <strong>Classes</strong> and enter the class code. If you&apos;re new, sign up first; you come straight back to the class.</> },
   { q: "What's a baseline, and why does it matter?", a: <>It&apos;s your starting score: your latest PSAT, SAT or practice test. Your progress is measured from it. Add it under <strong>SAT scores</strong>. No score yet? Choose &quot;I&apos;ll take the diagnostic&quot;; its result becomes your baseline.</> },
   { q: "What's the 'estimated now' range?", a: "An estimate of where you are today, from your recent scores and practice. It isn't an official SAT score; it's there to show your direction." },
@@ -31,8 +32,9 @@ const STAFF: QA[] = [
   { q: "How do I assign work?", a: "A class's Assign tab: lessons from your courses, worksheet questions (upload a PDF under Worksheets first), College Board questions by link, and diagnostics. Each can go to the whole class, groups or chosen students." },
   { q: "Does anything AI-made go to students without me?", a: "No. Drafted questions and lessons wait in Teaching → Review queue until someone approves them, and you can confirm or override any grade Claude gives a written answer." },
   { q: "Can I import College Board results for the whole class?", a: <>Yes: class → Scores → <strong>Import College Board score reports</strong>. Upload a CSV from College Board&apos;s reporting portal or our template (email, test, date, total, section scores and each area&apos;s band 1–7). Press Check to see what will happen, then Add. Students are matched by email. Each student&apos;s page then shows their <strong>weak spots</strong>, and the class&apos;s Skills tab shows which areas are hardest for the most students.</> },
-  { q: "How do I see who needs help?", a: "Each class has Scores (gain, on track, stalling), Skills (weakest skills), Alerts (overdue work, dropping scores, inactive, absences) and Attendance. The program admin also has the program dashboard." },
-  { q: "Can I upload official SAT or Bluebook questions?", a: "No. The site refuses them; questions must be original or licensed. Link to College Board's Question Bank instead." },
+  { q: "How do I see who needs help?", a: <>Start with <strong>Teaching → Needs attention</strong>: one ranked list across all your classes (only students in your scope) of missed or late work, accuracy dropping over the last 2 weeks, no login or practice for a while, the same skill missed again and again, and score estimates below target pace. Each item has quick actions: message the student, assign a practice set, mark it handled, or snooze it. Handled and snoozed items come back if something new happens. Each class also has Scores, Skills, Alerts and Attendance, and the program admin has the program dashboard.</> },
+  { q: "What's my caseload?", a: <>The students your program admin made you the <strong>primary tutor</strong> for. Tick &quot;My caseload only&quot; on Needs attention to see just them. A student&apos;s page shows their primary tutor, and students see theirs on Today.</> },
+  { q: "Can I add official College Board questions?", a: <>Question authors can, from <strong>Question bank → College Board</strong>: upload a PDF, screenshots or pasted text, check the questions, then add them as drafts. Use them only to teach your own students; don&apos;t post them publicly.</> },
   { q: "Something's broken. What do I do?", a: <>Use <strong>Report a problem</strong> at the bottom of any page. It sends the page and recent error codes to the site admin, never what you&apos;ve typed.</> },
 ];
 

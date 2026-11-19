@@ -19,6 +19,15 @@ async function demoClass() {
 }
 
 describe("loading demo data", () => {
+  it("gives the tutor a caseload and a needs-attention list", async () => {
+    const r = await loadDemoData(NOW);
+    const tutor = await db.user.findFirstOrThrow({ where: { email: r.tutorEmail } });
+    expect(await db.primaryTutor.count({ where: { tutorId: tutor.id } })).toBe(10);
+    const { attentionList } = await import("@/server/attention");
+    const list = await attentionList(tutor.id, { mine: true }, NOW);
+    expect(list.items.map((i) => [i.name, i.reason])).toContainEqual(["Dev Ramanathan", "INACTIVE"]);
+  });
+
   it("creates one tutor, the class and 10 students, all flagged as demo", async () => {
     const r = await loadDemoData(NOW);
     expect(r.students).toBe(10);

@@ -4,6 +4,9 @@ import { sendEmail, type EmailMessage } from "./email";
 import { readPrefs, NOTICE_KINDS, type NoticeKind, type NotificationPrefs } from "@/lib/notification-prefs";
 import { classAlerts } from "./cohort";
 import { aiGradesToReview } from "./grade-review";
+import { attentionList } from "./attention";
+import { attentionMessage } from "./email/templates";
+import { env } from "./env";
 
 /**
  * The notification center (the bell in the sidebar) and notification emails.
@@ -15,7 +18,7 @@ import { aiGradesToReview } from "./grade-review";
  * Prep"), never the content: the content stays behind the login.
  */
 
-const KIND_DB: Record<NoticeKind, string> = { messages: "MESSAGE", announcements: "ANNOUNCEMENT", alerts: "ALERT", review: "REVIEW" };
+const KIND_DB: Record<NoticeKind, string> = { messages: "MESSAGE", announcements: "ANNOUNCEMENT", alerts: "ALERT", attention: "ATTENTION", review: "REVIEW" };
 const PAGE = 30;
 
 export async function getNotificationPrefs(userId: string): Promise<NotificationPrefs> {
@@ -108,6 +111,25 @@ export async function refreshStaffNotices(now = new Date()) {
   let made = 0;
   for (const u of staff) {
     const prefs = readPrefs(u.notificationPrefs);
+    if (prefs.attention.site || prefs.attention.email) {
+      // Needs attention: once a day, the number of students on the list (notify() applies site/email choices).
+      const list = await attentionList(u.id, {}, now).catch(() => null);
+      const students = list ? new Set(list.items.map((i) => i.studentId)).size : 0;
+      if (students > 0 && (await once(`attention-day:${u.id}:${day}`))) {
+        const r = await notify(
+          [u.id],
+          {
+            kind: "attention",
+            key: `attention:${day}`,
+            title: `${students} student${students === 1 ? "" : "s"} on your needs-attention list`,
+            href: "/teach/attention",
+            email: (to) => attentionMessage({ to: to.email, count: students, url: `${env.APP_URL}/teach/attention`, settingsUrl: `${env.APP_URL}/settings#notifications` }),
+          },
+          now,
+        );
+        made += r.site;
+      }
+    }
     if (!prefs.alerts.site && !prefs.review.site) continue;
     const classes = await db.class.findMany({ where: { archivedAt: null, OR: [{ program: { adminId: u.id } }, { staff: { some: { userId: u.id, role: { not: "VIEWER" } } } }] }, select: { id: true, name: true } });
     let toReview = 0;

@@ -63,6 +63,10 @@ The final review of Coursebook and The 1600 Project's setup on it, most serious 
 
 15a. **College Board imports read columns by name.** College Board's export layouts change from year to year, so the class import matches headers by name (Email, Test, Test date, Total score, section scores, and the eight content-area names). It lists any column it ignores. Check the first real export with *Check* before *Add*. Knowledge and Skills bands are entered as 1–7 (the boxes on the report). The question-review paste reads tables copied from My Practice or Bluebook. If College Board changes that table, some rows may be skipped, and the form says which and why.
 
+16a. **Needs attention is worked out when the page opens.** It reads each student's recent work, practice, scores and logs, so a program with hundreds of students makes the page slower (a few seconds). The sidebar count is kept for 5 minutes per server instance, so it can lag the list a little. Rules are fixed in code: accuracy down 15+ points (with at least 8 answers in each window), the same skill missed 3+ times in 30 days, more than 30 points below target pace. Only "Inactive after N days" is a program setting. "Handled" and "Snoozed" are shared by all of a program's staff, not per person.
+
+16b. **Caseloads hold one primary tutor per student per program.** If a tutor stops teaching a student (removed from the class or group), the caseload link stays until the admin changes it; the tutor's needs-attention list still only shows students in their current scope.
+
 ## Low
 
 15. **Students see the Teaching section in the sidebar.** That's how anyone starts teaching a class, but it can confuse students. Consider hiding it until someone creates or joins a class as staff.

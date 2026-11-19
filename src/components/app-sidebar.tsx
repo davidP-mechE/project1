@@ -21,6 +21,8 @@ type Props = {
   timeZone: string;
   game: { streak: number; xp: number; level: number };
   unread: { notices: number; threads: number };
+  /** Staff: items on their needs-attention list. */
+  attention?: number;
 };
 
 const ICONS: Record<string, ReactNode> = {
@@ -118,6 +120,12 @@ const ICONS: Record<string, ReactNode> = {
       <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" />
     </>
   ),
+  flag: (
+    <>
+      <path d="M5 21V4" />
+      <path d="M5 4h11l-2 4 2 4H5" />
+    </>
+  ),
 };
 
 function Icon({ name }: { name: keyof typeof ICONS }) {
@@ -140,7 +148,7 @@ type NavLink = { href: string; label: string; icon: keyof typeof ICONS; badge?: 
  * top, then folding sections (the one you're in opens by itself). Teaching
  * appears for people who teach; Settings and Admin live in the account menu.
  */
-function NavLinks({ isStaff, coursebook, roles, dueCount, unread, onNavigate }: { isStaff: boolean; coursebook: boolean; roles?: { isAuthor?: boolean; isOwner?: boolean }; dueCount: number; unread: Props["unread"]; onNavigate?: () => void }) {
+function NavLinks({ isStaff, coursebook, roles, dueCount, unread, attention, onNavigate }: { isStaff: boolean; coursebook: boolean; roles?: { isAuthor?: boolean; isOwner?: boolean }; dueCount: number; unread: Props["unread"]; attention?: number; onNavigate?: () => void }) {
   const pathname = usePathname();
   const top: NavLink[] = [
     { href: "/dashboard", label: "Today", icon: "home" },
@@ -183,6 +191,7 @@ function NavLinks({ isStaff, coursebook, roles, dueCount, unread, onNavigate }: 
               ...(isStaff
                 ? [
                     { href: "/teach", label: "My classes", icon: "teach" as const },
+                    { href: "/teach/attention", label: "Needs attention", icon: "flag" as const, badge: attention, badgeLabel: "items need attention" },
                     { href: "/teach/worksheets", label: "Worksheets", icon: "worksheet" as const },
                     { href: "/teach/diagnostics", label: "Diagnostics", icon: "scores" as const },
                     { href: "/teach/review", label: "Review queue", icon: "errors" as const },
@@ -281,7 +290,7 @@ function Stats({ game }: { game: Props["game"] }) {
 }
 
 /** The sections, shared by the top bar's menus and the phone menu. */
-function sections(isStaff: boolean, coursebook: boolean, dueCount: number, unread: Props["unread"], roles?: { isAuthor?: boolean; isOwner?: boolean }) {
+function sections(isStaff: boolean, coursebook: boolean, dueCount: number, unread: Props["unread"], roles?: { isAuthor?: boolean; isOwner?: boolean }, attention?: number) {
   const groups: { label: string; links: NavLink[] }[] = [
     {
       label: "Learn",
@@ -317,6 +326,7 @@ function sections(isStaff: boolean, coursebook: boolean, dueCount: number, unrea
               ...(isStaff
                 ? [
                     { href: "/teach", label: "My classes", icon: "teach" as const },
+                    { href: "/teach/attention", label: "Needs attention", icon: "flag" as const, badge: attention, badgeLabel: "items need attention" },
                     { href: "/teach/worksheets", label: "Worksheets", icon: "worksheet" as const },
                     { href: "/teach/diagnostics", label: "Diagnostics", icon: "scores" as const },
                     { href: "/teach/review", label: "Review queue", icon: "errors" as const },
@@ -404,10 +414,10 @@ function NavMenu({ label, links, activeHref }: { label: string; links: NavLink[]
   );
 }
 
-export function AppSidebar({ user, dueCount, timeZone, game, unread }: Props) {
+export function AppSidebar({ user, dueCount, timeZone, game, unread, attention }: Props) {
   const pathname = usePathname();
   const drawer = useRef<HTMLDialogElement>(null);
-  const { top, groups } = sections(user.isStaff, user.coursebook, dueCount, unread, user);
+  const { top, groups } = sections(user.isStaff, user.coursebook, dueCount, unread, user, attention);
   const activeHref = useActiveHref([...top, ...groups.flatMap((g) => g.links)]);
 
   // "Today" is the student's day: save the browser's time zone once.
@@ -504,7 +514,7 @@ export function AppSidebar({ user, dueCount, timeZone, game, unread }: Props) {
             </button>
           </div>
           <Stats game={game} />
-          <NavLinks isStaff={user.isStaff} coursebook={user.coursebook} roles={user} dueCount={dueCount} unread={unread} onNavigate={() => drawer.current?.close()} />
+          <NavLinks isStaff={user.isStaff} coursebook={user.coursebook} roles={user} dueCount={dueCount} unread={unread} attention={attention} onNavigate={() => drawer.current?.close()} />
           <div className="mt-auto flex items-center justify-between gap-2 border-t border-border pt-4">
             <UserMenu name={user.name} email={user.email} isAdmin={user.isAdmin} placement="up" showName />
             <ThemeToggle className="text-nav-muted hover:bg-nav-active hover:text-nav-text" />

@@ -258,6 +258,24 @@ async function main() {
       ],
     });
   }
+  // Caseloads: group 1 of A is Morgan's, group 2 of A is Lena's (she tutors that group), class B is Priya's.
+  await db.primaryTutor.createMany({
+    data: [
+      ...groups[A.id][0].members.map((id) => ({ programId: program.id, studentId: id, tutorId: admin.id, assignedById: admin.id })),
+      ...groups[A.id][1].members.map((id) => ({ programId: program.id, studentId: id, tutorId: tutor.id, assignedById: admin.id })),
+      ...roster[B.id].map((s) => ({ programId: program.id, studentId: s.id, tutorId: teacher.id, assignedById: admin.id })),
+    ],
+  });
+  // Needs attention: two students went quiet 12 days ago (no login, no practice, so their latest work is overdue).
+  const quiet = [roster[A.id][10], roster[B.id][3]];
+  for (const q of quiet) {
+    const since = new Date(now.getTime() - 12 * DAY);
+    await db.user.update({ where: { id: q.id }, data: { lastLoginAt: since } });
+    await db.assignmentAnswer.deleteMany({ where: { userId: q.id, createdAt: { gte: since } } });
+    await db.assignmentStart.deleteMany({ where: { userId: q.id, startedAt: { gte: since } } });
+    await db.studyDay.deleteMany({ where: { userId: q.id, day: { gte: since.toISOString().slice(0, 10) } } });
+  }
+
   await db.badge.createMany({ data: students.slice(0, 12).map((s) => ({ userId: s.id, kind: "STREAK_5", earnedAt: new Date(now.getTime() - 3 * DAY) })), skipDuplicates: true });
 
   console.log(

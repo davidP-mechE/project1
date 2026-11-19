@@ -12,6 +12,7 @@ import { ClassError } from "@/server/access";
 import { getProgram, programAccessRules } from "@/server/programs";
 import { NewStudentsNoAi, ProgramAccessRules } from "@/components/classes/program-access";
 import { requireUser, viewerZone } from "@/server/session";
+import { InactiveDaysForm } from "@/components/attention/caseload-forms";
 
 export const metadata: Metadata = { title: "Program" };
 
@@ -50,11 +51,21 @@ export default async function ProgramPage({ params, searchParams }: PageProps<"/
       <PageHeader
         title={program.name}
         description={`You're the program admin · ${program.classes.length} ${program.classes.length === 1 ? "class" : "classes"}`}
-        actions={<ButtonLink href={`/teach/programs/${program.id}/dashboard`}>Program dashboard</ButtonLink>}
+        actions={
+          <>
+            <ButtonLink href={`/teach/programs/${program.id}/dashboard`}>Program dashboard</ButtonLink>
+            <ButtonLink href={`/teach/programs/${program.id}/caseloads`} variant="secondary">Caseloads</ButtonLink>
+          </>
+        }
       />
       <Card>
         <h2 className="mb-4 text-lg font-semibold">Settings</h2>
         <ProgramSettingsForm program={program} />
+      </Card>
+      <Card>
+        <h2 className="mb-1 text-lg font-semibold">Needs attention</h2>
+        <p className="mb-4 text-sm text-muted">Staff see a ranked list of students who may need a nudge (Teaching → Needs attention). Choose when a quiet student counts as inactive.</p>
+        <InactiveDaysForm programId={program.id} days={program.inactiveDays} />
       </Card>
       <Card>
         <h2 className="mb-1 text-lg font-semibold">Public page</h2>

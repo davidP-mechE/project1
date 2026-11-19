@@ -339,6 +339,9 @@ export async function loadDemoData(now = new Date()) {
       const cls = await tx.class.create({ data: { programId: program.id, teacherId: tutor.id, name: DEMO_CLASS_NAME, joinCode: newJoinCode(), isDemo: true, createdAt: at(60) } });
       await tx.classStaff.create({ data: { classId: cls.id, userId: tutor.id, role: "TEACHER" } });
       await tx.classMember.createMany({ data: students.map((s) => ({ classId: cls.id, userId: s.user.id, joinedAt: at(55) })) });
+      // Caseload: every demo student is the tutor's. Dev never started: no login for 12 days, so he's on Needs attention.
+      await tx.primaryTutor.createMany({ data: students.map((s) => ({ programId: program.id, studentId: s.user.id, tutorId: tutor.id, assignedById: tutor.id, assignedAt: at(50) })) });
+      for (const s of students.filter((x) => x.neverStarted)) await tx.user.update({ where: { id: s.user.id }, data: { lastLoginAt: at(12) } });
 
       // The tutor's course, shared with the class; each student who started has their own copy.
       const src = await buildCourse(tx, tutor.id);

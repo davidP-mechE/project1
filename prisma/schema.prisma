@@ -114,6 +114,11 @@ model User {
   bankAttempts     BankAttempt[]
   customTests      PracticeTest[]    @relation("testCreator")
 
+  // Needs attention and caseloads
+  attentionStates  AttentionState[] @relation("attentionStudent")
+  tutorOf          PrimaryTutor[]   @relation("primaryTutorStudent")
+  caseload         PrimaryTutor[]   @relation("primaryTutor")
+
   /// Set on every login, for the Staff page.
   lastLoginAt      DateTime?
   /// Two-factor login (authenticator app); required for program admins and staff.
@@ -1089,6 +1094,10 @@ model Program {
   accessRules     ProgramAccessRule[]
   /// Students who join one of this program's classes get an "SAT only, no AI" rule (unless they already have a rule).
   newStudentsNoAi Boolean             @default(false)
+  /// Needs attention: days with no login and no practice before a student is listed as inactive.
+  inactiveDays    Int                 @default(7)
+  attentionStates AttentionState[]
+  primaryTutors   PrimaryTutor[]
 
   @@index([adminId])
 }
@@ -1909,7 +1918,7 @@ model Notification {
   id        String    @id @default(cuid())
   userId    String
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  /// MESSAGE, ANNOUNCEMENT, ALERT or REVIEW
+  /// MESSAGE, ANNOUNCEMENT, ALERT, ATTENTION or REVIEW
   kind      String
   key       String
   title     String
@@ -2365,4 +2374,44 @@ model StudioFile {
   createdAt   DateTime     @default(now())
 
   @@map("studio_files")
+}
+
+// ─── Needs attention and caseloads ───────────────────────────────────────
+
+/// A "needs attention" item a staff member marked handled or snoozed (shared by the program's staff).
+/// Items are worked out fresh each time; this hides one while its fingerprint (what triggered it) is
+/// unchanged, and for a snooze only until `until`. Something new (another overdue assignment, a new
+/// score, a lower accuracy band) changes the fingerprint and the item comes back.
+model AttentionState {
+  id          String    @id @default(cuid())
+  programId   String
+  program     Program   @relation(fields: [programId], references: [id], onDelete: Cascade)
+  studentId   String
+  student     User      @relation("attentionStudent", fields: [studentId], references: [id], onDelete: Cascade)
+  /// WORK, ACCURACY, INACTIVE, SKILL or PACE.
+  reason      String
+  fingerprint String
+  /// HANDLED or SNOOZED.
+  action      String
+  until       DateTime?
+  byId        String
+  createdAt   DateTime  @default(now())
+
+  @@unique([programId, studentId, reason])
+}
+
+/// A student's primary tutor in a program, chosen by the program admin. The tutor must teach
+/// (as a teacher or specialist) a class the student is in.
+model PrimaryTutor {
+  programId    String
+  program      Program  @relation(fields: [programId], references: [id], onDelete: Cascade)
+  studentId    String
+  student      User     @relation("primaryTutorStudent", fields: [studentId], references: [id], onDelete: Cascade)
+  tutorId      String
+  tutor        User     @relation("primaryTutor", fields: [tutorId], references: [id], onDelete: Cascade)
+  assignedById String
+  assignedAt   DateTime @default(now())
+
+  @@id([programId, studentId])
+  @@index([tutorId])
 }

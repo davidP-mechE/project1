@@ -36,12 +36,14 @@ export default async function StudentPage({ params }: PageProps<"/teach/[classId
     throw err;
   }
   // The student is in the caller's scope (checked above).
-  const [program, plan, mistakes, badges, zone] = await Promise.all([
+  const [program, plan, mistakes, badges, zone, tutor] = await Promise.all([
     db.program.findUniqueOrThrow({ where: { id: s.access.programId }, select: { targets: true } }),
     planFor(studentId),
     openMistakesByDomain(studentId),
     studentBadges(user.id, classId, studentId),
     viewerZone(),
+    // The caseload: who is this student's primary tutor in the program?
+    db.primaryTutor.findUnique({ where: { programId_studentId: { programId: s.access.programId, studentId } }, select: { tutor: { select: { id: true, name: true } } } }),
   ]);
   const weak = await studentWeakSpots(user.id, classId, studentId);
   const sections = { rw: s.scores.some((x) => x.rw !== null) || !s.access.subjects, math: s.scores.some((x) => x.math !== null) || !s.access.subjects };
@@ -64,6 +66,9 @@ export default async function StudentPage({ params }: PageProps<"/teach/[classId
           </>
         }
       />
+      <p className="-mt-3 text-sm">
+        Primary tutor: {tutor ? <strong className="font-semibold">{tutor.tutor.id === user.id ? "you" : tutor.tutor.name}</strong> : <span className="text-muted">none yet{s.access.isProgramAdmin ? " (set it on the program's Caseloads page)" : ""}</span>}
+      </p>
       {s.stall.stalled && <Alert tone="warning">{s.stall.reason}.</Alert>}
       <div className="grid gap-4 sm:grid-cols-[1fr_1fr]">
         <Card>

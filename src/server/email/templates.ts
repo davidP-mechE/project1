@@ -243,3 +243,11 @@ export function testEmailMessage(input: { to: string; detail: string; from: stri
   const outro = `Sent with: ${input.detail}. From: ${input.from}.`;
   return { to: input.to, subject: "Coursebook test email", text: `${intro}\n\n${outro}\n\n${input.url}`, html: layout("Your test email arrived", intro, "Open the admin page", input.url, outro) };
 }
+
+/** Needs attention: the daily count for a staff member (names stay behind the login). */
+export function attentionMessage(input: { to: string; count: number; url: string; settingsUrl: string }): EmailMessage {
+  const n = `${input.count} student${input.count === 1 ? "" : "s"}`;
+  const intro = `${n} on your needs-attention list today. Log in to see why, and to message them, assign practice or mark them handled.`;
+  const outro = `To stop these emails, change Settings → Notifications (${input.settingsUrl}).`;
+  return { to: input.to, subject: `${n} need${input.count === 1 ? "s" : ""} attention`, text: `${intro}\n\n${input.url}\n\n${outro}`, html: layout(`${n} need${input.count === 1 ? "s" : ""} attention`, intro, "Open needs attention", input.url, outro) };
+}
