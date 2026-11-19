@@ -26,6 +26,14 @@ describe("loading demo data", () => {
     const { attentionList } = await import("@/server/attention");
     const list = await attentionList(tutor.id, { mine: true }, NOW);
     expect(list.items.map((i) => [i.name, i.reason])).toContainEqual(["Dev Ramanathan", "INACTIVE"]);
+    // This week's practice is built and waiting; every set targets real weak skills.
+    const items = await db.autoPracticeItem.findMany();
+    expect(items.length).toBeGreaterThanOrEqual(5);
+    expect(items.every((i) => i.status === "PENDING" && i.questionIds.length >= 8)).toBe(true);
+    // Clearing removes the demo questions and sets too.
+    await clearDemoData();
+    expect(await db.bankQuestion.count({ where: { externalId: { startsWith: "DEMOMODE-" } } })).toBe(0);
+    expect(await db.questionSet.count()).toBe(0);
   });
 
   it("creates one tutor, the class and 10 students, all flagged as demo", async () => {

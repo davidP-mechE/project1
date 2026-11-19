@@ -1,4 +1,6 @@
 import "server-only";
+import { demoBankQuestions } from "@/lib/demo-bank";
+import { buildBatch } from "./auto-practice";
 import { hashPassword } from "better-auth/crypto";
 import type { Prisma } from "@/generated/prisma/client";
 import { db } from "./db";
@@ -41,6 +43,10 @@ export async function demoStatus() {
 /** Delete every demo record in one step (demo users; everything they own goes with them). */
 export async function clearDemoData() {
   const users = await db.user.findMany({ where: { isDemo: true }, select: { id: true } });
+  // Demo practice questions and sets outlive their author (SetNull): remove them first.
+  await db.liveRun.deleteMany({ where: { class: { isDemo: true } } });
+  await db.questionSet.deleteMany({ where: { OR: [{ authorId: { in: users.map((u) => u.id) } }, { title: { startsWith: "Demo mode:" } }] } });
+  await db.bankQuestion.deleteMany({ where: { externalId: { startsWith: "DEMOMODE-" } } });
   // Programs cascade from their admin, classes from programs, courses and books from their owners.
   await db.user.deleteMany({ where: { isDemo: true } });
   // Anything flagged but orphaned (shouldn't happen) is removed too.
@@ -513,8 +519,28 @@ export async function loadDemoData(now = new Date()) {
         }
       }
 
+      // Published practice questions (demo only, Math), some practice on them, and a short set for a live warm-up.
+      const bank = [];
+      for (const q of demoBankQuestions("DEMOMODE-").filter((x) => x.section === "math")) bank.push(await tx.bankQuestion.create({ data: { ...q, type: "mcq", status: "published", authorId: tutor.id } }));
+      await tx.questionSet.create({ data: { title: "Demo mode: Linear equations warm-up", questionIds: bank.filter((q) => q.externalId!.includes("LIN")).slice(0, 5).map((q) => q.id), skillIds: ["math.algebra.linear-equations-in-one-variable"], status: "published", visibility: "class", authorId: tutor.id } });
+      const attempts = [];
+      for (const s of students) {
+        if (s.neverStarted) continue;
+        for (const [i, q] of bank.entries()) {
+          if (i % 3 === 0) continue;
+          // Percentages are the weak spot for most of the class.
+          const p = q.skillId === "math.psda.percentages" ? s.ability - 0.35 : s.ability;
+          attempts.push({ userId: s.user.id, questionId: q.id, questionVersion: 1, answerGiven: "A", correct: rand() < p, createdAt: at(3 + (i % 20)) });
+        }
+      }
+      await tx.bankAttempt.createMany({ data: attempts });
+
       return { tutorEmail: tutor.email, password: DEMO_MODE_PASSWORD, classId: cls.id, joinCode: cls.joinCode, students: students.length };
     },
     { timeout: 120_000 },
-  );
+  ).then(async (r) => {
+    // This week's auto-assigned practice, waiting for the tutor to approve it.
+    await buildBatch(r.classId, now);
+    return r;
+  });
 }

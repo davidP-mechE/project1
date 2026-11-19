@@ -12,6 +12,8 @@
 import { hashPassword } from "better-auth/crypto";
 import { db } from "../src/server/db";
 import { DEMO_DOMAIN, DEMO_PASSWORD } from "../src/lib/demo";
+import { demoBankQuestions } from "../src/lib/demo-bank";
+import { buildBatch } from "../src/server/auto-practice";
 
 // Deterministic randomness, so the demo looks the same every time.
 let seed = 1600;
@@ -60,6 +62,10 @@ function guardProduction() {
 
 async function removeDemo() {
   const users = await db.user.findMany({ where: { email: { endsWith: `@${DEMO_DOMAIN}` } }, select: { id: true } });
+  // Demo bank questions and sets outlive their authors (they're SetNull), so remove them by id and author first.
+  await db.liveRun.deleteMany({ where: { set: { OR: [{ authorId: { in: users.map((u) => u.id) } }, { title: { startsWith: "Demo:" } }] } } });
+  await db.questionSet.deleteMany({ where: { OR: [{ authorId: { in: users.map((u) => u.id) } }, { title: { startsWith: "Demo:" } }] } });
+  await db.bankQuestion.deleteMany({ where: { externalId: { startsWith: "DEMO-" } } });
   // Programs cascade from their admin; classes from programs.
   await db.user.deleteMany({ where: { id: { in: users.map((u) => u.id) } } });
   return users.length;
@@ -275,6 +281,38 @@ async function main() {
     await db.assignmentStart.deleteMany({ where: { userId: q.id, startedAt: { gte: since } } });
     await db.studyDay.deleteMany({ where: { userId: q.id, day: { gte: since.toISOString().slice(0, 10) } } });
   }
+
+  // Published practice questions (demo only), a few weeks of practice on them, and two short sets.
+  const bank: Awaited<ReturnType<typeof db.bankQuestion.create>>[] = [];
+  for (const q of demoBankQuestions("DEMO-")) bank.push(await db.bankQuestion.create({ data: { ...q, type: "mcq", status: "published", authorId: admin.id } }));
+  const bySkill = (id: string) => bank.filter((q) => q.skillId === id);
+  const setOf = async (title: string, qs: typeof bank) => db.questionSet.create({ data: { title, questionIds: qs.map((q) => q.id), skillIds: [...new Set(qs.map((q) => q.skillId!))], status: "published", visibility: "class", authorId: admin.id } });
+  const warmup = await setOf("Demo: Transitions warm-up", bySkill("rw.expression.transitions").slice(0, 5));
+  await setOf("Demo: Boundaries drill", bySkill("rw.conventions.boundaries"));
+  await setOf("Demo: Linear equations", bySkill("math.algebra.linear-equations-in-one-variable"));
+  const attempts = [];
+  for (const s of students) {
+    for (const q of bank) {
+      if (rand() > 0.35) continue;
+      const at = new Date(now.getTime() - (2 + rand() * 40) * DAY);
+      attempts.push({ userId: s.id, questionId: q.id, questionVersion: 1, answerGiven: "A", correct: rand() < pCorrect(s.id, at.getTime()) - (q.skillId === "rw.conventions.boundaries" ? 0.25 : 0), createdAt: at });
+    }
+  }
+  await db.bankAttempt.createMany({ data: attempts });
+  // This week's auto-assigned practice, waiting for approval (built by the same rules as the weekly job).
+  for (const c of classes) await buildBatch(c.id, now);
+  // A closed warm-up from last week's session in A, with everyone's answers.
+  const lastSession = await db.classSession.findFirst({ where: { classId: A.id, startsAt: { lt: now } }, orderBy: { startsAt: "desc" } });
+  const run = await db.liveRun.create({ data: { classId: A.id, setId: warmup.id, kind: "WARM_UP", code: `D${Math.floor(rand() * 90000 + 10000)}`, startedById: admin.id, sessionId: lastSession?.id ?? null, revealed: warmup.questionIds, status: "CLOSED", createdAt: lastSession?.startsAt ?? now, closedAt: lastSession?.endsAt ?? now } });
+  const liveQs = bank.filter((q) => warmup.questionIds.includes(q.id));
+  await db.liveAnswer.createMany({
+    data: roster[A.id].flatMap((s) =>
+      liveQs.map((q) => {
+        const ok = rand() < 0.65;
+        return { runId: run.id, questionId: q.id, studentId: s.id, answerGiven: ok ? q.answer : ["A", "B", "C", "D"].find((l) => l !== q.answer)!, correct: ok, createdAt: run.createdAt };
+      }),
+    ),
+  });
 
   await db.badge.createMany({ data: students.slice(0, 12).map((s) => ({ userId: s.id, kind: "STREAK_5", earnedAt: new Date(now.getTime() - 3 * DAY) })), skipDuplicates: true });
 

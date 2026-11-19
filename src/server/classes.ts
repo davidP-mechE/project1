@@ -393,6 +393,21 @@ export async function assignQuestionSet(userId: string, classId: string, input: 
   });
 }
 
+/**
+ * The same published set to several classes at once (whole classes; a
+ * group-limited specialist's "whole class" is their groups). Every class is
+ * checked before anything is assigned, so it's all or nothing.
+ */
+export async function assignSetToClasses(userId: string, input: Omit<SetAssignmentInput, "targets"> & { classIds: string[] }) {
+  const classIds = [...new Set(input.classIds)];
+  if (!classIds.length) throw new ClassError("Choose at least one class.");
+  if (classIds.length > 30) throw new ClassError("At most 30 classes at a time.");
+  for (const id of classIds) await classAccess(userId, id, "teach");
+  const out = [];
+  for (const id of classIds) out.push(await assignQuestionSet(userId, id, { ...input }));
+  return out;
+}
+
 export async function updateAssignment(userId: string, assignmentId: string, patch: { title?: string; dueAt?: string | null; note?: string }) {
   await assignmentAccess(userId, assignmentId, "teach");
   const a = { id: assignmentId };

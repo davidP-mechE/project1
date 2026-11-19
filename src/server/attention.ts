@@ -397,7 +397,7 @@ export async function reopenAttention(userId: string, input: { classId: string; 
 /** Published sets a student could practise for a skill (most questions on it first), for "assign practice". */
 export async function setsForSkill(skillId: string | null, take = 5) {
   const sets = await db.questionSet.findMany({
-    where: { status: "published", visibility: { not: "private" }, ...(skillId ? { skillIds: { has: skillId } } : {}) },
+    where: { status: "published", visibility: { not: "private" }, autoForStudentId: null, ...(skillId ? { skillIds: { has: skillId } } : {}) },
     select: { id: true, title: true, questionIds: true },
     take: 50,
   });

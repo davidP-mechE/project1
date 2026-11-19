@@ -26,6 +26,7 @@ import { Suspense } from "react";
 import { staffClassIds } from "@/server/access";
 import { AttentionSummary, AttentionSummarySkeleton } from "@/components/attention/attention-summary";
 import { primaryTutorsOf } from "@/server/caseloads";
+import { KIND_LABEL, openRunsFor } from "@/server/live";
 
 export const metadata: Metadata = { title: "Today" };
 
@@ -78,6 +79,7 @@ export default async function DashboardPage() {
   const tours = await toursToShow(user.id);
   await awardBadges(user.id).catch((err) => console.warn("[badges]", err instanceof Error ? err.message : err));
   const [d, game, due, programs, news, zone, badges, access, teaching, tutors] = await Promise.all([getDashboard(user.id), getGameSummary(user.id), dueAssignments(user.id), studentPrograms(user.id), studentAnnouncements(user.id), viewerZone(), myBadges(user.id), programAccess(user.id), staffClassIds(user.id), primaryTutorsOf(user.id)]);
+  const live = await openRunsFor(user.id);
   // Accounts limited to a program (Admin → Program access) can't upload: point them to their classes.
   const canUpload = allowsCoursebook(access);
   const first = d.name.split(" ")[0];
@@ -142,6 +144,17 @@ export default async function DashboardPage() {
           </span>
         </div>
       </header>
+
+      {live.length > 0 && (
+        <section aria-labelledby="live-now" className="rise flex flex-wrap items-center gap-3 rounded-lg border-[1.5px] border-primary bg-surface p-4">
+          <h2 id="live-now" className="font-semibold">Live now</h2>
+          {live.map((r) => (
+            <ButtonLink key={r.id} href={`/live/${r.id}`} size="sm">
+              Join {KIND_LABEL[r.kind].toLowerCase()}: {r.title} ({r.className})
+            </ButtonLink>
+          ))}
+        </section>
+      )}
 
       {teaching.length > 0 && (
         <Suspense fallback={<AttentionSummarySkeleton />}>

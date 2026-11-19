@@ -67,6 +67,12 @@ The final review of Coursebook and The 1600 Project's setup on it, most serious 
 
 16b. **Caseloads hold one primary tutor per student per program.** If a tutor stops teaching a student (removed from the class or group), the caseload link stays until the admin changes it; the tutor's needs-attention list still only shows students in their current scope.
 
+16c. **Weekly practice only uses published bank questions with a skill.** Until the bank has 8+ published questions on a student's weak skills, that student is left out (the page says why). The rules are fixed in code (3 weakest skills, 4/3/3 split, last 60 days of results, nothing answered correctly in 30 days). A student in two classes of the same program gets one set a week, from whichever class's batch is built first. Specialists approve only sets whose skills are all in their subjects.
+
+16d. **Live runs update by polling** (every 3 seconds for staff, 4 for students), not live push, so numbers can lag a few seconds and each open screen makes a small request that often. Sets are limited to 20 questions. A student answers each question once and can't change it.
+
+16e. **Small groups use each student's single weakest skill.** A student appears in one group only. Program-wide groups can be messaged and assigned across classes, but a session is created class by class.
+
 ## Low
 
 15. **Students see the Teaching section in the sidebar.** That's how anyone starts teaching a class, but it can confuse students. Consider hiding it until someone creates or joins a class as staff.

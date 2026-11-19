@@ -115,6 +115,8 @@ model User {
   customTests      PracticeTest[]    @relation("testCreator")
 
   // Needs attention and caseloads
+  autoPractice     AutoPracticeItem[]
+  liveAnswers      LiveAnswer[]
   attentionStates  AttentionState[] @relation("attentionStudent")
   tutorOf          PrimaryTutor[]   @relation("primaryTutorStudent")
   caseload         PrimaryTutor[]   @relation("primaryTutor")
@@ -1221,6 +1223,8 @@ model Class {
   staffInvites      StaffInvite[]
   groups            ClassGroup[]
   sessions          ClassSession[]
+  autoBatches       AutoPracticeBatch[]
+  liveRuns          LiveRun[]
   alertStates       AlertState[]
   /// Weekly progress emails to guardians who agreed to receive them.
   guardianSummaries Boolean            @default(false)
@@ -1701,6 +1705,7 @@ model ClassSession {
   createdById String
   createdAt   DateTime           @default(now())
   attendance  AttendanceRecord[]
+  liveRuns    LiveRun[]
 
   @@index([classId, startsAt])
 }
@@ -2212,12 +2217,15 @@ model QuestionSet {
   skillIds     String[]      @map("skill_ids")
   /// Optional time limit for timed play.
   timeLimitMin Int?          @map("time_limit_min")
+  /// Weekly auto-assigned practice: the student this set was built for. Such sets are hidden from the bank's set lists and the catalog.
+  autoForStudentId String?   @map("auto_for_student_id")
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
 
   sessions    PracticeSession[]
   attempts    BankAttempt[]
   assignments Assignment[]
+  liveRuns    LiveRun[]
 
   @@map("question_sets")
 }
@@ -2414,4 +2422,84 @@ model PrimaryTutor {
 
   @@id([programId, studentId])
   @@index([tutorId])
+}
+
+// ─── Auto-assigned practice, live warm-ups ───────────────────────────────
+
+/// One class's weekly auto-assigned practice: a set per student, built by rules (no AI) from published
+/// bank questions on their weakest skills, waiting for staff to approve. `weekOf` is the Monday (YYYY-MM-DD, UTC).
+model AutoPracticeBatch {
+  id        String             @id @default(cuid())
+  classId   String
+  class     Class              @relation(fields: [classId], references: [id], onDelete: Cascade)
+  weekOf    String
+  /// Students left out, and why: [{ studentId, reason }].
+  skipped   Json               @default("[]")
+  createdAt DateTime           @default(now())
+  items     AutoPracticeItem[]
+
+  @@unique([classId, weekOf])
+}
+
+/// One student's proposed set. PENDING until approved (it becomes a question set and an assignment) or REMOVED.
+model AutoPracticeItem {
+  id           String            @id @default(cuid())
+  batchId      String
+  batch        AutoPracticeBatch @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  studentId    String
+  student      User              @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  questionIds  String[]
+  /// The weak skills it targets, weakest first.
+  skillIds     String[]
+  /// PENDING, APPROVED or REMOVED.
+  status       String            @default("PENDING")
+  assignmentId String?
+  approvedById String?
+  approvedAt   DateTime?
+  createdAt    DateTime          @default(now())
+
+  @@unique([batchId, studentId])
+  @@index([studentId])
+}
+
+/// A live warm-up or exit ticket: staff run a short published set during a session; students join by
+/// code or from Today. Answers and explanations stay hidden from students until staff reveal them.
+model LiveRun {
+  id          String        @id @default(cuid())
+  classId     String
+  class       Class         @relation(fields: [classId], references: [id], onDelete: Cascade)
+  sessionId   String?
+  session     ClassSession? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+  setId       String
+  set         QuestionSet   @relation(fields: [setId], references: [id], onDelete: Restrict)
+  /// WARM_UP or EXIT_TICKET.
+  kind        String        @default("WARM_UP")
+  /// Six letters and digits, unique among open runs' history.
+  code        String        @unique
+  startedById String
+  /// Who may join: empty = the whole class; otherwise these groups.
+  groupIds    String[]
+  /// Question ids whose answer and explanation students may now see.
+  revealed    String[]
+  /// OPEN or CLOSED.
+  status      String        @default("OPEN")
+  createdAt   DateTime      @default(now())
+  closedAt    DateTime?
+  answers     LiveAnswer[]
+
+  @@index([classId, status])
+}
+
+model LiveAnswer {
+  id          String   @id @default(cuid())
+  runId       String
+  run         LiveRun  @relation(fields: [runId], references: [id], onDelete: Cascade)
+  questionId  String
+  studentId   String
+  student     User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  answerGiven String
+  correct     Boolean
+  createdAt   DateTime @default(now())
+
+  @@unique([runId, questionId, studentId])
 }

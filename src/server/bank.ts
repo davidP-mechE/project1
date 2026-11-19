@@ -348,7 +348,8 @@ export async function autoGenerateSet(userId: string, input: { title?: string; c
 
 export async function listSets(userId: string) {
   await requireAuthor(userId);
-  return db.questionSet.findMany({ orderBy: { createdAt: "desc" }, select: { id: true, title: true, status: true, visibility: true, questionIds: true, timeLimitMin: true, author: { select: { name: true } }, updatedAt: true } });
+  // Weekly auto-practice sets belong to one student each; they live on the class's batch screen, not here.
+  return db.questionSet.findMany({ where: { autoForStudentId: null }, orderBy: { createdAt: "desc" }, select: { id: true, title: true, status: true, visibility: true, questionIds: true, timeLimitMin: true, author: { select: { name: true } }, updatedAt: true } });
 }
 
 export async function getSetForAuthor(userId: string, setId: string) {
@@ -493,7 +494,7 @@ export async function finishPractice(userId: string, sessionId: string) {
 export async function practiceCatalog(userId: string) {
   const r = await roleOf(userId);
   const sets = await db.questionSet.findMany({
-    where: r.isAuthor ? {} : { status: "published", visibility: "public" },
+    where: r.isAuthor ? { autoForStudentId: null } : { status: "published", visibility: "public", autoForStudentId: null },
     orderBy: { title: "asc" },
     select: { id: true, title: true, description: true, status: true, questionIds: true, timeLimitMin: true },
   });

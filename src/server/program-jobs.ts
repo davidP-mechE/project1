@@ -12,6 +12,7 @@ import { domainName } from "@/lib/sat/domains";
 import { generateSummary } from "./assistant";
 import { runBackup } from "./backups";
 import { recordError } from "./monitoring";
+import { buildWeeklyBatches } from "./auto-practice";
 
 /**
  * Scheduled program emails, run hourly by the worker. Each is sent at most
@@ -126,6 +127,8 @@ export async function writeWeeklySummaries(now = new Date(), opts: { force?: boo
 
 export async function runProgramJobs(now = new Date()) {
   const [digests, summaries, weekly] = await Promise.all([sendStaffDigests(now), sendGuardianSummaries(now), writeWeeklySummaries(now)]);
+  // Weekly auto-assigned practice: any class without this week's batch gets one (rules only, no AI).
+  await buildWeeklyBatches(now).catch((err) => recordError({ kind: "worker", message: `Weekly practice failed: ${err instanceof Error ? err.message : String(err)}`, path: "worker:auto-practice" }));
   await awardBadgesForActive(now).catch((err) => recordError({ kind: "worker", message: `Badges failed: ${err instanceof Error ? err.message : String(err)}`, path: "worker:badges" }));
   await refreshStaffNotices(now).catch((err) => recordError({ kind: "worker", message: `Staff notices failed: ${err instanceof Error ? err.message : String(err)}`, path: "worker:notices" }));
   const backup = await runBackup(now).catch(async (err) => {

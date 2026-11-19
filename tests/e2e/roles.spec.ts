@@ -248,6 +248,8 @@ test("each role's journey: admin sets up, student works, specialist grades withi
       await tabTo(sp, (e) => e.tag === "a" && e.name === `Start ${set}`);
       await sp.keyboard.press("Enter");
       await sp.waitForURL(/\/classes\/assignments\//);
+      // Wait for the question to render before tabbing, or Tab runs over the loading screen.
+      await expect(sp.getByRole("radio").first()).toBeVisible();
       await tabTo(sp, (e) => e.type === "radio");
       await sp.keyboard.press("Space");
       await tabTo(sp, (e) => e.tag === "button" && e.name === "Check answer");
@@ -389,11 +391,67 @@ test("each role's journey: admin sets up, student works, specialist grades withi
   await expect(mp.getByText(/Primary tutor: you/)).toBeVisible();
   // Marking it handled hides it for everyone in the program.
   await ap.goto("/teach/attention");
-  for (const b of await ap.getByRole("button", { name: "Mark handled" }).all()) await b.click().catch(() => {});
+  // One at a time: each click refreshes the list.
+  for (let i = 1; i <= 10; i++) {
+    const handled = ap.getByRole("button", { name: "Mark handled" });
+    if ((await handled.count()) === 0) break;
+    await handled.first().click();
+    await expect(ap.getByText(new RegExp(`${i} handled or snoozed`))).toBeVisible({ timeout: 20_000 });
+  }
   await expect(ap.getByRole("heading", { name: "Nobody needs attention right now" })).toBeVisible();
   await a11y(ap, "admin: needs attention (empty)");
   await sp.goto("/dashboard");
   await expect(sp.getByText(/Your tutor: /)).toBeVisible();
+
+  // ── Phase 2: live warm-up, weekly practice, small groups, worksets ──
+  const liveQ = [`e2e-live-q1-${run}`, `e2e-live-q2-${run}`];
+  for (const [i, qid] of liveQ.entries()) {
+    await sql(`INSERT INTO bank_questions (id, section, skill_id, type, stem, choices, answer, explanation, status, difficulty, "updatedAt") VALUES ($1, 'rw', 'rw.conventions.boundaries', 'mcq', $2, $3, 'B', 'Two complete sentences need a semicolon.', 'published', 1, now())`, [qid, `The museum opened in ______ it closed for repairs a year later. (${i + 1})`, ["1990, and", "1990;", "1990", "1990,"]]);
+  }
+  await sql(`INSERT INTO question_sets (id, title, question_ids, visibility, status, skill_ids, "updatedAt") VALUES ($1, 'E2E warm-up', $2, 'class', 'published', ARRAY['rw.conventions.boundaries'], now())`, [`e2e-live-set-${run}`, liveQ]);
+  await ap.goto(`${classUrl}/live`);
+  await ap.getByLabel("Set").selectOption({ label: "E2E warm-up (2 questions)" });
+  await a11y(ap, "admin: live (start)");
+  await ap.getByRole("button", { name: "Start live run" }).click();
+  await expect(ap.getByText(/of 1 student answering/)).toBeVisible();
+  const liveCode = (await ap.getByLabel(/^Join code /).textContent())!.trim();
+  await a11y(ap, "admin: live run");
+  await shot(ap, "admin-live-run");
+  // The student sees "Live now" on Today, joins with the code and answers; answers stay hidden until revealed.
+  await sp.goto("/dashboard");
+  await expect(sp.getByRole("heading", { name: "Live now" })).toBeVisible();
+  await sp.goto("/live");
+  await a11y(sp, "student: join live");
+  await sp.getByLabel("Code from your tutor").fill(liveCode);
+  await sp.getByRole("button", { name: "Join" }).click();
+  await expect(sp.getByRole("heading", { name: "Question 1" })).toBeVisible();
+  await sp.getByRole("button", { name: /^B\./ }).first().click();
+  await expect(sp.getByText("Answer saved. Wait for your tutor to show the answer.")).toBeVisible();
+  await expect(sp.getByText(/Two complete sentences/)).toHaveCount(0);
+  await a11y(sp, "student: live run");
+  await expect(ap.getByText("1 answered").first()).toBeVisible({ timeout: 15_000 });
+  await expect(ap.getByText("100% correct")).toBeVisible({ timeout: 15_000 });
+  await ap.getByRole("button", { name: "Reveal all answers" }).click();
+  await expect(sp.getByText(/You got it right/)).toBeVisible({ timeout: 15_000 });
+  await ap.getByRole("button", { name: "Close the run" }).click();
+  await expect(ap.getByText(/Saved to the class's sessions/)).toBeVisible();
+  // Weekly practice and small groups render for the admin (and are accessible), even when there's little data.
+  await ap.goto(`${classUrl}/weekly`);
+  await expect(ap.getByRole("heading", { name: /Weekly practice · week of/ })).toBeVisible();
+  await ap.getByRole("button", { name: /Build this week's sets now|Rebuild waiting sets/ }).click();
+  await expect(ap.getByText(/sets? built/)).toBeVisible();
+  await a11y(ap, "admin: weekly practice");
+  await ap.goto(`${classUrl}/small-groups`);
+  await expect(ap.getByRole("heading", { name: "Suggested small groups" })).toBeVisible();
+  await a11y(ap, "admin: small groups");
+  await ap.goto(`/teach/programs/${programId}/small-groups`);
+  await a11y(ap, "admin: program small groups");
+  await ap.goto(`${classUrl}/assign`);
+  await expect(ap.getByRole("heading", { name: "Worksheet" })).toBeVisible();
+  await a11y(ap, "admin: assign (with worksheet card)");
+  await sql(`DELETE FROM "LiveRun" WHERE "setId" = $1`, [`e2e-live-set-${run}`]);
+  await sql(`DELETE FROM question_sets WHERE id = $1`, [`e2e-live-set-${run}`]);
+  await sql(`DELETE FROM bank_questions WHERE id = ANY($1)`, [liveQ]);
 
   // Logged-out pages not covered elsewhere.
   const anon = await browser.newContext();

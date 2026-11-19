@@ -55,6 +55,7 @@ export default async function ProgramPage({ params, searchParams }: PageProps<"/
           <>
             <ButtonLink href={`/teach/programs/${program.id}/dashboard`}>Program dashboard</ButtonLink>
             <ButtonLink href={`/teach/programs/${program.id}/caseloads`} variant="secondary">Caseloads</ButtonLink>
+            <ButtonLink href={`/teach/programs/${program.id}/small-groups`} variant="secondary">Small groups</ButtonLink>
           </>
         }
       />

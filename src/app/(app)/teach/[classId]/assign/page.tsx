@@ -13,6 +13,7 @@ import { assignableCourses, getClassForTeacher } from "@/server/classes";
 import { requireUser } from "@/server/session";
 import { listGroups } from "@/server/groups";
 import { AssignLogTestForm, AssignSetForm } from "@/components/classes/practice-assign-forms";
+import { AssignWorksheetForm } from "@/components/practice-tools/workset-forms";
 
 export const metadata: Metadata = { title: "Assign" };
 
@@ -57,7 +58,21 @@ export default async function AssignPage({ params }: PageProps<"/teach/[classId]
         <p className="mb-4 text-sm text-muted">A published set from the question bank, played with instant feedback. Choose whether the Desmos calculator is allowed.</p>
         <AssignSetForm
           classId={c.id}
-          sets={(await db.questionSet.findMany({ where: { status: "published", visibility: { in: ["class", "public"] } }, orderBy: { title: "asc" }, select: { id: true, title: true, questionIds: true } })).map((x) => ({ id: x.id, title: x.title, count: x.questionIds.length }))}
+          sets={(await db.questionSet.findMany({ where: { status: "published", visibility: { in: ["class", "public"] }, autoForStudentId: null }, orderBy: { title: "asc" }, select: { id: true, title: true, questionIds: true } })).map((x) => ({ id: x.id, title: x.title, count: x.questionIds.length }))}
+          targetOptions={targetOptions}
+        />
+      </Card>
+      <Card>
+        <h2 className="mb-1 text-lg font-semibold">Worksheet</h2>
+        <p className="mb-4 text-sm text-muted">
+          Every question on one of your worksheets, as one assignment. To pick only some questions, or assign to several classes at once, open the worksheet under{" "}
+          <Link href="/teach/worksheets" className="underline">Worksheets</Link>.
+        </p>
+        <AssignWorksheetForm
+          classId={c.id}
+          worksheets={(await db.worksheet.findMany({ where: { ownerId: user.id, status: "READY" }, orderBy: { createdAt: "desc" }, select: { id: true, title: true, source: true, items: { where: { archivedAt: null }, select: { approvedAt: true } } } }))
+            .filter((w) => w.items.length > 0)
+            .map((w) => ({ id: w.id, title: w.title, count: w.items.length, needsApproval: w.source === "AI_DRAFT" && w.items.some((i) => !i.approvedAt) }))}
           targetOptions={targetOptions}
         />
       </Card>
