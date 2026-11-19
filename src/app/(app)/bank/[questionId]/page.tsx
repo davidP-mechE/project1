@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/ui/misc";
+import { QuestionStatsCard } from "@/components/question-quality/stats-card";
+import { questionStats } from "@/server/question-stats";
 import { QuestionEditor, type EditorRecord } from "@/components/bank/question-editor";
 import { requireUser } from "@/server/session";
 import { NotFoundError } from "@/server/courses";
@@ -22,6 +24,7 @@ export default async function EditQuestionPage({ params }: PageProps<"/bank/[que
     throw err;
   }
   const record = toRecord(q) as unknown as EditorRecord;
+  const stats = await questionStats(user.id, q.id);
   return (
     <div className="mx-auto flex max-w-5xl flex-col gap-4">
       <p className="text-sm">
@@ -31,6 +34,7 @@ export default async function EditQuestionPage({ params }: PageProps<"/bank/[que
         title={q.externalId ? `Question ${q.externalId}` : "Question"}
         description={`${q.status === "published" ? "Published" : "Draft"} · version ${q.version} · ${q._count.attempts} answer${q._count.attempts === 1 ? "" : "s"} so far · by ${q.author?.name ?? "the 1600 Project"} · source: ${q.source === "college_board" ? "College Board" : "original"}`}
       />
+      {stats && <QuestionStatsCard stats={stats} type={q.type} answer={q.answer} />}
       <QuestionEditor
         key={`${q.id}:${q.version}:${q.updatedAt.toISOString()}`}
         questionId={q.id}

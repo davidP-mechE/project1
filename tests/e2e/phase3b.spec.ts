@@ -1,3 +1,4 @@
+import AxeBuilder from "@axe-core/playwright";
 import { test, expect, type Browser, type Page } from "@playwright/test";
 import { config } from "dotenv";
 import { Client } from "pg";
@@ -144,6 +145,57 @@ test("practice player: likely mistake, grid-in equivalence, calculator kept betw
   await page.getByRole("button", { name: "Start" }).click();
   await page.getByRole("button", { name: "Calculator" }).click();
   await expect(page.locator(".fake-state")).toHaveText("[]");
+});
+
+test("report a question; the author reviews it; stats show on the bank (accessible at phone width)", async ({ browser }) => {
+  const axe = async (page: Page, name: string) => {
+    await page.waitForLoadState("networkidle").catch(() => {});
+    for (const theme of ["light", "dark"] as const) {
+      await page.evaluate((t) => {
+        // No transitions or animations, so colors are measured as they finally appear.
+        if (!document.getElementById("e2e-still")) {
+          const style = document.createElement("style");
+          style.id = "e2e-still";
+          style.textContent = "*,*::before,*::after{transition:none!important;animation:none!important}";
+          document.head.append(style);
+        }
+        document.documentElement.classList.remove("light", "dark");
+        document.documentElement.classList.add(t);
+        document.documentElement.style.colorScheme = t;
+      }, theme);
+      // @axe-core/playwright is typed against its own copy of Playwright; the page is the same object.
+      const r = await new AxeBuilder({ page: page as never }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze();
+      expect(r.violations.map((v) => `${name} (${theme}): ${v.id} ${v.nodes.map((n) => n.html).join(" | ")}`)).toEqual([]);
+    }
+  };
+  const page = await phone(browser, email("student"));
+  await page.goto(`/practice/${ids.set}`);
+  await page.getByRole("button", { name: "Start" }).click();
+  await page.getByLabel("B.").check();
+  await page.getByRole("button", { name: "Check" }).click();
+  await page.getByRole("button", { name: "Report this question" }).click();
+  await page.getByLabel("The answer key looks wrong").check();
+  await page.getByLabel("Anything else? (optional)").fill("B seems right to me");
+  await axe(page, "student: report form");
+  await page.getByRole("button", { name: "Send report" }).click();
+  await expect(page.getByText(/Thanks\. Whoever wrote this question/)).toBeVisible();
+  await noSideScroll(page);
+
+  const tutor = await phone(browser, email("tutor"));
+  await tutor.goto("/teach/question-reports");
+  await expect(tutor.getByText("Their answer:").first()).toBeVisible();
+  await expect(tutor.getByText("“B seems right to me”")).toBeVisible();
+  await axe(tutor, "tutor: question reports");
+  await noSideScroll(tutor);
+  await tutor.goto(`/bank/${ids.mcq}`);
+  await expect(tutor.getByRole("heading", { name: "How students did" })).toBeVisible();
+  await axe(tutor, "tutor: question stats");
+  await tutor.goto("/bank?sort=attempts&dir=desc");
+  await expect(tutor.getByRole("columnheader", { name: /Answers/ })).toHaveAttribute("aria-sort", "descending");
+  await axe(tutor, "tutor: bank list with stats");
+  await tutor.goto("/teach/question-reports");
+  await tutor.getByRole("button", { name: "Mark fixed" }).first().click();
+  await expect(tutor.getByRole("heading", { name: "No open reports" })).toBeVisible();
 });
 
 test("by-hand assignment hides the calculator; a failed Desmos script falls back to a link", async ({ browser }) => {

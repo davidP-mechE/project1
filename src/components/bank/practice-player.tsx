@@ -9,6 +9,7 @@ import { Card, ProgressBar } from "@/components/ui/misc";
 import { inputClasses } from "@/components/ui/field";
 import { answerPracticeAction, finishPracticeAction, startPracticeAction } from "@/server/actions/bank";
 import { cn } from "@/lib/utils";
+import { ReportQuestion } from "@/components/question-quality/report-question";
 import { CalculatorPanel } from "@/components/desmos/calculator-panel";
 import { QuestionDesmosCheck } from "@/components/desmos/desmos-check";
 
@@ -266,6 +267,7 @@ export function PracticePlayer({ state, desmosKey }: { state: PlayerState; desmo
             </Button>
           </div>
         )}
+        {!state.isAuthor && <ReportQuestion key={q.id} target={{ kind: "bank", sessionId: state.sessionId, questionId: q.id }} number={i + 1} />}
       </Card>
       <div className="flex flex-wrap items-center gap-2">
         <Button variant="secondary" disabled={i === 0} onClick={() => setI(i - 1)}>

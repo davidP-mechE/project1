@@ -9,6 +9,7 @@ import { Card, ProgressBar } from "@/components/ui/misc";
 import { burst } from "@/components/ui/burst";
 import { handInAction, startQuestionsAction } from "@/server/actions/classes";
 import { cn } from "@/lib/utils";
+import { ReportQuestion } from "@/components/question-quality/report-question";
 
 type Key = { correctChoice: number | null; answer: string; explanation: string; steps: string[] };
 type Mine = { choice: number | null; response: string; correct?: boolean; score?: number; verdict?: string; feedback?: string; gradedBy?: string };
@@ -180,6 +181,7 @@ function QuestionCard({ assignmentId, q, timed, locked, onSaved }: { assignmentI
           </div>
         </details>
       )}
+      <ReportQuestion target={{ kind: "item", assignmentId, itemId: q.id }} number={q.number} />
     </Card>
   );
 }

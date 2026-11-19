@@ -3,6 +3,7 @@ import { db } from "./db";
 import { NotFoundError } from "./courses";
 import { roleOf } from "./roles";
 import { isAssignedToStudent } from "./targets";
+import { statsFor } from "./question-stats";
 import { Prisma } from "@/generated/prisma/client";
 import { checkBankAnswer, LETTERS } from "@/lib/bank/answers";
 import { readRecords, skillResolver, techniqueFromDb, techniqueToDb, validateRecord, validateRecords, type ImportedQuestion, type RowResult } from "@/lib/bank/import";
@@ -52,7 +53,8 @@ export async function skillOptions() {
 
 // ─── Listing ─────────────────────────────────────────────────────────────
 
-export type BankFilters = { section?: string; skillId?: string; week?: number; difficulty?: number; type?: string; status?: string; q?: string; page?: number };
+export type BankSort = "attempts" | "pct" | "time" | "reports" | "flags";
+export type BankFilters = { section?: string; skillId?: string; week?: number; difficulty?: number; type?: string; status?: string; q?: string; page?: number; flagged?: boolean; sort?: BankSort; dir?: "asc" | "desc" };
 const PAGE = 50;
 
 export async function listBank(userId: string, f: BankFilters = {}) {
@@ -67,17 +69,37 @@ export async function listBank(userId: string, f: BankFilters = {}) {
     ...(f.q?.trim() ? { OR: [{ stem: { contains: f.q.trim(), mode: "insensitive" as const } }, { externalId: { contains: f.q.trim(), mode: "insensitive" as const } }] } : {}),
   };
   const page = Math.max(1, f.page ?? 1);
-  const [rows, total] = await Promise.all([
-    db.bankQuestion.findMany({
-      where,
-      orderBy: [{ week: { sort: "asc", nulls: "last" } }, { externalId: { sort: "asc", nulls: "last" } }, { createdAt: "asc" }],
-      skip: (page - 1) * PAGE,
-      take: PAGE,
-      select: { id: true, externalId: true, section: true, type: true, difficulty: true, status: true, version: true, week: true, stem: true, skill: { select: { name: true } }, author: { select: { name: true } } },
-    }),
-    db.bankQuestion.count({ where }),
-  ]);
-  return { rows, total, page, pages: Math.max(1, Math.ceil(total / PAGE)) };
+  const select = { id: true, externalId: true, section: true, type: true, difficulty: true, status: true, version: true, week: true, stem: true, skill: { select: { name: true } }, author: { select: { name: true } } } as const;
+  const order = [{ week: { sort: "asc", nulls: "last" } }, { externalId: { sort: "asc", nulls: "last" } }, { createdAt: "asc" }] as Prisma.BankQuestionOrderByWithRelationInput[];
+  // Sorting or filtering by statistics needs every matching question's numbers, then a page of them.
+  if (f.sort || f.flagged) {
+    const all = await db.bankQuestion.findMany({ where, orderBy: order, select: { id: true } });
+    const stats = await statsFor(all.map((q) => q.id));
+    const value = (id: string) => {
+      const s = stats.get(id)!;
+      switch (f.sort) {
+        case "attempts":
+          return s.current.attempts;
+        case "pct":
+          return s.current.pct ?? -1;
+        case "time":
+          return s.current.avgSeconds ?? -1;
+        case "reports":
+          return s.openReports;
+        default:
+          return s.flags.length;
+      }
+    };
+    let ids = all.map((q) => q.id).filter((id) => !f.flagged || stats.get(id)!.flags.length > 0);
+    if (f.sort) ids = ids.map((id, i) => ({ id, i, v: value(id) })).sort((a, b) => (f.dir === "asc" ? a.v - b.v : b.v - a.v) || a.i - b.i).map((x) => x.id);
+    const pageIds = ids.slice((page - 1) * PAGE, page * PAGE);
+    const rows = await db.bankQuestion.findMany({ where: { id: { in: pageIds } }, select });
+    const byId = new Map(rows.map((r) => [r.id, r]));
+    return { rows: pageIds.map((id) => ({ ...byId.get(id)!, stats: stats.get(id)! })), total: ids.length, page, pages: Math.max(1, Math.ceil(ids.length / PAGE)) };
+  }
+  const [rows, total] = await Promise.all([db.bankQuestion.findMany({ where, orderBy: order, skip: (page - 1) * PAGE, take: PAGE, select }), db.bankQuestion.count({ where })]);
+  const stats = await statsFor(rows.map((r) => r.id));
+  return { rows: rows.map((r) => ({ ...r, stats: stats.get(r.id)! })), total, page, pages: Math.max(1, Math.ceil(total / PAGE)) };
 }
 
 export async function getBankQuestion(userId: string, id: string) {

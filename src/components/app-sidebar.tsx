@@ -23,6 +23,8 @@ type Props = {
   unread: { notices: number; threads: number };
   /** Staff: items on their needs-attention list. */
   attention?: number;
+  /** Authors and worksheet owners: open question reports. */
+  reports?: number;
 };
 
 const ICONS: Record<string, ReactNode> = {
@@ -148,7 +150,7 @@ type NavLink = { href: string; label: string; icon: keyof typeof ICONS; badge?: 
  * top, then folding sections (the one you're in opens by itself). Teaching
  * appears for people who teach; Settings and Admin live in the account menu.
  */
-function NavLinks({ isStaff, coursebook, roles, dueCount, unread, attention, onNavigate }: { isStaff: boolean; coursebook: boolean; roles?: { isAuthor?: boolean; isOwner?: boolean }; dueCount: number; unread: Props["unread"]; attention?: number; onNavigate?: () => void }) {
+function NavLinks({ isStaff, coursebook, roles, dueCount, unread, attention, reports, onNavigate }: { isStaff: boolean; coursebook: boolean; roles?: { isAuthor?: boolean; isOwner?: boolean }; dueCount: number; unread: Props["unread"]; attention?: number; reports?: number; onNavigate?: () => void }) {
   const pathname = usePathname();
   const top: NavLink[] = [
     { href: "/dashboard", label: "Today", icon: "home" },
@@ -201,6 +203,7 @@ function NavLinks({ isStaff, coursebook, roles, dueCount, unread, attention, onN
                   ]
                 : []),
               ...(roles?.isAuthor ? [{ href: "/bank", label: "Question bank", icon: "worksheet" as const }] : []),
+              ...(reports ? [{ href: "/teach/question-reports", label: "Question reports", icon: "errors" as const, badge: reports, badgeLabel: "open question reports" }] : roles?.isAuthor ? [{ href: "/teach/question-reports", label: "Question reports", icon: "errors" as const }] : []),
               ...(roles?.isOwner ? [{ href: "/studio", label: "Course Studio", icon: "library" as const }] : []),
             ],
           },
@@ -293,7 +296,7 @@ function Stats({ game }: { game: Props["game"] }) {
 }
 
 /** The sections, shared by the top bar's menus and the phone menu. */
-function sections(isStaff: boolean, coursebook: boolean, dueCount: number, unread: Props["unread"], roles?: { isAuthor?: boolean; isOwner?: boolean }, attention?: number) {
+function sections(isStaff: boolean, coursebook: boolean, dueCount: number, unread: Props["unread"], roles?: { isAuthor?: boolean; isOwner?: boolean }, attention?: number, reports?: number) {
   const groups: { label: string; links: NavLink[] }[] = [
     {
       label: "Learn",
@@ -339,6 +342,7 @@ function sections(isStaff: boolean, coursebook: boolean, dueCount: number, unrea
                   ]
                 : []),
               ...(roles?.isAuthor ? [{ href: "/bank", label: "Question bank", icon: "worksheet" as const }] : []),
+              ...(reports ? [{ href: "/teach/question-reports", label: "Question reports", icon: "errors" as const, badge: reports, badgeLabel: "open question reports" }] : roles?.isAuthor ? [{ href: "/teach/question-reports", label: "Question reports", icon: "errors" as const }] : []),
               ...(roles?.isOwner ? [{ href: "/studio", label: "Course Studio", icon: "library" as const }] : []),
             ],
           },
@@ -420,10 +424,10 @@ function NavMenu({ label, links, activeHref }: { label: string; links: NavLink[]
   );
 }
 
-export function AppSidebar({ user, dueCount, timeZone, game, unread, attention }: Props) {
+export function AppSidebar({ user, dueCount, timeZone, game, unread, attention, reports }: Props) {
   const pathname = usePathname();
   const drawer = useRef<HTMLDialogElement>(null);
-  const { top, groups } = sections(user.isStaff, user.coursebook, dueCount, unread, user, attention);
+  const { top, groups } = sections(user.isStaff, user.coursebook, dueCount, unread, user, attention, reports);
   const activeHref = useActiveHref([...top, ...groups.flatMap((g) => g.links)]);
 
   // "Today" is the student's day: save the browser's time zone once.
@@ -520,7 +524,7 @@ export function AppSidebar({ user, dueCount, timeZone, game, unread, attention }
             </button>
           </div>
           <Stats game={game} />
-          <NavLinks isStaff={user.isStaff} coursebook={user.coursebook} roles={user} dueCount={dueCount} unread={unread} attention={attention} onNavigate={() => drawer.current?.close()} />
+          <NavLinks isStaff={user.isStaff} coursebook={user.coursebook} roles={user} dueCount={dueCount} unread={unread} attention={attention} reports={reports} onNavigate={() => drawer.current?.close()} />
           <div className="mt-auto flex items-center justify-between gap-2 border-t border-border pt-4">
             <UserMenu name={user.name} email={user.email} isAdmin={user.isAdmin} placement="up" showName />
             <ThemeToggle className="text-nav-muted hover:bg-nav-active hover:text-nav-text" />

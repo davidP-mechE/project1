@@ -530,10 +530,13 @@ export async function loadDemoData(now = new Date()) {
           if (i % 3 === 0) continue;
           // Percentages are the weak spot for most of the class.
           const p = q.skillId === "math.psda.percentages" ? s.ability - 0.35 : s.ability;
-          attempts.push({ userId: s.user.id, questionId: q.id, questionVersion: 1, answerGiven: "A", correct: rand() < p, createdAt: at(3 + (i % 20)) });
+          const ok = rand() < p;
+          attempts.push({ userId: s.user.id, questionId: q.id, questionVersion: 1, answerGiven: ok ? q.answer : ["A", "B", "C", "D"].find((l) => l !== q.answer)!, correct: ok, timeSeconds: 30 + ((i * 17) % 80), createdAt: at(3 + (i % 20)) });
         }
       }
       await tx.bankAttempt.createMany({ data: attempts });
+      // A student reported a question on the tutor's worksheet, so it's in the tutor's Question reports.
+      await tx.questionReport.create({ data: { reporterId: students[3].user.id, worksheetItemId: items[2].id, reason: "CONFUSING", note: "Not sure what it's asking", answerGiven: "B" } });
 
       // A saved reply, a message scheduled for tomorrow, and a guardian who agreed to weekly emails.
       await tx.savedReply.create({ data: { ownerId: tutor.id, programId: program.id, title: "Missing work nudge", body: "Hi {first_name}, your next {class} assignment is due {due_date}. Reply if you're stuck!" } });

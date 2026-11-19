@@ -296,10 +296,26 @@ async function main() {
     for (const q of bank) {
       if (rand() > 0.35) continue;
       const at = new Date(now.getTime() - (2 + rand() * 40) * DAY);
-      attempts.push({ userId: s.id, questionId: q.id, questionVersion: 1, answerGiven: "A", correct: rand() < pCorrect(s.id, at.getTime()) - (q.skillId === "rw.conventions.boundaries" ? 0.25 : 0), createdAt: at });
+      const ok = rand() < pCorrect(s.id, at.getTime()) - (q.skillId === "rw.conventions.boundaries" ? 0.25 : 0);
+      // Wrong answers favour one tempting choice, as real ones do; Boundaries question 3's is so tempting it gets flagged.
+      const tempting = ["A", "B", "C", "D"].find((l) => l !== q.answer)!;
+      const wrong = q.externalId === "DEMO-BND-3" || rand() < 0.6 ? tempting : ["A", "B", "C", "D"].filter((l) => l !== q.answer)[Math.floor(rand() * 3)];
+      attempts.push({ userId: s.id, questionId: q.id, questionVersion: 1, answerGiven: ok ? q.answer : wrong, correct: ok, timeSeconds: 25 + Math.floor(rand() * 90), createdAt: at });
     }
   }
   await db.bankAttempt.createMany({ data: attempts });
+  // Morgan wrote the demo questions, so they're a question author (they see Question reports and the bank's stats).
+  await db.user.update({ where: { id: admin.id }, data: { role: "TUTOR" } });
+  // Students reported two questions: waiting in Question reports for the author.
+  const flagged = bank.find((q) => q.externalId === "DEMO-BND-3")!;
+  await db.questionReport.createMany({
+    data: [
+      { reporterId: students[2].id, bankQuestionId: flagged.id, questionVersion: 1, reason: "WRONG_KEY", note: "I think the comma version also works?", answerGiven: ["A", "B", "C", "D"].find((l) => l !== flagged.answer)! },
+      { reporterId: students[5].id, bankQuestionId: flagged.id, questionVersion: 1, reason: "CONFUSING", answerGiven: flagged.answer },
+      { reporterId: students[7].id, bankQuestionId: flagged.id, questionVersion: 1, reason: "WRONG_KEY", answerGiven: ["A", "B", "C", "D"].find((l) => l !== flagged.answer)! },
+      { reporterId: students[9].id, bankQuestionId: bank.find((q) => q.externalId === "DEMO-PCT-4")!.id, questionVersion: 1, reason: "TYPO", note: "Says 'of of'", answerGiven: null },
+    ],
+  });
   // This week's auto-assigned practice, waiting for approval (built by the same rules as the weekly job).
   for (const c of classes) await buildBatch(c.id, now);
   // A closed warm-up from last week's session in A, with everyone's answers.

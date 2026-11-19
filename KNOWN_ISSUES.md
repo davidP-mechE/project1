@@ -81,6 +81,8 @@ The final review of Coursebook and The 1600 Project's setup on it, most serious 
 
 16i. **Office hours** are set in the staff member's time zone (saved with each open time; changing your time zone later doesn't move existing ones, edit them). Students can book up to 4 weeks ahead, not within the next hour, and hold at most 3 upcoming bookings. The database stops two bookings of the same slot (and a student booking two things that start at the same moment); a student booking two different tutors at overlapping but different times is caught by a check that isn't race-proof. Reminders go out about 24 hours before, from the worker's 15-minute job. Removing an open time doesn't cancel bookings already made.
 
+16j. **Question reports and stats.** Reports are capped at 20 a day per student, one open report per student per question (sending another updates it). Reviewers never see who reported. Bank reports go to every author, so a busy bank means a shared queue; there's no assigning a report to one person. The flag thresholds (10 answers; 30 points below 75/55/35% expected; a wrong choice beating the right one; 3 open reports) are fixed in code. When sorting or filtering by stats, the bank list loads all matching questions and sorts in memory (fine for a few thousand questions; a much larger bank would need stored stats). Worksheet questions don't get stats here.
+
 ## Low
 
 15. **Students see the Teaching section in the sidebar.** That's how anyone starts teaching a class, but it can confuse students. Consider hiding it until someone creates or joins a class as staff.

@@ -115,6 +115,7 @@ model User {
   customTests      PracticeTest[]    @relation("testCreator")
 
   // Needs attention and caseloads
+  questionReports  QuestionReport[]
   officeHours      OfficeHours[]
   staffBookings    Booking[]        @relation("bookingStaff")
   studentBookings  Booking[]        @relation("bookingStudent")
@@ -1444,6 +1445,7 @@ model WorksheetItem {
   answers        AssignmentAnswer[]
 
   @@index([worksheetId, order])
+  reports        QuestionReport[]
 }
 
 /// A student's answer to a worksheet question in an assignment. The latest one counts.
@@ -2184,6 +2186,7 @@ model BankQuestion {
 
   versions BankQuestionVersion[]
   attempts BankAttempt[]
+  reports  QuestionReport[]
 
   @@index([status, section, skillId])
   @@index([week])
@@ -2630,4 +2633,39 @@ model Booking {
   @@index([staffId, startsAt])
   @@index([studentId, startsAt])
   @@index([status, startsAt])
+}
+
+// ─── Question reports ────────────────────────────────────────────────────
+
+/// A student flagged a question: a bank question (from the practice player or an assigned set) or a
+/// worksheet question (in an assignment). Authors (bank) or the worksheet's owner review them.
+/// One open report per student per question; reporting again updates it.
+model QuestionReport {
+  id              String        @id @default(cuid())
+  reporterId      String
+  reporter        User          @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+  bankQuestionId  String?
+  bankQuestion    BankQuestion? @relation(fields: [bankQuestionId], references: [id], onDelete: Cascade)
+  /// The bank question's version the student saw.
+  questionVersion Int?
+  worksheetItemId String?
+  worksheetItem   WorksheetItem? @relation(fields: [worksheetItemId], references: [id], onDelete: Cascade)
+  assignmentId    String?
+  /// WRONG_KEY, TYPO, CONFUSING, FIGURE_MISSING or OTHER.
+  reason          String
+  note            String?
+  /// The student's latest answer to it, if they answered.
+  answerGiven     String?
+  /// OPEN or RESOLVED.
+  status          String        @default("OPEN")
+  /// FIXED, NO_CHANGE or UNPUBLISHED.
+  resolution      String?
+  resolvedById    String?
+  resolvedAt      DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([bankQuestionId, status])
+  @@index([worksheetItemId, status])
+  @@index([reporterId, createdAt])
 }

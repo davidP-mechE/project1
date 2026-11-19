@@ -12,6 +12,7 @@ import { unreadCount } from "@/server/notifications";
 import { unreadThreadCount } from "@/server/messages";
 import { staffClassIds } from "@/server/access";
 import { attentionCount } from "@/server/attention";
+import { openReportCount } from "@/server/question-reports";
 import { isSiteAdminRole, roleOf } from "@/server/roles";
 import { allowsAi, allowsCoursebook, programAccess } from "@/server/program-access";
 import { AiAccessProvider } from "@/components/ai-access";
@@ -29,6 +30,7 @@ export async function AppShell({ user, children }: { user: CurrentUser; children
   // Staff: the needs-attention count (kept a few minutes; the page itself is always fresh).
   const attention = isStaff ? await attentionCount(user.id).catch(() => 0) : 0;
   const roles = await roleOf(user.id);
+  const reports = isStaff || roles.isAuthor ? await openReportCount(user.id).catch(() => 0) : 0;
   // Accounts limited to one program (Admin → Program access) don't see the library, slides or Hub.
   const access = await programAccess(user.id);
   const coursebook = allowsCoursebook(access);
@@ -43,6 +45,7 @@ export async function AppShell({ user, children }: { user: CurrentUser; children
         game={{ streak: game.streak, xp: game.xp, level: game.level }}
         unread={{ notices, threads }}
         attention={attention}
+        reports={reports}
       />
       <ErrorCapture />
       {isStaging && (
