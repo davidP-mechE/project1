@@ -73,7 +73,8 @@ export async function sessionRegister(userId: string, classId: string, sessionId
   const s = await db.classSession.findFirst({ where: { id: sessionId, ...sessionWhere(access) }, include: { attendance: true } });
   if (!s) throw new NotFoundError("Session not found");
   const members = await db.classMember.findMany({
-    where: { ...memberWhere(access), ...(s.groupId ? { user: { groupMemberships: { some: { groupId: s.groupId } } } } : {}) },
+    // A 1:1 session (from office hours) is for its one student only.
+    where: { ...memberWhere(access), ...(s.studentId ? { userId: s.studentId } : {}), ...(s.groupId ? { user: { groupMemberships: { some: { groupId: s.groupId } } } } : {}) },
     orderBy: { user: { name: "asc" } },
     select: { user: { select: { id: true, name: true } } },
   });
@@ -105,11 +106,11 @@ export async function markAttendance(userId: string, classId: string, sessionId:
 export async function attendanceVsGains(userId: string, classId: string, now = new Date()) {
   const access = await classAccess(userId, classId);
   const members = await db.classMember.findMany({ where: memberWhere(access), orderBy: { user: { name: "asc" } }, select: { user: { select: { id: true, name: true, groupMemberships: { where: { group: { classId } }, select: { groupId: true } } } } } });
-  const sessions = await db.classSession.findMany({ where: { classId, startsAt: { lte: now } }, select: { id: true, groupId: true, attendance: { select: { studentId: true, status: true } } } });
+  const sessions = await db.classSession.findMany({ where: { classId, startsAt: { lte: now } }, select: { id: true, groupId: true, studentId: true, attendance: { select: { studentId: true, status: true } } } });
   const scores = await db.scoreRecord.findMany({ where: { studentId: { in: members.map((m) => m.user.id) } }, orderBy: [{ takenOn: "asc" }, { createdAt: "asc" }], select: { studentId: true, total: true, isBaseline: true } });
   return members.map(({ user }) => {
     const groups = new Set(user.groupMemberships.map((g) => g.groupId));
-    const mine = sessions.filter((s) => !s.groupId || groups.has(s.groupId));
+    const mine = sessions.filter((s) => (!s.groupId || groups.has(s.groupId)) && (!s.studentId || s.studentId === user.id));
     const came = mine.filter((s) => s.attendance.some((r) => r.studentId === user.id && (r.status === "PRESENT" || r.status === "LATE"))).length;
     const marked = mine.filter((s) => s.attendance.some((r) => r.studentId === user.id && r.status !== "EXCUSED")).length;
     const rs = scores.filter((r) => r.studentId === user.id);

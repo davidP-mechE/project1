@@ -29,6 +29,7 @@ import { Queue } from "bullmq";
 import { sendDueReminders } from "@/server/reminders";
 import { runProgramJobs } from "@/server/program-jobs";
 import { runScheduledSend, sweepScheduledSends } from "@/server/scheduled";
+import { sendBookingReminders } from "@/server/office-hours";
 import { recordError } from "@/server/monitoring";
 import { runMaintenance } from "@/server/maintenance";
 import { claudeEnabled } from "@/server/env";
@@ -214,6 +215,9 @@ const reminders = new Worker(
     // Scheduled messages and announcements the queue missed (e.g. Redis restarted).
     const swept = await sweepScheduledSends().catch((err) => (console.error("[scheduled] sweep failed:", err instanceof Error ? err.message : err), 0));
     if (swept > 0) console.info(`[scheduled] sent ${swept} from the sweep`);
+    // Office hours: a reminder to both sides about a day before.
+    const reminded = await sendBookingReminders().catch((err) => (console.error("[office hours] reminders failed:", err instanceof Error ? err.message : err), 0));
+    if (reminded > 0) console.info(`[office hours] ${reminded} reminder(s) sent`);
   },
   { connection: redisConnection(), concurrency: 1 },
 );

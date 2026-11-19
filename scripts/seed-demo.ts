@@ -14,6 +14,7 @@ import { db } from "../src/server/db";
 import { DEMO_DOMAIN, DEMO_PASSWORD } from "../src/lib/demo";
 import { demoBankQuestions } from "../src/lib/demo-bank";
 import { buildBatch } from "../src/server/auto-practice";
+import { zonedToUtc } from "../src/lib/office-hours/slots";
 
 // Deterministic randomness, so the demo looks the same every time.
 let seed = 1600;
@@ -334,6 +335,37 @@ async function main() {
   await db.guardianContact.createMany({
     data: students.slice(0, 12).map((s, i) => ({ studentId: s.id, name: `Parent of ${s.name.split(" ")[0]}`, email: `parent${i + 1}@${DEMO_DOMAIN}`, relationship: i % 2 ? "Father" : "Mother", consentAt: start, consentById: admin.id, unsubToken: `demo-unsub-${i + 1}-${Math.floor(rand() * 1e9)}` })),
   });
+
+  // Office hours: Morgan on Tuesdays and Thursdays, Lena on Wednesdays; a few bookings, one turned into a session.
+  const nyDay = (offset: number) => new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(now.getTime() + offset * DAY));
+  const startDay = nyDay(-30);
+  await db.officeHours.createMany({
+    data: [
+      { staffId: admin.id, programId: program.id, weekday: 2, startMinute: 15 * 60 + 30, endMinute: 17 * 60 + 30, timezone: "America/New_York", slotMinutes: 20, bufferMinutes: 10, maxPerDay: 4, validFrom: startDay, location: "Room 204" },
+      { staffId: admin.id, programId: program.id, weekday: 4, startMinute: 15 * 60 + 30, endMinute: 17 * 60, timezone: "America/New_York", slotMinutes: 30, bufferMinutes: 0, maxPerDay: 3, validFrom: startDay, location: "Room 204" },
+      { staffId: tutor.id, programId: program.id, weekday: 3, startMinute: 16 * 60, endMinute: 18 * 60, timezone: "America/New_York", slotMinutes: 20, bufferMinutes: 5, maxPerDay: 5, validFrom: startDay, location: "Library study room" },
+    ],
+  });
+  const nextWeekday = (wd: number, weeks = 0) => {
+    for (let d = 1; d <= 7; d++) if (new Date(`${nyDay(d)}T12:00:00Z`).getUTCDay() === wd) return nyDay(d + 7 * weeks);
+    return nyDay(1);
+  };
+  const lastWeekday = (wd: number) => {
+    for (let d = 1; d <= 7; d++) if (new Date(`${nyDay(-d)}T12:00:00Z`).getUTCDay() === wd) return nyDay(-d);
+    return nyDay(-1);
+  };
+  const book = async (staffId: string, studentId: string, day: string, minute: number, len: number, note: string | null, location: string) => {
+    const startsAt = zonedToUtc(day, minute, "America/New_York");
+    return db.booking.create({ data: { programId: program.id, classId: A.id, staffId, studentId, startsAt, endsAt: new Date(startsAt.getTime() + len * 60_000), location, note, staffSlot: `${staffId}:${startsAt.toISOString()}`, studentSlot: `${studentId}:${startsAt.toISOString()}` } });
+  };
+  await book(admin.id, roster[A.id][0].id, nextWeekday(2), 15 * 60 + 30, 20, "Linear equations with fractions", "Room 204");
+  await book(admin.id, roster[A.id][2].id, nextWeekday(2), 16 * 60, 20, null, "Room 204");
+  await book(admin.id, roster[A.id][4].id, nextWeekday(4), 15 * 60 + 30, 30, "Going over my practice test", "Room 204");
+  await book(tutor.id, groups[A.id][1].members[0] ? roster[A.id].find((x) => x.id === groups[A.id][1].members[0])!.id : roster[A.id][9].id, nextWeekday(3), 16 * 60, 20, "Transitions", "Library study room");
+  const past = await book(admin.id, roster[A.id][1].id, lastWeekday(2), 15 * 60 + 30, 20, "Boundaries", "Room 204");
+  const pastSession = await db.classSession.create({ data: { classId: A.id, studentId: roster[A.id][1].id, title: "Office hours", startsAt: past.startsAt, endsAt: past.endsAt, createdById: admin.id } });
+  await db.booking.update({ where: { id: past.id }, data: { sessionId: pastSession.id } });
+  await db.attendanceRecord.create({ data: { sessionId: pastSession.id, studentId: roster[A.id][1].id, status: "PRESENT", markedById: admin.id, markedAt: past.endsAt } });
 
   await db.badge.createMany({ data: students.slice(0, 12).map((s) => ({ userId: s.id, kind: "STREAK_5", earnedAt: new Date(now.getTime() - 3 * DAY) })), skipDuplicates: true });
 

@@ -178,6 +178,7 @@ function NavLinks({ isStaff, coursebook, roles, dueCount, unread, attention, onN
         { href: "/review", label: "Flashcards", icon: "spaced", badge: dueCount, badgeLabel: "cards to review" },
         { href: "/practice", label: "Practice sets", icon: "skills" },
         { href: "/live", label: "Join live", icon: "flag" },
+        { href: "/office-hours", label: "Office hours", icon: "calendar" },
         { href: "/practice-tests", label: "SAT practice log", icon: "scores" },
         { href: "/mistakes", label: "Mistake log", icon: "errors" },
         { href: "/errors", label: "Error log", icon: "errors" },
@@ -193,6 +194,7 @@ function NavLinks({ isStaff, coursebook, roles, dueCount, unread, attention, onN
                 ? [
                     { href: "/teach", label: "My classes", icon: "teach" as const },
                     { href: "/teach/attention", label: "Needs attention", icon: "flag" as const, badge: attention, badgeLabel: "items need attention" },
+                    { href: "/teach/office-hours", label: "Office hours", icon: "calendar" as const },
                     { href: "/teach/worksheets", label: "Worksheets", icon: "worksheet" as const },
                     { href: "/teach/diagnostics", label: "Diagnostics", icon: "scores" as const },
                     { href: "/teach/review", label: "Review queue", icon: "errors" as const },
@@ -314,6 +316,7 @@ function sections(isStaff: boolean, coursebook: boolean, dueCount: number, unrea
         { href: "/review", label: "Flashcards", icon: "spaced", badge: dueCount, badgeLabel: "cards to review" },
         { href: "/practice", label: "Practice sets", icon: "skills" },
         { href: "/live", label: "Join live", icon: "flag" },
+        { href: "/office-hours", label: "Office hours", icon: "calendar" },
         { href: "/practice-tests", label: "SAT practice log", icon: "scores" },
         { href: "/mistakes", label: "Mistake log", icon: "errors" },
         { href: "/errors", label: "Error log", icon: "errors" },
@@ -329,6 +332,7 @@ function sections(isStaff: boolean, coursebook: boolean, dueCount: number, unrea
                 ? [
                     { href: "/teach", label: "My classes", icon: "teach" as const },
                     { href: "/teach/attention", label: "Needs attention", icon: "flag" as const, badge: attention, badgeLabel: "items need attention" },
+                    { href: "/teach/office-hours", label: "Office hours", icon: "calendar" as const },
                     { href: "/teach/worksheets", label: "Worksheets", icon: "worksheet" as const },
                     { href: "/teach/diagnostics", label: "Diagnostics", icon: "scores" as const },
                     { href: "/teach/review", label: "Review queue", icon: "errors" as const },

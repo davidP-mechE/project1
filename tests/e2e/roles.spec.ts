@@ -491,6 +491,34 @@ test("each role's journey: admin sets up, student works, specialist grades withi
   await expect(ap.getByText(/Sol Student's week in /)).toBeVisible();
   await a11y(ap, "admin: progress email preview");
 
+  // ── Phase 4: office hours ──
+  const tomorrowDay = new Date(Date.now() + 86_400_000);
+  await ap.goto("/teach/office-hours");
+  await ap.getByLabel("Day", { exact: true }).selectOption({ index: tomorrowDay.getDay() });
+  await ap.getByLabel("From", { exact: true }).fill("10:00");
+  await ap.getByLabel("Until", { exact: true }).fill("11:00");
+  await ap.getByLabel("Slot length (minutes)").fill("30");
+  await ap.getByLabel("Gap between slots (minutes)").fill("0");
+  await ap.getByLabel("Where (room or video link)").fill("Room 9");
+  await ap.getByRole("button", { name: "Add open time" }).click();
+  await expect(ap.getByText(/(Sun|Mon|Tues|Wednes|Thurs|Fri|Satur)days 10:00 AM–11:00 AM/)).toBeVisible();
+  await a11y(ap, "admin: office hours");
+  await sp.goto("/office-hours");
+  await expect(sp.getByRole("heading", { name: "Book a time" })).toBeVisible();
+  await sp.getByRole("link", { name: "Ada Admin" }).click().catch(() => {});
+  await sp.getByRole("button", { name: "Book 10:00 AM" }).first().click();
+  await sp.getByLabel(/What would you like help with/).fill("Linear equations");
+  await a11y(sp, "student: office hours");
+  await sp.getByRole("button", { name: "Book it" }).click();
+  await expect(sp.getByText(/^Booked\./)).toBeVisible();
+  await expect(sp.getByRole("heading", { name: "Your bookings" })).toBeVisible();
+  await sp.goto("/calendar");
+  await expect(sp.getByText(/Office hours with /).filter({ visible: true }).first()).toBeVisible();
+  await ap.goto("/teach/office-hours");
+  await expect(ap.getByRole("cell", { name: "Sol Student" })).toBeVisible();
+  await ap.getByRole("button", { name: "Attended" }).click();
+  await expect(ap.getByRole("button", { name: "Attended", pressed: true })).toBeVisible();
+
   // Logged-out pages not covered elsewhere.
   const anon = await browser.newContext();
   const np = await anon.newPage();

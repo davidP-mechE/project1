@@ -115,6 +115,9 @@ model User {
   customTests      PracticeTest[]    @relation("testCreator")
 
   // Needs attention and caseloads
+  officeHours      OfficeHours[]
+  staffBookings    Booking[]        @relation("bookingStaff")
+  studentBookings  Booking[]        @relation("bookingStudent")
   savedReplies     SavedReply[]
   scheduledSends   ScheduledSend[]
   autoPractice     AutoPracticeItem[]
@@ -1103,6 +1106,8 @@ model Program {
   /// Parent progress emails to guardians who agreed: OFF, WEEKLY (Sunday evening) or MONTHLY (the 1st).
   guardianFrequency String            @default("OFF")
   savedReplies    SavedReply[]
+  officeHours     OfficeHours[]
+  bookings        Booking[]
   attentionStates AttentionState[]
   primaryTutors   PrimaryTutor[]
 
@@ -1710,8 +1715,11 @@ model ClassSession {
   endsAt      DateTime
   createdById String
   createdAt   DateTime           @default(now())
+  /// A 1:1 session (from an office-hours booking): only this student sees it and is on its register.
+  studentId   String?
   attendance  AttendanceRecord[]
   liveRuns    LiveRun[]
+  booking     Booking?
 
   @@index([classId, startsAt])
 }
@@ -2558,4 +2566,68 @@ model ScheduledSend {
 
   @@index([status, sendAt])
   @@index([authorId, status])
+}
+
+// ─── Office hours ────────────────────────────────────────────────────────
+
+/// A staff member's weekly open time in a program: on `weekday` (0 = Sunday) from `startMinute` to
+/// `endMinute` (minutes after midnight in `timezone`), cut into slots of `slotMinutes` with `bufferMinutes`
+/// between them, at most `maxPerDay` bookings a day, between `validFrom` and `validUntil` (calendar days).
+/// The program calendar's closed days are skipped.
+model OfficeHours {
+  id            String   @id @default(cuid())
+  staffId       String
+  staff         User     @relation(fields: [staffId], references: [id], onDelete: Cascade)
+  programId     String
+  program       Program  @relation(fields: [programId], references: [id], onDelete: Cascade)
+  weekday       Int
+  startMinute   Int
+  endMinute     Int
+  timezone      String
+  slotMinutes   Int      @default(20)
+  bufferMinutes Int      @default(0)
+  maxPerDay     Int      @default(6)
+  /// Calendar days (YYYY-MM-DD) the times apply between; validUntil null = no end.
+  validFrom     String
+  validUntil    String?
+  /// Where: a room or a video link, shown to students who book.
+  location      String?
+  createdAt     DateTime @default(now())
+
+  @@index([staffId])
+  @@index([programId])
+}
+
+/// A student's booked office-hours slot with a staff member. While BOOKED, `staffSlot` and `studentSlot`
+/// hold "<person>:<start>", and their unique indexes make double-booking impossible, even when two
+/// people book at the same moment. Cancelling clears them.
+model Booking {
+  id              String        @id @default(cuid())
+  programId       String
+  program         Program       @relation(fields: [programId], references: [id], onDelete: Cascade)
+  /// The class the two share (for scope, and the session if it becomes one).
+  classId         String
+  staffId         String
+  staff           User          @relation("bookingStaff", fields: [staffId], references: [id], onDelete: Cascade)
+  studentId       String
+  student         User          @relation("bookingStudent", fields: [studentId], references: [id], onDelete: Cascade)
+  startsAt        DateTime
+  endsAt          DateTime
+  location        String?
+  note            String?
+  /// BOOKED or CANCELLED.
+  status          String        @default("BOOKED")
+  staffSlot       String?       @unique
+  studentSlot     String?       @unique
+  cancelledById   String?
+  cancelledAt     DateTime?
+  reminderSentAt  DateTime?
+  /// Set when staff turn it into a class session (with attendance).
+  sessionId       String?       @unique
+  session         ClassSession? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+  createdAt       DateTime      @default(now())
+
+  @@index([staffId, startsAt])
+  @@index([studentId, startsAt])
+  @@index([status, startsAt])
 }

@@ -34,6 +34,8 @@ describe("loading demo data", () => {
     expect(await db.savedReply.count()).toBe(1);
     expect(await db.scheduledSend.count({ where: { status: "PENDING" } })).toBe(1);
     expect(await db.program.count({ where: { isDemo: true, guardianFrequency: "WEEKLY" } })).toBe(1);
+    expect(await db.officeHours.count()).toBe(2);
+    expect(await db.booking.count({ where: { status: "BOOKED" } })).toBe(1);
     // Clearing removes the demo questions and sets too.
     await clearDemoData();
     expect(await db.bankQuestion.count({ where: { externalId: { startsWith: "DEMOMODE-" } } })).toBe(0);

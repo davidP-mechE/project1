@@ -79,6 +79,8 @@ The final review of Coursebook and The 1600 Project's setup on it, most serious 
 
 16h. **Parent progress emails are per program now.** The program admin chooses off, weekly (from Sunday 17:00 UTC) or monthly (from the 1st, 17:00 UTC). The old per-class "weekly guardian emails" switch is retired; the migration set programs that had it on for any class to weekly. A student in two programs gets the email from the program they joined first. At most `GUARDIAN_EMAILS_PER_HOUR` (default 200) go out each hour; the rest follow in the next hours, within 3 days. The email states facts from the data (no AI) and a "focus" skill from the last 30 days.
 
+16i. **Office hours** are set in the staff member's time zone (saved with each open time; changing your time zone later doesn't move existing ones, edit them). Students can book up to 4 weeks ahead, not within the next hour, and hold at most 3 upcoming bookings. The database stops two bookings of the same slot (and a student booking two things that start at the same moment); a student booking two different tutors at overlapping but different times is caught by a check that isn't race-proof. Reminders go out about 24 hours before, from the worker's 15-minute job. Removing an open time doesn't cancel bookings already made.
+
 ## Low
 
 15. **Students see the Teaching section in the sidebar.** That's how anyone starts teaching a class, but it can confuse students. Consider hiding it until someone creates or joins a class as staff.

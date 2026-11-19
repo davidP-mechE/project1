@@ -17,6 +17,7 @@ const KIND: Record<CalEvent["kind"], { label: string; dot: string }> = {
   SESSION: { label: "Session", dot: "bg-chart-5" },
   UNIT: { label: "Unit", dot: "bg-chart-2" },
   TEST: { label: "Test day", dot: "bg-danger" },
+  BOOKING: { label: "Office hours", dot: "bg-primary" },
 };
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 

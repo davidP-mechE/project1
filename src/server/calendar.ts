@@ -2,7 +2,7 @@ import "server-only";
 import { randomBytes } from "node:crypto";
 import { db } from "./db";
 import { NotFoundError } from "./courses";
-import { ClassError, classAccess, assignmentInScope, staffClassIds, type ClassAccess } from "./access";
+import { ClassError, classAccess, assignmentInScope, staffClassIds, studentIdsInScope, type ClassAccess } from "./access";
 import { assignedTo, groupsByClass } from "./targets";
 
 /**
@@ -17,7 +17,7 @@ import { assignedTo, groupsByClass } from "./targets";
 
 export type CalEvent = {
   id: string;
-  kind: "DUE" | "OPENS" | "CLOSES" | "SESSION" | "UNIT" | "TEST";
+  kind: "DUE" | "OPENS" | "CLOSES" | "SESSION" | "UNIT" | "TEST" | "BOOKING";
   title: string;
   className: string | null;
   start: Date;
@@ -49,7 +49,8 @@ async function studentEvents(userId: string, from: Date, to: Date): Promise<CalE
         where: { classId: { in: classIds }, OR: [{ dueAt: overlaps(from, to) }, { opensAt: overlaps(from, to) }, { closesAt: overlaps(from, to) }] },
         select: { id: true, classId: true, kind: true, title: true, dueAt: true, opensAt: true, closesAt: true, groupIds: true, studentIds: true },
       }),
-      db.classSession.findMany({ where: { classId: { in: classIds }, startsAt: overlaps(from, to) }, select: { id: true, classId: true, groupId: true, title: true, startsAt: true, endsAt: true } }),
+      // 1:1 sessions (from office hours) show only to their own student.
+      db.classSession.findMany({ where: { classId: { in: classIds }, startsAt: overlaps(from, to), OR: [{ studentId: null }, { studentId: userId }] }, select: { id: true, classId: true, groupId: true, title: true, startsAt: true, endsAt: true } }),
       db.curriculumUnit.findMany({ where: { curriculum: { classId: { in: classIds }, status: "ACTIVE" }, startsOn: { lt: to }, endsOn: { gte: from } }, select: { id: true, title: true, startsOn: true, endsOn: true, curriculum: { select: { classId: true } } } }),
     ]);
     for (const a of assignments) {
@@ -62,6 +63,9 @@ async function studentEvents(userId: string, from: Date, to: Date): Promise<CalE
     }
     for (const u of units) out.push({ id: `unit:${u.id}`, kind: "UNIT", title: u.title, className: names.get(u.curriculum.classId) ?? null, start: u.startsOn, end: u.endsOn, allDay: true, href: "/classes" });
   }
+  // Office hours the student booked (once one becomes a session, the session shows instead).
+  const bookings = await db.booking.findMany({ where: { studentId: userId, status: "BOOKED", sessionId: null, startsAt: overlaps(from, to) }, select: { id: true, startsAt: true, endsAt: true, staff: { select: { name: true } } } });
+  for (const b of bookings) out.push({ id: `booking:${b.id}`, kind: "BOOKING", title: `Office hours with ${b.staff.name}`, className: null, start: b.startsAt, end: b.endsAt, allDay: false, href: "/office-hours" });
   const profile = await db.studentProfile.findUnique({ where: { userId }, select: { testDate: true } });
   if (profile?.testDate && profile.testDate >= from && profile.testDate < to) out.push({ id: "test", kind: "TEST", title: "Your SAT", className: null, start: profile.testDate, end: null, allDay: true, href: "/scores" });
   return out;
@@ -96,7 +100,7 @@ async function staffEvents(userId: string, from: Date, to: Date): Promise<CalEve
         where: { classId, OR: [{ dueAt: overlaps(from, to) }, { opensAt: overlaps(from, to) }, { closesAt: overlaps(from, to) }] },
         select: { id: true, kind: true, title: true, dueAt: true, opensAt: true, closesAt: true, section: true, domains: true, groupIds: true, studentIds: true },
       }),
-      db.classSession.findMany({ where: { classId, startsAt: overlaps(from, to) }, select: { id: true, groupId: true, title: true, startsAt: true, endsAt: true } }),
+      db.classSession.findMany({ where: { classId, startsAt: overlaps(from, to) }, select: { id: true, groupId: true, studentId: true, title: true, startsAt: true, endsAt: true } }),
       db.curriculumUnit.findMany({ where: { curriculum: { classId, status: "ACTIVE" }, startsOn: { lt: to }, endsOn: { gte: from } }, select: { id: true, title: true, startsOn: true, endsOn: true } }),
     ]);
     for (const x of assignments) {
@@ -105,12 +109,17 @@ async function staffEvents(userId: string, from: Date, to: Date): Promise<CalEve
       if (a.groupIds.length && x.groupIds.length && !x.groupIds.some((g) => a.groupIds.includes(g))) continue;
       out.push(...assignmentEvents(x, a.className, `/teach/${classId}/assignments/${x.id}`, from, to));
     }
+    const scope = a.groupIds.length ? new Set(await studentIdsInScope(a)) : null;
     for (const s of sessions) {
       if (a.groupIds.length && s.groupId && !a.groupIds.includes(s.groupId)) continue;
+      if (s.studentId && scope && !scope.has(s.studentId)) continue; // someone else's 1:1 session
       out.push({ id: `session:${s.id}`, kind: "SESSION", title: s.title || "Class session", className: a.className, start: s.startsAt, end: s.endsAt, allDay: false, href: `/teach/${classId}/attendance/${s.id}` });
     }
     for (const u of units) out.push({ id: `unit:${u.id}`, kind: "UNIT", title: u.title, className: a.className, start: u.startsOn, end: u.endsOn, allDay: true, href: `/teach/${classId}/curriculum` });
   }
+  // Office hours booked with this person. The title has no student name (it also goes to the private feed).
+  const bookings = await db.booking.findMany({ where: { staffId: userId, status: "BOOKED", sessionId: null, startsAt: overlaps(from, to) }, select: { id: true, startsAt: true, endsAt: true } });
+  for (const b of bookings) out.push({ id: `booking:${b.id}`, kind: "BOOKING", title: "Office hours booking", className: null, start: b.startsAt, end: b.endsAt, allDay: false, href: "/teach/office-hours" });
   return out;
 }
 
@@ -140,7 +149,7 @@ export async function resetFeedToken(userId: string) {
   return token;
 }
 
-const KIND_PREFIX: Record<CalEvent["kind"], string> = { DUE: "Due", OPENS: "Opens", CLOSES: "Closes", SESSION: "Session", UNIT: "Unit", TEST: "" };
+const KIND_PREFIX: Record<CalEvent["kind"], string> = { DUE: "Due", OPENS: "Opens", CLOSES: "Closes", SESSION: "Session", UNIT: "Unit", TEST: "", BOOKING: "" };
 
 function icsEscape(s: string) {
   return s.replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\r?\n/g, "\\n");

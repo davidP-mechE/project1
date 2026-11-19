@@ -293,3 +293,14 @@ export function guardianProgressMessage(input: { to: string; guardianName: strin
     html: layout(title, intro, "Unsubscribe", input.unsubscribeUrl, outro),
   };
 }
+
+/** Office hours: booked, cancelled, or tomorrow's reminder. */
+export function bookingMessage(input: { to: string; kind: "booked" | "cancelled" | "reminder"; withName: string; when: string; location: string | null; url: string; settingsUrl: string }): EmailMessage {
+  const head = { booked: "Office hours booked", cancelled: "Office hours cancelled", reminder: "Office hours reminder" }[input.kind];
+  const intro =
+    input.kind === "cancelled"
+      ? `Your office hours with ${input.withName} on ${input.when} were cancelled.`
+      : `${input.kind === "reminder" ? "Coming up: " : ""}office hours with ${input.withName} on ${input.when}${input.location ? ` (${input.location})` : ""}.`;
+  const outro = `To stop these emails, change Settings → Notifications (${input.settingsUrl}).`;
+  return { to: input.to, subject: `${head}: ${input.withName}, ${input.when}`, text: `${intro}\n\n${input.url}\n\n${outro}`, html: layout(head, intro, "Open office hours", input.url, outro) };
+}

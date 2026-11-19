@@ -18,7 +18,7 @@ import { env } from "./env";
  * Prep"), never the content: the content stays behind the login.
  */
 
-const KIND_DB: Record<NoticeKind, string> = { messages: "MESSAGE", announcements: "ANNOUNCEMENT", alerts: "ALERT", attention: "ATTENTION", review: "REVIEW", scheduled: "SCHEDULED" };
+const KIND_DB: Record<NoticeKind, string> = { messages: "MESSAGE", announcements: "ANNOUNCEMENT", alerts: "ALERT", attention: "ATTENTION", review: "REVIEW", scheduled: "SCHEDULED", bookings: "BOOKING" };
 const PAGE = 30;
 
 export async function getNotificationPrefs(userId: string): Promise<NotificationPrefs> {
