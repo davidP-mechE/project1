@@ -25,6 +25,8 @@ export const RATE_RULES = {
   clientReport: { name: "client-report", max: 30, windowSeconds: 60 * 60 },
   /** Worksheet uploads (each is read by Claude). */
   worksheetUpload: { name: "worksheet-upload", max: 20, windowSeconds: 60 * 60 },
+  /** Academic Index PDF uploads (each is read by Claude). */
+  academicUpload: { name: "academic-upload", max: 20, windowSeconds: 24 * 60 * 60 },
 } satisfies Record<string, RateRule>;
 
 /** Which window `now` falls in, and how long until it ends. */

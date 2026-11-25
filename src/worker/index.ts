@@ -41,6 +41,8 @@ import { markAssessmentFailed, runAssessmentJob } from "@/server/generation/asse
 import { renderPagePng } from "@/server/processing/page-images";
 import { markWorksheetFailed } from "@/server/worksheets";
 import { runWorksheetJob } from "@/server/worksheet-job";
+import { markAcademicExtractFailed, runAcademicExtractJob } from "@/server/academic-index-job";
+import { getApplicationReader } from "@/server/ai/academic-index";
 import { OcrPool } from "@/server/processing/ocr";
 import { runProcessBookJob } from "@/server/processing/run-job";
 import { db } from "@/server/db";
@@ -131,6 +133,21 @@ const generator = new Worker<GeneratePayload>(
       return;
     }
 
+    // Academic Index: read a student's application PDF.
+    if (data.kind === "academic-index-extract") {
+      const lastAttempt = job.attemptsMade + 1 >= (job.opts.attempts ?? 1);
+      try {
+        console.info(`[academic-index] ${data.uploadId}: ${await runAcademicExtractJob(data, { reader: getApplicationReader(), ocr })}`);
+      } catch (err) {
+        const ai = err instanceof AiError ? err : null;
+        console.error(`[academic-index] ${data.uploadId} attempt ${job.attemptsMade + 1} failed:`, err instanceof Error ? err.message : err);
+        if ((!ai || ai.kind === "retryable") && !lastAttempt) throw err;
+        await markAcademicExtractFailed(data.uploadId, ai?.userMessage ?? "Something went wrong reading this PDF. Try again, or enter the details by hand.");
+        throw new UnrecoverableError("academic index extraction failed");
+      }
+      return;
+    }
+
     const id = data.kind === "assessment" ? data.assessmentId : data.lessonId;
     const lastAttempt = job.attemptsMade + 1 >= (job.opts.attempts ?? 1);
     try {
@@ -207,7 +224,7 @@ const reminders = new Worker(
     }
     if (job.name === "maintenance") {
       const r = await runMaintenance();
-      if (r.uploads + r.rateRows + r.events + r.verifications + r.attachments > 0) console.info("[maintenance]", r);
+      if (r.uploads + r.rateRows + r.events + r.verifications + r.attachments + r.academicUploads > 0) console.info("[maintenance]", r);
       return;
     }
     const n = await sendDueReminders();

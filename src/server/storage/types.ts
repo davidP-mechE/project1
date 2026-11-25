@@ -54,5 +54,7 @@ export const storageKeys = {
   combinedPdf: (userId: string, bookId: string, stamp: number) => `users/${userId}/books/${bookId}/combined-${stamp}.pdf`,
   /** A file attached to a message (under its uploader's folder, so it goes when their account does). */
   messageAttachment: (userId: string, attachmentId: string) => `users/${userId}/messages/${attachmentId}`,
+  /** An Academic Index application PDF (deleted after the review, or within 24 hours). */
+  academicUpload: (userId: string, uploadId: string) => `users/${userId}/academic-index/${uploadId}.pdf`,
   userPrefix: (userId: string) => `users/${userId}/`,
 };

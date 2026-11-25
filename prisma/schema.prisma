@@ -127,6 +127,13 @@ model User {
   tutorOf         PrimaryTutor[]     @relation("primaryTutorStudent")
   caseload        PrimaryTutor[]     @relation("primaryTutor")
 
+  // Academic Index
+  academicIndexInputs  AcademicIndexInputs?
+  academicIndexUploads AcademicIndexUpload[]
+  academicIndexResults AcademicIndexResult[]
+  academicIndexShares  AcademicIndexShare[]
+  academicEssayGrades  AcademicEssayGrade[]
+
   /// Set on every login, for the Staff page.
   lastLoginAt      DateTime?
   /// Two-factor login (authenticator app); required for program admins and staff.
@@ -929,6 +936,10 @@ enum UsageFeature {
   ASSISTANT
   /// Reading College Board questions from an upload (Question bank → College Board).
   QUESTION_IMPORT
+  /// Academic Index: reading a student's application PDFs.
+  ACADEMIC_INDEX_IMPORT
+  /// Academic Index: grading essays with the rubric.
+  ESSAY_GRADING
 }
 
 model UsageEvent {
@@ -1225,34 +1236,35 @@ model ClassGroupMember {
 }
 
 model Class {
-  id             String              @id @default(cuid())
-  programId      String
-  program        Program             @relation(fields: [programId], references: [id], onDelete: Cascade)
-  staff          ClassStaff[]
-  staffInvites   StaffInvite[]
-  groups         ClassGroup[]
-  sessions       ClassSession[]
-  autoBatches    AutoPracticeBatch[]
-  scheduledSends ScheduledSend[]
-  liveRuns       LiveRun[]
-  alertStates    AlertState[]
-  curricula      Curriculum[]
-  summaries      AssistantSummary[]
-  draftLessons   DraftLesson[]
-  threads        MessageThread[]
-  announcements  Announcement[]
-  teacherId      String
-  teacher        User                @relation("teacher", fields: [teacherId], references: [id], onDelete: Cascade)
-  name           String
-  joinCode       String              @unique
-  archivedAt     DateTime?
-  createdAt      DateTime            @default(now())
-  members        ClassMember[]
-  invites        ClassInvite[]
-  courses        ClassCourse[]
-  assignments    Assignment[]
+  id                  String               @id @default(cuid())
+  programId           String
+  program             Program              @relation(fields: [programId], references: [id], onDelete: Cascade)
+  staff               ClassStaff[]
+  staffInvites        StaffInvite[]
+  groups              ClassGroup[]
+  sessions            ClassSession[]
+  autoBatches         AutoPracticeBatch[]
+  scheduledSends      ScheduledSend[]
+  liveRuns            LiveRun[]
+  alertStates         AlertState[]
+  curricula           Curriculum[]
+  summaries           AssistantSummary[]
+  draftLessons        DraftLesson[]
+  threads             MessageThread[]
+  announcements       Announcement[]
+  academicIndexShares AcademicIndexShare[]
+  teacherId           String
+  teacher             User                 @relation("teacher", fields: [teacherId], references: [id], onDelete: Cascade)
+  name                String
+  joinCode            String               @unique
+  archivedAt          DateTime?
+  createdAt           DateTime             @default(now())
+  members             ClassMember[]
+  invites             ClassInvite[]
+  courses             ClassCourse[]
+  assignments         Assignment[]
   /// Demo data (Admin → Demo data, or npm run demo:load). Cleared in one step; never mixed with real records.
-  isDemo         Boolean             @default(false)
+  isDemo              Boolean              @default(false)
 
   @@index([teacherId])
   @@index([programId])
@@ -2674,4 +2686,111 @@ model QuestionReport {
   @@index([bankQuestionId, status])
   @@index([worksheetItemId, status])
   @@index([reporterId, createdAt])
+}
+
+// ─── Academic Index ──────────────────────────────────────────────────────
+// One application strength score (0–230) from test scores, grades, rigor,
+// activities and essays. The formula is in src/lib/academic-index.
+
+/// A student's inputs (a draft until scored). One row per student.
+model AcademicIndexInputs {
+  id           String    @id @default(cuid())
+  userId       String    @unique
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// The form (src/lib/academic-index/inputs.ts). Essay text is kept only if keepEssays is on.
+  inputs       Json      @default("{}")
+  /// Per field path: { file, fileLabel, page, confidence, confirmed, alternative }.
+  fieldSources Json      @default("{}")
+  isDraft      Boolean   @default(true)
+  /// The student chose to keep their essays saved here.
+  keepEssays   Boolean   @default(false)
+  /// Neutral age screen: PASSED (13 or older) or BLOCKED. The birth date itself is never stored.
+  ageCheck     String?
+  ageCheckedAt DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+/// An uploaded application PDF. The file is deleted once the student confirms the
+/// review screen, or 24 hours after upload; only the confirmed fields are kept.
+model AcademicIndexUpload {
+  id         String    @id @default(cuid())
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// COMMON_APP, SAT_REPORT, AP_REPORT or TRANSCRIPT.
+  fileType   String
+  /// UPLOADING, UPLOADED (reading), EXTRACTED, CONFIRMED, DELETED or FAILED.
+  status     String    @default("UPLOADING")
+  /// Where the PDF is while it exists; null once deleted.
+  storageKey String?
+  sizeBytes  Int
+  pageCount  Int?
+  error      String?
+  /// What was read from the file (fields, pages, confidence) until the review is confirmed.
+  extracted  Json?
+  /// When the extracted fields were put on the review screen.
+  appliedAt  DateTime?
+  uploadedAt DateTime  @default(now())
+  deletedAt  DateTime?
+
+  @@index([userId, uploadedAt])
+  @@index([status, uploadedAt])
+}
+
+/// One scoring of the inputs (kept for the progress chart).
+model AcademicIndexResult {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  formulaVersion String
+  /// Null when test-optional.
+  testPoints     Float?
+  gpaPoints      Float
+  rigorPoints    Float
+  activityPoints Float
+  /// Null when the essays aren't scored yet.
+  essayPoints    Float?
+  /// Per essay: criteria scores, evidence quotes, suggestions, warnings (never the essay text).
+  essayFeedback  Json     @default("{}")
+  /// Breakdown details and the biggest-lever tip.
+  detail         Json     @default("{}")
+  total          Int
+  tier           String
+  /// full, test_optional or partial.
+  estimateType   String
+  createdAt      DateTime @default(now())
+
+  @@index([userId, createdAt])
+}
+
+/// A student shared their index with one of their classes (its teacher and staff in scope see it).
+model AcademicIndexShare {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  classId   String
+  class     Class    @relation(fields: [classId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, classId])
+  @@index([classId])
+}
+
+/// One essay's grade, keyed by a hash of the essay (so an unchanged essay isn't graded
+/// again). Rows from one "Score" press share a requestId, which the daily limit counts.
+model AcademicEssayGrade {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  essayHash String
+  requestId String
+  /// Medians of the grading runs, before the word-limit and prompt rules.
+  criteria  Json
+  /// Evidence quote and suggestion per criterion, and the prompt check.
+  feedback  Json
+  model     String
+  createdAt DateTime @default(now())
+
+  @@index([userId, essayHash])
+  @@index([userId, createdAt])
 }

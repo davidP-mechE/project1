@@ -31,6 +31,8 @@ export type GeneratePayload =
   | { kind: "assessment-batch"; courseId: string; assessmentIds: string[] }
   /** Read a teacher's worksheet and list its questions. */
   | { kind: "worksheet"; worksheetId: string }
+  /** Academic Index: read a student's application PDF (text + OCR, then Claude). */
+  | { kind: "academic-index-extract"; uploadId: string }
   /** Check a submitted batch; save its results when it's done. */
   | { kind: "batch-poll"; batchId: string; attempt: number };
 
@@ -46,6 +48,8 @@ export function generationJobId(payload: GeneratePayload): string {
       return `batch-poll-${payload.batchId}-${payload.attempt}`;
     case "worksheet":
       return `worksheet-${payload.worksheetId}-${Date.now()}`;
+    case "academic-index-extract":
+      return `academic-index-${payload.uploadId}`;
     default:
       return `${payload.kind}-${payload.lessonId}`;
   }

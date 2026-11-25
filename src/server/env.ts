@@ -60,6 +60,9 @@ const schema = z.object({
   // Grading written answers to practice questions (needs good judgement, short replies).
   CLAUDE_MODEL_GRADING: z.string().default("claude-opus-5-5"),
   CLAUDE_EFFORT_GRADING: z.enum(["low", "medium", "high", "xhigh", "max"]).default("low"),
+  // Academic Index: reading application PDFs and grading essays with the rubric (each essay is graded 3 times).
+  CLAUDE_MODEL_ACADEMIC_INDEX: z.string().default("claude-opus-5-5"),
+  CLAUDE_EFFORT_ACADEMIC_INDEX: z.enum(["low", "medium", "high", "xhigh", "max"]).default("low"),
   // Written answers one student can have graded by Claude per hour (each costs ~1-2 cents).
   GRADING_PER_HOUR: z.coerce.number().int().min(1).max(10_000).default(60),
   // Lessons the worker writes at the same time.
