@@ -56,6 +56,27 @@ export type UnitSpec = { key: string; title: string; summary: string; lessons: L
 export type CourseSpec = { slug: string; title: string; section: "math" | "ebrw" | "other"; program: string | null; description: string; estimatedHours: number | null; units: UnitSpec[]; ownerOnlyDraft: boolean };
 export type PacketParse = { course: CourseSpec | null; warnings: string[]; errors: string[] };
 
+/**
+ * Dollar amounts ("$35", "$2.25", "$24,000") and a lone "$" are money, not the start of $…$ math:
+ * escape them so the Markdown renderer shows a dollar sign. "$2x + 3$" (a digit then a letter or
+ * operator) is still math.
+ */
+export function escapeCurrency(text: string): string {
+  return (
+    text
+      // "$35", "$2.25", "$24,000" (not "$2x", "$3^2", "$3$"): a dollar amount.
+      .replace(/(^|[^\\])\$(?=\d[\d,]*(?:\.\d+)?(?![\d,]*[A-Za-z^_\\{(=+/<>$]))/g, "$1\\$")
+      // A lone "$" between spaces ("%, $ or commas").
+      .replace(/(^|\s)\$(?=\s)/g, "$1\\$")
+  );
+}
+const escapeDeep = <T>(v: T, skip: Set<string> = new Set(["expressions", "url", "videoId", "playlistId"])): T => {
+  if (typeof v === "string") return escapeCurrency(v) as T;
+  if (Array.isArray(v)) return v.map((x) => escapeDeep(x, skip)) as T;
+  if (v && typeof v === "object") return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, skip.has(k) ? x : escapeDeep(x, skip)])) as T;
+  return v;
+};
+
 const issue = (e: z.ZodError) => e.issues.map((i) => `${i.path.join(".") || "value"}: ${i.message}`).join("; ");
 
 /** One block → its Studio form. `counts` numbers blocks of each kind in the lesson, for stable keys. */
@@ -70,7 +91,7 @@ function readBlock(raw: unknown, where: string, counts: Map<string, number>, war
   switch (type) {
     case "markdown": {
       if (typeof b.content !== "string" || !b.content.trim()) return warn(`${where}: a markdown block has no content (skipped).`), null;
-      return { kind: "markdown", key: nth("markdown"), data: { text: b.content.slice(0, 100_000) } };
+      return { kind: "markdown", key: nth("markdown"), data: { text: escapeCurrency(b.content.slice(0, 100_000)) } };
     }
     case "video": {
       const url = typeof b.url === "string" ? b.url : b.video_id ? `https://www.youtube.com/watch?v=${b.video_id}` : b.playlist_id ? `https://www.youtube.com/playlist?list=${b.playlist_id}` : "";
@@ -83,17 +104,17 @@ function readBlock(raw: unknown, where: string, counts: Map<string, number>, war
     case "callout": {
       const c = CalloutDataSchema.safeParse(b);
       if (!c.success) return warn(`${where}: a callout couldn't be read (${issue(c.error)}; skipped).`), null;
-      return { kind: "callout", key: nth("callout"), data: c.data };
+      return { kind: "callout", key: nth("callout"), data: escapeDeep(c.data) };
     }
     case "checkpoint": {
       const c = CheckpointDataSchema.safeParse(b);
       if (!c.success) return warn(`${where}: a checkpoint couldn't be read (${issue(c.error)}; skipped).`), null;
-      return { kind: "checkpoint", key: nth("checkpoint"), data: c.data };
+      return { kind: "checkpoint", key: nth("checkpoint"), data: escapeDeep(c.data) };
     }
     case "desmos": {
       const d = DesmosStepsSchema.safeParse({ ...b, useWhen: b.use_when, watchOut: b.watch_out });
       if (!d.success) return warn(`${where}: a Desmos panel couldn't be read (${issue(d.error)}; skipped).`), null;
-      return { kind: "desmos", key: nth("desmos"), data: d.data };
+      return { kind: "desmos", key: nth("desmos"), data: escapeDeep(d.data) };
     }
     case "question_set": {
       const s = PacketSetSchema.safeParse(b);

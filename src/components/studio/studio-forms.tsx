@@ -117,13 +117,16 @@ export function CourseSettings({ course }: { course: { id: string; title: string
       {confirming && (
         <div role="dialog" aria-label="Confirm publishing" className="flex flex-col gap-3 rounded-lg border-[1.5px] border-warning bg-warning-bg p-4 text-sm">
           <p className="font-semibold text-text">Publish &ldquo;{course.title}&rdquo;?</p>
-          <p className="text-text">It becomes public: every signed-in student can find it in Courses and open its lessons and files. Draft question sets inside it stay hidden until you publish them.</p>
+          <p className="text-text">
+            <strong>To everyone:</strong> every signed-in student can find it in Courses and open its lessons and files. <strong>To in-house classes only:</strong> just you and the students and staff of classes with in-house access (Admin → In-house content). Either way, in-house practice sets stay hidden from everyone else, and draft sets stay hidden until you publish them.
+          </p>
           <label className="flex flex-col gap-1 font-medium text-text">
             Type the course title to confirm
             <input className={inputClasses} value={typed} onChange={(e) => setTyped(e.target.value)} />
           </label>
           <div className="flex gap-2">
-            <Button disabled={pending || typed.trim() !== course.title} onClick={() => act(() => A.publishCourseAction(course.id, typed), () => setConfirming(false))}>Publish now</Button>
+            <Button disabled={pending || typed.trim() !== course.title} onClick={() => act(() => A.publishCourseAction(course.id, typed, "in_house"), () => setConfirming(false))}>Publish to in-house classes</Button>
+            <Button variant="secondary" disabled={pending || typed.trim() !== course.title} onClick={() => act(() => A.publishCourseAction(course.id, typed, "public"), () => setConfirming(false))}>Publish to everyone</Button>
             <Button variant="ghost" onClick={() => setConfirming(false)}>Cancel</Button>
           </div>
         </div>

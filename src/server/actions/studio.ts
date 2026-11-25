@@ -37,11 +37,11 @@ export async function createCourseAction(input: unknown) {
 export async function updateCourseAction(courseId: string, input: unknown) {
   return run((u) => studio.updateCourse(u, id.parse(courseId), courseInput.parse(input)).then(() => undefined));
 }
-export async function publishCourseAction(courseId: string, confirmTitle: string) {
+export async function publishCourseAction(courseId: string, confirmTitle: string, audience: string = "public") {
   return run(async (u) => {
     const c = await studio.studioCourse(u, id.parse(courseId));
     if (z.string().max(160).parse(confirmTitle).trim() !== c.title) throw new studio.StudioError("Type the course title exactly to confirm.");
-    await studio.publishCourse(u, c.id);
+    await studio.publishCourse(u, c.id, z.enum(["public", "in_house"]).parse(audience));
   });
 }
 export async function unpublishCourseAction(courseId: string) {
@@ -111,4 +111,13 @@ export async function setVideoStatusAction(blockId: string, status: string) {
 export async function recordCheckpointAction(blockId: string, itemId: string, result: string) {
   const r = z.enum(["GOT", "MISSED"]).parse(result);
   return run(async (u) => void (await studio.recordCheckpoint(u, id.parse(blockId), z.string().min(1).max(40).parse(itemId), r)));
+}
+
+export async function setVideoStatusesAction(blockIds: string[], status: string) {
+  const st = z.enum(["unreviewed", "approved", "hidden"]).parse(status);
+  return run(async (u) => ({ changed: await studio.setVideoStatuses(u, z.array(id).max(1000).parse(blockIds), st) }));
+}
+
+export async function reshuffleSetAction(setId: string) {
+  return run((u) => studio.reshuffleSet(u, id.parse(setId)));
 }

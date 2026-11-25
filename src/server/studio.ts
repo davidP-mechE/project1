@@ -1,5 +1,5 @@
 import "server-only";
-import { randomBytes } from "node:crypto";
+import { randomBytes, randomInt } from "node:crypto";
 import { db } from "./db";
 import { NotFoundError } from "./courses";
 import { isOwner } from "./roles";
@@ -140,10 +140,11 @@ export async function updateCourse(ownerId: string, id: string, input: { title?:
 }
 
 /** Publishing flips status and visibility together (after the owner confirms in the page). */
-export async function publishCourse(ownerId: string, id: string) {
+/** Publish to everyone ("public"), or to the owner and classes with in-house access only ("in_house"). */
+export async function publishCourse(ownerId: string, id: string, audience: "public" | "in_house" = "public") {
   const c = await studioCourse(ownerId, id);
   if (!c.units.some((u) => u.lessons.length)) throw new StudioError("Add at least one lesson before publishing.");
-  return db.studioCourse.update({ where: { id }, data: { status: "published", visibility: "public", publishedAt: new Date() } });
+  return db.studioCourse.update({ where: { id }, data: { status: "published", visibility: audience, publishedAt: new Date() } });
 }
 
 /** Unpublish (or un-archive) returns the course to a private draft. */
@@ -454,4 +455,75 @@ export async function uploadToLesson(ownerId: string, lessonId: string, name: st
 export async function studioSetOptions(ownerId: string) {
   await requireOwnerId(ownerId);
   return db.questionSet.findMany({ where: setWhere(await contentAccess(ownerId)), orderBy: { title: "asc" }, select: { id: true, title: true, status: true } });
+}
+
+// ─── Owner: video review and sets ────────────────────────────────────────
+
+/** Every video block in every course, in course order, for the Video review page. */
+export async function studioVideos(ownerId: string) {
+  await requireOwnerId(ownerId);
+  const rows = await db.studioBlock.findMany({
+    where: { kind: "video" },
+    select: { id: true, data: true, lesson: { select: { id: true, title: true, number: true, order: true, unit: { select: { title: true, order: true, course: { select: { id: true, title: true } } } } } }, order: true },
+  });
+  return rows
+    .flatMap((r) => {
+      const v = VideoDataSchema.safeParse(r.data);
+      return v.success ? [{ id: r.id, video: v.data, lesson: r.lesson, order: r.order }] : [];
+    })
+    .sort((a, b) => a.lesson.unit.course.title.localeCompare(b.lesson.unit.course.title) || a.lesson.unit.order - b.lesson.unit.order || a.lesson.order - b.lesson.order || a.order - b.order);
+}
+
+/** Approve, hide or reset many videos at once (e.g. "approve every unreviewed video"). */
+export async function setVideoStatuses(ownerId: string, blockIds: string[], status: ReviewStatus) {
+  await requireOwnerId(ownerId);
+  const rows = await db.studioBlock.findMany({ where: { id: { in: blockIds }, kind: "video" }, select: { id: true, data: true } });
+  for (const r of rows) {
+    const v = VideoDataSchema.safeParse(r.data);
+    if (v.success && v.data.reviewStatus !== status) await db.studioBlock.update({ where: { id: r.id }, data: { data: { ...v.data, reviewStatus: status } } });
+  }
+  return rows.length;
+}
+
+/** Sets used in Studio lessons (and imported ones): size, difficulty mix, and where they're used. */
+export async function studioSets(ownerId: string) {
+  await requireOwnerId(ownerId);
+  const blocks = await db.studioBlock.findMany({ where: { kind: "question_set" }, select: { data: true, lesson: { select: { id: true, title: true, unit: { select: { course: { select: { title: true } } } } } } } });
+  const usedIn = new Map<string, { lessonId: string; label: string }[]>();
+  for (const b of blocks) {
+    const setId = String((b.data as { setId?: string }).setId ?? "");
+    usedIn.set(setId, [...(usedIn.get(setId) ?? []), { lessonId: b.lesson.id, label: `${b.lesson.unit.course.title} · ${b.lesson.title}` }]);
+  }
+  const access = await contentAccess(ownerId);
+  const sets = await db.questionSet.findMany({
+    where: { AND: [{ OR: [{ id: { in: [...usedIn.keys()] } }, { key: { not: null } }] }, setWhere(access)] },
+    orderBy: [{ key: "asc" }, { title: "asc" }],
+    select: { id: true, key: true, title: true, status: true, audience: true, source: true, questionIds: true },
+  });
+  const qs = await db.bankQuestion.findMany({ where: { id: { in: sets.flatMap((x) => x.questionIds) } }, select: { id: true, difficulty: true } });
+  const diff = new Map(qs.map((q) => [q.id, q.difficulty]));
+  return sets.map((x) => {
+    const mix = { easy: 0, medium: 0, hard: 0 };
+    for (const id of x.questionIds) {
+      const d = diff.get(id);
+      if (d === 1) mix.easy++;
+      else if (d === 2) mix.medium++;
+      else if (d === 3) mix.hard++;
+    }
+    return { ...x, count: x.questionIds.length, missing: x.questionIds.filter((id) => !diff.has(id)).length, mix, usedIn: usedIn.get(x.id) ?? [] };
+  });
+}
+
+/** Put a set's questions in a new random order (students already part-way through keep their answers). */
+export async function reshuffleSet(ownerId: string, setId: string) {
+  await requireOwnerId(ownerId);
+  const set = await db.questionSet.findFirst({ where: { AND: [{ id: setId }, setWhere(await contentAccess(ownerId))] }, select: { id: true, questionIds: true } });
+  if (!set) throw new NotFoundError("Not found");
+  const ids = [...set.questionIds];
+  for (let i = ids.length - 1; i > 0; i--) {
+    const j = randomInt(i + 1);
+    [ids[i], ids[j]] = [ids[j], ids[i]];
+  }
+  await db.questionSet.update({ where: { id: set.id }, data: { questionIds: ids } });
+  return { count: ids.length };
 }

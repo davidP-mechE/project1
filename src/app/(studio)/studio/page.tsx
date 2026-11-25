@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Card, PageHeader } from "@/components/ui/misc";
+import { ButtonLink } from "@/components/ui/button";
 import { NewCourseForm, StatusPill } from "@/components/studio/studio-forms";
 import { requireOwner } from "@/server/owner-guard";
 import { studioCourses } from "@/server/studio";
@@ -12,7 +13,17 @@ export default async function StudioPage() {
   const courses = await studioCourses(owner.id);
   return (
     <div className="mx-auto flex max-w-5xl flex-col gap-6">
-      <PageHeader eyebrow="Owner only" title="Course Studio" description="Your own courses. New courses are private drafts: nobody else can see them until you publish." />
+      <PageHeader
+        eyebrow="Owner only"
+        title="Course Studio"
+        description="Your own courses. New courses are private drafts: nobody else can see them until you publish."
+        actions={
+          <>
+            <ButtonLink href="/studio/videos" variant="secondary" size="sm">Video review</ButtonLink>
+            <ButtonLink href="/studio/sets" variant="secondary" size="sm">Sets</ButtonLink>
+          </>
+        }
+      />
       <Card className="flex flex-col gap-3">
         <h2 className="text-lg font-semibold">New course</h2>
         <NewCourseForm />

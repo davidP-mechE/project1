@@ -24,7 +24,7 @@ export default async function StudioCoursePage({ params }: PageProps<"/studio/co
       <p className="text-sm">
         <Link href="/studio" className="text-muted hover:underline">← Course Studio</Link>
       </p>
-      <PageHeader title={c.title} description={c.status === "published" ? `Published at /learn/${c.slug}` : "Private: only you can see it."} actions={<StatusPill status={c.status} />} />
+      <PageHeader title={c.title} description={c.status === "published" ? `Published${c.visibility === "in_house" ? " to in-house classes only" : " to everyone"} at /learn/${c.slug}` : "Private: only you can see it."} actions={<StatusPill status={c.status} />} />
       <Card>
         <CourseSettings course={{ id: c.id, title: c.title, section: c.section, description: c.description, status: c.status, slug: c.slug }} />
       </Card>
