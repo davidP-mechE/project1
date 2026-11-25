@@ -64,7 +64,7 @@ export async function listPublicCourses(q?: string) {
 
 /** A course by slug, with units and lessons, if this viewer may see it; otherwise "not found". */
 export async function courseForViewer(viewerId: string | null, slug: string) {
-  const c = await db.studioCourse.findUnique({ where: { slug }, include: { units: { orderBy: { order: "asc" }, include: { lessons: { orderBy: { order: "asc" }, select: { id: true, title: true } } } } } });
+  const c = await db.studioCourse.findUnique({ where: { slug }, include: { units: { orderBy: { order: "asc" }, include: { lessons: { orderBy: { order: "asc" }, select: { id: true, title: true, number: true, estimatedMinutes: true } } } } } });
   if (!c || !canView(c, await contentAccess(viewerId))) throw new NotFoundError("Not found");
   return c;
 }
@@ -99,7 +99,7 @@ export async function studioCourses(ownerId: string) {
 
 export async function studioCourse(ownerId: string, id: string) {
   await requireOwnerId(ownerId);
-  const c = await db.studioCourse.findUnique({ where: { id }, include: { units: { orderBy: { order: "asc" }, include: { lessons: { orderBy: { order: "asc" }, select: { id: true, title: true, desmosTechnique: true, _count: { select: { blocks: true } } } } } } } });
+  const c = await db.studioCourse.findUnique({ where: { id }, include: { units: { orderBy: { order: "asc" }, include: { lessons: { orderBy: { order: "asc" }, select: { id: true, title: true, number: true, estimatedMinutes: true, desmosTechnique: true, _count: { select: { blocks: true } } } } } } } });
   if (!c) throw new NotFoundError("Not found");
   return c;
 }

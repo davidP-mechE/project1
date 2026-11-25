@@ -7,7 +7,7 @@ import { CalculatorPanel } from "@/components/desmos/calculator-panel";
 import { CalloutBlock, CheckpointBlock, DesmosStepsBlock, VideoBlock } from "./lesson-blocks";
 import { CalloutDataSchema, CheckpointDataSchema, DesmosStepsSchema, isDesmosSteps, VideoDataSchema } from "@/lib/studio/blocks";
 
-type Course = { title: string; description: string; section: string; units: { id: string; title: string; lessons: { id: string; title: string }[] }[] };
+type Course = { title: string; description: string; section: string; estimatedHours?: number | null; units: { id: string; title: string; summary?: string; lessons: { id: string; title: string; number?: string | null; estimatedMinutes?: number | null }[] }[] };
 type Block = { id: string; kind: "markdown" | "file" | "desmos" | "question_set" | "video" | "callout" | "checkpoint"; data: unknown };
 type FileRow = { id: string; name: string; contentType: string };
 
@@ -16,9 +16,11 @@ export function CourseOutline({ course, lessonHref }: { course: Course; lessonHr
   return (
     <div className="flex flex-col gap-4">
       {course.description && <p className="max-w-2xl text-muted">{course.description}</p>}
+      {course.estimatedHours ? <p className="text-sm text-muted">About {course.estimatedHours} hours, self-paced.</p> : null}
       {course.units.map((u) => (
         <Card key={u.id} className="flex flex-col gap-2">
           <h2 className="text-lg font-semibold">{u.title}</h2>
+          {u.summary && <p className="text-sm text-muted">{u.summary}</p>}
           {u.lessons.length === 0 ? (
             <p className="text-sm text-muted">No lessons yet.</p>
           ) : (
@@ -26,8 +28,9 @@ export function CourseOutline({ course, lessonHref }: { course: Course; lessonHr
               {u.lessons.map((l, i) => (
                 <li key={l.id}>
                   <Link href={lessonHref(l.id)} className="flex items-center gap-3 py-2 hover:underline">
-                    <span className="w-6 text-sm tabular-nums text-muted">{i + 1}.</span>
-                    {l.title}
+                    <span className="w-8 shrink-0 text-sm tabular-nums text-muted">{l.number ?? `${i + 1}.`}</span>
+                    <span className="flex-1">{l.title}</span>
+                    {l.estimatedMinutes ? <span className="text-xs text-muted">{l.estimatedMinutes} min</span> : null}
                   </Link>
                 </li>
               ))}
@@ -107,5 +110,22 @@ export function LessonBlocks({ blocks, files, sets, section, desmosKey, lessonId
         );
       })}
     </div>
+  );
+}
+
+/** "In this lesson": the objectives and time, above the blocks. */
+export function LessonIntro({ objectives, estimatedMinutes }: { objectives: string[]; estimatedMinutes: number | null }) {
+  if (!objectives.length && !estimatedMinutes) return null;
+  return (
+    <Card className="flex flex-col gap-2 p-4">
+      <p className="text-sm font-semibold">In this lesson{estimatedMinutes ? ` · about ${estimatedMinutes} minutes` : ""}</p>
+      {objectives.length > 0 && (
+        <ul className="list-disc space-y-1 pl-5 text-sm">
+          {objectives.map((o, i) => (
+            <li key={i}>{o}</li>
+          ))}
+        </ul>
+      )}
+    </Card>
   );
 }

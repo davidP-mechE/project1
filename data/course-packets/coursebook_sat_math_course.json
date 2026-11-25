@@ -1,0 +1,5378 @@
+{
+ "format": "coursebook-course-packet",
+ "format_version": 1,
+ "course": {
+  "slug": "sat-math-master",
+  "title": "SAT Math Master Course",
+  "section": "math",
+  "program": "The 1600 Project",
+  "description": "A complete, self-paced SAT Math course from The 1600 Project: every skill on the test, Desmos techniques, worked examples, videos, and practice sets of real SAT Question Bank items.",
+  "status": "draft",
+  "visibility": "owner_only",
+  "release": "in_house_only",
+  "estimated_hours": 45,
+  "units": [
+   {
+    "id": "M-U0",
+    "number": 0,
+    "title": "Start Here",
+    "summary": "How SAT Math works, how this course works, and the Desmos basics you'll use in every unit.",
+    "lessons": [
+     {
+      "id": "M-0.1",
+      "number": "0.1",
+      "title": "How SAT Math Works",
+      "estimated_minutes": 25,
+      "objectives": [
+       "Know the section's format, timing and question types.",
+       "Understand how the adaptive second module works.",
+       "Set up a study routine for this course."
+      ],
+      "skills": [
+       "Test format"
+      ],
+      "blueprints": [],
+      "blocks": [
+       {
+        "type": "markdown",
+        "content": "## The section at a glance\n- **44 questions in 70 minutes**, split into two 35-minute modules of 22 questions each. That's about **95 seconds per question**.\n- Each module includes 2 unscored \"pretest\" questions. You can't tell which ones they are, so treat every question as real.\n- About 75% of questions are multiple choice. The rest are **student-produced responses** (grid-ins): you type the answer.\n- The **Desmos graphing calculator** is built into Bluebook and allowed on every question. A **reference sheet** with area, volume and triangle formulas is available too.\n\n## The four content domains\n| Domain | Share of the test | Units in this course |\n|---|---|---|\n| Algebra | about 35% | Unit 1 |\n| Advanced Math | about 35% | Unit 2 |\n| Problem-Solving and Data Analysis | about 15% | Unit 3 |\n| Geometry and Trigonometry | about 15% | Unit 4 |\n\n## Adaptive modules\nModule 1 is a broad mix of easy, medium and hard questions. How you do there decides whether Module 2 is the harder or easier version. **Only the harder Module 2 unlocks the top scores**, so accuracy in Module 1 matters most.\n\n## How to use this course\n1. Work through the units in order. Unit 5 (Desmos Masterclass) can be done alongside Units 1–2.\n2. In every lesson: read the key ideas, follow the worked examples, watch the videos, then do the Quick check.\n3. Do the practice set until you're getting about 80% right, then move on.\n4. Log every miss in your error log (Unit 6) and take a full Bluebook practice test every 2–3 units."
+       },
+       {
+        "type": "callout",
+        "variant": "tip",
+        "title": "Our rule for every problem",
+        "content": "**Predict → Type → Check.** Set up the problem and estimate the answer before touching the calculator. Then check: does the result match your prediction, and does it answer what the question asks? Circle what the question asks for."
+       },
+       {
+        "type": "video",
+        "provider": "youtube",
+        "video_id": "2aiVO9FoGg4",
+        "url": "https://www.youtube.com/watch?v=2aiVO9FoGg4",
+        "title": "Format of the Digital SAT: adaptive testing explained",
+        "why_watch": "A walkthrough of the module structure and why Module 1 accuracy matters.",
+        "review_status": "unreviewed"
+       },
+       {
+        "type": "video",
+        "provider": "youtube",
+        "video_id": "XfdSI_rJ9II",
+        "url": "https://www.youtube.com/watch?v=XfdSI_rJ9II",
+        "title": "All of SAT Math explained in 6 minutes",
+        "why_watch": "A fast map of every topic you'll study in this course.",
+        "review_status": "unreviewed"
+       },
+       {
+        "type": "checkpoint",
+        "title": "Quick check",
+        "instructions": "Try each one before you reveal the answer.",
+        "items": [
+         {
+          "id": "c1",
+          "prompt": "How many minutes do you get for each Math module, and how many questions are in it?",
+          "answer": "35 minutes, 22 questions",
+          "explanation": "Two modules make 44 questions in 70 minutes."
+         },
+         {
+          "id": "c2",
+          "prompt": "Why does Module 1 matter more than it seems?",
+          "answer": "It decides whether Module 2 is the harder version",
+          "explanation": "Only the harder Module 2 can lead to the top scores."
+         }
+        ]
+       },
+       {
+        "type": "question_set",
+        "set_id": "M-0.1",
+        "title": "0.1 Practice Set (65 questions)",
+        "status": "ready",
+        "skills": [
+         "Test format"
+        ],
+        "blueprints": [],
+        "mode": "practice",
+        "note": "Exact College Board Question Bank items. In-house use only: owner and assigned 1600 Project classes.",
+        "question_ids": [
+         "8643d906",
+         "720e51ac",
+         "17d80dc3",
+         "40f2e601",
+         "9966235e",
+         "b2fe7ab6",
+         "38517165",
+         "33e4af6b",
+         "72ebc024",
+         "502d9690",
+         "983412ea",
+         "868fc236",
+         "5f46fc76",
+         "928498f3",
+         "099526fc",
+         "11e1ab81",
+         "946ab892",
+         "e3cf671f",
+         "c22b5f25",
+         "45998262",
+         "080e75c2",
+         "340afb12",
+         "73e1b793",
+         "957a51b9",
+         "fb15e088",
+         "0d5495a6",
+         "0380bbdc",
+         "797a81fb",
+         "6a3fbec3",
+         "0cadb20e",
+         "124bc42b",
+         "3c03cbd8",
+         "3563d76d",
+         "b74f2feb",
+         "5ae4803e",
+         "a91a2b75",
+         "1318dfea",
+         "a1262cdb",
+         "7866a908",
+         "70f98ab4",
+         "50f4cb9c",
+         "56dc8045",
+         "567ac7ab",
+         "70774aa4",
+         "3ce92ce8",
+         "565428e1",
+         "9db5b5c1",
+         "35bec412",
+         "7d721177",
+         "8ad64841",
+         "2eef7e61",
+         "b52e5b6f",
+         "c8e9a011",
+         "1d18794b",
+         "af711d1b",
+         "9a216c0f",
+         "ac472881",
+         "de799680",
+         "3d7d7534",
+         "7d89376f",
+         "4d8ccb96",
+         "bef4b1c6",
+         "adb0c96c",
+         "c387583f",
+         "d0e8e8f5"
+        ],
+        "count": 65,
+        "difficulty_counts": {
+         "Easy": 20,
+         "Medium": 29,
+         "Hard": 16
+        },
+        "source": "college_board",
+        "visibility": "in_house"
+       }
+      ]
+     },
+     {
+      "id": "M-0.2",
+      "number": "0.2",
+      "title": "Desmos Essentials",
+      "estimated_minutes": 35,
+      "objectives": [
+       "Use the six Desmos moves that power every technique in this course.",
+       "Follow the three typing rules that prevent most Desmos errors."
+      ],
+      "skills": [
+       "Desmos basics"
+      ],
+      "blueprints": [],
+      "blocks": [
+       {
+        "type": "markdown",
+        "content": "## A tool, not the solver\nDesmos does the arithmetic and the graphing. You still decide what to type and whether the result answers the question. Students who know Desmos as a tool can still reason through the questions where it doesn't help.\n\n## Three rules for every problem\n1. **Rename the variables to x and y.** Desmos graphs in x and y. If the question uses t or m, retype it with x.\n2. **= graphs; ~ fits a model to data.**\n3. **Type _ for subscripts:** `x_1` gives x₁.\n\n## The six essentials\n| Move | What it does |\n|---|---|\n| Points of interest | Click a curve to show gray points at intercepts, maximums, minimums and intersections. Click a point to read its coordinates. |\n| Hide and show | Click the colored circle next to an expression to turn its graph off or on. |\n| Sliders | Type a letter Desmos doesn't know yet, like k, and it offers a slider. |\n| Tables | Click + and choose \"table.\" Columns are x₁ and y₁, and the points plot automatically. |\n| Regression | Use ~ instead of =, like `y_1 ~ mx_1 + b`. Desmos reports the constants. |\n| Lists | Square brackets hold several values: `f([1, 2, 3])` evaluates all of them at once. |"
+       },
+       {
+        "type": "desmos",
+        "title": "Try all six",
+        "use_when": "Before you start Unit 1. Open desmos.com/calculator (or the calculator in Bluebook) and type each line.",
+        "steps": [
+         "Type the parabola and click it to see its gray points.",
+         "Type the line with k and accept the slider; drag k.",
+         "Define f, then evaluate a list of inputs.",
+         "Add a table with a few points, then run the regression."
+        ],
+        "expressions": [
+         {
+          "id": "e1",
+          "latex": "y=x^2-5x-14"
+         },
+         {
+          "id": "e2",
+          "latex": "y=2x+k"
+         },
+         {
+          "id": "e3",
+          "latex": "f(x)=4x-7"
+         },
+         {
+          "id": "e4",
+          "latex": "f([2,3,5,8])"
+         },
+         {
+          "id": "e5",
+          "latex": "y_1\\sim mx_1+b"
+         }
+        ],
+        "check": "The parabola's zeros are (−2, 0) and (7, 0). f([2, 3, 5, 8]) returns [1, 5, 13, 25].",
+        "watch_out": "Use square brackets for lists, and a one-letter function name like f or g."
+       },
+       {
+        "type": "video",
+        "provider": "youtube",
+        "video_id": "-pGNBb8M3LQ",
+        "url": "https://www.youtube.com/watch?v=-pGNBb8M3LQ",
+        "title": "The only SAT Math Desmos guide you'll ever need",
+        "why_watch": "A full tour of the calculator features used on the SAT.",
+        "review_status": "unreviewed"
+       },
+       {
+        "type": "video",
+        "provider": "youtube_playlist",
+        "playlist_id": "PLREMg1hjwo3yeLHVxUN7ccSKlNzBUmIrY",
+        "url": "https://www.youtube.com/playlist?list=PLREMg1hjwo3yeLHVxUN7ccSKlNzBUmIrY",
+        "title": "Ultimate Desmos Guide to Digital SAT Math (playlist)",
+        "why_watch": "Optional deeper series: core, intermediate and advanced Desmos skills.",
+        "review_status": "unreviewed"
+       },
+       {
+        "type": "checkpoint",
+        "title": "Quick check",
+        "instructions": "Try each one before you reveal the answer.",
+        "items": [
+         {
+          "id": "c1",
+          "prompt": "What symbol tells Desmos to fit a model instead of graphing an equation?",
+          "answer": "~ (tilde)",
+          "explanation": "= graphs; ~ runs a regression."
+         },
+         {
+          "id": "c2",
+          "prompt": "The question uses the variable t. What do you do before typing it into Desmos?",
+          "answer": "Rename t to x",
+          "explanation": "Desmos graphs in x and y."
+         }
+        ]
+       },
+       {
+        "type": "question_set",
+        "set_id": "M-0.2",
+        "title": "0.2 Practice Set (65 questions)",
+        "status": "ready",
+        "skills": [
+         "Desmos basics"
+        ],
+        "blueprints": [],
+        "mode": "practice",
+        "note": "Exact College Board Question Bank items. In-house use only: owner and assigned 1600 Project classes.",
+        "question_ids": [
+         "1a0baf64",
+         "4a80d71f",
+         "7a8cb72a",
+         "966c41ff",
+         "4bac9af3",
+         "b2de69bd",
+         "ce940f80",
+         "4b6f0a3f",
+         "4becad44",
+         "e1248a5c",
+         "58c7daed",
+         "b03adde3",
+         "1480dd5c",
+         "d0cb49e8",
+         "bd45df49",
+         "979c6ebc",
+         "f535157f",
+         "f2f3fa00",
+         "a04190b7",
+         "c039b198",
+         "d4572f55",
+         "e142f83c",
+         "38a43902",
+         "be1b8c74",
+         "66bce0c1",
+         "197e1c77",
+         "f76c1858",
+         "06fc1726",
+         "e62cfe5f",
+         "2683b5db",
+         "d0a7871e",
+         "5da5c665",
+         "e470e19d",
+         "0c490cd5",
+         "59813abf",
+         "e1259a5a",
+         "7efe5495",
+         "74c03c21",
+         "3a01a5ee",
+         "620fe971",
+         "6bd40794",
+         "b23bba4c",
+         "9551cd91",
+         "6989c80a",
+         "52a8ef85",
+         "590d662d",
+         "d44bfa1d",
+         "255996a6",
+         "431c3038",
+         "ee1f63c0",
+         "f75bd744",
+         "ee846db7",
+         "df78b361",
+         "ed18c4f7",
+         "876a731c",
+         "e833de9a",
+         "2f34cd1c",
+         "13e57f0a",
+         "483d208d",
+         "30596346",
+         "62ef6f73",
+         "56e1b09e",
+         "c5e38487",
+         "c8fb6bcb",
+         "aad7e1b9"
+        ],
+        "count": 65,
+        "difficulty_counts": {
+         "Easy": 20,
+         "Medium": 29,
+         "Hard": 16
+        },
+        "source": "college_board",
+        "visibility": "in_house"
+       }
+      ]
+     }
+    ],
+    "review_sets": []
+   },
+   {
+    "id": "M-U1",
+    "number": 1,
+    "title": "Algebra",
+    "summary": "Linear equations, lines, linear models, systems and inequalities: the biggest domain on the test.",
+    "lessons": [
+     {
+      "id": "M-1.1",
+      "number": "1.1",
+      "title": "Linear Equations in One Variable",
+      "estimated_minutes": 45,
+      "objectives": [
+       "Solve multi-step linear equations, including ones with fractions.",
+       "Recognize equations with no solution or infinitely many solutions.",
+       "Solve for an expression without solving for the variable."
+      ],
+      "skills": [
+       "Linear equations in one variable"
+      ],
+      "blueprints": [
+       "A8"
+      ],
+      "blocks": [
+       {
+        "type": "markdown",
+        "content": "## Key ideas\n- **Undo in reverse order:** distribute, combine like terms, move the variable to one side, then divide.\n- **Fractions:** multiply every term by the least common denominator first.\n- **Number of solutions:** after simplifying to the form ax + b = cx + d:\n  - a ≠ c → exactly one solution\n  - a = c and b ≠ d → **no solution** (same slope, different intercept)\n  - a = c and b = d → **infinitely many** (the same line)\n- **Solve for the expression:** if the question asks for 2a + 3b and gives 6a + 9b, scale the given equation. Don't solve for a and b.\n\n## Worked examples\n**1.** Solve 4(x − 3) + 7 = 2x + 11.\nDistribute: 4x − 12 + 7 = 2x + 11, so 4x − 5 = 2x + 11. Then 2x = 16 and **x = 8**.\nCheck: 4(5) + 7 = 27 and 2(8) + 11 = 27. ✓\n\n**2.** If 6a + 9b = 33, what is 2a + 3b?\nThe expression asked for is the given one divided by 3: **2a + 3b = 11**. Circle what the question asks for.\n\n**3.** For what value of k does 5(x + 2) = kx + 3 have no solution?\nLeft side: 5x + 10. No solution needs equal x-coefficients and different constants. With **k = 5**: 5x + 10 = 5x + 3, and 10 ≠ 3. ✓"
+       },
+       {
+        "type": "desmos",
+        "title": "Graph both sides",
+        "use_when": "A one-variable equation is messy to rearrange (fractions, parentheses, x on both sides).",
+        "steps": [
+         "Type the left side as y = (left side).",
+         "Type the right side as y = (right side).",
+         "Click the intersection. Its x-coordinate is the solution.",
+         "No intersection means no solution. One line on top of the other means infinitely many."
+        ],
+        "expressions": [
+         {
+          "id": "e1",
+          "latex": "y=3(x-2)+5"
+         },
+         {
+          "id": "e2",
+          "latex": "y=2x+9"
+         }
+        ],
+        "check": "Intersection (10, 29), so x = 10. Check by hand: 3(8) + 5 = 29 and 2(10) + 9 = 29.",
+        "watch_out": "Desmos graphs in x and y. If the equation uses another letter, retype it with x."
+       },
+       {
+        "type": "callout",
+        "variant": "trap",
+        "title": "Traps to watch for",
+        "content": "- Answering x when the question asks for 2x or x + 1.\n- Dropping a negative when distributing: −3(x − 4) = −3x **+ 12**.\n- Calling \"0 = 0\" no solution. It means infinitely many."
+       },
+       {
+        "type": "video",
+        "provider": "youtube",
+        "video_id": "hB43lR6qgoU",
+        "url": "https://www.youtube.com/watch?v=hB43lR6qgoU",
+        "title": "SAT Math: Linear Equations in One Variable",
+        "why_watch": "Isolating the variable and the common question styles.",
+        "review_status": "unreviewed"
+       },
+       {
+        "type": "video",
+        "provider": "youtube",
+        "video_id": "PMT7IOuSG4s",
+        "url": "https://www.youtube.com/watch?v=PMT7IOuSG4s",
+        "title": "From word problems to linear equations in one variable",
+        "why_watch": "Turning a story into an equation.",
+        "review_status": "unreviewed"
+       },
+       {
+        "type": "checkpoint",
+        "title": "Quick check",
+        "instructions": "Try each one before you reveal the answer.",
+        "items": [
+         {
+          "id": "c1",
+          "prompt": "Solve x/3 + 2 = x/2 − 1.",
+          "answer": "x = 18",
+          "explanation": "Multiply every term by 6: 2x + 12 = 3x − 6, so x = 18. Check: 6 + 2 = 8 and 9 − 1 = 8."
+         },
+         {
+          "id": "c2",
+          "prompt": "3(2x − 1) = 6x + c has infinitely many solutions. What is c?",
+          "answer": "c = −3",
+          "explanation": "The left side is 6x − 3. The two sides must be identical."
+         },
+         {
+          "id": "c3",
+          "prompt": "A gym charges a $35 sign-up fee plus $22 per month. Maria paid $255 in total. How many months did she pay for?",
+          "answer": "10",
+          "explanation": "35 + 22m = 255, so 22m = 220 and m = 10."
+         }
+        ]
+       },
+       {
+        "type": "question_set",
+        "set_id": "M-1.1",
+        "title": "1.1 Practice Set (75 questions)",
+        "status": "ready",
+        "skills": [
+         "Linear equations in one variable"
+        ],
+        "blueprints": [
+         "A8"
+        ],
+        "mode": "practice",
+        "note": "Exact College Board Question Bank items. In-house use only: owner and assigned 1600 Project classes.",
+        "question_ids": [
+         "0393ba15",
+         "fbb0ea7f",
+         "0cb57740",
+         "9ff10b3b",
+         "f09097b1",
+         "628300a9",
+         "8339793c",
+         "620abf36",
+         "5eb4918d",
+         "3f8a701b",
+         "40049d49",
+         "59afe8db",
+         "4771a64a",
+         "8c515062",
+         "2f0a43b2",
+         "018a2704",
+         "1ce51655",
+         "2937ef4f",
+         "baca4a4c",
+         "55ea0659",
+         "3c20deb8",
+         "5a7ab8e8",
+         "088bc84e",
+         "eafdbbbd",
+         "25e1cfed",
+         "f8fa0cf0",
+         "aee9fd2d",
+         "4f669597",
+         "aa85b138",
+         "0d685865",
+         "fa80893a",
+         "70e29454",
+         "79cf8505",
+         "5ad9eff0",
+         "c841e8e8",
+         "f14484a5",
+         "6cec2b22",
+         "87cc4d49",
+         "9d4270fe",
+         "40ba6288",
+         "2e8cc1c0",
+         "771bd0ca",
+         "5ab9903f",
+         "15daa8d6",
+         "6105234d",
+         "764efb37",
+         "36ab4122",
+         "12255364",
+         "bf749912",
+         "2e98b1df",
+         "ce314070",
+         "38bf4e04",
+         "d9d83c02",
+         "76f29fa5",
+         "69f609b2",
+         "6ac23de7",
+         "feb78194",
+         "51aabd93",
+         "b7e6394d",
+         "7a5a74a6",
+         "e34da75f",
+         "f5ff91b2",
+         "45bba652",
+         "12ee1edc",
+         "eac739b2",
+         "ce6b52d8",
+         "429fb7c0",
+         "4e77195b",
+         "935f3403",
+         "93954cfa",
+         "3d04de9c",
+         "7d5d1b32",
+         "d0a2fed5",
+         "f60aa0dc",
+         "0118f060"
+        ],
+        "count": 75,
+        "difficulty_counts": {
+         "Hard": 19,
+         "Easy": 27,
+         "Medium": 29
+        },
+        "source": "college_board",
+        "visibility": "in_house"
+       }
+      ]
+     },
+     {
+      "id": "M-1.2",
+      "number": "1.2",
+      "title": "Lines: Slope, Forms and Parallel/Perpendicular",
+      "estimated_minutes": 50,
+      "objectives": [
+       "Find slope from two points, a graph, or any form of a line.",
+       "Write the equation of a line in slope-intercept and point-slope form.",
+       "Find parallel and perpendicular lines."
+      ],
+      "skills": [
+       "Linear equations in two variables"
+      ],
+      "blueprints": [
+       "A1",
+       "A2"
+      ],
+      "blocks": [
+       {
+        "type": "markdown",
+        "content": "## Key ideas\n- **Slope** m = (y₂ − y₁)/(x₂ − x₁) = rise over run.\n- **Slope-intercept:** y = mx + b, where b is the y-intercept.\n- **Point-slope:** y − y₁ = m(x − x₁). The fastest form when you know a point and the slope.\n- **Standard form** Ax + By = C has slope **−A/B**.\n- **Parallel** lines have the same slope. **Perpendicular** slopes are negative reciprocals: **flip it and switch the sign** (2/3 → −3/2).\n- **Intercepts:** set x = 0 for the y-intercept; set y = 0 for the x-intercept.\n\n## Worked examples\n**1.** A line passes through (2, 5) and (6, 17). Find its equation.\nSlope = (17 − 5)/(6 − 2) = 12/4 = 3. Plug in (2, 5): 5 = 3(2) + b, so b = −1. **y = 3x − 1**.\n\n**2.** Find the line perpendicular to 2x + 3y = 12 that passes through (4, 1).\nThe given slope is −2/3. Flip it and switch the sign: 3/2. Point-slope: y − 1 = (3/2)(x − 4), so **y = (3/2)x − 5**.\n\n**3.** Where does y = −4x + 10 cross the x-axis?\nSet y = 0: 4x = 10, so the x-intercept is **(2.5, 0)**."
+       },
+       {
+        "type": "desmos",
+        "title": "Let regression find m and b",
+        "use_when": "You have two points or a table and need the line.",
+        "steps": [
+         "Click + and add a table. Enter the points in x₁ and y₁.",
+         "Type y_1 ~ mx_1 + b (tilde, not equals).",
+         "Read m and b from the regression results."
+        ],
+        "expressions": [
+         {
+          "id": "e1",
+          "latex": "y_1\\sim mx_1+b"
+         }
+        ],
+        "check": "For the points (2, 5) and (6, 17), Desmos reports m = 3 and b = −1.",
+        "watch_out": "R² = 1 means the points are exactly linear. Anything less means a typo."
+       },
+       {
+        "type": "callout",
+        "variant": "trap",
+        "title": "Traps to watch for",
+        "content": "- Using Δx/Δy instead of Δy/Δx.\n- Flipping the slope without switching the sign (or the reverse) for perpendicular lines.\n- Reading slope from Ax + By = C as A/B instead of −A/B."
+       },
+       {
+        "type": "video",
+        "provider": "youtube",
+        "video_id": "_cs4U3ecifQ",
+        "url": "https://www.youtube.com/watch?v=_cs4U3ecifQ",
+        "title": "SAT Math: Linear Equations in Two Variables",
+        "why_watch": "Slope, intercepts and interpreting linear equations.",
+        "review_status": "unreviewed"
+       },
+       {
+        "type": "video",
+        "provider": "youtube",
+        "video_id": "wBMVLPv40Oo",
+        "url": "https://www.youtube.com/watch?v=wBMVLPv40Oo",
+        "title": "SAT Prep: Linear Graphs (Basics)",
+        "why_watch": "Slope, forms, and parallel and perpendicular lines.",
+        "review_status": "unreviewed"
+       },
+       {
+        "type": "checkpoint",
+        "title": "Quick check",
+        "instructions": "Try each one before you reveal the answer.",
+        "items": [
+         {
+          "id": "c1",
+          "prompt": "What is the slope of 5x − 2y = 8?",
+          "answer": "5/2",
+          "explanation": "Slope = −A/B = −5/(−2) = 5/2."
+         },
+         {
+          "id": "c2",
+          "prompt": "A line passes through (−1, 4) and (3, −4). What is its y-intercept?",
+          "answer": "2",
+          "explanation": "Slope = −8/4 = −2. Then 4 = −2(−1) + b, so b = 2."
+         },
+         {
+          "id": "c3",
+          "prompt": "Line ℓ has slope −4. What is the slope of a line perpendicular to ℓ?",
+          "answer": "1/4",
+          "explanation": "Flip it and switch the sign."
+         }
+        ]
+       },
+       {
+        "type": "question_set",
+        "set_id": "M-1.2",
+        "title": "1.2 Practice Set (75 questions)",
+        "status": "ready",
+        "skills": [
+         "Linear equations in two variables"
+        ],
+        "blueprints": [
+         "A1",
+         "A2"
+        ],
+        "mode": "practice",
+        "note": "Exact College Board Question Bank items. In-house use only: owner and assigned 1600 Project classes.",
+        "question_ids": [
+         "9bbce683",
+         "2d0e13a6",
+         "ed856e9c",
+         "f81a0503",
+         "768f3b7c",
+         "c307283c",
+         "98d3393a",
+         "deee9063",
+         "3cdbf026",
+         "1a1a95de",
+         "c39dbbdf",
+         "24854644",
+         "fb43b85f",
+         "f40552a9",
+         "e3d9aacc",
+         "a4c1cb45",
+         "a35c7164",
+         "773f698f",
+         "17dffba1",
+         "9f70fd47",
+         "6f6dfe3e",
+         "265f2a53",
+         "d7c8ba0b",
+         "0b46bad5",
+         "a7a14e87",
+         "cb58833c",
+         "babbaa4c",
+         "ca452900",
+         "b9835972",
+         "9b0a4eae",
+         "eeebe166",
+         "49800634",
+         "2554b413",
+         "8b2a2a63",
+         "a4989860",
+         "00b9bd37",
+         "5b8a8475",
+         "a1fd2304",
+         "99ea3715",
+         "51568fb9",
+         "9ed4c1a2",
+         "b2845d88",
+         "e0f59119",
+         "8a1544f1",
+         "4722abd2",
+         "db422e7f",
+         "6fa1dc0f",
+         "d62ad380",
+         "3008cfc3",
+         "db0107df",
+         "6d8ad460",
+         "686b7244",
+         "184ce5aa",
+         "63be6c9a",
+         "0451d754",
+         "05bb1af9",
+         "94b48cbf",
+         "9aaf7786",
+         "10c448d6",
+         "1fe778dc",
+         "fdee0fbf",
+         "002dba45",
+         "01682aa5",
+         "bbb0359a",
+         "9f3cb472",
+         "2e0290c3",
+         "92aa3a94",
+         "12ae3452",
+         "9d0396d4",
+         "5e34b099",
+         "cc3e9528",
+         "5b7599a6",
+         "b8fa27db",
+         "00723d16",
+         "606cdce7"
+        ],
+        "count": 75,
+        "difficulty_counts": {
+         "Hard": 27,
+         "Easy": 19,
+         "Medium": 29
+        },
+        "source": "college_board",
+        "visibility": "in_house"
+       }
+      ]
+     },
+     {
+      "id": "M-1.3",
+      "number": "1.3",
+      "title": "Linear Functions and Models",
+      "estimated_minutes": 45,
+      "objectives": [
+       "Build a linear function from a table, two values, or a context.",
+       "Interpret slope and intercept in context.",
+       "Model threshold costs like 'first 5 GB included.'"
+      ],
+      "skills": [
+       "Linear functions"
+      ],
+      "blueprints": [
+       "A3",
+       "A6"
+      ],
+      "blocks": [
+       {
+        "type": "markdown",
+        "content": "## Key ideas\n- In a context, **slope is the rate** (per hour, per item, each) and **the intercept is the starting value** (when the input is 0).\n- From a table, slope = Δf/Δx. Watch tables where x jumps by more than 1.\n- **f(k)** gives you an input and asks for the output. **f(a) = v** gives you an output and asks for the input.\n- **Threshold models:** only units past the threshold cost extra: cost = base + rate × (units − threshold).\n\n## Worked examples\n**1.** A table shows x = 1, 4, 7 and f(x) = 5, 14, 23. Find f(10), and the value of a where f(a) = 50.\nSlope = 9/3 = 3 (x steps by 3, not 1). Then 5 = 3(1) + b, so b = 2 and f(x) = 3x + 2.\n**f(10) = 32.** For f(a) = 50: 3a + 2 = 50, so **a = 16**.\n\n**2.** A tank holds 480 gallons and drains at 15 gallons per minute. V(t) = 480 − 15t.\n−15 is the rate: the volume drops 15 gallons each minute. 480 is the starting volume. It's empty when 480 − 15t = 0, at **t = 32 minutes**.\n\n**3.** A phone plan costs $40 a month and includes 5 GB. Each GB over 5 costs $8. What does a 9 GB month cost?\nOnly 4 GB are extra: 40 + 8(9 − 5) = **$72**."
+       },
+       {
+        "type": "desmos",
+        "title": "Evaluate from two values",
+        "use_when": "You're given two values like f(2) = 7 and f(5) = 16 and need another value.",
+        "steps": [
+         "Add a table with (2, 7) and (5, 16).",
+         "Regress: y_1 ~ mx_1 + b.",
+         "Define f(x) with those numbers and evaluate f(10)."
+        ],
+        "expressions": [
+         {
+          "id": "e1",
+          "latex": "y_1\\sim mx_1+b"
+         },
+         {
+          "id": "e2",
+          "latex": "f(x)=3x+1"
+         },
+         {
+          "id": "e3",
+          "latex": "f(10)"
+         }
+        ],
+        "check": "m = 3, b = 1, f(10) = 31.",
+        "watch_out": "After Desmos finds m and b, say what they mean in context: the rate and the starting value."
+       },
+       {
+        "type": "callout",
+        "variant": "trap",
+        "title": "Traps to watch for",
+        "content": "- Slope = Δf alone when the x-values step by 2, 3 or more.\n- Answering f(k) when the question asked for the input a (or the reverse).\n- Charging every unit at the overage rate instead of only the ones past the threshold."
+       },
+       {
+        "type": "video",
+        "provider": "youtube",
+        "video_id": "SRxukm38PIo",
+        "url": "https://www.youtube.com/watch?v=SRxukm38PIo",
+        "title": "Linear function from a table using Desmos",
+        "why_watch": "A table-to-function question solved with regression.",
+        "review_status": "unreviewed"
+       },
+       {
+        "type": "video",
+        "provider": "youtube",
+        "video_id": "ITzVsUwvggY",
+        "url": "https://www.youtube.com/watch?v=ITzVsUwvggY",
+        "title": "Translating a word problem into a linear equation",
+        "why_watch": "'Each', 'every' and 'per' signal the slope.",
+        "review_status": "unreviewed"
+       },
+       {
+        "type": "checkpoint",
+        "title": "Quick check",
+        "instructions": "Try each one before you reveal the answer.",
+        "items": [
+         {
+          "id": "c1",
+          "prompt": "f is linear, f(2) = 7 and f(5) = 16. What is f(10)?",
+          "answer": "31",
+          "explanation": "Slope = 9/3 = 3; b = 7 − 6 = 1; f(10) = 31."
+         },
+         {
+          "id": "c2",
+          "prompt": "A taxi fare is C = 3.50 + 2.25m, where m is miles. What does 2.25 represent?",
+          "answer": "The cost per mile",
+          "explanation": "It's the rate: each additional mile adds $2.25."
+         },
+         {
+          "id": "c3",
+          "prompt": "Using the phone plan above ($40, 5 GB included, $8 per extra GB), what does a 12 GB month cost?",
+          "answer": "$96",
+          "explanation": "40 + 8(12 − 5) = 40 + 56 = 96."
+         }
+        ]
+       },
+       {
+        "type": "question_set",
+        "set_id": "M-1.3",
+        "title": "1.3 Practice Set (75 questions)",
+        "status": "ready",
+        "skills": [
+         "Linear functions"
+        ],
+        "blueprints": [
+         "A3",
+         "A6"
+        ],
+        "mode": "practice",
+        "note": "Exact College Board Question Bank items. In-house use only: owner and assigned 1600 Project classes.",
+        "question_ids": [
+         "c5479c1a",
+         "c81f1c2f",
+         "d11910d6",
+         "1993561d",
+         "4b0c156b",
+         "114ae8a9",
+         "023c0a8d",
+         "a73a5c22",
+         "f7e39fe9",
+         "535fa6e6",
+         "fc4a0d2a",
+         "b988eeec",
+         "7625073d",
+         "0b332f00",
+         "8c5e6702",
+         "a7e2859a",
+         "a775af14",
+         "629a0e17",
+         "cea27ab2",
+         "68f343c9",
+         "113b938e",
+         "7fac16fb",
+         "1087f6c4",
+         "ebd457f4",
+         "01d5ae98",
+         "4fe4fd7c",
+         "1bc11c4e",
+         "be9cb6a2",
+         "3dffe9d2",
+         "3d1070c9",
+         "2e1a7f66",
+         "c1bd5301",
+         "fe287f7e",
+         "5cf1bbc9",
+         "daad7c32",
+         "1ecaa9c0",
+         "a5834ea4",
+         "d1042cf8",
+         "548a4929",
+         "67d63e19",
+         "a130fcdc",
+         "3122fc7b",
+         "5d8c790a",
+         "415ab1d2",
+         "346d5c2e",
+         "4acd05cd",
+         "038d87d7",
+         "ccd7cd55",
+         "2493c767",
+         "d1f50dbe",
+         "af2ba762",
+         "16889ef3",
+         "400798d6",
+         "b450ab03",
+         "e8b9be7a",
+         "1eb5ec45",
+         "9c7741c6",
+         "dae126d7",
+         "2b15d65f",
+         "7e3f8363",
+         "0d1b1e35",
+         "7e1bff94",
+         "295a41f0",
+         "8987f1d0",
+         "1c29bfd1",
+         "637022d2",
+         "e144dfaf",
+         "9d9fe1e6",
+         "23dedddd",
+         "cc7ffe02",
+         "53487897",
+         "41fdc0b8",
+         "81ca4d02",
+         "107d0c62",
+         "e7343559"
+        ],
+        "count": 75,
+        "difficulty_counts": {
+         "Easy": 22,
+         "Medium": 34,
+         "Hard": 19
+        },
+        "source": "college_board",
+        "visibility": "in_house"
+       }
+      ]
+     },
+     {
+      "id": "M-1.4",
+      "number": "1.4",
+      "title": "Systems of Linear Equations",
+      "estimated_minutes": 50,
+      "objectives": [
+       "Solve systems by substitution, elimination, or Desmos.",
+       "Answer combinations like x + y without solving for both.",
+       "Find when a system has no solution or infinitely many."
+      ],
+      "skills": [
+       "Systems of two linear equations"
+      ],
+      "blueprints": [
+       "A5"
+      ],
+      "blocks": [
+       {
+        "type": "markdown",
+        "content": "## Key ideas\n- **One equation per fact.** Count-and-total problems give you a count equation and a value equation.\n- **Substitution:** solve one equation for a variable and plug it in. **Elimination:** add or subtract to cancel a variable.\n- **Look for shortcuts:** if the question asks for x + y, adding or subtracting the equations often gives it directly.\n- **Number of solutions:**\n  - different slopes → one solution\n  - same slope, different intercepts → **no solution** (parallel)\n  - same line → **infinitely many**\n- For Ax + By = C systems with no solution, the x- and y-coefficients are in the same ratio, but the constants aren't.\n\n## Worked examples\n**1.** A school sold 40 tickets: adult tickets at $12 and student tickets at $7, for $375 total. How many adult tickets?\na + s = 40 and 12a + 7s = 375. Substitute s = 40 − a: 12a + 280 − 7a = 375, so 5a = 95 and **a = 19** (s = 21).\n\n**2.** If 5x + 3y = 22 and 3x + 5y = 18, what is x + y?\nAdd the equations: 8x + 8y = 40, so **x + y = 5**. No need to find x and y.\n\n**3.** For what value of k does the system 4x − 6y = 10 and 6x + ky = 7 have no solution?\nThe coefficients must be proportional: 4/6 = −6/k, so **k = −9**. Then 10/7 ≠ 4/6, so the lines are parallel, not identical. ✓"
+       },
+       {
+        "type": "desmos",
+        "title": "Click the intersection",
+        "use_when": "Two linear equations; you need x, y, or a combination.",
+        "steps": [
+         "Rename the variables to x and y, and write down which is which.",
+         "Type both equations exactly as given.",
+         "Click the intersection point.",
+         "Answer the quantity the question asks for, not just the point."
+        ],
+        "expressions": [
+         {
+          "id": "e1",
+          "latex": "x+y=150"
+         },
+         {
+          "id": "e2",
+          "latex": "12x+8y=1480"
+         }
+        ],
+        "check": "(70, 80), so a = 70 in the a + s = 150, 12a + 8s = 1,480 version.",
+        "watch_out": "Desmos doesn't need commas in numbers; type 1480. Parallel lines mean no solution."
+       },
+       {
+        "type": "callout",
+        "variant": "trap",
+        "title": "Traps to watch for",
+        "content": "- Answering the other variable (student tickets instead of adult).\n- Solving correctly and then reporting a point when the question asks for x + y.\n- For \"no solution,\" forgetting to check that the constants are NOT in the same ratio."
+       },
+       {
+        "type": "video",
+        "provider": "youtube",
+        "video_id": "v-YVXD7gNc0",
+        "url": "https://www.youtube.com/watch?v=v-YVXD7gNc0",
+        "title": "SAT Math: Systems of Two Linear Equations",
+        "why_watch": "Substitution, elimination and the tricky variants.",
+        "review_status": "unreviewed"
+       },
+       {
+        "type": "video",
+        "provider": "youtube",
+        "video_id": "RPyoybFmnzM",
+        "url": "https://www.youtube.com/watch?v=RPyoybFmnzM",
+        "title": "Solving Systems of Linear Equations: SAT Math Foundations",
+        "why_watch": "Foundation-level walkthrough with practice problems.",
+        "review_status": "unreviewed"
+       },
+       {
+        "type": "checkpoint",
+        "title": "Quick check",
+        "instructions": "Try each one before you reveal the answer.",
+        "items": [
+         {
+          "id": "c1",
+          "prompt": "2x + y = 11 and x − y = 4. What is y?",
+          "answer": "1",
+          "explanation": "Add: 3x = 15, so x = 5. Then y = 11 − 10 = 1."
+         },
+         {
+          "id": "c2",
+          "prompt": "How many solutions does the system y = 3x + 2 and 6x − 2y = −4 have?",
+          "answer": "Infinitely many",
+          "explanation": "The second equation rearranges to y = 3x + 2: the same line."
+         },
+         {
+          "id": "c3",
+          "prompt": "x + y = 12 and x − y = 2. What is x² − y²?",
+          "answer": "24",
+          "explanation": "x² − y² = (x + y)(x − y) = 12 × 2 = 24."
+         }
+        ]
+       },
+       {
+        "type": "question_set",
+        "set_id": "M-1.4",
+        "title": "1.4 Practice Set (75 questions)",
+        "status": "ready",
+        "skills": [
+         "Systems of two linear equations"
+        ],
+        "blueprints": [
+         "A5"
+        ],
+        "mode": "practice",
+        "note": "Exact College Board Question Bank items. In-house use only: owner and assigned 1600 Project classes.",
+        "question_ids": [
+         "5e08a055",
+         "6ba39da5",
+         "36f068e2",
+         "79784c23",
+         "6e50ce28",
+         "14360f84",
+         "c43a9964",
+         "686b7cad",
+         "9b7a1b67",
+         "59352689",
+         "d909cd31",
+         "f6b055dc",
+         "5e137eae",
+         "2de12266",
+         "19fdf387",
+         "5e422ff9",
+         "b86123af",
+         "e6545fa8",
+         "b5f62071",
+         "f03465dc",
+         "9f6f96ff",
+         "ffb371f5",
+         "a94ed4e0",
+         "65833256",
+         "73b3b7d8",
+         "b544a348",
+         "8383771a",
+         "d1aeb6f1",
+         "e2e3942f",
+         "1b1deebe",
+         "e77a76ce",
+         "8a90b184",
+         "07898d2b",
+         "0d1dca87",
+         "ea8bd66f",
+         "4b06557b",
+         "092ad67d",
+         "1e11190a",
+         "6e6a3241",
+         "dba8d38a",
+         "d1b66ae6",
+         "79be5180",
+         "2875ba81",
+         "a71b1bc1",
+         "c5082ce3",
+         "cd33b015",
+         "608eeb6e",
+         "bf4a8b6a",
+         "ed92fb68",
+         "4ec95eab",
+         "f5929f7a",
+         "a0489274",
+         "466b87e3",
+         "d7bf55e1",
+         "ee031767",
+         "8a87c2c8",
+         "b00ad7f2",
+         "b3c7ca1d",
+         "18ac8354",
+         "44d65912",
+         "55447be2",
+         "e53688cb",
+         "f88970cc",
+         "5e9b6079",
+         "2704399f",
+         "6a87902f",
+         "ff501705",
+         "e3bbde69",
+         "1006cad7",
+         "0e926898",
+         "0dd6227f",
+         "ccc3ad6b",
+         "45a534d0",
+         "3409707e",
+         "b0fc3166"
+        ],
+        "count": 75,
+        "difficulty_counts": {
+         "Hard": 19,
+         "Medium": 34,
+         "Easy": 22
+        },
+        "source": "college_board",
+        "visibility": "in_house"
+       }
+      ]
+     },
+     {
+      "id": "M-1.5",
+      "number": "1.5",
+      "title": "Linear Inequalities",
+      "estimated_minutes": 40,
+      "objectives": [
+       "Solve inequalities, flipping the sign when needed.",
+       "Translate 'at most' and 'at least' and round in the direction the story forces.",
+       "Decide which points satisfy a system of inequalities."
+      ],
+      "skills": [
+       "Linear inequalities"
+      ],
+      "blueprints": [
+       "A4",
+       "A7"
+      ],
+      "blocks": [
+       {
+        "type": "markdown",
+        "content": "## Key ideas\n- Solve like an equation, but **flip the inequality when you multiply or divide by a negative**.\n- **At most** → ≤. **At least** → ≥. **More than** → >. **Fewer than** → <.\n- **Whole-number answers:** the story decides the rounding. \"Maximum number of boxes\" rounds **down**; \"minimum number of quizzes\" rounds **up**, even when normal rounding goes the other way.\n- **Points in a system:** test each point in *both* inequalities. A point on the boundary of a strict inequality (< or >) does **not** count.\n\n## Worked examples\n**1.** An elevator holds at most 1,500 lb. The operator weighs 180 lb and each box weighs 48 lb. What's the most boxes it can carry?\n180 + 48b ≤ 1,500, so b ≤ 27.5. You can't carry half a box, and 28 would go over: **27 boxes**.\n\n**2.** Solve −3x + 7 > 19.\n−3x > 12. Dividing by −3 flips the sign: **x < −4**.\n\n**3.** Which point satisfies y < x + 4 and y ≥ −2x + 1: (1, 3) or (0, 4)?\n(1, 3): 3 < 5 ✓ and 3 ≥ −1 ✓. **(1, 3) works.**\n(0, 4): 4 < 4 is false. It sits on the dashed boundary, so it doesn't count."
+       },
+       {
+        "type": "desmos",
+        "title": "Let the shading answer it",
+        "use_when": "You need the point that satisfies an inequality or a system.",
+        "steps": [
+         "Type each inequality as given; Desmos shades its solutions.",
+         "For a system, the overlap is the solution set.",
+         "Type each answer-choice point and see which lands in the overlap."
+        ],
+        "expressions": [
+         {
+          "id": "e1",
+          "latex": "y\\le2x+3"
+         },
+         {
+          "id": "e2",
+          "latex": "y>-x+1"
+         },
+         {
+          "id": "e3",
+          "latex": "(2,5)"
+         }
+        ],
+        "check": "(2, 5) sits in the overlap: 5 ≤ 7 and 5 > −1.",
+        "watch_out": "Dashed boundary = < or > (points on it don't count). Solid = ≤ or ≥."
+       },
+       {
+        "type": "callout",
+        "variant": "trap",
+        "title": "Traps to watch for",
+        "content": "- Rounding 27.5 up to 28 when the story needs a maximum.\n- Forgetting to flip the sign after dividing by a negative.\n- Picking a point that lies exactly on a strict boundary."
+       },
+       {
+        "type": "video",
+        "provider": "youtube",
+        "video_id": "va9Dk-D5mEs",
+        "url": "https://www.youtube.com/watch?v=va9Dk-D5mEs",
+        "title": "SAT Math 2.7: Linear Inequality Word Problems",
+        "why_watch": "Writing inequalities from limits and ranges in context.",
+        "review_status": "unreviewed"
+       },
+       {
+        "type": "video",
+        "provider": "youtube",
+        "video_id": "lSN72dNv4vw",
+        "url": "https://www.youtube.com/watch?v=lSN72dNv4vw",
+        "title": "Advanced SAT Math: Linear Inequality Word Problems",
+        "why_watch": "Four harder inequality word problems.",
+        "review_status": "unreviewed"
+       },
+       {
+        "type": "checkpoint",
+        "title": "Quick check",
+        "instructions": "Try each one before you reveal the answer.",
+        "items": [
+         {
+          "id": "c1",
+          "prompt": "A student has 250 points and needs at least 600. Each quiz is worth 45 points. What's the minimum number of quizzes?",
+          "answer": "8",
+          "explanation": "250 + 45q ≥ 600 gives q ≥ 7.78. Seven isn't enough, so round up to 8."
+         },
+         {
+          "id": "c2",
+          "prompt": "What is the greatest integer x that satisfies 5 − 2x ≥ 17?",
+          "answer": "−6",
+          "explanation": "−2x ≥ 12, so x ≤ −6."
+         }
+        ]
+       },
+       {
+        "type": "question_set",
+        "set_id": "M-1.5",
+        "title": "1.5 Practice Set (75 questions)",
+        "status": "ready",
+        "skills": [
+         "Linear inequalities"
+        ],
+        "blueprints": [
+         "A4",
+         "A7"
+        ],
+        "mode": "practice",
+        "note": "Exact College Board Question Bank items. In-house use only: owner and assigned 1600 Project classes.",
+        "question_ids": [
+         "c17d9ba9",
+         "66038b7c",
+         "d9733ed9",
+         "a849f10b",
+         "ee2f611f",
+         "272c7da7",
+         "d8539e09",
+         "e8fd6d99",
+         "f01ef454",
+         "6cb9bf45",
+         "ecca0603",
+         "e9ef0e6b",
+         "9e5863bd",
+         "cfe67646",
+         "6daf8d70",
+         "f224df07",
+         "30b1e186",
+         "00f411df",
+         "4a090a46",
+         "2869fe95",
+         "68c5c81a",
+         "f02b4509",
+         "ee439cff",
+         "b75f7812",
+         "f2bbd43d",
+         "bf5f80c6",
+         "c50ede6d",
+         "55ea82f3",
+         "64c85440",
+         "187f74bc",
+         "68f2cbaf",
+         "90bd9ef8",
+         "03503d49",
+         "74c98c82",
+         "5bf5136d",
+         "e723bd67",
+         "e8f9e117",
+         "d02193fb",
+         "fbd5483f",
+         "948087f2",
+         "6c813877",
+         "00ec9102",
+         "89541f9b",
+         "0b221d05",
+         "84d0d07e",
+         "a049f400",
+         "1a621af4",
+         "b64e2c7f",
+         "208626df",
+         "b31c3117",
+         "8f0c82e2",
+         "0ef4a7b6",
+         "86f7483f",
+         "80da233d",
+         "4047cfa7",
+         "34aca984",
+         "59a49431",
+         "9145ff4f",
+         "963da34c",
+         "45cfb9de",
+         "d914abec",
+         "ee7b1de1",
+         "c41e5688",
+         "c9355dec",
+         "e744499e",
+         "b78cd5df",
+         "563407e5",
+         "b8e73b5b",
+         "744ee7d7",
+         "915463e0",
+         "dd875c97",
+         "968e9e51",
+         "6c71f3ec",
+         "48fb34c8",
+         "89ba62ac"
+        ],
+        "count": 75,
+        "difficulty_counts": {
+         "Medium": 30,
+         "Hard": 20,
+         "Easy": 25
+        },
+        "source": "college_board",
+        "visibility": "in_house"
+       }
+      ]
+     }
+    ],
+    "review_sets": [
+     {
+      "type": "question_set",
+      "set_id": "M-U1-review-1",
+      "title": "Unit 1 Review Set 1 (60 questions)",
+      "status": "ready",
+      "mode": "practice",
+      "source": "college_board",
+      "visibility": "in_house",
+      "count": 60,
+      "question_ids": [
+       "87071893",
+       "8368afd1",
+       "0eae6be1",
+       "13294295",
+       "7392dfc1",
+       "9fc31513",
+       "5ad6bc97",
+       "97eab129",
+       "141a0005",
+       "9c47560d",
+       "4fb8adf7",
+       "097e10f5",
+       "6863c7ce",
+       "81390d6c",
+       "bc638f2d",
+       "465c73ad",
+       "a1696f3e",
+       "7b17f86a",
+       "a5882327",
+       "3a3b95df",
+       "520c8177",
+       "c362c210",
+       "f2b63f49",
+       "dae59626",
+       "f305b5ca",
+       "174885f8",
+       "029c2dc2",
+       "e53870b6",
+       "0df106df",
+       "dfa45424",
+       "17f176ec",
+       "e3e5b02b",
+       "cee5b352",
+       "d0e614a6",
+       "c3989ef8",
+       "60f71697",
+       "88e13c8c",
+       "4f8bd093",
+       "73b5f330",
+       "1efd8202",
+       "4de87c9a",
+       "69c49da1",
+       "ebf8d2b7",
+       "0d6ab461",
+       "590f2187",
+       "a9039591",
+       "49cd76d5",
+       "27f5fff3",
+       "aff28230",
+       "904b9c89",
+       "de6fe450",
+       "70d9516e",
+       "c10ad793",
+       "4d56adc6",
+       "11b04fd3",
+       "aeaba0b6",
+       "571174f3",
+       "bf36c815",
+       "b837de6a",
+       "83f2c3bf"
+      ],
+      "difficulty_counts": {
+       "Easy": 55,
+       "Hard": 5
+      }
+     },
+     {
+      "type": "question_set",
+      "set_id": "M-U1-review-2",
+      "title": "Unit 1 Review Set 2 (13 questions)",
+      "status": "ready",
+      "mode": "practice",
+      "source": "college_board",
+      "visibility": "in_house",
+      "count": 13,
+      "question_ids": [
+       "56e373b3",
+       "52cb8ea4",
+       "7cb1150f",
+       "349a5bc1",
+       "ca9bb527",
+       "c4ea43ef",
+       "4e97f862",
+       "e9908930",
+       "8c98c834",
+       "39571c77",
+       "b82a943c",
+       "8da536c6",
+       "5518885d"
+      ],
+      "difficulty_counts": {
+       "Easy": 10,
+       "Hard": 3
+      }
+     }
+    ]
+   },
+   {
+    "id": "M-U2",
+    "number": 2,
+    "title": "Advanced Math",
+    "summary": "Equivalent expressions, quadratics, exponents and exponential models, functions, and nonlinear equations.",
+    "lessons": [
+     {
+      "id": "M-2.1",
+      "number": "2.1",
+      "title": "Equivalent Expressions and Factoring",
+      "estimated_minutes": 45,
+      "objectives": [
+       "Factor GCFs, trinomials, and differences of squares.",
+       "Find unknown constants in 'true for all x' identities.",
+       "Check equivalence quickly in Desmos."
+      ],
+      "skills": [
+       "Equivalent expressions"
+      ],
+      "blueprints": [
+       "M1",
+       "M2"
+      ],
+      "blocks": [
+       {
+        "type": "markdown",
+        "content": "## Key ideas\n- **Factor the GCF first:** 6x³ + 9x = 3x(2x² + 3).\n- **Difference of squares:** a² − b² = (a + b)(a − b). Spot it in disguise: 4m² − 9n² = (2m + 3n)(2m − 3n).\n- **Perfect squares:** (a + b)² = a² + 2ab + b². Don't drop the 2ab term.\n- **\"True for all x\":** expand, then match coefficients. Match the constants first, then the x-terms.\n- Simplifying a rational expression can hide a hole: (x² − 9)/(x − 3) = x + 3 **except at x = 3**.\n\n## Worked examples\n**1.** x² − y² = 48 and x + y = 12. Find x and y.\nx² − y² = (x + y)(x − y), so 48 = 12(x − y) and x − y = 4. Add the two equations: 2x = 16. **x = 8, y = 4**.\n\n**2.** (3x + a)(x − 4) = 3x² + bx − 20 for all x. Find a and b.\nConstants: −4a = −20, so **a = 5**. x-terms: −12x + ax = (a − 12)x = −7x, so **b = −7**.\n\n**3.** Which is equivalent to (x + 3)² − 2(x + 3)?\nFactor out (x + 3): (x + 3)(x + 3 − 2) = (x + 3)(x + 1) = **x² + 4x + 3**."
+       },
+       {
+        "type": "desmos",
+        "title": "Let regression find the constants",
+        "use_when": "An identity like a(x + 3)² + b = 2x² + 12x + 25 holds 'for all x'.",
+        "steps": [
+         "Make a list of x-values: x_1 = [0, 1, 2, 3, 4].",
+         "Make y-values from the known side.",
+         "Regress with the unknown side.",
+         "Read a and b. R² = 1 confirms an exact identity."
+        ],
+        "expressions": [
+         {
+          "id": "e1",
+          "latex": "x_1=[0,1,2,3,4]"
+         },
+         {
+          "id": "e2",
+          "latex": "y_1=2x_1^2+12x_1+25"
+         },
+         {
+          "id": "e3",
+          "latex": "y_1\\sim a(x_1+3)^2+b"
+         }
+        ],
+        "check": "a = 2, b = 7. By hand: 2(x + 3)² + 7 = 2x² + 12x + 25.",
+        "watch_out": "Use more x-values than unknowns. For 'which is equivalent?', graph the original and each choice; the one that sits exactly on top is equivalent."
+       },
+       {
+        "type": "callout",
+        "variant": "trap",
+        "title": "Traps to watch for",
+        "content": "- Sign errors when expanding (x − 4)(3x + a).\n- Answering a when the question asks for b.\n- Dropping the middle term: (x + 5)² is not x² + 25."
+       },
+       {
+        "type": "video",
+        "provider": "youtube",
+        "video_id": "HEdGb53NTv0",
+        "url": "https://www.youtube.com/watch?v=HEdGb53NTv0",
+        "title": "SAT Math: Factoring Quadratic and Polynomial Expressions",
+        "why_watch": "How to spot and factor each expression type.",
+        "review_status": "unreviewed"
+       },
+       {
+        "type": "video",
+        "provider": "youtube",
+        "video_id": "YXqIgam-EIk",
+        "url": "https://www.youtube.com/watch?v=YXqIgam-EIk",
+        "title": "Solve equivalent expressions fast in Desmos",
+        "why_watch": "The 'true for all x' Desmos method.",
+        "review_status": "unreviewed"
+       },
+       {
+        "type": "checkpoint",
+        "title": "Quick check",
+        "instructions": "Try each one before you reveal the answer.",
+        "items": [
+         {
+          "id": "c1",
+          "prompt": "Factor 9m² − 16n².",
+          "answer": "(3m − 4n)(3m + 4n)",
+          "explanation": "It's a difference of squares: (3m)² − (4n)²."
+         },
+         {
+          "id": "c2",
+          "prompt": "a(x + 2)² + c = 3x² + 12x + 19 for all x. What is c?",
+          "answer": "7",
+          "explanation": "a = 3. Then 3(x² + 4x + 4) = 3x² + 12x + 12, so c = 19 − 12 = 7."
+         }
+        ]
+       },
+       {
+        "type": "question_set",
+        "set_id": "M-2.1",
+        "title": "2.1 Practice Set (75 questions)",
+        "status": "ready",
+        "skills": [
+         "Equivalent expressions"
+        ],
+        "blueprints": [
+         "M1",
+         "M2"
+        ],
+        "mode": "practice",
+        "note": "Exact College Board Question Bank items. In-house use only: owner and assigned 1600 Project classes.",
+        "question_ids": [
+         "c6e85cd7",
+         "e597050f",
+         "3e9cc0c2",
+         "463eec13",
+         "e117d3b8",
+         "371cbf6b",
+         "dd61df23",
+         "2c88af4d",
+         "d1a9db8a",
+         "482a445b",
+         "20291f47",
+         "a520ba07",
+         "5dd53f73",
+         "6e06a0a7",
+         "dc67c130",
+         "5805e747",
+         "1be909aa",
+         "290cdc2c",
+         "40c09d66",
+         "26eb61c1",
+         "5355c0ef",
+         "42c71eb5",
+         "fd65f47f",
+         "4eaf0a3a",
+         "1e7a1deb",
+         "52931bfa",
+         "433184f1",
+         "42f8e4b4",
+         "6d04c89d",
+         "3206b905",
+         "d4d513ff",
+         "4ac59df6",
+         "c602140f",
+         "2289b199",
+         "5ba187d4",
+         "050c375c",
+         "83193ebb",
+         "a0b4103e",
+         "a05bd3a4",
+         "bdb0aa23",
+         "0b3d25c5",
+         "00165291",
+         "04887c7b",
+         "4a5af623",
+         "fd4b2aa0",
+         "b8caaf84",
+         "7348f046",
+         "24016dee",
+         "12e7faf8",
+         "f89e1d6f",
+         "e312081b",
+         "e51bf5b1",
+         "1d3fee25",
+         "a1bf1c4e",
+         "1e8d7183",
+         "c8a5c221",
+         "7f89638c",
+         "8f82ad81",
+         "fb96a5b3",
+         "c3a72da5",
+         "38c90632",
+         "967ef685",
+         "5b6af6b1",
+         "508344ac",
+         "26e83bbc",
+         "fde6f3bb",
+         "b4a6ed81",
+         "cc776a04",
+         "a255ae72",
+         "abc61109",
+         "ad2ec615",
+         "d9137a84",
+         "a391ed22",
+         "67e866b5",
+         "dd4ab4c4"
+        ],
+        "count": 75,
+        "difficulty_counts": {
+         "Hard": 19,
+         "Easy": 22,
+         "Medium": 34
+        },
+        "source": "college_board",
+        "visibility": "in_house"
+       }
+      ]
+     },
+     {
+      "id": "M-2.2",
+      "number": "2.2",
+      "title": "Quadratics: Zeros, Vertex and the Discriminant",
+      "estimated_minutes": 55,
+      "objectives": [
+       "Move between standard, factored and vertex form and read the features of each.",
+       "Use the discriminant to count solutions.",
+       "Solve line–parabola systems."
+      ],
+      "skills": [
+       "Nonlinear functions",
+       "Nonlinear equations and systems"
+      ],
+      "blueprints": [
+       "M3",
+       "M4"
+      ],
+      "blocks": [
+       {
+        "type": "markdown",
+        "content": "## Key ideas\n| Form | Shows you |\n|---|---|\n| Standard: y = ax² + bx + c | y-intercept c; vertex at x = −b/(2a) |\n| Factored: y = a(x − r)(x − s) | zeros r and s |\n| Vertex: y = a(x − h)² + k | vertex (h, k); min if a > 0, max if a < 0 |\n\n- **Minimum value** is the vertex's y-coordinate. **Where** it happens is the x-coordinate. Answer the one asked.\n- **Discriminant** b² − 4ac: positive → 2 real solutions; zero → 1; negative → 0.\n- **Sum of solutions** = −b/a. **Product** = c/a.\n- **Line meets parabola:** set them equal, move everything to one side, then use the discriminant.\n\n## Worked examples\n**1.** y = x² − 6x − 16. Find the zeros and the minimum value.\nFactor: (x − 8)(x + 2), so the zeros are **8 and −2**. Vertex x = 6/2 = 3, and y = 9 − 18 − 16 = −25. **Minimum value −25**.\n\n**2.** x² + 6x + c = 0 has exactly one real solution. Find c.\nDiscriminant = 36 − 4c = 0, so **c = 9**.\n\n**3.** For what k does the line y = 4x + k touch the parabola y = x² + 2x + 5 exactly once?\nx² + 2x + 5 = 4x + k → x² − 2x + (5 − k) = 0. One solution: 4 − 4(5 − k) = 0, so **k = 4**. Check: they meet at (1, 8). ✓"
+       },
+       {
+        "type": "desmos",
+        "title": "Click the gray points",
+        "use_when": "You need zeros, the vertex, a max or min, or the y-intercept.",
+        "steps": [
+         "Type the quadratic as y = …",
+         "Click the curve. Gray points appear at the zeros, the vertex and the y-intercept.",
+         "Click each point to read its coordinates.",
+         "For 'exactly one solution', put c on a slider and find where the parabola just touches the x-axis."
+        ],
+        "expressions": [
+         {
+          "id": "e1",
+          "latex": "y=x^2-5x-14"
+         },
+         {
+          "id": "e2",
+          "latex": "y=x^2+6x+c"
+         }
+        ],
+        "check": "Zeros (−2, 0) and (7, 0); vertex (2.5, −20.25). The second graph just touches the x-axis at c = 9.",
+        "watch_out": "A slider gets you close, not exact. Confirm k or c with the discriminant."
+       },
+       {
+        "type": "callout",
+        "variant": "trap",
+        "title": "Traps to watch for",
+        "content": "- Giving the x-coordinate of the vertex when the question asks for the minimum value.\n- A zero with the wrong sign: (x + 2) gives x = −2.\n- Forgetting to move the line's constant before using the discriminant."
+       },
+       {
+        "type": "video",
+        "provider": "youtube",
+        "video_id": "BYY2dlPGwB8",
+        "url": "https://www.youtube.com/watch?v=BYY2dlPGwB8",
+        "title": "Discriminant + linear-quadratic systems",
+        "why_watch": "A full lesson on counting solutions, with a worksheet.",
+        "review_status": "unreviewed"
+       },
+       {
+        "type": "video",
+        "provider": "youtube",
+        "video_id": "ce6H81nOKyA",
+        "url": "https://www.youtube.com/watch?v=ce6H81nOKyA",
+        "title": "Digital SAT: Discriminant",
+        "why_watch": "Several discriminant question styles.",
+        "review_status": "unreviewed"
+       },
+       {
+        "type": "checkpoint",
+        "title": "Quick check",
+        "instructions": "Try each one before you reveal the answer.",
+        "items": [
+         {
+          "id": "c1",
+          "prompt": "What is the sum of the solutions of 2x² − 10x + 7 = 0?",
+          "answer": "5",
+          "explanation": "Sum = −b/a = 10/2 = 5."
+         },
+         {
+          "id": "c2",
+          "prompt": "What is the vertex of y = 2(x + 3)² − 5?",
+          "answer": "(−3, −5)",
+          "explanation": "Vertex form a(x − h)² + k with h = −3, k = −5."
+         },
+         {
+          "id": "c3",
+          "prompt": "f(x) = x² − 10x + 21. What is the minimum value of f?",
+          "answer": "−4",
+          "explanation": "Vertex at x = 5: 25 − 50 + 21 = −4."
+         }
+        ]
+       },
+       {
+        "type": "question_set",
+        "set_id": "M-2.2",
+        "title": "2.2 Practice Set (50 questions)",
+        "status": "ready",
+        "skills": [
+         "Nonlinear functions",
+         "Nonlinear equations and systems"
+        ],
+        "blueprints": [
+         "M3",
+         "M4"
+        ],
+        "mode": "practice",
+        "note": "Exact College Board Question Bank items. In-house use only: owner and assigned 1600 Project classes.",
+        "question_ids": [
+         "a58232b7",
+         "ee857afb",
+         "6d9e01a2",
+         "ebe4bde0",
+         "18e35375",
+         "d139cf4b",
+         "6676f055",
+         "d1b468f1",
+         "bba18ecb",
+         "a1e65979",
+         "2b1a27cd",
+         "668f1863",
+         "cb29c54c",
+         "7eed640d",
+         "0de8359f",
+         "271ffad7",
+         "100030d9",
+         "f2d60b99",
+         "341ba5db",
+         "95eeeb5b",
+         "91e7ea5e",
+         "d46da42c",
+         "92f812bb",
+         "44076c7d",
+         "4dd4efcf",
+         "7902bed0",
+         "04bbce67",
+         "c400b60b",
+         "a7711fe8",
+         "083ef63a",
+         "b3b07f0c",
+         "3514f2df",
+         "de91a6fc",
+         "70753f99",
+         "782a8a53",
+         "4d7064a6",
+         "2f4eafcc",
+         "84e8cc72",
+         "358f18bc",
+         "9654add7",
+         "09d21d79",
+         "9ff88bb5",
+         "8e1da169",
+         "841ef26c",
+         "ebed7dc6",
+         "39714777",
+         "270cf326",
+         "1178f2df",
+         "16aa9758",
+         "f44b4125"
+        ],
+        "count": 50,
+        "difficulty_counts": {
+         "Hard": 35,
+         "Easy": 5,
+         "Medium": 10
+        },
+        "source": "college_board",
+        "visibility": "in_house"
+       }
+      ]
+     },
+     {
+      "id": "M-2.3",
+      "number": "2.3",
+      "title": "Exponents, Radicals and Exponential Models",
+      "estimated_minutes": 50,
+      "objectives": [
+       "Apply exponent rules, including rational and negative exponents.",
+       "Build and read exponential growth and decay models.",
+       "Tell linear from exponential in tables and stories."
+      ],
+      "skills": [
+       "Equivalent expressions",
+       "Nonlinear functions"
+      ],
+      "blueprints": [
+       "M6"
+      ],
+      "blocks": [
+       {
+        "type": "markdown",
+        "content": "## Exponent rules\n| Rule | Example |\n|---|---|\n| aᵐ · aⁿ = aᵐ⁺ⁿ | x³ · x⁴ = x⁷ |\n| (aᵐ)ⁿ = aᵐⁿ | (x²)⁵ = x¹⁰ |\n| a⁻ⁿ = 1/aⁿ | 2⁻³ = 1/8 |\n| a^(m/n) = ⁿ√(aᵐ) | x^(3/2) = √(x³) |\n\n## Exponential models\n- **f(t) = a(1 ± r)ᵗ**: a is the starting value; 1 + r means growth, 1 − r means decay.\n- A **15% decrease** multiplies by **0.85** (what remains), not 0.15.\n- \"Doubles every 4 hours\" → a · 2^(t/4).\n- **Linear vs. exponential:** equal *differences* over equal steps → linear. Equal *ratios* → exponential.\n\n## Worked examples\n**1.** Simplify x^(3/4) · x^(1/2). Add exponents: **x^(5/4)**.\n\n**2.** A $24,000 car loses 15% of its value each year. Value after 2 years?\n24,000(0.85)² = **$17,340**.\n\n**3.** A table shows t = 0, 1, 2, 3 and values 50, 60, 72, 86.4. Model it.\nEach value is 1.2 times the last: **50(1.2)ᵗ**, a 20% increase per step.\n\n**4.** 300 bacteria double every 4 hours. How many after 12 hours?\n300 · 2^(12/4) = 300 · 8 = **2,400**."
+       },
+       {
+        "type": "desmos",
+        "title": "Type the model, read the value",
+        "use_when": "A growth or decay word problem, or 'which model fits this table?'",
+        "steps": [
+         "Type the model as a function.",
+         "Evaluate it directly.",
+         "To find when it reaches a value, graph y = (target) and click the intersection.",
+         "For a table, enter the data and regress with y_1 ~ ab^(x_1)."
+        ],
+        "expressions": [
+         {
+          "id": "e1",
+          "latex": "V(x)=24000(0.85)^x"
+         },
+         {
+          "id": "e2",
+          "latex": "V(2)"
+         },
+         {
+          "id": "e3",
+          "latex": "y=10000"
+         },
+         {
+          "id": "e4",
+          "latex": "y_1\\sim ab^{x_1}"
+         }
+        ],
+        "check": "V(2) = 17,340. The value drops below $10,000 a little after 5 years.",
+        "watch_out": "In a regression, b > 1 means growth and b < 1 means decay."
+       },
+       {
+        "type": "callout",
+        "variant": "trap",
+        "title": "Traps to watch for",
+        "content": "- Using ×0.15 for a 15% decrease.\n- Treating exponential decay as linear: subtracting 15% of the original every year.\n- Being one period off (t = 3 vs. t = 2 for \"after 2 years\")."
+       },
+       {
+        "type": "video",
+        "provider": "youtube",
+        "video_id": "KsKEKzjUgBM",
+        "url": "https://www.youtube.com/watch?v=KsKEKzjUgBM",
+        "title": "Every SAT Math exponential question type explained",
+        "why_watch": "Growth, decay, and the forms the SAT uses.",
+        "review_status": "unreviewed"
+       },
+       {
+        "type": "video",
+        "provider": "youtube",
+        "video_id": "Btk-1YErEFo",
+        "url": "https://www.youtube.com/watch?v=Btk-1YErEFo",
+        "title": "Exponential growth and decay word problems",
+        "why_watch": "A strategy for the story versions.",
+        "review_status": "unreviewed"
+       },
+       {
+        "type": "checkpoint",
+        "title": "Quick check",
+        "instructions": "Try each one before you reveal the answer.",
+        "items": [
+         {
+          "id": "c1",
+          "prompt": "A population of 8,000 decreases by 25% each year. What is it after 2 years?",
+          "answer": "4,500",
+          "explanation": "8,000 × 0.75² = 4,500."
+         },
+         {
+          "id": "c2",
+          "prompt": "Which is equivalent to (16x⁸)^(1/4)?",
+          "answer": "2x²",
+          "explanation": "16^(1/4) = 2 and (x⁸)^(1/4) = x²."
+         },
+         {
+          "id": "c3",
+          "prompt": "f(t) = 500(1.06)ᵗ. By what percent does f increase each year?",
+          "answer": "6%",
+          "explanation": "The growth factor is 1.06 = 1 + 0.06."
+         }
+        ]
+       },
+       {
+        "type": "question_set",
+        "set_id": "M-2.3",
+        "title": "2.3 Practice Set (54 questions)",
+        "status": "ready",
+        "skills": [
+         "Equivalent expressions",
+         "Nonlinear functions"
+        ],
+        "blueprints": [
+         "M6"
+        ],
+        "mode": "practice",
+        "note": "Exact College Board Question Bank items. In-house use only: owner and assigned 1600 Project classes.",
+        "question_ids": [
+         "ffdfe1e1",
+         "5c00c2c1",
+         "a31417d1",
+         "1073d70c",
+         "1d3c5c95",
+         "ff8c5844",
+         "6eb6ba92",
+         "a8ae0d22",
+         "15c364bf",
+         "e53add44",
+         "02c67921",
+         "893c7519",
+         "55ce172b",
+         "d675744f",
+         "4618501a",
+         "dd8ac009",
+         "d8ace155",
+         "281a4f3b",
+         "ae05d37b",
+         "9833d0e3",
+         "f423771c",
+         "70ebd3d0",
+         "5a74f696",
+         "b63e49c3",
+         "b73ee6cf",
+         "9afe2370",
+         "9da41c80",
+         "0a74365c",
+         "ff3baf3a",
+         "7e5a3640",
+         "2992ac30",
+         "f1c81b3b",
+         "3cf2698e",
+         "cfff8f8e",
+         "926c246b",
+         "84dd43f8",
+         "52b1700c",
+         "405c5ced",
+         "68607eca",
+         "d84a514a",
+         "08d03fe4",
+         "263f9937",
+         "90bcaa61",
+         "e1391dd6",
+         "7bbfbe70",
+         "ce579859",
+         "53c07bf9",
+         "752055d1",
+         "43926bd9",
+         "b7cd6ca6",
+         "1853bb35",
+         "01668cd6",
+         "768b60d2",
+         "7ba694f3"
+        ],
+        "count": 54,
+        "difficulty_counts": {
+         "Easy": 12,
+         "Medium": 28,
+         "Hard": 14
+        },
+        "source": "college_board",
+        "visibility": "in_house"
+       }
+      ]
+     },
+     {
+      "id": "M-2.4",
+      "number": "2.4",
+      "title": "Functions: Notation, Composition and Transformations",
+      "estimated_minutes": 45,
+      "objectives": [
+       "Evaluate and solve with function notation.",
+       "Compose functions.",
+       "Describe shifts and reflections of a graph."
+      ],
+      "skills": [
+       "Nonlinear functions"
+      ],
+      "blueprints": [
+       "M5"
+      ],
+      "blocks": [
+       {
+        "type": "markdown",
+        "content": "## Key ideas\n- **f(2) means evaluate** (plug in 2). **f(x) = 2 means solve** (find the x that gives 2).\n- **Composition:** f(g(x)) means do g first, then f.\n- **Transformations of y = f(x):**\n  | Change | Effect |\n  |---|---|\n  | f(x + h) | shift **left** h |\n  | f(x − h) | shift **right** h |\n  | f(x) + k | shift **up** k |\n  | −f(x) | reflect over the x-axis |\n  | f(−x) | reflect over the y-axis |\n- Reading graphs: f(x) = 0 at the x-intercepts; f(0) is the y-intercept; \"f(x) > 0\" means the graph is above the x-axis.\n\n## Worked examples\n**1.** f(x) = (x − 3)² + 4 and g(x) = f(x + 2) − 1. Find f(5) and the vertex of g.\nf(5) = 4 + 4 = **8**. f's vertex is (3, 4). Moving left 2 and down 1 gives **(1, 3)**.\n\n**2.** f(x) = 2x − 1 and g(x) = x² + 3. Find f(g(2)) and g(f(2)).\ng(2) = 7, so f(g(2)) = **13**. f(2) = 3, so g(f(2)) = **12**. Order matters.\n\n**3.** f(x) = 3x + 5 and f(a) = 26. Find a.\nThis is \"solve\": 3a + 5 = 26, so **a = 7**."
+       },
+       {
+        "type": "desmos",
+        "title": "Define it once",
+        "use_when": "f(x) notation, composition, or 'how does g relate to f?'",
+        "steps": [
+         "Define the function: f(x) = …",
+         "Evaluate by typing f(5), f(g(2)) and so on.",
+         "To solve f(x) = 7, graph y = 7 and click its intersections with f.",
+         "Graph g(x) = f(x + 2) − 1 next to f to see the shift."
+        ],
+        "expressions": [
+         {
+          "id": "e1",
+          "latex": "f(x)=(x-3)^2+4"
+         },
+         {
+          "id": "e2",
+          "latex": "g(x)=f(x+2)-1"
+         },
+         {
+          "id": "e3",
+          "latex": "f(5)"
+         }
+        ],
+        "check": "f(5) = 8; g's vertex is (1, 3).",
+        "watch_out": "f(2) means evaluate; f(x) = 2 means solve. Type f(2) for the first, graph y = 2 for the second."
+       },
+       {
+        "type": "callout",
+        "variant": "trap",
+        "title": "Traps to watch for",
+        "content": "- Shifting right for f(x + h). It moves left.\n- Evaluating when the question asks you to solve.\n- Giving the vertex of f when the question asks about g."
+       },
+       {
+        "type": "video",
+        "provider": "youtube",
+        "video_id": "-g1HZ5BQsho",
+        "url": "https://www.youtube.com/watch?v=-g1HZ5BQsho",
+        "title": "Function transformations on the SAT: the one rule that ends the confusion",
+        "why_watch": "Why the horizontal shifts feel backwards.",
+        "review_status": "unreviewed"
+       },
+       {
+        "type": "video",
+        "provider": "youtube",
+        "video_id": "wSgjeJDWmxg",
+        "url": "https://www.youtube.com/watch?v=wSgjeJDWmxg",
+        "title": "Function Transformations: SAT Math",
+        "why_watch": "Shifts, stretches and flips with worked examples.",
+        "review_status": "unreviewed"
+       },
+       {
+        "type": "checkpoint",
+        "title": "Quick check",
+        "instructions": "Try each one before you reveal the answer.",
+        "items": [
+         {
+          "id": "c1",
+          "prompt": "h(x) = x² − 4. What is h(−3)?",
+          "answer": "5",
+          "explanation": "(−3)² − 4 = 9 − 4 = 5."
+         },
+         {
+          "id": "c2",
+          "prompt": "How does the graph of y = f(x − 4) compare to y = f(x)?",
+          "answer": "Shifted right 4",
+          "explanation": "f(x − h) moves right h."
+         },
+         {
+          "id": "c3",
+          "prompt": "f(x) = |x − 2|. How many solutions does f(x) = 3 have?",
+          "answer": "2",
+          "explanation": "x − 2 = 3 or x − 2 = −3, so x = 5 or x = −1."
+         }
+        ]
+       },
+       {
+        "type": "question_set",
+        "set_id": "M-2.4",
+        "title": "2.4 Practice Set (75 questions)",
+        "status": "ready",
+        "skills": [
+         "Nonlinear functions"
+        ],
+        "blueprints": [
+         "M5"
+        ],
+        "mode": "practice",
+        "note": "Exact College Board Question Bank items. In-house use only: owner and assigned 1600 Project classes.",
+        "question_ids": [
+         "78d5f91a",
+         "3ee271a7",
+         "c95686e9",
+         "e166aca6",
+         "26f5269a",
+         "95d1c344",
+         "3e28a622",
+         "4993b828",
+         "a45ffacb",
+         "1ee962ec",
+         "a5628865",
+         "04b985e6",
+         "0af701e7",
+         "be0c419e",
+         "d71f6dbf",
+         "c13016f9",
+         "aa3aa5b5",
+         "f28944ff",
+         "c7a187a7",
+         "4d037075",
+         "c4259674",
+         "5c2bfe44",
+         "39241e8c",
+         "7fe7cf26",
+         "2d1614a1",
+         "99c5e794",
+         "7160cbb3",
+         "35e05e19",
+         "db888cd6",
+         "59d1f4b5",
+         "956823cb",
+         "f5e8ccf1",
+         "ecac53ca",
+         "8462b105",
+         "4209aefe",
+         "ad376f1a",
+         "ce508fb0",
+         "203774bc",
+         "c19d1fb0",
+         "c048055c",
+         "dc77e0dc",
+         "5377d9cf",
+         "3c600337",
+         "67f4b449",
+         "a9084ca4",
+         "94ff3e2d",
+         "5acbdc30",
+         "71b74a44",
+         "d8e84431",
+         "252a3b3a",
+         "197bed38",
+         "d45572cc",
+         "b39d74a0",
+         "3ea87153",
+         "1a722d7d",
+         "58dcc59f",
+         "52e589f9",
+         "dba7432e",
+         "5e63b9cf",
+         "b8f13a3a",
+         "a0540eeb",
+         "4a0d0399",
+         "6abec9a8",
+         "0a0d8986",
+         "6ecdbcb4",
+         "69a28a0d",
+         "128c75e2",
+         "48f83c34",
+         "7e6ea718",
+         "dd3b1e1a",
+         "4fbffc0a",
+         "7f87deff",
+         "b7c74b73",
+         "79e6ec70",
+         "39652e93"
+        ],
+        "count": 75,
+        "difficulty_counts": {
+         "Medium": 34,
+         "Hard": 19,
+         "Easy": 22
+        },
+        "source": "college_board",
+        "visibility": "in_house"
+       }
+      ]
+     },
+     {
+      "id": "M-2.5",
+      "number": "2.5",
+      "title": "Nonlinear Equations and Systems",
+      "estimated_minutes": 45,
+      "objectives": [
+       "Solve radical, rational and absolute-value equations.",
+       "Reject extraneous solutions.",
+       "Count and find solutions of nonlinear systems."
+      ],
+      "skills": [
+       "Nonlinear equations and systems"
+      ],
+      "blueprints": [
+       "M4"
+      ],
+      "blocks": [
+       {
+        "type": "markdown",
+        "content": "## Key ideas\n- **Radical equations:** isolate the radical, square both sides, solve, then **check every answer in the original**. Squaring can create extraneous roots.\n- **Rational equations:** multiply by the common denominator. Throw out any value that makes a denominator 0.\n- **Absolute value:** |A| = c gives A = c or A = −c. If c < 0, there's no solution.\n- **Systems with a parabola or circle:** substitute the line into the curve; the number of real solutions is the number of intersection points.\n\n## Worked examples\n**1.** Solve √(x + 7) = x − 5.\nSquare: x + 7 = x² − 10x + 25, so x² − 11x + 18 = 0 and x = 2 or 9. Check: x = 2 gives 3 = −3 ✗. **x = 9** only.\n\n**2.** Solve 3/(x − 2) = 6/(x + 1).\nCross-multiply: 3(x + 1) = 6(x − 2), so 3x + 3 = 6x − 12 and **x = 5**. Neither denominator is 0. ✓\n\n**3.** What is the sum of the solutions of |2x − 5| = 9?\n2x − 5 = 9 gives x = 7; 2x − 5 = −9 gives x = −2. Sum = **5**.\n\n**4.** How many solutions do x² + y² = 25 and y = x + 1 have?\nx² + (x + 1)² = 25 → x² + x − 12 = 0 → x = 3 or −4. Points (3, 4) and (−4, −3): **2 solutions**."
+       },
+       {
+        "type": "desmos",
+        "title": "Count the crossings",
+        "use_when": "A radical, rational or absolute-value equation, or 'how many solutions?'",
+        "steps": [
+         "Graph each side as y = …",
+         "Click every intersection. The x-values are the solutions.",
+         "Number of intersections = number of real solutions.",
+         "Zoom out to make sure none are hiding off-screen."
+        ],
+        "expressions": [
+         {
+          "id": "e1",
+          "latex": "y=\\sqrt{x+7}"
+         },
+         {
+          "id": "e2",
+          "latex": "y=x-5"
+         }
+        ],
+        "check": "One intersection, (9, 4), so x = 9.",
+        "watch_out": "Desmos only graphs where an expression is defined, so extraneous roots never show up. That makes it a great checker."
+       },
+       {
+        "type": "callout",
+        "variant": "trap",
+        "title": "Traps to watch for",
+        "content": "- Keeping an extraneous root after squaring.\n- Missing the negative case of an absolute value.\n- Keeping a value that makes a denominator zero."
+       },
+       {
+        "type": "video",
+        "provider": "youtube",
+        "video_id": "QaZJ3MQiIbE",
+        "url": "https://www.youtube.com/watch?v=QaZJ3MQiIbE",
+        "title": "Digital SAT Math: Radical, Rational and Absolute Value Equations",
+        "why_watch": "All three equation types and how to check them.",
+        "review_status": "unreviewed"
+       },
+       {
+        "type": "video",
+        "provider": "youtube",
+        "video_id": "xLrYpSk1KCk",
+        "url": "https://www.youtube.com/watch?v=xLrYpSk1KCk",
+        "title": "A challenging quadratic SAT review question",
+        "why_watch": "Systems with quadratics and the discriminant.",
+        "review_status": "unreviewed"
+       },
+       {
+        "type": "checkpoint",
+        "title": "Quick check",
+        "instructions": "Try each one before you reveal the answer.",
+        "items": [
+         {
+          "id": "c1",
+          "prompt": "Solve √(2x + 3) = x.",
+          "answer": "x = 3",
+          "explanation": "Square: x² − 2x − 3 = 0, so x = 3 or −1. x = −1 gives √1 = −1 ✗."
+         },
+         {
+          "id": "c2",
+          "prompt": "How many solutions does |x + 4| = −2 have?",
+          "answer": "None",
+          "explanation": "An absolute value can't be negative."
+         },
+         {
+          "id": "c3",
+          "prompt": "How many points do y = x² and y = −3 share?",
+          "answer": "None",
+          "explanation": "x² = −3 has no real solution; the line is below the parabola's vertex."
+         }
+        ]
+       },
+       {
+        "type": "question_set",
+        "set_id": "M-2.5",
+        "title": "2.5 Practice Set (75 questions)",
+        "status": "ready",
+        "skills": [
+         "Nonlinear equations and systems"
+        ],
+        "blueprints": [
+         "M4"
+        ],
+        "mode": "practice",
+        "note": "Exact College Board Question Bank items. In-house use only: owner and assigned 1600 Project classes.",
+        "question_ids": [
+         "6e02cd78",
+         "17d0e87d",
+         "29ed5d39",
+         "fcdf87b7",
+         "d3f7c429",
+         "da602115",
+         "364a2d25",
+         "ebb717ab",
+         "71014fb1",
+         "630897df",
+         "a5663025",
+         "fc3dfa26",
+         "568aaf27",
+         "30a07668",
+         "f5247e52",
+         "50a5696a",
+         "7bd10ef3",
+         "87a3de81",
+         "9cb9beec",
+         "7cb3a8ee",
+         "fc3d783a",
+         "3148fe3e",
+         "3934dd0a",
+         "b5ebd31c",
+         "b80d10d7",
+         "1dd3a492",
+         "2cb17792",
+         "6acdcece",
+         "2d2ab76b",
+         "4ca30186",
+         "58443765",
+         "6bdcac03",
+         "d38cf701",
+         "3b4b8831",
+         "a267bd29",
+         "09e5e4d3",
+         "1fe32f7d",
+         "895628b5",
+         "3edd35c8",
+         "911383f2",
+         "104bff62",
+         "8f65cddc",
+         "c8bf5313",
+         "f123e039",
+         "faeae876",
+         "a67a439d",
+         "13e5a5d5",
+         "4661e2a9",
+         "5ae186b4",
+         "b4acba95",
+         "58b109d4",
+         "1f64eb7a",
+         "fada6b03",
+         "3c95093c",
+         "861a8eff",
+         "cec36caf",
+         "03ff48d2",
+         "4236c5a3",
+         "f14d324c",
+         "75a32330",
+         "0980fcdd",
+         "802549ac",
+         "d964bc26",
+         "717a1964",
+         "74473be4",
+         "c6a26e14",
+         "c7789423",
+         "722de804",
+         "3cce51ea",
+         "c8db0e19",
+         "88867d37",
+         "f11ffa93",
+         "7f81d0c3",
+         "fcb78856",
+         "6aefc52b"
+        ],
+        "count": 75,
+        "difficulty_counts": {
+         "Medium": 34,
+         "Hard": 19,
+         "Easy": 22
+        },
+        "source": "college_board",
+        "visibility": "in_house"
+       }
+      ]
+     }
+    ],
+    "review_sets": [
+     {
+      "type": "question_set",
+      "set_id": "M-U2-review-1",
+      "title": "Unit 2 Review Set 1 (32 questions)",
+      "status": "ready",
+      "mode": "practice",
+      "source": "college_board",
+      "visibility": "in_house",
+      "count": 32,
+      "question_ids": [
+       "70482e20",
+       "de39858a",
+       "07bcecac",
+       "09f58996",
+       "3de7a7d7",
+       "369b7bb7",
+       "788bfd56",
+       "ba0edc30",
+       "781c2f6e",
+       "301faf80",
+       "40491607",
+       "8490cc45",
+       "ca4ee54e",
+       "b0543157",
+       "3a9d60b2",
+       "cd358b89",
+       "2fec8bf4",
+       "d41cf4d3",
+       "7028c74f",
+       "2d394c28",
+       "20722644",
+       "bf4a7fa0",
+       "c99d154a",
+       "7bf77c19",
+       "7f2524bf",
+       "2f8a580c",
+       "df71424b",
+       "2c6f214f",
+       "044c1cb7",
+       "dcf63c94",
+       "512bd5b4",
+       "dc8fe4be"
+      ],
+      "difficulty_counts": {
+       "Easy": 15,
+       "Hard": 17
+      }
+     }
+    ]
+   },
+   {
+    "id": "M-U3",
+    "number": 3,
+    "title": "Problem-Solving and Data Analysis",
+    "summary": "Ratios, percentages, statistics, data models, probability, and what a study can and can't conclude.",
+    "lessons": [
+     {
+      "id": "M-3.1",
+      "number": "3.1",
+      "title": "Ratios, Rates, Proportions and Units",
+      "estimated_minutes": 40,
+      "objectives": [
+       "Set up proportions with matching units.",
+       "Convert units with conversion factors.",
+       "Use rates and density."
+      ],
+      "skills": [
+       "Ratios, rates, proportional relationships, and units"
+      ],
+      "blueprints": [],
+      "blocks": [
+       {
+        "type": "markdown",
+        "content": "## Key ideas\n- **Proportions:** keep the same units in the same position: (flour/sugar) = (flour/sugar).\n- **Unit conversion:** multiply by fractions equal to 1 and cancel units: 72 km/h × (1,000 m / 1 km) × (1 h / 3,600 s).\n- **Rate × time = amount.** Density × volume = mass.\n- Squared and cubed units convert with squared and cubed factors: 1 ft² = 144 in², 1 ft³ = 1,728 in³.\n\n## Worked examples\n**1.** A recipe uses flour and sugar in a 3 : 2 ratio. How much sugar goes with 15 cups of flour?\n3/2 = 15/s, so **s = 10 cups**.\n\n**2.** Convert 72 km/h to meters per second.\n72 × 1,000 / 3,600 = **20 m/s**.\n\n**3.** A car uses 7 gallons to drive 210 miles. How many gallons for 360 miles?\nThe rate is 30 miles per gallon, so 360/30 = **12 gallons**.\n\n**4.** A block has a density of 2.7 g/cm³ and a volume of 40 cm³. Find its mass.\n2.7 × 40 = **108 g**."
+       },
+       {
+        "type": "callout",
+        "variant": "trap",
+        "title": "Traps to watch for",
+        "content": "- Flipping one side of the proportion (flour/sugar = sugar/flour).\n- Converting area with a linear factor (1 ft² = 12 in² is wrong).\n- Mixing minutes and hours in one rate."
+       },
+       {
+        "type": "video",
+        "provider": "youtube",
+        "video_id": "MTHFeBRnJrs",
+        "url": "https://www.youtube.com/watch?v=MTHFeBRnJrs",
+        "title": "SAT Math: Ratios, Rates, Proportional Relationships and Units",
+        "why_watch": "The focus skill explained with examples.",
+        "review_status": "unreviewed"
+       },
+       {
+        "type": "video",
+        "provider": "youtube",
+        "video_id": "MY98DmxOxXM",
+        "url": "https://www.youtube.com/watch?v=MY98DmxOxXM",
+        "title": "SAT Math Medium: Ratios, Rates and Proportions",
+        "why_watch": "Four medium-difficulty walkthroughs.",
+        "review_status": "unreviewed"
+       },
+       {
+        "type": "checkpoint",
+        "title": "Quick check",
+        "instructions": "Try each one before you reveal the answer.",
+        "items": [
+         {
+          "id": "c1",
+          "prompt": "On a map, 1 inch represents 25 miles. How many miles does 3.4 inches represent?",
+          "answer": "85 miles",
+          "explanation": "3.4 × 25 = 85."
+         },
+         {
+          "id": "c2",
+          "prompt": "A printer prints 4 pages every 6 minutes. How many pages in 1.5 hours?",
+          "answer": "60",
+          "explanation": "1.5 hours = 90 minutes = 15 groups of 6 minutes; 15 × 4 = 60."
+         },
+         {
+          "id": "c3",
+          "prompt": "Convert 9 feet per second to feet per minute.",
+          "answer": "540",
+          "explanation": "9 × 60 = 540."
+         }
+        ]
+       },
+       {
+        "type": "question_set",
+        "set_id": "M-3.1",
+        "title": "3.1 Practice Set (75 questions)",
+        "status": "ready",
+        "skills": [
+         "Ratios, rates, proportional relationships, and units"
+        ],
+        "blueprints": [],
+        "mode": "practice",
+        "note": "Exact College Board Question Bank items. In-house use only: owner and assigned 1600 Project classes.",
+        "question_ids": [
+         "c81499e1",
+         "f6cbb04a",
+         "7270d642",
+         "fea831fc",
+         "000259aa",
+         "2cdefcb1",
+         "8637294f",
+         "0335a0c5",
+         "d28c29e1",
+         "1180401d",
+         "3310c2ab",
+         "3726e079",
+         "7cd1c6db",
+         "9a539a47",
+         "1f049bef",
+         "61b87506",
+         "fe1ec415",
+         "4c5ea142",
+         "51c9d65f",
+         "4e79ec0e",
+         "b5bc47d5",
+         "cb4894f9",
+         "8917ce38",
+         "0c42577f",
+         "c7c6445f",
+         "8706e422",
+         "e21d10a7",
+         "c47256ca",
+         "7d093333",
+         "81d0f1e6",
+         "568bc2a4",
+         "8e528129",
+         "3638f413",
+         "825b7490",
+         "5154615f",
+         "eb672707",
+         "21e539a0",
+         "96c3e32d",
+         "1ae151d8",
+         "e7133228",
+         "1b403590",
+         "73ddfdac",
+         "89c39d77",
+         "3318d37b",
+         "939c46d1",
+         "9fa781f8",
+         "551c52b9",
+         "d6456c7a",
+         "7e6c745f",
+         "69f6717f",
+         "445dd032",
+         "0700a2d5",
+         "1b96c116",
+         "873d2838",
+         "1d945139",
+         "181cc4d6",
+         "4837406c",
+         "cf454b6a",
+         "ec787383",
+         "c2e7fa6d",
+         "3ac09984",
+         "c3d78831",
+         "f262457b",
+         "61f61789",
+         "20b69297",
+         "c74df824",
+         "df79fab6",
+         "2d16d62c",
+         "94660ba8",
+         "85b33aa8",
+         "aeeaec96",
+         "b4912cc5",
+         "50b99b2d",
+         "0d125b35",
+         "674a4084"
+        ],
+        "count": 75,
+        "difficulty_counts": {
+         "Easy": 23,
+         "Medium": 33,
+         "Hard": 19
+        },
+        "source": "college_board",
+        "visibility": "in_house"
+       }
+      ]
+     },
+     {
+      "id": "M-3.2",
+      "number": "3.2",
+      "title": "Percentages",
+      "estimated_minutes": 40,
+      "objectives": [
+       "Find a percent of a number and percent change.",
+       "Chain successive percent changes.",
+       "Work backward from a final amount to the original."
+      ],
+      "skills": [
+       "Percentages"
+      ],
+      "blueprints": [],
+      "blocks": [
+       {
+        "type": "markdown",
+        "content": "## Key ideas\n- **Part = percent × whole.** \"What percent of 80 is 18?\" → 18/80 = 22.5%.\n- **Percent change = (new − old) / old.** Always divide by the original.\n- **Multipliers:** increase by r% → × (1 + r/100); decrease → × (1 − r/100).\n- **Successive changes multiply.** Up 20% then down 20% is 1.2 × 0.8 = 0.96: a **4% decrease**, not 0%.\n- **Reverse percent:** after a 30% discount the price is 70% of the original, so original = sale price / 0.7.\n- **Percent of a percent:** 25% of the 60% who are juniors is 0.25 × 0.60 = 15% of everyone.\n\n## Worked examples\n**1.** A $63 sale price is 30% off. What was the original price?\n63 / 0.7 = **$90**.\n\n**2.** A price rises 20%, then falls 20%. Net change?\n1.2 × 0.8 = 0.96 → **4% decrease**.\n\n**3.** 60% of a club's members are juniors, and 25% of the juniors are officers. What percent of all members are junior officers?\n0.6 × 0.25 = **15%**."
+       },
+       {
+        "type": "desmos",
+        "title": "Chain the multipliers",
+        "use_when": "A price or quantity changes by several percents in a row.",
+        "steps": [
+         "Type the starting value times each multiplier.",
+         "Compare the result to the start."
+        ],
+        "expressions": [
+         {
+          "id": "e1",
+          "latex": "80\\cdot1.2\\cdot0.8"
+         }
+        ],
+        "check": "76.8, which is 96% of 80: a 4% decrease.",
+        "watch_out": "Percent change divides by the ORIGINAL value, not the new one."
+       },
+       {
+        "type": "callout",
+        "variant": "trap",
+        "title": "Traps to watch for",
+        "content": "- Adding percents: +20% then −20% is not 0%.\n- Taking 30% of the sale price to undo a discount.\n- Dividing by the new value in percent change."
+       },
+       {
+        "type": "video",
+        "provider": "youtube",
+        "video_id": "PgYQOH6gXHI",
+        "url": "https://www.youtube.com/watch?v=PgYQOH6gXHI",
+        "title": "SAT Math: percent of a percent (Problem-Solving and Data Analysis)",
+        "why_watch": "A worked percent-of-a-group question.",
+        "review_status": "unreviewed"
+       },
+       {
+        "type": "video",
+        "provider": "youtube",
+        "video_id": "mbY3pso2Wzk",
+        "url": "https://www.youtube.com/watch?v=mbY3pso2Wzk",
+        "title": "Every hard SAT data analysis question, part 1: ratios, rates and units",
+        "why_watch": "Optional: hard-level problems for students aiming at 700+.",
+        "review_status": "unreviewed"
+       },
+       {
+        "type": "checkpoint",
+        "title": "Quick check",
+        "instructions": "Try each one before you reveal the answer.",
+        "items": [
+         {
+          "id": "c1",
+          "prompt": "Increase 250 by 12%.",
+          "answer": "280",
+          "explanation": "250 × 1.12 = 280."
+         },
+         {
+          "id": "c2",
+          "prompt": "A shirt costs $48 after a 20% discount. What was the original price?",
+          "answer": "$60",
+          "explanation": "48 / 0.8 = 60."
+         },
+         {
+          "id": "c3",
+          "prompt": "A town grew from 1,200 to 1,500 people. What was the percent increase?",
+          "answer": "25%",
+          "explanation": "300 / 1,200 = 0.25."
+         }
+        ]
+       },
+       {
+        "type": "question_set",
+        "set_id": "M-3.2",
+        "title": "3.2 Practice Set (75 questions)",
+        "status": "ready",
+        "skills": [
+         "Percentages"
+        ],
+        "blueprints": [],
+        "mode": "practice",
+        "note": "Exact College Board Question Bank items. In-house use only: owner and assigned 1600 Project classes.",
+        "question_ids": [
+         "6e4a60dd",
+         "34e18ce4",
+         "022e9894",
+         "993000da",
+         "77cf4fa6",
+         "7b731fc3",
+         "a51e6f93",
+         "e9f4521a",
+         "28ff3966",
+         "28c6bd8c",
+         "65c49824",
+         "040f2a84",
+         "623dbebb",
+         "94c65646",
+         "772a79c1",
+         "7cab9fe1",
+         "54cb53cf",
+         "96a45430",
+         "fcae5027",
+         "c256b723",
+         "709e04de",
+         "191d167b",
+         "5313e8c2",
+         "9c44f828",
+         "6feae9c3",
+         "949cd96b",
+         "ad911622",
+         "1baffbcf",
+         "b46d1dfb",
+         "7ed0d098",
+         "8705ecba",
+         "1c2f50a6",
+         "86684ce9",
+         "ba61d95f",
+         "284303f1",
+         "2e08f681",
+         "8213b1b3",
+         "73362607",
+         "a8fabad0",
+         "ad1d6adb",
+         "699af7b3",
+         "58ba7239",
+         "bd90f87e",
+         "8a714fa1",
+         "b887c432",
+         "273b7f37",
+         "4d729046",
+         "8bb94668",
+         "8c5dbd3e",
+         "954943a4",
+         "d693f563",
+         "a0b165f8",
+         "2e92cc21",
+         "29c177e6",
+         "20845d36",
+         "566759ef",
+         "7f84b136",
+         "8e2e424e",
+         "5267c3c7",
+         "58a71e06",
+         "b2f6f17d",
+         "048811bd",
+         "05195d8a",
+         "121dc44f",
+         "63573fea",
+         "0ea56bb2",
+         "dccdb20c",
+         "3a6ed720",
+         "67c0200a",
+         "98818acf",
+         "194ae3b1",
+         "771ee744",
+         "f9a6a602",
+         "d72a2b4d",
+         "8cbf1415"
+        ],
+        "count": 75,
+        "difficulty_counts": {
+         "Easy": 25,
+         "Medium": 25,
+         "Hard": 25
+        },
+        "source": "college_board",
+        "visibility": "in_house"
+       }
+      ]
+     },
+     {
+      "id": "M-3.3",
+      "number": "3.3",
+      "title": "One-Variable Data: Center, Spread and Shape",
+      "estimated_minutes": 45,
+      "objectives": [
+       "Find mean, median, mode and range, including from frequency tables.",
+       "Predict how adding or removing a value changes the mean and median.",
+       "Compare spread (standard deviation) without calculating it."
+      ],
+      "skills": [
+       "One-variable data: distributions and measures of center and spread"
+      ],
+      "blueprints": [
+       "D1"
+      ],
+      "blocks": [
+       {
+        "type": "markdown",
+        "content": "## Key ideas\n- **Think in sums:** mean × count = sum. Adjust the sum, then divide by the **new** count.\n- **Median** is the middle value of the sorted list (average the two middle values if the count is even).\n- **Outliers** pull the mean toward them; the median barely moves.\n- **Standard deviation** measures spread around the mean. Data bunched near the mean → small SD; spread out → large SD. The SAT asks you to compare, not compute.\n- **Frequency tables:** each value counts as many times as its frequency.\n\n## Worked examples\n**1.** The mean of 6 test scores is 84. The lowest score, 64, is dropped. New mean?\nSum = 6 × 84 = 504. New sum = 440. 440 / 5 = **88**.\n\n**2.** A frequency table: value 1 (×3), 2 (×5), 3 (×4), 4 (×8). Find the median and mean.\nn = 20, so the median is the average of the 10th and 11th values. Running totals: 3, 8, 12 → both are 3. **Median 3.**\nMean = (3 + 10 + 12 + 32) / 20 = **2.85**.\n\n**3.** Set A = {10, 10, 10, 10}, set B = {4, 8, 12, 16}. Both have mean 10. **B has the larger standard deviation**: its values are farther from the mean."
+       },
+       {
+        "type": "desmos",
+        "title": "Let lists do the statistics",
+        "use_when": "A list of values, or 'what's the new mean?'",
+        "steps": [
+         "Type the data as a list: L = [ … ].",
+         "Use mean(L), median(L), stdev(L).",
+         "Test a change by editing the list."
+        ],
+        "expressions": [
+         {
+          "id": "e1",
+          "latex": "L=[3,9,4,7,12,1]"
+         },
+         {
+          "id": "e2",
+          "latex": "\\operatorname{mean}(L)"
+         },
+         {
+          "id": "e3",
+          "latex": "\\operatorname{median}(L)"
+         }
+        ],
+        "check": "Mean 6, median 5.5.",
+        "watch_out": "For a frequency table, repeat values or use a table with weights; don't just list each value once."
+       },
+       {
+        "type": "callout",
+        "variant": "trap",
+        "title": "Traps to watch for",
+        "content": "- Dividing by the old count after adding or removing a value.\n- Forgetting to sort before finding the median.\n- Treating each row of a frequency table as one data point."
+       },
+       {
+        "type": "video",
+        "provider": "youtube",
+        "video_id": "xEhMGtsIpFI",
+        "url": "https://www.youtube.com/watch?v=xEhMGtsIpFI",
+        "title": "SAT Math Data Analysis: Mean, Median, Mode",
+        "why_watch": "Skew, outliers, histograms and box plots.",
+        "review_status": "unreviewed"
+       },
+       {
+        "type": "video",
+        "provider": "youtube",
+        "video_id": "Bxa0ooW-F2Q",
+        "url": "https://www.youtube.com/watch?v=Bxa0ooW-F2Q",
+        "title": "Standard deviation: comparing two data sets on the SAT",
+        "why_watch": "How to compare spread without calculating.",
+        "review_status": "unreviewed"
+       },
+       {
+        "type": "video",
+        "provider": "youtube",
+        "video_id": "hMd8c1w162I",
+        "url": "https://www.youtube.com/watch?v=hMd8c1w162I",
+        "title": "Mean, median, mode and standard deviation on Desmos",
+        "why_watch": "The list functions in action.",
+        "review_status": "unreviewed"
+       },
+       {
+        "type": "checkpoint",
+        "title": "Quick check",
+        "instructions": "Try each one before you reveal the answer.",
+        "items": [
+         {
+          "id": "c1",
+          "prompt": "The mean of 5 numbers is 12. A sixth number is added and the mean becomes 13. What was the sixth number?",
+          "answer": "18",
+          "explanation": "New sum 6 × 13 = 78; old sum 60; 78 − 60 = 18."
+         },
+         {
+          "id": "c2",
+          "prompt": "In {12, 14, 15, 15, 18, 95}, the outlier 95 is removed. Which changes more, the mean or the median?",
+          "answer": "The mean",
+          "explanation": "The median stays 15; the mean drops from about 28.2 to 14.8."
+         },
+         {
+          "id": "c3",
+          "prompt": "What is the median of 3, 9, 4, 7, 12, 1?",
+          "answer": "5.5",
+          "explanation": "Sorted: 1, 3, 4, 7, 9, 12. The middle two are 4 and 7."
+         }
+        ]
+       },
+       {
+        "type": "question_set",
+        "set_id": "M-3.3",
+        "title": "3.3 Practice Set (75 questions)",
+        "status": "ready",
+        "skills": [
+         "One-variable data: distributions and measures of center and spread"
+        ],
+        "blueprints": [
+         "D1"
+        ],
+        "mode": "practice",
+        "note": "Exact College Board Question Bank items. In-house use only: owner and assigned 1600 Project classes.",
+        "question_ids": [
+         "d1db8def",
+         "7760c516",
+         "a5b069b4",
+         "80f1f3a9",
+         "d3b9c8d8",
+         "cf2be18d",
+         "25fc031a",
+         "7b65bb28",
+         "9d935bd8",
+         "8736334b",
+         "1142af44",
+         "1e8ccffd",
+         "40f0ee70",
+         "190be2fc",
+         "57481175",
+         "c178d4da",
+         "be00d896",
+         "a9647302",
+         "d0efc1dd",
+         "5c3c2e3c",
+         "ecbdbe84",
+         "57f45509",
+         "d94018fd",
+         "a456cfd2",
+         "881ef5f5",
+         "374b18f9",
+         "7b1a3200",
+         "a29e89fc",
+         "bfa8a85c",
+         "c78bb2b8",
+         "ce3575b7",
+         "3aa0642c",
+         "1ca1692a",
+         "f8a322d9",
+         "15d87c0f",
+         "820d7a73",
+         "6e3ab4bf",
+         "578e26ae",
+         "9e2bf782",
+         "708590d7",
+         "663113fd",
+         "aa389b37",
+         "457d2f2c",
+         "66f03086",
+         "ea95087d",
+         "4626102e",
+         "608cf8e2",
+         "93779b53",
+         "bd95327c",
+         "fe6a49d6",
+         "6c9444cd",
+         "4c774b00",
+         "30dfdafd",
+         "d73a67d7",
+         "55cfaf22",
+         "391ae4b2",
+         "560fab82",
+         "8193e8cd",
+         "29fa7970",
+         "bf47ad54",
+         "94237701",
+         "4ff597db",
+         "d65b9a87",
+         "d2d9b6af",
+         "f890dc20",
+         "f52123e0",
+         "07f2829b",
+         "3f2ee20a",
+         "87fa9a4c",
+         "f6c18a66",
+         "54d93874",
+         "2a59eb45",
+         "4b09f783",
+         "c88e0663",
+         "9110c120"
+        ],
+        "count": 75,
+        "difficulty_counts": {
+         "Easy": 28,
+         "Medium": 21,
+         "Hard": 26
+        },
+        "source": "college_board",
+        "visibility": "in_house"
+       }
+      ]
+     },
+     {
+      "id": "M-3.4",
+      "number": "3.4",
+      "title": "Two-Variable Data and Models",
+      "estimated_minutes": 40,
+      "objectives": [
+       "Read scatterplots and lines of best fit.",
+       "Interpret slope and intercept of a model in context.",
+       "Compare predicted and actual values; choose linear vs. exponential."
+      ],
+      "skills": [
+       "Two-variable data: models and scatterplots"
+      ],
+      "blueprints": [],
+      "blocks": [
+       {
+        "type": "markdown",
+        "content": "## Key ideas\n- A scatterplot shows the **direction** (positive or negative), **form** (linear or curved) and **strength** of a relationship.\n- For a line of best fit y = mx + b: **m = predicted change in y per 1 unit of x**; **b = predicted y when x = 0**.\n- **Predicted** value comes from the model. **Actual** value is the data point. The difference is how far the point is above or below the line.\n- Constant differences → linear. Constant ratios → exponential.\n\n## Worked examples\n**1.** A line of best fit for study hours h and test score is S = 4.5h + 62.\nSlope: each extra hour of study is associated with a **4.5-point** higher predicted score. Intercept: predicted score with 0 hours is 62.\nA student who studied 6 hours scored 85. Predicted: 4.5(6) + 62 = 89, so the actual score is **4 points below** the prediction.\n\n**2.** Data: (0, 3), (1, 6), (2, 12), (3, 24). Linear or exponential?\nEach y doubles: **y = 3 · 2ˣ**, exponential."
+       },
+       {
+        "type": "desmos",
+        "title": "Fit and compare",
+        "use_when": "A table of data and a 'which model fits best?' question.",
+        "steps": [
+         "Enter the data in a table.",
+         "Try y_1 ~ mx_1 + b and y_1 ~ ab^(x_1).",
+         "Compare R²: closer to 1 fits better."
+        ],
+        "expressions": [
+         {
+          "id": "e1",
+          "latex": "y_1\\sim mx_1+b"
+         },
+         {
+          "id": "e2",
+          "latex": "y_1\\sim ab^{x_1}"
+         }
+        ],
+        "check": "For (0, 3), (1, 6), (2, 12), (3, 24), the exponential fit gives a = 3, b = 2 and R² = 1.",
+        "watch_out": "'Associated with' is the safe language. A scatterplot alone doesn't prove cause."
+       },
+       {
+        "type": "callout",
+        "variant": "trap",
+        "title": "Traps to watch for",
+        "content": "- Saying the slope is the change in x per unit of y.\n- Treating a predicted value as exact.\n- Claiming one variable causes the other from a scatterplot."
+       },
+       {
+        "type": "video",
+        "provider": "youtube",
+        "video_id": "XSgobjIkoDg",
+        "url": "https://www.youtube.com/watch?v=XSgobjIkoDg",
+        "title": "SAT Math: Equation of a line of best fit",
+        "why_watch": "Reading a best-fit line and how it changes when data is scaled.",
+        "review_status": "unreviewed"
+       },
+       {
+        "type": "video",
+        "provider": "youtube",
+        "video_id": "QY2dlLZhp0A",
+        "url": "https://www.youtube.com/watch?v=QY2dlLZhp0A",
+        "title": "Scatter plots and lines of best fit",
+        "why_watch": "Describing relationships and making predictions.",
+        "review_status": "unreviewed"
+       },
+       {
+        "type": "checkpoint",
+        "title": "Quick check",
+        "instructions": "Try each one before you reveal the answer.",
+        "items": [
+         {
+          "id": "c1",
+          "prompt": "A model for temperature T (°F) at altitude x (thousands of feet) is T = −0.6x + 48. Predict T at 10,000 ft.",
+          "answer": "42 °F",
+          "explanation": "−0.6(10) + 48 = 42."
+         },
+         {
+          "id": "c2",
+          "prompt": "In that model, what does −0.6 mean?",
+          "answer": "The predicted temperature drops 0.6 °F for each 1,000 ft of altitude",
+          "explanation": "It's the rate of change in context."
+         }
+        ]
+       },
+       {
+        "type": "question_set",
+        "set_id": "M-3.4",
+        "title": "3.4 Practice Set (75 questions)",
+        "status": "ready",
+        "skills": [
+         "Two-variable data: models and scatterplots"
+        ],
+        "blueprints": [],
+        "mode": "practice",
+        "note": "Exact College Board Question Bank items. In-house use only: owner and assigned 1600 Project classes.",
+        "question_ids": [
+         "74dee52b",
+         "e17babed",
+         "13f67ddc",
+         "ac5b6558",
+         "7fd284ac",
+         "79137c1b",
+         "58171b5e",
+         "3d985614",
+         "24a1e6a7",
+         "9bb4107c",
+         "c141366d",
+         "d112bc9d",
+         "1e1027a7",
+         "d230e963",
+         "632cf8f9",
+         "a03b7e02",
+         "4cc05491",
+         "9b9da812",
+         "4a2264b3",
+         "da71621b",
+         "c5ee6ac0",
+         "ad7dbb22",
+         "b58dbf88",
+         "cf0ae57a",
+         "43744269",
+         "d0430601",
+         "b3547a10",
+         "e24765e6",
+         "90ba8f98",
+         "38525983",
+         "d6121490",
+         "7ac5d686",
+         "15ce8207",
+         "9eb896c5",
+         "5611ae7b",
+         "dbd89c59",
+         "ae32cc3c",
+         "8156d446",
+         "bc59c2d9",
+         "1adb39f0",
+         "9296553d",
+         "d6af3572",
+         "9a144a01",
+         "60512da5",
+         "e97fd3f8",
+         "ae04b960",
+         "70a2776f",
+         "2e8027b0",
+         "50b2807e",
+         "b85a0d60",
+         "fb866265",
+         "16988f9c",
+         "b2eac426",
+         "f46139df",
+         "ab7740a8",
+         "b0fcabd0",
+         "9d88a3e3",
+         "7b52985c",
+         "83272c51",
+         "82aaa0a1",
+         "e9129a5c",
+         "5f3ee607",
+         "3c5b19ef",
+         "fdfc90e4",
+         "0ca5a331",
+         "af142f8d",
+         "8baf2118",
+         "39aa146d",
+         "2e74e403",
+         "5c24c861",
+         "03a16790",
+         "9b5b23fc",
+         "e821a26d",
+         "9d95e7ad",
+         "2e511919"
+        ],
+        "count": 75,
+        "difficulty_counts": {
+         "Easy": 33,
+         "Medium": 28,
+         "Hard": 14
+        },
+        "source": "college_board",
+        "visibility": "in_house"
+       }
+      ]
+     },
+     {
+      "id": "M-3.5",
+      "number": "3.5",
+      "title": "Probability and Two-Way Tables",
+      "estimated_minutes": 35,
+      "objectives": [
+       "Compute simple and conditional probabilities.",
+       "Pick the right denominator from a two-way table."
+      ],
+      "skills": [
+       "Probability and conditional probability"
+      ],
+      "blueprints": [
+       "D2"
+      ],
+      "blocks": [
+       {
+        "type": "markdown",
+        "content": "## Key ideas\n- **Probability = favorable outcomes / total outcomes.**\n- **The group after \"given\" or \"of the\" picks the denominator.** P(packed | grade 11) uses only grade 11 students.\n- \"And\" → the cell where both are true. \"Or\" → add, but don't count the overlap twice.\n\n## Worked example\n| | Hot lunch | Packed lunch | Total |\n|---|---|---|---|\n| Grade 10 | 45 | 30 | 75 |\n| Grade 11 | 35 | 50 | 85 |\n| Total | 80 | 80 | 160 |\n\n- P(packed **given** grade 11) = 50/85 = **10/17**.\n- P(grade 11 **given** packed) = 50/80 = **5/8**. Same cell, different denominator.\n- P(hot) = 80/160 = **1/2**."
+       },
+       {
+        "type": "callout",
+        "variant": "trap",
+        "title": "Traps to watch for",
+        "content": "- Using the grand total when the question says \"given\" or \"of the.\"\n- Reversing the condition (row total vs. column total).\n- Giving a count when the question asks for a probability or percent."
+       },
+       {
+        "type": "video",
+        "provider": "youtube",
+        "video_id": "63q0bcwB1l4",
+        "url": "https://www.youtube.com/watch?v=63q0bcwB1l4",
+        "title": "Digital SAT Math: Probability + Two-Way Tables",
+        "why_watch": "A full lesson on this skill.",
+        "review_status": "unreviewed"
+       },
+       {
+        "type": "video",
+        "provider": "youtube",
+        "video_id": "GM2jQ5KZ7ck",
+        "url": "https://www.youtube.com/watch?v=GM2jQ5KZ7ck",
+        "title": "SAT practice questions: two-way table statistics and probability",
+        "why_watch": "Three worked SAT-style questions.",
+        "review_status": "unreviewed"
+       },
+       {
+        "type": "checkpoint",
+        "title": "Quick check",
+        "instructions": "Try each one before you reveal the answer.",
+        "items": [
+         {
+          "id": "c1",
+          "prompt": "Using the table, what is P(grade 10 and hot lunch) for a randomly chosen student?",
+          "answer": "9/32",
+          "explanation": "45/160 = 9/32."
+         },
+         {
+          "id": "c2",
+          "prompt": "A bag has 4 red, 6 blue and 10 green marbles. P(not green)?",
+          "answer": "1/2",
+          "explanation": "10 of the 20 marbles aren't green."
+         }
+        ]
+       },
+       {
+        "type": "question_set",
+        "set_id": "M-3.5",
+        "title": "3.5 Practice Set (52 questions)",
+        "status": "ready",
+        "skills": [
+         "Probability and conditional probability"
+        ],
+        "blueprints": [
+         "D2"
+        ],
+        "mode": "practice",
+        "note": "Exact College Board Question Bank items. In-house use only: owner and assigned 1600 Project classes.",
+        "question_ids": [
+         "e1ad3d41",
+         "12dbe3de",
+         "d89c1513",
+         "d4413871",
+         "89ff6a0a",
+         "0ae37ff3",
+         "e5b5fbdd",
+         "a478f9f5",
+         "9ce8cbbe",
+         "912cd125",
+         "5dc386fb",
+         "c943acba",
+         "b8150b17",
+         "2905ded0",
+         "f8696cd8",
+         "e438ec3f",
+         "f496d2c0",
+         "b6569d0e",
+         "60caadfd",
+         "dae79de4",
+         "d2f63b67",
+         "ed6b7e5f",
+         "47624288",
+         "e9ed719f",
+         "589cd7a6",
+         "16cea46c",
+         "1fc4f47b",
+         "2a08d878",
+         "89f20d9e",
+         "6a715bed",
+         "0301c5dc",
+         "79201024",
+         "ec7b0eb8",
+         "1353b86e",
+         "eccbf957",
+         "0a99e5bb",
+         "46b2e169",
+         "1b8e412e",
+         "4e527894",
+         "1dcea480",
+         "b511e998",
+         "46545dd6",
+         "585de39a",
+         "ecf8d15f",
+         "a3384df0",
+         "b680e76d",
+         "2df8f293",
+         "74a16a71",
+         "38a9ac45",
+         "b1b5300b",
+         "30db8f77",
+         "014c47ab"
+        ],
+        "count": 52,
+        "difficulty_counts": {
+         "Medium": 16,
+         "Easy": 24,
+         "Hard": 12
+        },
+        "source": "college_board",
+        "visibility": "in_house"
+       }
+      ]
+     },
+     {
+      "id": "M-3.6",
+      "number": "3.6",
+      "title": "Sampling, Margin of Error and Study Design",
+      "estimated_minutes": 35,
+      "objectives": [
+       "Decide what population a sample result can be applied to.",
+       "Interpret a margin of error.",
+       "Tell when a study supports a cause-and-effect claim."
+      ],
+      "skills": [
+       "Inference from sample statistics and margin of error",
+       "Evaluating statistical claims"
+      ],
+      "blueprints": [],
+      "blocks": [
+       {
+        "type": "markdown",
+        "content": "## Key ideas\n- A result generalizes only to the population that was **randomly sampled**.\n- **Margin of error:** an estimate of 62% ± 4% means the true value is plausibly between 58% and 66%. It does not mean exactly 62%.\n- **Larger samples → smaller margin of error** (with everything else the same).\n- **Random assignment** to groups (an experiment) supports **cause and effect**. Without it (an observational study), you can only claim an **association**.\n\n## Worked examples\n**1.** A random sample of 400 residents of a town found 62% favor a new park, with a margin of error of 4%.\nA reasonable conclusion: **between 58% and 66% of the town's residents** likely favor the park. You can't say exactly 62%, and you can't apply it to other towns.\n\n**2.** Researchers randomly assigned 200 volunteers to one of two sleep programs; one group slept better.\nRandom assignment → the program likely **caused** the difference **for people like these volunteers**. The volunteers weren't randomly selected from everyone, so you can't generalize to all adults."
+       },
+       {
+        "type": "callout",
+        "variant": "trap",
+        "title": "Traps to watch for",
+        "content": "- Generalizing a sample to a bigger or different population.\n- Treating the sample result as the exact population value.\n- Claiming causation from an observational study."
+       },
+       {
+        "type": "video",
+        "provider": "youtube",
+        "video_id": "XNoPrWRqQq0",
+        "url": "https://www.youtube.com/watch?v=XNoPrWRqQq0",
+        "title": "SAT Math Prep: inference from sample statistics and margin of error",
+        "why_watch": "Margin-of-error question styles.",
+        "review_status": "unreviewed"
+       },
+       {
+        "type": "video",
+        "provider": "youtube",
+        "video_id": "9RoZiE0U0LE",
+        "url": "https://www.youtube.com/watch?v=9RoZiE0U0LE",
+        "title": "SAT Math Prep: evaluating statistical claims, observational studies and experiments",
+        "why_watch": "What each kind of study can conclude.",
+        "review_status": "unreviewed"
+       },
+       {
+        "type": "checkpoint",
+        "title": "Quick check",
+        "instructions": "Try each one before you reveal the answer.",
+        "items": [
+         {
+          "id": "c1",
+          "prompt": "If the sample size increases and nothing else changes, what happens to the margin of error?",
+          "answer": "It decreases",
+          "explanation": "Larger samples give more precise estimates."
+         },
+         {
+          "id": "c2",
+          "prompt": "A survey of a school's chess club finds most members like strategy games. Can you conclude most students at the school do?",
+          "answer": "No",
+          "explanation": "The chess club isn't a random sample of the school."
+         }
+        ]
+       },
+       {
+        "type": "question_set",
+        "set_id": "M-3.6",
+        "title": "3.6 Practice Set (50 questions)",
+        "status": "ready",
+        "skills": [
+         "Inference from sample statistics and margin of error",
+         "Evaluating statistical claims"
+        ],
+        "blueprints": [],
+        "mode": "practice",
+        "note": "Exact College Board Question Bank items. In-house use only: owner and assigned 1600 Project classes.",
+        "question_ids": [
+         "f8f79e11",
+         "916ffe9b",
+         "f4b3672a",
+         "1ea09200",
+         "fc46af57",
+         "4a422e3e",
+         "4096a482",
+         "7ce2830a",
+         "7d68096f",
+         "9bf4c545",
+         "869a32f1",
+         "9bedc4a0",
+         "241f1db7",
+         "97631565",
+         "f85bbf7a",
+         "e03f3477",
+         "c9dd92b1",
+         "e693f988",
+         "79340403",
+         "e7d48c8a",
+         "82dfb646",
+         "f04d40b2",
+         "2bab1399",
+         "6a305cd0",
+         "0108ac2d",
+         "b695711c",
+         "3e1bd4e2",
+         "661dfddd",
+         "a2162ea1",
+         "9ba3e283",
+         "53d97af5",
+         "da978ee6",
+         "aa43b41f",
+         "90eed2e5",
+         "b4f5a7ca",
+         "6fca0144",
+         "a6b2fcce",
+         "affb2315",
+         "2c76bcce",
+         "37930b2a",
+         "1e562f24",
+         "308084c5",
+         "e7d9649f",
+         "85939da5",
+         "8173f32b",
+         "642519d7",
+         "89f8d08a",
+         "6670e407",
+         "a067c926",
+         "9ee22c16"
+        ],
+        "count": 50,
+        "difficulty_counts": {
+         "Medium": 17,
+         "Hard": 14,
+         "Easy": 19
+        },
+        "source": "college_board",
+        "visibility": "in_house"
+       }
+      ]
+     }
+    ],
+    "review_sets": [
+     {
+      "type": "question_set",
+      "set_id": "M-U3-review-1",
+      "title": "Unit 3 Review Set 1 (35 questions)",
+      "status": "ready",
+      "mode": "practice",
+      "source": "college_board",
+      "visibility": "in_house",
+      "count": 35,
+      "question_ids": [
+       "808f7d6c",
+       "db88a933",
+       "41b71b4e",
+       "15617f62",
+       "86636d8f",
+       "da9ffcf6",
+       "2d31caae",
+       "3c8fdc40",
+       "e9fb7774",
+       "52f9a246",
+       "4347a032",
+       "b73025e2",
+       "76232971",
+       "763e6769",
+       "70fdd26c",
+       "34f8cd89",
+       "ba0e23b0",
+       "24ad9dcb",
+       "12dae628",
+       "559476f4",
+       "fa7a0164",
+       "0231050d",
+       "1fbd3b67",
+       "40e7a1a9",
+       "3d73a58b",
+       "e9841407",
+       "ba62b0b0",
+       "be35c117",
+       "0e552763",
+       "eaab8bc1",
+       "8bf3f67a",
+       "e3d49511",
+       "06a152cd",
+       "6310adbc",
+       "8784bc84"
+      ],
+      "difficulty_counts": {
+       "Easy": 28,
+       "Hard": 7
+      }
+     }
+    ]
+   },
+   {
+    "id": "M-U4",
+    "number": 4,
+    "title": "Geometry and Trigonometry",
+    "summary": "Angles, triangles, right-triangle trig, circles, and area and volume.",
+    "lessons": [
+     {
+      "id": "M-4.1",
+      "number": "4.1",
+      "title": "Lines, Angles and Triangles",
+      "estimated_minutes": 45,
+      "objectives": [
+       "Use angle relationships with parallel lines and transversals.",
+       "Apply triangle angle facts, including exterior angles.",
+       "Solve with similar triangles."
+      ],
+      "skills": [
+       "Lines, angles, and triangles"
+      ],
+      "blueprints": [
+       "G2",
+       "G6"
+      ],
+      "blocks": [
+       {
+        "type": "markdown",
+        "content": "## Key ideas\n- **Vertical angles** are equal. A **linear pair** adds to 180°.\n- **Parallel lines cut by a transversal:** alternate interior and corresponding angles are equal; **same-side interior angles add to 180°**.\n- Triangle angles add to 180°. An **exterior angle** equals the sum of the two remote interior angles.\n- **Isosceles:** equal sides are opposite equal angles.\n- **Similar triangles** (two pairs of equal angles) have proportional sides.\n\n## Worked examples\n**1.** Same-side interior angles measure (3x + 10)° and (2x + 20)°. Find both angles.\nThey add to 180: 5x + 30 = 180, so x = 30. The angles are **100° and 80°**.\n\n**2.** △ABC ~ △DEF with AB = 6, DE = 15 and BC = 8. Find EF.\nScale factor 15/6 = 2.5, so EF = 8 × 2.5 = **20**.\n\n**3.** An exterior angle of a triangle is 130°. One remote interior angle is 55°. Find the other.\n130 − 55 = **75°**."
+       },
+       {
+        "type": "callout",
+        "variant": "trap",
+        "title": "Traps to watch for",
+        "content": "- Setting same-side interior angles equal instead of supplementary.\n- Reporting x when the question asks for the angle.\n- Matching the wrong sides in similar triangles. Match by equal angles, not by position in the picture."
+       },
+       {
+        "type": "video",
+        "provider": "youtube",
+        "video_id": "HHaEOvkY-90",
+        "url": "https://www.youtube.com/watch?v=HHaEOvkY-90",
+        "title": "SAT Math: Lines, Angles and Triangles",
+        "why_watch": "The basic angle and triangle facts.",
+        "review_status": "unreviewed"
+       },
+       {
+        "type": "video",
+        "provider": "youtube",
+        "video_id": "-GAHnYPC3iI",
+        "url": "https://www.youtube.com/watch?v=-GAHnYPC3iI",
+        "title": "How to solve SAT similar triangles problems",
+        "why_watch": "Spotting similarity and setting up the ratio.",
+        "review_status": "unreviewed"
+       },
+       {
+        "type": "checkpoint",
+        "title": "Quick check",
+        "instructions": "Try each one before you reveal the answer.",
+        "items": [
+         {
+          "id": "c1",
+          "prompt": "An isosceles triangle has a vertex angle of 40°. What is each base angle?",
+          "answer": "70°",
+          "explanation": "(180 − 40) / 2 = 70."
+         },
+         {
+          "id": "c2",
+          "prompt": "Two similar triangles have shortest sides 4 and 10. The smaller has a perimeter of 18. Find the larger perimeter.",
+          "answer": "45",
+          "explanation": "Scale factor 2.5; 18 × 2.5 = 45."
+         }
+        ]
+       },
+       {
+        "type": "question_set",
+        "set_id": "M-4.1",
+        "title": "4.1 Practice Set (75 questions)",
+        "status": "ready",
+        "skills": [
+         "Lines, angles, and triangles"
+        ],
+        "blueprints": [
+         "G2",
+         "G6"
+        ],
+        "mode": "practice",
+        "note": "Exact College Board Question Bank items. In-house use only: owner and assigned 1600 Project classes.",
+        "question_ids": [
+         "ffc39dc5",
+         "2085e10e",
+         "087cdcfd",
+         "c41eb616",
+         "3b4b5b1e",
+         "5b918ebb",
+         "901c3215",
+         "cf0d3050",
+         "6dd463ca",
+         "81b664bc",
+         "5733ce30",
+         "345cc36a",
+         "0013adbd",
+         "e0d2e21a",
+         "afa3c48b",
+         "7a11ceea",
+         "d5f349b7",
+         "f1747a6a",
+         "4ff7b652",
+         "1dacfb94",
+         "933fee1a",
+         "2adbf1b1",
+         "d21270da",
+         "17912810",
+         "858809e7",
+         "0d3f51dc",
+         "9912e19f",
+         "e89f63bf",
+         "8364487a",
+         "cbe8ca31",
+         "3b225698",
+         "740bf79f",
+         "a6dbad6b",
+         "a0369739",
+         "bd7f6e30",
+         "7a8ad237",
+         "b1e1c2f5",
+         "aedb3374",
+         "a4c05a1b",
+         "c24e1bda",
+         "055aafe7",
+         "95ca2683",
+         "51f26ce8",
+         "686b5212",
+         "9d078710",
+         "1c3d613c",
+         "992f4e93",
+         "d3fe472f",
+         "c7bed21d",
+         "48fb6483",
+         "f7dbde16",
+         "2f7c92ad",
+         "b434e103",
+         "585a9138",
+         "3e4e2ab0",
+         "410bdbe6",
+         "58687a66",
+         "e10d8313",
+         "014edcb7",
+         "fd8745fc",
+         "901e3285",
+         "eeb4143c",
+         "2d2cb85e",
+         "697b3954",
+         "694b7fce",
+         "f67255ea",
+         "ecc98c87",
+         "d7a8aa9c",
+         "a456f28c",
+         "9342ca50",
+         "69f4bbdc",
+         "f88f27e5",
+         "cce343bd",
+         "f731d88b",
+         "94364a79"
+        ],
+        "count": 75,
+        "difficulty_counts": {
+         "Medium": 30,
+         "Easy": 24,
+         "Hard": 21
+        },
+        "source": "college_board",
+        "visibility": "in_house"
+       }
+      ]
+     },
+     {
+      "id": "M-4.2",
+      "number": "4.2",
+      "title": "Right Triangles and Trigonometry",
+      "estimated_minutes": 50,
+      "objectives": [
+       "Use the Pythagorean theorem and special right triangles.",
+       "Find sine, cosine and tangent from a triangle.",
+       "Use sin A = cos(90° − A), and convert degrees to radians."
+      ],
+      "skills": [
+       "Right triangles and trigonometry"
+      ],
+      "blueprints": [
+       "G1",
+       "G3"
+      ],
+      "blocks": [
+       {
+        "type": "markdown",
+        "content": "## Key ideas\n- **Pythagorean theorem:** a² + b² = c². Common triples: 3-4-5, 5-12-13, 8-15-17 (and multiples).\n- **30-60-90:** sides x, x√3, 2x. The short leg is opposite 30°.\n- **45-45-90:** sides x, x, x√2.\n- **SOH CAH TOA:** sin = opposite/hypotenuse, cos = adjacent/hypotenuse, tan = opposite/adjacent.\n- **Complementary angles:** sin A = cos B when A + B = 90°.\n- **Radians:** multiply degrees by π/180. 180° = π.\n\n## Worked examples\n**1.** A 30-60-90 triangle has hypotenuse 14. Find the legs.\nShort leg = 14/2 = **7**. Long leg = **7√3**.\n\n**2.** A right triangle has legs 8 and 15. Angle A is opposite the side of length 8.\nHypotenuse = 17. **sin A = 8/17, cos A = 15/17, tan A = 8/15.** For the other acute angle B, sin B = 15/17 = cos A.\n\n**3.** sin(x°) = cos(40°). Find x.\nx + 40 = 90, so **x = 50**."
+       },
+       {
+        "type": "desmos",
+        "title": "Check trig in degrees",
+        "use_when": "You want to confirm a trig value or angle.",
+        "steps": [
+         "Open the wrench menu and make sure Degrees is selected when the question uses degrees.",
+         "Type sin(30) and confirm 0.5."
+        ],
+        "expressions": [
+         {
+          "id": "e1",
+          "latex": "\\sin(30)"
+         },
+         {
+          "id": "e2",
+          "latex": "\\cos(60)"
+         }
+        ],
+        "check": "Both give 0.5. If you see −0.988, the calculator is in radians.",
+        "watch_out": "Bluebook's Desmos may start in radians. Check the mode before trusting trig output."
+       },
+       {
+        "type": "callout",
+        "variant": "trap",
+        "title": "Traps to watch for",
+        "content": "- Treating the hypotenuse as the short leg (10√3 instead of 5√3 for hypotenuse 10).\n- Using adjacent/hypotenuse for sine.\n- Mixing up which leg is opposite 30°."
+       },
+       {
+        "type": "video",
+        "provider": "youtube",
+        "video_id": "8GwCs-kxK5c",
+        "url": "https://www.youtube.com/watch?v=8GwCs-kxK5c",
+        "title": "Digital SAT Math: Special Right Triangles",
+        "why_watch": "Both special triangles, with a worksheet.",
+        "review_status": "unreviewed"
+       },
+       {
+        "type": "video",
+        "provider": "youtube",
+        "video_id": "czpNWt72Lek",
+        "url": "https://www.youtube.com/watch?v=czpNWt72Lek",
+        "title": "SAT Math on Khan Academy: Right Triangle Trigonometry (Foundations)",
+        "why_watch": "Four practice problems explained.",
+        "review_status": "unreviewed"
+       },
+       {
+        "type": "checkpoint",
+        "title": "Quick check",
+        "instructions": "Try each one before you reveal the answer.",
+        "items": [
+         {
+          "id": "c1",
+          "prompt": "sin(2y + 10)° = cos(y + 20)°. Find y.",
+          "answer": "20",
+          "explanation": "The angles are complementary: 3y + 30 = 90, so y = 20."
+         },
+         {
+          "id": "c2",
+          "prompt": "A 45-45-90 triangle has hypotenuse 10√2. How long is each leg?",
+          "answer": "10",
+          "explanation": "Hypotenuse = leg × √2."
+         },
+         {
+          "id": "c3",
+          "prompt": "Convert 120° to radians.",
+          "answer": "2π/3",
+          "explanation": "120 × π/180 = 2π/3."
+         }
+        ]
+       },
+       {
+        "type": "question_set",
+        "set_id": "M-4.2",
+        "title": "4.2 Practice Set (73 questions)",
+        "status": "ready",
+        "skills": [
+         "Right triangles and trigonometry"
+        ],
+        "blueprints": [
+         "G1",
+         "G3"
+        ],
+        "mode": "practice",
+        "note": "Exact College Board Question Bank items. In-house use only: owner and assigned 1600 Project classes.",
+        "question_ids": [
+         "55bb437a",
+         "bcb66188",
+         "568d66a7",
+         "bd87bc09",
+         "6b838d7d",
+         "92eb236a",
+         "94f7c9e2",
+         "9823f279",
+         "6c67dd47",
+         "8027db3f",
+         "c6dff223",
+         "6933b3d9",
+         "16d66178",
+         "f389569d",
+         "902dc959",
+         "379ffefb",
+         "bf8d843e",
+         "c4a9c94d",
+         "4c95c7d4",
+         "85f1892d",
+         "f6c32d0e",
+         "c9f8d1e9",
+         "4fb972f2",
+         "053e5e9f",
+         "f1251f35",
+         "54df8076",
+         "ae041e52",
+         "27d075d8",
+         "6ab30ce3",
+         "13d9a1c3",
+         "dba6a25a",
+         "e3158182",
+         "64c1f044",
+         "c9931030",
+         "bbaac300",
+         "a67b9f88",
+         "2757549e",
+         "a4c0547f",
+         "b0c5ece5",
+         "9ec76b54",
+         "2bddbc1b",
+         "a5aee181",
+         "498d6795",
+         "603c18ad",
+         "98e02472",
+         "940de228",
+         "2c3aefc9",
+         "25da87f8",
+         "44b2b894",
+         "de9148c4",
+         "52f7b898",
+         "e6f2ace7",
+         "145337bc",
+         "659cb706",
+         "a6097ec2",
+         "1bf809b5",
+         "8c3a3a4b",
+         "33e29881",
+         "87a9a2d4",
+         "5a7e3b46",
+         "58c26db8",
+         "1429dcdf",
+         "a71617d3",
+         "0e709a29",
+         "f811d345",
+         "2be01bd9",
+         "a4bd60a3",
+         "7700d098",
+         "ffe862a3",
+         "de550be0",
+         "36661021",
+         "7c25b0dc",
+         "14e7c1f4"
+        ],
+        "count": 73,
+        "difficulty_counts": {
+         "Hard": 42,
+         "Medium": 22,
+         "Easy": 9
+        },
+        "source": "college_board",
+        "visibility": "in_house"
+       }
+      ]
+     },
+     {
+      "id": "M-4.3",
+      "number": "4.3",
+      "title": "Circles",
+      "estimated_minutes": 45,
+      "objectives": [
+       "Find arc length and sector area, in degrees and radians.",
+       "Read and build circle equations, including by completing the square.",
+       "Use central and inscribed angle facts."
+      ],
+      "skills": [
+       "Circles"
+      ],
+      "blueprints": [
+       "G4",
+       "G5"
+      ],
+      "blocks": [
+       {
+        "type": "markdown",
+        "content": "## Key ideas\n- Area πr²; circumference 2πr.\n- **Arc length** = (θ/360) × 2πr. **Sector area** = (θ/360) × πr². In radians, arc length = rθ.\n- **Circle equation:** (x − h)² + (y − k)² = r², center (h, k), radius r.\n- **Completing the square:** move the constant, then add (half the x-coefficient)² and (half the y-coefficient)² to **both** sides.\n- An inscribed angle is **half** the central angle that intercepts the same arc. A tangent line is perpendicular to the radius at the point of contact.\n\n## Worked examples\n**1.** Find the center and radius of x² + y² − 6x + 8y = 11.\n(x² − 6x + 9) + (y² + 8y + 16) = 11 + 9 + 16 → (x − 3)² + (y + 4)² = 36. **Center (3, −4), radius 6.**\n\n**2.** A circle has radius 9. Find the arc length and sector area for an 80° central angle.\nArc = (80/360)(18π) = **4π**. Sector = (80/360)(81π) = **18π**.\n\n**3.** A central angle of 1.2 radians in a circle of radius 5 cuts an arc of length 5 × 1.2 = **6**."
+       },
+       {
+        "type": "desmos",
+        "title": "Read the circle off the graph",
+        "use_when": "A circle equation in expanded form.",
+        "steps": [
+         "Type the equation exactly as given.",
+         "Click the leftmost and rightmost points; the center's x is halfway between them.",
+         "Radius = half the width."
+        ],
+        "expressions": [
+         {
+          "id": "e1",
+          "latex": "x^2+y^2-6x+8y=11"
+         }
+        ],
+        "check": "The circle runs from x = −3 to x = 9, so the center's x is 3 and the radius is 6.",
+        "watch_out": "Confirm by completing the square. A radius² answer choice is a common trap."
+       },
+       {
+        "type": "callout",
+        "variant": "trap",
+        "title": "Traps to watch for",
+        "content": "- Giving r² as the radius.\n- Flipping the signs of the center: (x + 4)² means h = −4.\n- Forgetting to add the completed squares to the right side."
+       },
+       {
+        "type": "video",
+        "provider": "youtube",
+        "video_id": "pKKjqEGjpvg",
+        "url": "https://www.youtube.com/watch?v=pKKjqEGjpvg",
+        "title": "Equation of a Circle: SAT Math",
+        "why_watch": "Standard form and the completing-the-square trick.",
+        "review_status": "unreviewed"
+       },
+       {
+        "type": "video",
+        "provider": "youtube",
+        "video_id": "l0QxzZZDkKY",
+        "url": "https://www.youtube.com/watch?v=l0QxzZZDkKY",
+        "title": "SAT circle equation trick",
+        "why_watch": "Finding the center fast from expanded form.",
+        "review_status": "unreviewed"
+       },
+       {
+        "type": "checkpoint",
+        "title": "Quick check",
+        "instructions": "Try each one before you reveal the answer.",
+        "items": [
+         {
+          "id": "c1",
+          "prompt": "Give the center and radius of (x + 2)² + (y − 7)² = 49.",
+          "answer": "Center (−2, 7), radius 7",
+          "explanation": "h = −2, k = 7, r = √49."
+         },
+         {
+          "id": "c2",
+          "prompt": "What is the radius of x² + 10x + y² = 0?",
+          "answer": "5",
+          "explanation": "(x + 5)² + y² = 25."
+         },
+         {
+          "id": "c3",
+          "prompt": "An inscribed angle intercepts a 100° arc. What is its measure?",
+          "answer": "50°",
+          "explanation": "Half the arc."
+         }
+        ]
+       },
+       {
+        "type": "question_set",
+        "set_id": "M-4.3",
+        "title": "4.3 Practice Set (67 questions)",
+        "status": "ready",
+        "skills": [
+         "Circles"
+        ],
+        "blueprints": [
+         "G4",
+         "G5"
+        ],
+        "mode": "practice",
+        "note": "Exact College Board Question Bank items. In-house use only: owner and assigned 1600 Project classes.",
+        "question_ids": [
+         "24cec8d1",
+         "9adb86ed",
+         "aa2d36fe",
+         "186fdbca",
+         "c8345903",
+         "76c73dbf",
+         "1efd7ef3",
+         "35d37640",
+         "9acd101f",
+         "a5ff1a96",
+         "44d67c6c",
+         "82c8325f",
+         "e80d62c6",
+         "e50afdd3",
+         "27f1db42",
+         "23c5fcce",
+         "6b4707aa",
+         "6585d841",
+         "89661424",
+         "a0cacec1",
+         "ebbf23ae",
+         "acd30391",
+         "69b0d79d",
+         "408b39ea",
+         "62d39eb8",
+         "5011b039",
+         "ab176ad6",
+         "2266984b",
+         "b8a225ff",
+         "244ff6c4",
+         "fc8aa563",
+         "8e7689e0",
+         "0815a5af",
+         "a38c0183",
+         "c447367f",
+         "ee540927",
+         "196e8e6e",
+         "f2495de4",
+         "149021da",
+         "0acfddb5",
+         "9f9112ab",
+         "d12bca0a",
+         "249d3f80",
+         "c0b53183",
+         "10e059a6",
+         "267f82b5",
+         "3e577e4a",
+         "ca2235f6",
+         "858fd1cf",
+         "981275d2",
+         "800e71b8",
+         "9e44284b",
+         "8493fd10",
+         "fa2771d5",
+         "95ba2d09",
+         "1b2b20b9",
+         "2d521ca9",
+         "11301fb6",
+         "b0a72bdc",
+         "2855cb58",
+         "fb58c0db",
+         "9d159400",
+         "856372ca",
+         "74d8b897",
+         "d03e29f1",
+         "b96ff36e",
+         "f1c1e971"
+        ],
+        "count": 67,
+        "difficulty_counts": {
+         "Hard": 41,
+         "Medium": 22,
+         "Easy": 4
+        },
+        "source": "college_board",
+        "visibility": "in_house"
+       }
+      ]
+     },
+     {
+      "id": "M-4.4",
+      "number": "4.4",
+      "title": "Area, Volume and Scaling",
+      "estimated_minutes": 40,
+      "objectives": [
+       "Use the reference-sheet formulas for area and volume.",
+       "Find areas of composite shapes.",
+       "Scale lengths, areas and volumes correctly."
+      ],
+      "skills": [
+       "Area and volume"
+      ],
+      "blueprints": [
+       "G6"
+      ],
+      "blocks": [
+       {
+        "type": "markdown",
+        "content": "## Key ideas\n- The reference sheet in Bluebook gives you area and volume formulas. Know where it is, and know these by heart anyway: rectangle lw, triangle ½bh, circle πr², box lwh, cylinder πr²h, cone ⅓πr²h, sphere (4/3)πr³, pyramid ⅓lwh.\n- **Composite shapes:** add the pieces, or subtract the hole.\n- **Scaling by k:** lengths × k, areas × k², volumes × k³.\n\n## Worked examples\n**1.** A cylinder has radius 3 and height 10. Volume = π(9)(10) = **90π**.\n\n**2.** Two similar cones have heights 4 and 12. The small one holds 20 cm³. How much does the large one hold?\nk = 3, so volume × 27: **540 cm³**.\n\n**3.** A shape is an 8 × 5 rectangle with a semicircle on one 8-unit side. Area?\n40 + ½π(4²) = **40 + 8π**."
+       },
+       {
+        "type": "callout",
+        "variant": "trap",
+        "title": "Traps to watch for",
+        "content": "- Scaling a volume by k instead of k³.\n- Using the diameter as the radius.\n- Forgetting the ⅓ for cones and pyramids."
+       },
+       {
+        "type": "video",
+        "provider": "youtube",
+        "video_id": "skEy5FanNQU",
+        "url": "https://www.youtube.com/watch?v=skEy5FanNQU",
+        "title": "SAT formula sheet review and practice: spheres, cylinders, cones and circles",
+        "why_watch": "Using the reference sheet on real-style problems.",
+        "review_status": "unreviewed"
+       },
+       {
+        "type": "video",
+        "provider": "youtube",
+        "video_id": "NQfnnPrtUiM",
+        "url": "https://www.youtube.com/watch?v=NQfnnPrtUiM",
+        "title": "SAT Math Geometry: 4 concepts you need to know",
+        "why_watch": "Lines and angles, triangles, circles and 3D shapes.",
+        "review_status": "unreviewed"
+       },
+       {
+        "type": "checkpoint",
+        "title": "Quick check",
+        "instructions": "Try each one before you reveal the answer.",
+        "items": [
+         {
+          "id": "c1",
+          "prompt": "A cube has volume 64. What is its surface area?",
+          "answer": "96",
+          "explanation": "Side 4; 6 faces × 16 = 96."
+         },
+         {
+          "id": "c2",
+          "prompt": "Find the volume of a sphere with radius 3.",
+          "answer": "36π",
+          "explanation": "(4/3)π(27) = 36π."
+         },
+         {
+          "id": "c3",
+          "prompt": "A rectangle with area 15 is scaled by a factor of 2. New area?",
+          "answer": "60",
+          "explanation": "Area scales by k² = 4."
+         }
+        ]
+       },
+       {
+        "type": "question_set",
+        "set_id": "M-4.4",
+        "title": "4.4 Practice Set (75 questions)",
+        "status": "ready",
+        "skills": [
+         "Area and volume"
+        ],
+        "blueprints": [
+         "G6"
+        ],
+        "mode": "practice",
+        "note": "Exact College Board Question Bank items. In-house use only: owner and assigned 1600 Project classes.",
+        "question_ids": [
+         "aef4fd8a",
+         "1fe41c6b",
+         "d621cffb",
+         "25cc5327",
+         "f67e4efc",
+         "a2e76b60",
+         "9c0a0eca",
+         "8c1aa743",
+         "306264ab",
+         "e0874bc2",
+         "096c7ef5",
+         "42155bac",
+         "96467fea",
+         "c4e5e23c",
+         "29e9b28c",
+         "5b2b8866",
+         "c984f1a5",
+         "93f48423",
+         "50774285",
+         "eb70d2d0",
+         "4efea6a3",
+         "0d43db90",
+         "4757123b",
+         "32f99025",
+         "e86f0651",
+         "dc71597b",
+         "ec5d4823",
+         "459dd6c5",
+         "899c6042",
+         "468613c0",
+         "fc5ef8d3",
+         "a07ed090",
+         "0837c3b9",
+         "165c30c4",
+         "f7e626b2",
+         "98c12e38",
+         "37dde49f",
+         "f60bb551",
+         "a2659088",
+         "0565e4b1",
+         "e9c5bfb2",
+         "a490003a",
+         "151eda3c",
+         "0e40dfb0",
+         "1c0bc3fc",
+         "bb560789",
+         "167aff9e",
+         "ebf3a962",
+         "575f1e12",
+         "a4ed5285",
+         "6708546e",
+         "689abc2a",
+         "cf53cb56",
+         "c8c88888",
+         "9fec9d49",
+         "59cb654c",
+         "2b41a4c4",
+         "08b7a3f5",
+         "d0b6d927",
+         "17049054",
+         "9fdc4eaa",
+         "3b931fb0",
+         "1f0b582e",
+         "93de3f84",
+         "c8ab85ad",
+         "30aa51b7",
+         "ae33e0a1",
+         "0cfa8528",
+         "3453aafc",
+         "deff8a2f",
+         "310c87fe",
+         "e336a1d2",
+         "03c6994f",
+         "1b687ae3",
+         "6ae1360d"
+        ],
+        "count": 75,
+        "difficulty_counts": {
+         "Medium": 34,
+         "Hard": 19,
+         "Easy": 22
+        },
+        "source": "college_board",
+        "visibility": "in_house"
+       }
+      ]
+     }
+    ],
+    "review_sets": [
+     {
+      "type": "question_set",
+      "set_id": "M-U4-review-1",
+      "title": "Unit 4 Review Set 1 (39 questions)",
+      "status": "ready",
+      "mode": "practice",
+      "source": "college_board",
+      "visibility": "in_house",
+      "count": 39,
+      "question_ids": [
+       "d683a9cc",
+       "ba8ca563",
+       "de5f51e9",
+       "f6ca90cc",
+       "dae3c46a",
+       "739f1bbc",
+       "5252e606",
+       "0bb39de4",
+       "4ddfa209",
+       "babd7461",
+       "f329442c",
+       "cab8f907",
+       "9f934297",
+       "2a549721",
+       "c88183f7",
+       "f39f88b7",
+       "7268586c",
+       "3828f53d",
+       "6d99b141",
+       "5b4757df",
+       "9d2e7037",
+       "1dc7e423",
+       "947a3cde",
+       "c8d60e48",
+       "64d1f49f",
+       "e6c557f9",
+       "02b02213",
+       "76670c80",
+       "f9d40000",
+       "ab03cab6",
+       "b2528e6b",
+       "f243c383",
+       "42b4493b",
+       "dfc420b2",
+       "f3f06c3a",
+       "4a141e77",
+       "cba197c9",
+       "b21ff6c5",
+       "e570a99c"
+      ],
+      "difficulty_counts": {
+       "Easy": 26,
+       "Hard": 13
+      }
+     }
+    ]
+   },
+   {
+    "id": "M-U5",
+    "number": 5,
+    "title": "Desmos Masterclass",
+    "summary": "The 1600 Project Desmos Toolkit as a self-paced unit. Use it alongside Units 1–4.",
+    "lessons": [
+     {
+      "id": "M-5.1",
+      "number": "5.1",
+      "title": "Graph Both Sides and Click the Intersection",
+      "estimated_minutes": 35,
+      "objectives": [
+       "Solve one-variable equations by graphing both sides.",
+       "Solve systems by clicking the intersection.",
+       "Count solutions of nonlinear equations."
+      ],
+      "skills": [
+       "Desmos: intersections"
+      ],
+      "blueprints": [
+       "A5",
+       "M4"
+      ],
+      "blocks": [
+       {
+        "type": "markdown",
+        "content": "## One move, many question types\nWhenever two things are set equal, graph each as y = … and click where they meet.\n- **One-variable equation:** the intersection's x-coordinate is the solution.\n- **System:** the intersection point is the solution. Answer what's asked (x, y, or a combination).\n- **\"How many solutions?\":** count the intersections. Zoom out first.\n\nPredict first, every time: two lines with different slopes must cross exactly once."
+       },
+       {
+        "type": "desmos",
+        "title": "Equation in one variable",
+        "use_when": "x on both sides, fractions, or parentheses.",
+        "steps": [
+         "y = left side",
+         "y = right side",
+         "Click the intersection."
+        ],
+        "expressions": [
+         {
+          "id": "e1",
+          "latex": "y=3(x-2)+5"
+         },
+         {
+          "id": "e2",
+          "latex": "y=2x+9"
+         }
+        ],
+        "check": "(10, 29), so x = 10."
+       },
+       {
+        "type": "desmos",
+        "title": "System of two equations",
+        "use_when": "Two linear equations and a question about x, y or both.",
+        "steps": [
+         "Rename variables to x and y.",
+         "Type both equations as given.",
+         "Click the intersection."
+        ],
+        "expressions": [
+         {
+          "id": "e1",
+          "latex": "x+y=150"
+         },
+         {
+          "id": "e2",
+          "latex": "12x+8y=1480"
+         }
+        ],
+        "check": "(70, 80)."
+       },
+       {
+        "type": "desmos",
+        "title": "Nonlinear: count the crossings",
+        "use_when": "Radical, rational, absolute-value or quadratic equations.",
+        "steps": [
+         "Graph each side.",
+         "Click every intersection.",
+         "Zoom out to find any hiding off-screen."
+        ],
+        "expressions": [
+         {
+          "id": "e1",
+          "latex": "y=\\sqrt{x+7}"
+         },
+         {
+          "id": "e2",
+          "latex": "y=x-5"
+         }
+        ],
+        "check": "One intersection at (9, 4).",
+        "watch_out": "Desmos won't show extraneous roots, so it's a great check on radical equations."
+       },
+       {
+        "type": "video",
+        "provider": "youtube",
+        "video_id": "PQA7agY5Mpk",
+        "url": "https://www.youtube.com/watch?v=PQA7agY5Mpk",
+        "title": "Solving a system of linear equations with Desmos",
+        "why_watch": "Graphing and regression methods side by side.",
+        "review_status": "unreviewed"
+       },
+       {
+        "type": "checkpoint",
+        "title": "Quick check",
+        "instructions": "Try each one before you reveal the answer.",
+        "items": [
+         {
+          "id": "c1",
+          "prompt": "Use Desmos: how many solutions does x² − 4x + 1 = 2x − 8 have?",
+          "answer": "1",
+          "explanation": "The line touches the parabola once, at (3, −2)."
+         },
+         {
+          "id": "c2",
+          "prompt": "Use Desmos to solve 2(x + 4) = 5x − 7.",
+          "answer": "x = 5",
+          "explanation": "The lines meet at (5, 18)."
+         }
+        ]
+       },
+       {
+        "type": "question_set",
+        "set_id": "M-5.1",
+        "title": "5.1 Practice Set (65 questions)",
+        "status": "ready",
+        "skills": [
+         "Desmos: intersections"
+        ],
+        "blueprints": [
+         "A5",
+         "M4"
+        ],
+        "mode": "practice",
+        "note": "Exact College Board Question Bank items. In-house use only: owner and assigned 1600 Project classes.",
+        "question_ids": [
+         "4e18fc5d",
+         "2f958af9",
+         "f65288e8",
+         "0c541d87",
+         "c77ef2fb",
+         "e8779461",
+         "229abfe6",
+         "95ed0b69",
+         "c5d83a99",
+         "cb8f449f",
+         "a4f61d75",
+         "ff2c1431",
+         "77c0cced",
+         "3f5a3602",
+         "150c0c1b",
+         "158591f0",
+         "46308566",
+         "f5563c26",
+         "041eda89",
+         "332cd67b",
+         "70feb725",
+         "15601317",
+         "5c94e6fa",
+         "98f735f2",
+         "fad2f98c",
+         "e6cb2402",
+         "7a987ae4",
+         "4b76c7f1",
+         "fbb96bb1",
+         "71189542",
+         "30281058",
+         "0bebc08c",
+         "e11294f9",
+         "5639dd1a",
+         "cfa392c3",
+         "997bec28",
+         "652054da",
+         "bf704c34",
+         "d76ab4f5",
+         "11ccf3e1",
+         "aacc834b",
+         "8abed0fb",
+         "1e0a46e4",
+         "4fb8a648",
+         "1e003284",
+         "2926cc6d",
+         "c9417793",
+         "23758540",
+         "4f7981a0",
+         "0adbe034",
+         "2c5c22d0",
+         "570b5a5d",
+         "e9349667",
+         "ece00725",
+         "5f10c095",
+         "b76a2815",
+         "e0177f5f",
+         "75012ee7",
+         "062f86db",
+         "dcc4886a",
+         "4e400635",
+         "46f68129",
+         "5edc8c98",
+         "dd3a910a",
+         "5c7d5744"
+        ],
+        "count": 65,
+        "difficulty_counts": {
+         "Medium": 21,
+         "Hard": 19,
+         "Easy": 25
+        },
+        "source": "college_board",
+        "visibility": "in_house"
+       }
+      ]
+     },
+     {
+      "id": "M-5.2",
+      "number": "5.2",
+      "title": "Regression: Lines, Models and Unknown Constants",
+      "estimated_minutes": 45,
+      "objectives": [
+       "Find a line from points with y_1 ~ mx_1 + b.",
+       "Find unknown constants in 'for all x' identities.",
+       "Fit exponential models with y_1 ~ ab^(x_1)."
+      ],
+      "skills": [
+       "Desmos: regression"
+      ],
+      "blueprints": [
+       "A1",
+       "A3",
+       "M2",
+       "M6"
+      ],
+      "blocks": [
+       {
+        "type": "markdown",
+        "content": "## Why regression is a superpower\nRegression finds the constants that make a model fit your data. On the SAT, you can manufacture the \"data\" yourself from the known side of an identity, then let Desmos find the unknown constants. Most students have never seen this, so practice it until it's automatic.\n\n**Rules:** use ~ (tilde), not =. Use more data points than unknowns. R² = 1 means an exact fit; anything less means a typo."
+       },
+       {
+        "type": "desmos",
+        "title": "Line from two values",
+        "use_when": "f(2) = 7 and f(5) = 16; find f(10).",
+        "steps": [
+         "Table with (2, 7), (5, 16).",
+         "y_1 ~ mx_1 + b",
+         "Define f and evaluate."
+        ],
+        "expressions": [
+         {
+          "id": "e1",
+          "latex": "y_1\\sim mx_1+b"
+         },
+         {
+          "id": "e2",
+          "latex": "f(x)=3x+1"
+         },
+         {
+          "id": "e3",
+          "latex": "f(10)"
+         }
+        ],
+        "check": "m = 3, b = 1, f(10) = 31."
+       },
+       {
+        "type": "desmos",
+        "title": "Unknown constants",
+        "use_when": "a(x + 3)² + b = 2x² + 12x + 25 for all x.",
+        "steps": [
+         "Make x-values.",
+         "Make y-values from the known side.",
+         "Regress with the unknown side."
+        ],
+        "expressions": [
+         {
+          "id": "e1",
+          "latex": "x_1=[0,1,2,3,4]"
+         },
+         {
+          "id": "e2",
+          "latex": "y_1=2x_1^2+12x_1+25"
+         },
+         {
+          "id": "e3",
+          "latex": "y_1\\sim a(x_1+3)^2+b"
+         }
+        ],
+        "check": "a = 2, b = 7."
+       },
+       {
+        "type": "desmos",
+        "title": "Exponential fit",
+        "use_when": "A table that grows or shrinks by a constant ratio.",
+        "steps": [
+         "Enter the table.",
+         "Regress with y_1 ~ ab^(x_1)."
+        ],
+        "expressions": [
+         {
+          "id": "e1",
+          "latex": "y_1\\sim ab^{x_1}"
+         }
+        ],
+        "check": "For (0, 50), (1, 60), (2, 72): a = 50, b = 1.2.",
+        "watch_out": "b > 1 means growth; b < 1 means decay."
+       },
+       {
+        "type": "video",
+        "provider": "youtube",
+        "video_id": "g4vgbNrWArk",
+        "url": "https://www.youtube.com/watch?v=g4vgbNrWArk",
+        "title": "The only SAT Math Desmos regression guide you'll ever need",
+        "why_watch": "Regression techniques for the hardest problems.",
+        "review_status": "unreviewed"
+       },
+       {
+        "type": "video",
+        "provider": "youtube",
+        "video_id": "P02zVa7uA0s",
+        "url": "https://www.youtube.com/watch?v=P02zVa7uA0s",
+        "title": "Destroy SAT constants questions with Desmos regression",
+        "why_watch": "More 'find the constant' examples.",
+        "review_status": "unreviewed"
+       },
+       {
+        "type": "checkpoint",
+        "title": "Quick check",
+        "instructions": "Try each one before you reveal the answer.",
+        "items": [
+         {
+          "id": "c1",
+          "prompt": "Use regression: (ax − 3)(3x + b) = 6x² − 5x − 6 for all x. Find a and b.",
+          "answer": "a = 2, b = 2",
+          "explanation": "Make y_1 from the right side, then regress y_1 ~ (ax_1 − 3)(3x_1 + b). Check: (2x − 3)(3x + 2) = 6x² + 4x − 9x − 6 = 6x² − 5x − 6."
+         },
+         {
+          "id": "c2",
+          "prompt": "f(1) = 4 and f(3) = 36 for an exponential function f(x) = ab^x with b > 0. Find f(4).",
+          "answer": "108",
+          "explanation": "Regress y_1 ~ ab^(x_1) on (1, 4) and (3, 36): b = 3, a = 4/3. f(4) = (4/3)(81) = 108."
+         }
+        ]
+       },
+       {
+        "type": "question_set",
+        "set_id": "M-5.2",
+        "title": "5.2 Practice Set (65 questions)",
+        "status": "ready",
+        "skills": [
+         "Desmos: regression"
+        ],
+        "blueprints": [
+         "A1",
+         "A3",
+         "M2",
+         "M6"
+        ],
+        "mode": "practice",
+        "note": "Exact College Board Question Bank items. In-house use only: owner and assigned 1600 Project classes.",
+        "question_ids": [
+         "930c2990",
+         "c6b151d4",
+         "22fd3e1f",
+         "768b2425",
+         "bf883fde",
+         "bfede33b",
+         "f0773a55",
+         "4f89e4d4",
+         "adf60b28",
+         "80ae6851",
+         "4edecdba",
+         "2e379126",
+         "789975b7",
+         "0b0fa68b",
+         "1a29a3c3",
+         "f79fffba",
+         "8a6de407",
+         "447fa970",
+         "f8871ccd",
+         "441558e7",
+         "6c5c2a81",
+         "23c5d458",
+         "f237ccfc",
+         "efc469c4",
+         "271f7e3f",
+         "89fc23af",
+         "a42c12aa",
+         "979b0b8d",
+         "e25f0807",
+         "820ad8e8",
+         "137cc6fd",
+         "a309803e",
+         "c651cc56",
+         "c3b116d7",
+         "8375e970",
+         "c01f4a95",
+         "0ea7ef01",
+         "075b29b0",
+         "1dd13816",
+         "294db8ec",
+         "b9839f9e",
+         "343aaff6",
+         "b3abf40f",
+         "a4d6fbec",
+         "bd9eb2b5",
+         "2d54c272",
+         "7355b9d9",
+         "b47419f4",
+         "042aa429",
+         "ffdbcad4",
+         "8838a672",
+         "3e9eaffc",
+         "c81b6c57",
+         "78391fcc",
+         "8b9960b2",
+         "8d63b6f1",
+         "0366d965",
+         "42f19012",
+         "e4a588ca",
+         "50338a48",
+         "ea6d05bb",
+         "911c415b",
+         "3462d850",
+         "1f0966db",
+         "16de54c7"
+        ],
+        "count": 65,
+        "difficulty_counts": {
+         "Easy": 28,
+         "Hard": 18,
+         "Medium": 19
+        },
+        "source": "college_board",
+        "visibility": "in_house"
+       }
+      ]
+     },
+     {
+      "id": "M-5.3",
+      "number": "5.3",
+      "title": "Lists, Functions and Testing Answer Choices",
+      "estimated_minutes": 30,
+      "objectives": [
+       "Test all four answer choices at once with a list.",
+       "Compute mean, median and standard deviation from a list.",
+       "Define functions once and reuse them."
+      ],
+      "skills": [
+       "Desmos: lists"
+      ],
+      "blueprints": [],
+      "blocks": [
+       {
+        "type": "markdown",
+        "content": "## Check all four at once\nWhen the answer choices are numbers and the question gives a function or equation, put the choices in a list and evaluate them together. Desmos returns the outputs in the same order as the choices.\n\n## Statistics from lists\nmean(L), median(L), stdev(L), and total(L) work on any list. Edit the list to test \"what if one value is removed?\""
+       },
+       {
+        "type": "desmos",
+        "title": "Test the choices",
+        "use_when": "A function and four candidate inputs.",
+        "steps": [
+         "Define the function.",
+         "Type f( ) with the choices in square brackets.",
+         "Pick the choice that gives the required value."
+        ],
+        "expressions": [
+         {
+          "id": "e1",
+          "latex": "f(x)=4x-7"
+         },
+         {
+          "id": "e2",
+          "latex": "f([2,3,5,8])"
+         }
+        ],
+        "check": "[1, 5, 13, 25], so x = 5 gives 13.",
+        "watch_out": "Still predict first, so a typo doesn't go unnoticed."
+       },
+       {
+        "type": "desmos",
+        "title": "Statistics",
+        "use_when": "A data list and a center or spread question.",
+        "steps": [
+         "L = [ … ]",
+         "mean(L), median(L), stdev(L)"
+        ],
+        "expressions": [
+         {
+          "id": "e1",
+          "latex": "L=[12,14,15,15,18,95]"
+         },
+         {
+          "id": "e2",
+          "latex": "\\operatorname{mean}(L)"
+         },
+         {
+          "id": "e3",
+          "latex": "\\operatorname{median}(L)"
+         }
+        ],
+        "check": "Mean ≈ 28.17, median 15."
+       },
+       {
+        "type": "video",
+        "provider": "youtube",
+        "video_id": "hMd8c1w162I",
+        "url": "https://www.youtube.com/watch?v=hMd8c1w162I",
+        "title": "Mean, median, mode and standard deviation on Desmos",
+        "why_watch": "The statistics list functions.",
+        "review_status": "unreviewed"
+       },
+       {
+        "type": "checkpoint",
+        "title": "Quick check",
+        "instructions": "Try each one before you reveal the answer.",
+        "items": [
+         {
+          "id": "c1",
+          "prompt": "g(x) = x² − 3x. Which of 2, 4, 5, 6 gives g(x) = 10?",
+          "answer": "5",
+          "explanation": "g([2, 4, 5, 6]) = [−2, 4, 10, 18]."
+         }
+        ]
+       },
+       {
+        "type": "question_set",
+        "set_id": "M-5.3",
+        "title": "5.3 Practice Set (65 questions)",
+        "status": "ready",
+        "skills": [
+         "Desmos: lists"
+        ],
+        "blueprints": [],
+        "mode": "practice",
+        "note": "Exact College Board Question Bank items. In-house use only: owner and assigned 1600 Project classes.",
+        "question_ids": [
+         "2b6c12eb",
+         "36b6f8ba",
+         "c4cd5bcc",
+         "f678483b",
+         "0aaef7aa",
+         "769b612d",
+         "2f51abc2",
+         "981aca65",
+         "b51c173d",
+         "f880f910",
+         "4880eecb",
+         "735a0a00",
+         "d135f4bf",
+         "dd797fe2",
+         "cc6ccd71",
+         "75915e3c",
+         "5907e072",
+         "c946d5bd",
+         "5bf0f84a",
+         "beca03de",
+         "ef926848",
+         "0ad5012e",
+         "7a4475df",
+         "1fe09f90",
+         "55c5d3c2",
+         "d4950429",
+         "635f54ee",
+         "1a2a0f59",
+         "3918e8bc",
+         "9f2ecade",
+         "f89af023",
+         "de362c2f",
+         "50e40f08",
+         "cf2b40db",
+         "f01108a8",
+         "1fe10d97",
+         "3f5375d9",
+         "0121a235",
+         "27198699",
+         "46e768ca",
+         "63d03c0b",
+         "c1eead73",
+         "afa2bc05",
+         "fe62f031",
+         "e4de142f",
+         "54777964",
+         "f1fa0821",
+         "99269e03",
+         "0f9f8ea7",
+         "3c3eeec0",
+         "b7dc5b11",
+         "7d3a84bf",
+         "6e7ae9fc",
+         "bd4d0e0c",
+         "f44a29a8",
+         "cef0eada",
+         "50418728",
+         "0d391910",
+         "4d425cef",
+         "cbc4c163",
+         "fe6f9678",
+         "e1f9000d",
+         "87322577",
+         "e6a8ce94",
+         "aa95fb33"
+        ],
+        "count": 65,
+        "difficulty_counts": {
+         "Easy": 20,
+         "Hard": 16,
+         "Medium": 29
+        },
+        "source": "college_board",
+        "visibility": "in_house"
+       }
+      ]
+     },
+     {
+      "id": "M-5.4",
+      "number": "5.4",
+      "title": "Shading, Sliders, and When Not to Use Desmos",
+      "estimated_minutes": 35,
+      "objectives": [
+       "Answer inequality questions from the shading.",
+       "Use sliders to explore constants, then confirm algebraically.",
+       "Spot overlapping graphs for equivalent expressions.",
+       "Recognize questions where Desmos slows you down."
+      ],
+      "skills": [
+       "Desmos: strategy"
+      ],
+      "blueprints": [
+       "A7",
+       "M4"
+      ],
+      "blocks": [
+       {
+        "type": "markdown",
+        "content": "## Shading\nType inequalities as given (`<=` becomes ≤). The overlap of a system's shading is its solution set. Dashed boundary = strict; solid = inclusive.\n\n## Sliders\nAny unknown letter becomes a slider. Slide until the graphs touch, overlap, or become parallel. A slider gets you close, not exact, so confirm with algebra (the discriminant, matching slopes).\n\n## Overlap means equivalent\nGraph the original and each answer choice. The one that sits exactly on top of the original is equivalent. Zoom out to check, and remember Desmos doesn't mark holes.\n\n## When not to use Desmos\n- Questions about **meaning**: interpreting slope or intercept in context, study design, which expression represents a story.\n- **Geometry figures** with no equation.\n- Problems you can do by sight in 10 seconds (2x = 14).\nRule of thumb: if you'd spend more time typing than thinking, solve by hand."
+       },
+       {
+        "type": "desmos",
+        "title": "Find k for one solution",
+        "use_when": "'For what value of k does the system have exactly one solution?'",
+        "steps": [
+         "Graph the parabola.",
+         "Graph the line with k as a slider.",
+         "Slide until the line just touches the curve.",
+         "Confirm with the discriminant."
+        ],
+        "expressions": [
+         {
+          "id": "e1",
+          "latex": "y=x^2+2x+5"
+         },
+         {
+          "id": "e2",
+          "latex": "y=4x+k"
+         }
+        ],
+        "check": "The line is tangent at k = 4, at the point (1, 8).",
+        "watch_out": "Sliders default to −10 to 10. Widen the range if needed."
+       },
+       {
+        "type": "video",
+        "provider": "youtube",
+        "video_id": "hioeE_HqsEo",
+        "url": "https://www.youtube.com/watch?v=hioeE_HqsEo",
+        "title": "Quadratics, the discriminant, and when Desmos helps vs. slows you down",
+        "why_watch": "A recorded office hour on choosing between Desmos and algebra.",
+        "review_status": "unreviewed"
+       },
+       {
+        "type": "video",
+        "provider": "youtube_playlist",
+        "playlist_id": "PLplwHFP5QhCMvN05YWqJ0nPxhhxWnLlRq",
+        "url": "https://www.youtube.com/playlist?list=PLplwHFP5QhCMvN05YWqJ0nPxhhxWnLlRq",
+        "title": "Desmos Crash Course for the Digital SAT (playlist)",
+        "why_watch": "Optional extra practice across every technique.",
+        "review_status": "unreviewed"
+       },
+       {
+        "type": "checkpoint",
+        "title": "Quick check",
+        "instructions": "Try each one before you reveal the answer.",
+        "items": [
+         {
+          "id": "c1",
+          "prompt": "Which is equivalent to (x² − 9)/(x − 3) for x ≠ 3: x − 3, x + 3, or x² − 3?",
+          "answer": "x + 3",
+          "explanation": "Its graph overlaps the original everywhere except the hole at x = 3."
+         },
+         {
+          "id": "c2",
+          "prompt": "Should you use Desmos to interpret what 2.25 means in C = 3.50 + 2.25m?",
+          "answer": "No",
+          "explanation": "It's a meaning question: 2.25 is the cost per mile."
+         }
+        ]
+       },
+       {
+        "type": "question_set",
+        "set_id": "M-5.4",
+        "title": "5.4 Practice Set (65 questions)",
+        "status": "ready",
+        "skills": [
+         "Desmos: strategy"
+        ],
+        "blueprints": [
+         "A7",
+         "M4"
+        ],
+        "mode": "practice",
+        "note": "Exact College Board Question Bank items. In-house use only: owner and assigned 1600 Project classes.",
+        "question_ids": [
+         "6011a3f8",
+         "3d12b1e0",
+         "91aa9aa9",
+         "d0a53ef5",
+         "34847f8a",
+         "253985c2",
+         "494d247d",
+         "4dc5c6f9",
+         "97e50fa2",
+         "ae712b49",
+         "842cec4d",
+         "74d0906a",
+         "9ed9f54d",
+         "5d93c782",
+         "541bef2f",
+         "3f8d5876",
+         "2c05d312",
+         "b8c4a1cd",
+         "8ab51c14",
+         "b94f72cb",
+         "02489d55",
+         "9a1f1941",
+         "eb268057",
+         "c303ad23",
+         "df747160",
+         "1ce9ffcd",
+         "2cd6b22d",
+         "8452c42b",
+         "fc2ec559",
+         "a54753ca",
+         "e006209c",
+         "0bcb3184",
+         "7d6928bd",
+         "772de699",
+         "18c7c3e0",
+         "88a0c425",
+         "830120b0",
+         "12251fea",
+         "0354c7de",
+         "2c121b25",
+         "ad038c19",
+         "6b18d1fe",
+         "0536ad4f",
+         "974d33dc",
+         "c1964c11",
+         "60fdb4d4",
+         "df0ef054",
+         "63c00e2b",
+         "ff2e5c76",
+         "f5c3e3b8",
+         "ad03127d",
+         "84e5e36c",
+         "49efde89",
+         "7dbd46d9",
+         "72a5fd28",
+         "1697ffcf",
+         "f8ff3249",
+         "7399c3b0",
+         "2c288148",
+         "d8789a4c",
+         "df32b09c",
+         "127b2759",
+         "5910bfff",
+         "beb86a0c",
+         "f5aa5040"
+        ],
+        "count": 65,
+        "difficulty_counts": {
+         "Hard": 29,
+         "Easy": 36
+        },
+        "source": "college_board",
+        "visibility": "in_house"
+       }
+      ]
+     }
+    ],
+    "review_sets": []
+   },
+   {
+    "id": "M-U6",
+    "number": 6,
+    "title": "Test Strategy and Practice Tests",
+    "summary": "Pacing, the adaptive modules, grid-in rules, and a review routine that turns practice tests into points.",
+    "lessons": [
+     {
+      "id": "M-6.1",
+      "number": "6.1",
+      "title": "Pacing, Modules and Grid-Ins",
+      "estimated_minutes": 30,
+      "objectives": [
+       "Pace a 35-minute module.",
+       "Enter student-produced responses correctly.",
+       "Use guessing and review tools in Bluebook."
+      ],
+      "skills": [
+       "Test strategy"
+      ],
+      "blueprints": [],
+      "blocks": [
+       {
+        "type": "markdown",
+        "content": "## Pacing\n- Budget about **95 seconds per question**. Difficulty is mixed, so don't let one hard question eat 5 minutes.\n- **Two passes:** answer what you can, flag the rest with Bluebook's \"Mark for Review,\" then come back.\n- **There's no penalty for wrong answers.** Never leave a question blank; guess before time runs out.\n- Module 1 decides your Module 2, so slow down enough there to avoid careless mistakes.\n\n## Grid-in (student-produced response) rules\n- Enter up to 5 characters for a positive answer and 6 for a negative one (the minus sign counts).\n- If a fraction doesn't fit, enter the decimal. If a repeating decimal doesn't fit, fill every space (round or cut off).\n- Don't enter mixed numbers: 3½ goes in as 7/2 or 3.5.\n- Don't type symbols like %, $ or commas.\n- If there's more than one correct answer, enter just one.\n\n## Every question\nPredict → Type → Check. Circle what the question asks for. Plug your answer back in when you have time left."
+       },
+       {
+        "type": "video",
+        "provider": "youtube",
+        "video_id": "gMGQHSUFRCU",
+        "url": "https://www.youtube.com/watch?v=gMGQHSUFRCU",
+        "title": "How to manage time on the Digital SAT (10 strategies)",
+        "why_watch": "Concrete pacing moves for both sections.",
+        "review_status": "unreviewed"
+       },
+       {
+        "type": "video",
+        "provider": "youtube",
+        "video_id": "07fDw8hfcHs",
+        "url": "https://www.youtube.com/watch?v=07fDw8hfcHs",
+        "title": "What is adaptive testing on the SAT?",
+        "why_watch": "How Module 1 routes you to Module 2.",
+        "review_status": "unreviewed"
+       },
+       {
+        "type": "checkpoint",
+        "title": "Quick check",
+        "instructions": "Try each one before you reveal the answer.",
+        "items": [
+         {
+          "id": "c1",
+          "prompt": "Your grid-in answer is 2/3. What's an acceptable decimal entry?",
+          "answer": ".6666 or .6667",
+          "explanation": "Fill all the spaces: a cut-off or rounded value works."
+         },
+         {
+          "id": "c2",
+          "prompt": "You have 40 seconds left and 2 unanswered questions. What do you do?",
+          "answer": "Guess on both",
+          "explanation": "There's no penalty for wrong answers."
+         }
+        ]
+       },
+       {
+        "type": "question_set",
+        "set_id": "M-6.1",
+        "title": "6.1 Practice Set (65 questions)",
+        "status": "ready",
+        "skills": [
+         "Test strategy"
+        ],
+        "blueprints": [],
+        "mode": "practice",
+        "note": "Exact College Board Question Bank items. In-house use only: owner and assigned 1600 Project classes.",
+        "question_ids": [
+         "36fd6752",
+         "312ba47c",
+         "25faa756",
+         "e86a06fe",
+         "3c4ce699",
+         "84664a7c",
+         "a232aa96",
+         "4b7bb316",
+         "c7d7980e",
+         "1be8b6b2",
+         "05417146",
+         "b8cbe394",
+         "939fc21b",
+         "776cfa7c",
+         "58b4c6f3",
+         "a396ed75",
+         "3b44439b",
+         "821e724e",
+         "d71550d0",
+         "c0950aad",
+         "c4d49134",
+         "322a6dfe",
+         "dbe9b217",
+         "ba79f10f",
+         "179edb12",
+         "133f3e41",
+         "4420e500",
+         "e635aede",
+         "befeb95f",
+         "98958ae8",
+         "cecbdeba",
+         "43236565",
+         "0a47ef4c",
+         "02add2d2",
+         "331270b2",
+         "b5c43226",
+         "83fb222d",
+         "79ba511a",
+         "e4b4e9ea",
+         "02060533",
+         "cdec4c87",
+         "6efcc0a3",
+         "4f1342d6",
+         "b4767bef",
+         "97158b3a",
+         "13909d78",
+         "11b06e35",
+         "1863e3be",
+         "edc1b7b7",
+         "58477a6c",
+         "cc2601cb",
+         "d2047497",
+         "c0586eb5",
+         "8adf1335",
+         "bb7c8186",
+         "a26c29f7",
+         "e9aed539",
+         "62ec6574",
+         "1362ccde",
+         "903546ff",
+         "6fa593f1",
+         "9b886541",
+         "36200a38",
+         "6a12efbb",
+         "5afbdc8e"
+        ],
+        "count": 65,
+        "difficulty_counts": {
+         "Hard": 19,
+         "Easy": 37,
+         "Medium": 9
+        },
+        "source": "college_board",
+        "visibility": "in_house"
+       }
+      ]
+     },
+     {
+      "id": "M-6.2",
+      "number": "6.2",
+      "title": "The Error Log and Practice-Test Routine",
+      "estimated_minutes": 30,
+      "objectives": [
+       "Use Bluebook practice tests and Coursebook's tracker together.",
+       "Classify every miss and turn it into a redo."
+      ],
+      "skills": [
+       "Test strategy"
+      ],
+      "blueprints": [],
+      "blocks": [
+       {
+        "type": "markdown",
+        "content": "## The routine\n1. Take a full, timed practice test in **Bluebook** every 2–3 units.\n2. Record your answers in **Coursebook's SAT tracker** (question number, right or wrong, time, skill).\n3. For every miss, log **why**:\n   | Type | Example | Fix |\n   |---|---|---|\n   | Concept | Didn't know the discriminant | Redo the lesson and its practice set |\n   | Misread | Answered x, asked for 2x | Circle what's asked, every time |\n   | Careless | Sign error | Plug the answer back in |\n   | Time | Never reached it | Pacing drills; flag and move on |\n4. Redo every miss 3 days later without looking at the solution.\n5. Use **Official Digital SAT Prep on Khan Academy** for extra skill practice in your weakest domain.\n\n## What progress looks like\nYour misses should shift from concept → careless → hard-only. When most of your misses are hard questions in Module 2, you're close to the top band."
+       },
+       {
+        "type": "video",
+        "provider": "youtube",
+        "video_id": "6hn9e3vjl1I",
+        "url": "https://www.youtube.com/watch?v=6hn9e3vjl1I",
+        "title": "Digital SAT Math: hard Module 2 practice (full walkthrough)",
+        "why_watch": "What the hard module looks like, with a free worksheet.",
+        "review_status": "unreviewed"
+       },
+       {
+        "type": "video",
+        "provider": "youtube_playlist",
+        "playlist_id": "PLREMg1hjwo3xX69NYISqPXBPDtEMtPcni",
+        "url": "https://www.youtube.com/playlist?list=PLREMg1hjwo3xX69NYISqPXBPDtEMtPcni",
+        "title": "Digital SAT practice test solutions and explanations (playlist)",
+        "why_watch": "Video explanations for official practice tests. Use AFTER you've taken and reviewed a test yourself.",
+        "review_status": "unreviewed"
+       },
+       {
+        "type": "checkpoint",
+        "title": "Quick check",
+        "instructions": "Try each one before you reveal the answer.",
+        "items": [
+         {
+          "id": "c1",
+          "prompt": "You missed a question because you answered x when it asked for x + 3. What type of error is it?",
+          "answer": "Misread",
+          "explanation": "The fix is circling what the question asks for."
+         }
+        ]
+       },
+       {
+        "type": "question_set",
+        "set_id": "M-6.2",
+        "title": "6.2 Practice Set (65 questions)",
+        "status": "ready",
+        "skills": [
+         "Test strategy"
+        ],
+        "blueprints": [],
+        "mode": "practice",
+        "note": "Exact College Board Question Bank items. In-house use only: owner and assigned 1600 Project classes.",
+        "question_ids": [
+         "ee05c84e",
+         "b5d62bba",
+         "39617468",
+         "153ee763",
+         "fe4c1c9e",
+         "4aaa9c42",
+         "c3d65f93",
+         "f25a34aa",
+         "3174f07d",
+         "4bb25495",
+         "2cf7f039",
+         "cc54131c",
+         "b4553284",
+         "adae6543",
+         "e103300e",
+         "4702da8f",
+         "550b352c",
+         "7a6d06bf",
+         "3f236a64",
+         "1f353a9e",
+         "1f4c57d7",
+         "99550621",
+         "0bd33265",
+         "2ecce641",
+         "1059a42a",
+         "d0d9ede4",
+         "3a84f885",
+         "499cb491",
+         "4e375d1f",
+         "8eb0e19e",
+         "da2e9202",
+         "45df91ee",
+         "72ae8a87",
+         "2afd3cec",
+         "e7b6f0d1",
+         "12983c1e",
+         "b0dc920d",
+         "3f5398a6",
+         "a8e6bd75",
+         "d7a3179d",
+         "0e61101e",
+         "f718c9cf",
+         "837e9da7",
+         "5207e508",
+         "010243e6",
+         "c8e0f511",
+         "a9c04a21",
+         "361f97c7",
+         "12b04e68",
+         "bbf9e5ce",
+         "317e80f9",
+         "f547a8b1",
+         "70fb357b",
+         "c54b92a2",
+         "fb5e7f59",
+         "6ce95fc8",
+         "fecc446d",
+         "82e272c4",
+         "7ce2e728",
+         "93724cc6",
+         "e5c57163",
+         "555939d2",
+         "7038b587",
+         "5f07b257",
+         "161126cf"
+        ],
+        "count": 65,
+        "difficulty_counts": {
+         "Easy": 41,
+         "Hard": 24
+        },
+        "source": "college_board",
+        "visibility": "in_house"
+       }
+      ]
+     }
+    ],
+    "review_sets": []
+   }
+  ]
+ }
+}

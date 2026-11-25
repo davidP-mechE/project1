@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { PageHeader } from "@/components/ui/misc";
-import { LessonBlocks } from "@/components/studio/course-view";
+import { LessonBlocks, LessonIntro } from "@/components/studio/course-view";
 import { getSession } from "@/server/session";
 import { NotFoundError } from "@/server/courses";
 import { checkpointResponses, lessonForViewer } from "@/server/studio";
@@ -28,6 +28,7 @@ export default async function LearnLessonPage({ params }: PageProps<"/learn/[slu
         <Link href={`/learn/${slug}`} className="text-muted hover:underline">← {v.course.title}</Link>
       </p>
       <PageHeader eyebrow={v.lesson.unit.title} title={v.lesson.title} />
+      <LessonIntro objectives={v.lesson.objectives} estimatedMinutes={v.lesson.estimatedMinutes} />
       <LessonBlocks blocks={v.lesson.blocks} files={v.lesson.files} sets={v.sets} section={v.course.section} desmosKey={env.DESMOS_API_KEY ?? null} lessonId={v.lesson.id} checkpoints={checkpoints} canRecord />
     </div>
   );

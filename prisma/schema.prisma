@@ -2277,6 +2277,8 @@ model QuestionSet {
   skillIds         String[]        @map("skill_ids")
   /// Optional time limit for timed play.
   timeLimitMin     Int?            @map("time_limit_min")
+  /// An imported set's id from its course packet ("RW-1.2", "M-U1-review-1"), so re-importing updates it.
+  key              String?         @unique
   /// Weekly auto-assigned practice: the student this set was built for. Such sets are hidden from the bank's set lists and the catalog.
   autoForStudentId String?         @map("auto_for_student_id")
   createdAt        DateTime        @default(now())
@@ -2355,18 +2357,21 @@ enum StudioVisibility {
 }
 
 model StudioCourse {
-  id          String           @id @default(cuid())
-  slug        String           @unique
-  title       String
-  section     StudioSection    @default(other)
-  description String           @default("")
-  status      StudioStatus     @default(draft)
-  visibility  StudioVisibility @default(owner_only)
+  id             String           @id @default(cuid())
+  slug           String           @unique
+  title          String
+  section        StudioSection    @default(other)
+  description    String           @default("")
+  status         StudioStatus     @default(draft)
+  visibility     StudioVisibility @default(owner_only)
   /// The owner who made it. Not a hard link to an account, so courses outlive account changes.
-  ownerId     String?          @map("owner_id")
-  publishedAt DateTime?
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
+  ownerId        String?          @map("owner_id")
+  /// From an imported course packet (npm run import:courses).
+  program        String?
+  estimatedHours Int?             @map("estimated_hours")
+  publishedAt    DateTime?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
 
   units  StudioUnit[]
   shares StudioCourseShare[]
@@ -2392,6 +2397,9 @@ model StudioUnit {
   course   StudioCourse   @relation(fields: [courseId], references: [id], onDelete: Cascade)
   order    Int
   title    String
+  summary  String         @default("")
+  /// The packet's unit id ("RW-U1"), so re-importing updates it.
+  key      String?
   lessons  StudioLesson[]
 
   @@index([courseId, order])
@@ -2399,15 +2407,23 @@ model StudioUnit {
 }
 
 model StudioLesson {
-  id              String           @id @default(cuid())
-  unitId          String
-  unit            StudioUnit       @relation(fields: [unitId], references: [id], onDelete: Cascade)
-  order           Int
-  title           String
+  id               String           @id @default(cuid())
+  unitId           String
+  unit             StudioUnit       @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  order            Int
+  title            String
   /// Tag for the Desmos Toolkit: questions with this technique link here once it's published.
-  desmosTechnique DesmosTechnique? @map("desmos_technique")
-  blocks          StudioBlock[]
-  files           StudioFile[]
+  desmosTechnique  DesmosTechnique? @map("desmos_technique")
+  /// From a course packet: its lesson id ("RW-1.2"), number ("1.2"), minutes, objectives,
+  /// skills, and blueprint tags (sat-item-writer ids like A1 or E4).
+  key              String?
+  number           String?
+  estimatedMinutes Int?             @map("estimated_minutes")
+  objectives       String[]         @default([])
+  skills           String[]         @default([])
+  blueprints       String[]         @default([])
+  blocks           StudioBlock[]
+  files            StudioFile[]
 
   @@index([unitId, order])
   @@map("studio_lessons")

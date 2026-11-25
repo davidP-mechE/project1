@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Alert } from "@/components/ui/alert";
 import { PageHeader } from "@/components/ui/misc";
-import { LessonBlocks } from "@/components/studio/course-view";
+import { LessonBlocks, LessonIntro } from "@/components/studio/course-view";
 import { requireOwner } from "@/server/owner-guard";
 import { NotFoundError } from "@/server/courses";
 import { db } from "@/server/db";
@@ -36,6 +36,7 @@ export default async function PreviewLessonPage({ params }: PageProps<"/studio/c
         <Link href={`/studio/courses/${courseId}/preview`} className="text-muted hover:underline">← {l.unit.course.title}</Link>
       </p>
       <PageHeader eyebrow={l.unit.title} title={l.title} />
+      <LessonIntro objectives={l.objectives} estimatedMinutes={l.estimatedMinutes} />
       <LessonBlocks blocks={studentBlocks(l.blocks)} files={l.files} sets={Object.fromEntries(sets.map((s) => [s.id, s]))} section={l.unit.course.section} desmosKey={env.DESMOS_API_KEY ?? null} lessonId={l.id} />
     </div>
   );
