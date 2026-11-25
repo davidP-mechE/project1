@@ -4,9 +4,11 @@ import { Card } from "@/components/ui/misc";
 import { ButtonLink } from "@/components/ui/button";
 import { DesmosCheck } from "@/components/desmos/desmos-check";
 import { CalculatorPanel } from "@/components/desmos/calculator-panel";
+import { CalloutBlock, CheckpointBlock, DesmosStepsBlock, VideoBlock } from "./lesson-blocks";
+import { CalloutDataSchema, CheckpointDataSchema, DesmosStepsSchema, isDesmosSteps, VideoDataSchema } from "@/lib/studio/blocks";
 
 type Course = { title: string; description: string; section: string; units: { id: string; title: string; lessons: { id: string; title: string }[] }[] };
-type Block = { id: string; kind: "markdown" | "file" | "desmos" | "question_set"; data: unknown };
+type Block = { id: string; kind: "markdown" | "file" | "desmos" | "question_set" | "video" | "callout" | "checkpoint"; data: unknown };
 type FileRow = { id: string; name: string; contentType: string };
 
 /** A course's outline, as students see it (also used by "Preview as student"). `base` builds lesson links. */
@@ -38,7 +40,7 @@ export function CourseOutline({ course, lessonHref }: { course: Course; lessonHr
 }
 
 /** A lesson's content blocks: text, files (served through the checked route), Desmos checks and question sets. */
-export function LessonBlocks({ blocks, files, sets, section, desmosKey, lessonId }: { blocks: Block[]; files: FileRow[]; sets: Record<string, { id: string; title: string; status: string; questionIds: string[] }>; section: string; desmosKey: string | null; lessonId: string }) {
+export function LessonBlocks({ blocks, files, sets, section, desmosKey, lessonId, checkpoints = {}, canRecord = false }: { blocks: Block[]; files: FileRow[]; sets: Record<string, { id: string; title: string; status: string; questionIds: string[] }>; section: string; desmosKey: string | null; lessonId: string; checkpoints?: Record<string, Record<string, string>>; canRecord?: boolean }) {
   const fileOf = new Map(files.map((f) => [f.id, f]));
   return (
     <div className="flex flex-col gap-5">
@@ -70,6 +72,19 @@ export function LessonBlocks({ blocks, files, sets, section, desmosKey, lessonId
             </Card>
           );
         }
+        if (b.kind === "video") {
+          const v = VideoDataSchema.safeParse(d);
+          return v.success ? <VideoBlock key={b.id} data={v.data} /> : null;
+        }
+        if (b.kind === "callout") {
+          const c = CalloutDataSchema.safeParse(d);
+          return c.success ? <CalloutBlock key={b.id} data={c.data} /> : null;
+        }
+        if (b.kind === "checkpoint") {
+          const c = CheckpointDataSchema.safeParse(d);
+          return c.success ? <CheckpointBlock key={b.id} blockId={b.id} data={c.data} initial={checkpoints[b.id]} canRecord={canRecord} /> : null;
+        }
+        if (b.kind === "desmos" && isDesmosSteps(d)) return <DesmosStepsBlock key={b.id} data={DesmosStepsSchema.parse(d)} desmosKey={desmosKey} />;
         if (b.kind === "desmos")
           return (
             <Card key={b.id} className="flex flex-col gap-2">

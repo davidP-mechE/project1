@@ -83,6 +83,9 @@ const block = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("markdown"), text: z.string().max(100_000) }),
   z.object({ kind: z.literal("desmos"), state: z.record(z.string(), z.unknown()), interactive: z.boolean(), title: z.string().max(160).optional() }),
   z.object({ kind: z.literal("question_set"), setId: id }),
+  z.object({ kind: z.literal("video"), url: z.string().max(500), title: z.string().max(300), whyWatch: z.string().max(1000).optional() }),
+  z.object({ kind: z.literal("callout"), variant: z.enum(["trap", "tip"]), title: z.string().max(300).optional(), content: z.string().max(20_000) }),
+  z.object({ kind: z.literal("checkpoint"), title: z.string().max(300).optional(), instructions: z.string().max(2000).optional(), items: z.array(z.object({ id: z.string().max(40), prompt: z.string().max(4000), answer: z.string().max(4000), explanation: z.string().max(4000).optional() })).max(30) }),
 ]);
 export async function addBlockAction(lessonId: string, input: unknown) {
   const b = block.parse(input);
@@ -97,4 +100,15 @@ export async function deleteBlockAction(blockId: string) {
 }
 export async function moveBlockAction(blockId: string, d: number) {
   return run((u) => studio.moveBlock(u, id.parse(blockId), dir.parse(d)));
+}
+
+export async function setVideoStatusAction(blockId: string, status: string) {
+  const st = z.enum(["unreviewed", "approved", "hidden"]).parse(status);
+  return run(async (u) => void (await studio.setVideoStatus(u, id.parse(blockId), st)));
+}
+
+/** A student's own "I got it / I missed it" on a checkpoint item (not graded). */
+export async function recordCheckpointAction(blockId: string, itemId: string, result: string) {
+  const r = z.enum(["GOT", "MISSED"]).parse(result);
+  return run(async (u) => void (await studio.recordCheckpoint(u, id.parse(blockId), z.string().min(1).max(40).parse(itemId), r)));
 }

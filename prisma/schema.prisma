@@ -133,6 +133,7 @@ model User {
   academicIndexResults AcademicIndexResult[]
   academicIndexShares  AcademicIndexShare[]
   academicEssayGrades  AcademicEssayGrade[]
+  checkpointResponses  CheckpointResponse[]
 
   /// Set on every login, for the Staff page.
   lastLoginAt      DateTime?
@@ -2417,9 +2418,16 @@ enum StudioBlockKind {
   file
   desmos
   question_set
+  video
+  callout
+  checkpoint
 }
 
-/// markdown: { text }. file: { fileId }. desmos: { state, interactive }. question_set: { setId }.
+/// markdown: { text }. file: { fileId }. question_set: { setId }.
+/// desmos: { state, interactive, title } (a saved graph), or { title, useWhen, steps[], expressions[{id, latex}], check, watchOut } ("Try it in Desmos").
+/// video: { provider, videoId | playlistId, url, title, whyWatch, reviewStatus: unreviewed | approved | hidden }. Students see approved videos only.
+/// callout: { variant: trap | tip, title, content }. checkpoint: { title, instructions, items[{ id, prompt, answer, explanation }] }.
+/// key: a stable id from an imported course packet, so re-importing keeps edits (e.g. video approvals).
 model StudioBlock {
   id       String          @id @default(cuid())
   lessonId String
@@ -2427,6 +2435,9 @@ model StudioBlock {
   order    Int
   kind     StudioBlockKind
   data     Json            @default("{}")
+  key      String?
+
+  checkpointResponses CheckpointResponse[]
 
   @@index([lessonId, order])
   @@map("studio_blocks")
@@ -2819,4 +2830,20 @@ model AcademicEssayGrade {
 
   @@index([userId, essayHash])
   @@index([userId, createdAt])
+}
+
+/// A student's own "I got it / I missed it" on one checkpoint item (not graded; for their progress only).
+model CheckpointResponse {
+  id        String      @id @default(cuid())
+  userId    String
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  blockId   String
+  block     StudioBlock @relation(fields: [blockId], references: [id], onDelete: Cascade)
+  itemId    String
+  /// GOT or MISSED.
+  result    String
+  updatedAt DateTime    @updatedAt
+
+  @@unique([userId, blockId, itemId])
+  @@map("checkpoint_responses")
 }

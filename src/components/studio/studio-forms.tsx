@@ -11,6 +11,8 @@ import { DesmosGraph, type DesmosHandle } from "@/components/desmos/desmos-graph
 import { DESMOS_TECHNIQUES } from "@/lib/bank/import";
 import * as A from "@/server/actions/studio";
 import { cn } from "@/lib/utils";
+import { CalloutBlock, CheckpointBlock, DesmosStepsBlock, VideoBlock } from "./lesson-blocks";
+import { CalloutDataSchema, CheckpointDataSchema, DesmosStepsSchema, isDesmosSteps, REVIEW_STATUSES, VideoDataSchema, type ReviewStatus } from "@/lib/studio/blocks";
 
 type Res = { ok: true } | { ok: false; error: string };
 
@@ -191,7 +193,9 @@ function UnitRow({ unit, first, last }: { unit: { id: string; title: string; les
   );
 }
 
-type Block = { id: string; kind: "markdown" | "file" | "desmos" | "question_set"; data: Record<string, unknown> };
+type Block = { id: string; kind: "markdown" | "file" | "desmos" | "question_set" | "video" | "callout" | "checkpoint"; data: Record<string, unknown> };
+
+const KIND_LABEL: Record<Block["kind"], string> = { markdown: "Text", file: "File", desmos: "Desmos", question_set: "Question set", video: "Video", callout: "Callout", checkpoint: "Checkpoint" };
 
 /** A lesson's title, Desmos Toolkit tag, uploads and content blocks. */
 export function LessonEditor({ lesson, blocks, files, sets, desmosKey }: { lesson: { id: string; title: string; desmosTechnique: string | null; courseId: string }; blocks: Block[]; files: { id: string; name: string; contentType: string }[]; sets: { id: string; title: string; status: string }[]; desmosKey: string | null }) {
@@ -201,7 +205,7 @@ export function LessonEditor({ lesson, blocks, files, sets, desmosKey }: { lesso
   const [tech, setTech] = useState(lesson.desmosTechnique?.replace(/_/g, "-") ?? "");
   const [uploads, setUploads] = useState<{ name: string; ok: boolean; text: string }[]>([]);
   const [busy, setBusy] = useState(false);
-  const [adding, setAdding] = useState<null | "markdown" | "desmos" | "question_set">(null);
+  const [adding, setAdding] = useState<null | "markdown" | "desmos" | "question_set" | "video">(null);
   const fileName = new Map(files.map((f) => [f.id, f]));
 
   async function upload(list: FileList) {
@@ -262,14 +266,18 @@ export function LessonEditor({ lesson, blocks, files, sets, desmosKey }: { lesso
         {blocks.map((b, i) => (
           <li key={b.id} className="flex flex-col gap-2 rounded-lg border border-border p-3">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="eyebrow flex-1">{b.kind === "question_set" ? "Question set" : b.kind === "desmos" ? "Desmos check" : b.kind === "file" ? "File" : "Text"}</span>
+              <span className="eyebrow flex-1">{b.kind === "desmos" && isDesmosSteps(b.data) ? "Try it in Desmos" : KIND_LABEL[b.kind]}</span>
               <Button size="sm" variant="ghost" disabled={pending || i === 0} aria-label="Move block up" onClick={() => act(() => A.moveBlockAction(b.id, -1))}>↑</Button>
               <Button size="sm" variant="ghost" disabled={pending || i === blocks.length - 1} aria-label="Move block down" onClick={() => act(() => A.moveBlockAction(b.id, 1))}>↓</Button>
               <Button size="sm" variant="ghost" disabled={pending} onClick={() => confirm("Delete this block?") && act(() => A.deleteBlockAction(b.id))}>Delete</Button>
             </div>
             {b.kind === "markdown" && <MarkdownBlock blockId={b.id} text={String(b.data.text ?? "")} />}
             {b.kind === "file" && <p className="text-sm">{fileName.get(String(b.data.fileId))?.name ?? "File"} · <a className="underline" href={`/api/studio/files/${String(b.data.fileId)}`} target="_blank" rel="noopener">open</a></p>}
-            {b.kind === "desmos" && <DesmosBlockEditor desmosKey={desmosKey} blockId={b.id} initial={b.data as { state: object; interactive: boolean; title?: string }} />}
+            {b.kind === "desmos" && isDesmosSteps(b.data) && <DesmosStepsBlock data={DesmosStepsSchema.parse(b.data)} desmosKey={desmosKey} />}
+            {b.kind === "desmos" && !isDesmosSteps(b.data) && <DesmosBlockEditor desmosKey={desmosKey} blockId={b.id} initial={b.data as { state: object; interactive: boolean; title?: string }} />}
+            {b.kind === "video" && <VideoBlockEditor blockId={b.id} data={b.data} />}
+            {b.kind === "callout" && CalloutDataSchema.safeParse(b.data).success && <CalloutBlock data={CalloutDataSchema.parse(b.data)} />}
+            {b.kind === "checkpoint" && CheckpointDataSchema.safeParse(b.data).success && <CheckpointBlock blockId={b.id} data={CheckpointDataSchema.parse(b.data)} canRecord={false} />}
             {b.kind === "question_set" && <p className="text-sm">{sets.find((s) => s.id === b.data.setId)?.title ?? "A set"} ({sets.find((s) => s.id === b.data.setId)?.status ?? "missing"}) · <Link className="underline" href={`/bank/sets/${String(b.data.setId)}`}>edit set</Link></p>}
           </li>
         ))}
@@ -279,7 +287,9 @@ export function LessonEditor({ lesson, blocks, files, sets, desmosKey }: { lesso
         <Button variant="secondary" onClick={() => setAdding("markdown")}>Add text</Button>
         <Button variant="secondary" onClick={() => setAdding("desmos")}>Add Desmos check</Button>
         <Button variant="secondary" onClick={() => setAdding("question_set")}>Add question set</Button>
+        <Button variant="secondary" onClick={() => setAdding("video")}>Add video</Button>
       </div>
+      {adding === "video" && <VideoForm lessonId={lesson.id} onDone={() => setAdding(null)} />}
       {adding === "markdown" && <MarkdownBlock lessonId={lesson.id} text="" onDone={() => setAdding(null)} />}
       {adding === "desmos" && <DesmosBlockEditor desmosKey={desmosKey} lessonId={lesson.id} onDone={() => setAdding(null)} />}
       {adding === "question_set" && <SetPicker lessonId={lesson.id} sets={sets} onDone={() => setAdding(null)} />}
@@ -351,6 +361,81 @@ function SetPicker({ lessonId, sets, onDone }: { lessonId: string; sets: { id: s
       </label>
       <Button disabled={pending} onClick={() => act(() => A.addBlockAction(lessonId, { kind: "question_set", setId }), onDone)}>Add</Button>
       <Button variant="ghost" onClick={onDone}>Cancel</Button>
+      {error && <Alert tone="error">{error}</Alert>}
+    </div>
+  );
+}
+
+const STATUS_LABEL: Record<ReviewStatus, string> = { unreviewed: "Unreviewed", approved: "Approved", hidden: "Hidden" };
+
+/** Video review: unreviewed → approved → hidden. Students see approved videos only. */
+export function VideoStatusToggle({ blockId, status }: { blockId: string; status: ReviewStatus }) {
+  const { error, pending, act } = useAct();
+  return (
+    <div className="flex flex-col items-end gap-1">
+      <div role="group" aria-label="Review status" className="inline-flex overflow-hidden rounded-md border-[1.5px] border-border">
+        {REVIEW_STATUSES.map((st) => (
+          <button
+            key={st}
+            type="button"
+            aria-pressed={status === st}
+            disabled={pending}
+            onClick={() => status !== st && act(() => A.setVideoStatusAction(blockId, st))}
+            className={cn("px-2.5 py-1 text-xs font-semibold", status === st ? (st === "approved" ? "bg-success text-white dark:text-bg" : st === "hidden" ? "bg-text text-bg" : "bg-surface-2") : "hover:bg-surface-2")}
+          >
+            {STATUS_LABEL[st]}
+          </button>
+        ))}
+      </div>
+      {error && <span className="text-xs text-danger">{error}</span>}
+    </div>
+  );
+}
+
+/** A video block in the editor: the student view, its review status, and "Edit video". */
+export function VideoBlockEditor({ blockId, data }: { blockId: string; data: Record<string, unknown> }) {
+  const [editing, setEditing] = useState(false);
+  const v = VideoDataSchema.safeParse(data);
+  if (!v.success) return <p className="text-sm text-danger">This video&apos;s data can&apos;t be read. Delete it and add it again.</p>;
+  if (editing) return <VideoForm blockId={blockId} initial={v.data} onDone={() => setEditing(false)} />;
+  return (
+    <div className="flex flex-col gap-2">
+      <VideoBlock data={v.data} status={<VideoStatusToggle blockId={blockId} status={v.data.reviewStatus} />} />
+      <div>
+        <Button size="sm" variant="secondary" onClick={() => setEditing(true)}>Edit video</Button>
+      </div>
+    </div>
+  );
+}
+
+/** Add a video, or change one's link and title (any youtube.com/watch, youtu.be, /shorts/ or playlist link). */
+export function VideoForm({ lessonId, blockId, initial, onDone }: { lessonId?: string; blockId?: string; initial?: { url: string; title: string; whyWatch: string }; onDone?: () => void }) {
+  const [url, setUrl] = useState(initial?.url ?? "");
+  const [title, setTitle] = useState(initial?.title ?? "");
+  const [why, setWhy] = useState(initial?.whyWatch ?? "");
+  const { error, pending, act } = useAct();
+  const input = { kind: "video" as const, url, title, whyWatch: why };
+  return (
+    <div className="flex flex-col gap-2 rounded-lg border border-dashed border-border p-3">
+      <label className="flex flex-col gap-1 text-sm font-medium">
+        YouTube link
+        <input className={inputClasses} value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://www.youtube.com/watch?v=… or a playlist link" maxLength={500} />
+      </label>
+      <label className="flex flex-col gap-1 text-sm font-medium">
+        Title
+        <input className={inputClasses} value={title} onChange={(e) => setTitle(e.target.value)} maxLength={300} />
+      </label>
+      <label className="flex flex-col gap-1 text-sm font-medium">
+        Why watch (one line for students)
+        <input className={inputClasses} value={why} onChange={(e) => setWhy(e.target.value)} maxLength={1000} />
+      </label>
+      <p className="text-xs text-muted">{blockId ? "Changing the link keeps the review status." : "New videos start as unreviewed: approve them before students see them."}</p>
+      <div className="flex gap-2">
+        <Button size="sm" disabled={pending || !url.trim()} onClick={() => act(() => (blockId ? A.updateBlockAction(blockId, input) : A.addBlockAction(lessonId!, input)), onDone)}>
+          {blockId ? "Save video" : "Add video"}
+        </Button>
+        {onDone && <Button size="sm" variant="ghost" onClick={onDone}>Cancel</Button>}
+      </div>
       {error && <Alert tone="error">{error}</Alert>}
     </div>
   );

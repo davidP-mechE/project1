@@ -4,6 +4,7 @@ import { db } from "./db";
 import { NotFoundError } from "./courses";
 import { isOwner } from "./roles";
 import { contentAccess, setWhere } from "./in-house";
+import { CalloutDataSchema, CheckpointDataSchema, VideoDataSchema, videoFromUrl, type ReviewStatus } from "@/lib/studio/blocks";
 import { storage } from "./storage";
 import { runImport } from "./bank";
 import { slug as slugify } from "./seed/reference";
@@ -78,7 +79,7 @@ export async function lessonForViewer(viewerId: string | null, slug: string, les
   const setIds = lesson.blocks.flatMap((b) => (b.kind === "question_set" ? [String((b.data as { setId?: string }).setId ?? "")] : []));
   const sets = await db.questionSet.findMany({ where: { AND: [{ id: { in: setIds } }, setWhere(access)] }, select: { id: true, title: true, status: true, questionIds: true } });
   const visibleSets = new Map(sets.filter((s) => owner || s.status === "published").map((s) => [s.id, s]));
-  const blocks = lesson.blocks.filter((b) => b.kind !== "question_set" || visibleSets.has(String((b.data as { setId?: string }).setId)));
+  const blocks = (owner ? lesson.blocks : studentBlocks(lesson.blocks)).filter((b) => b.kind !== "question_set" || visibleSets.has(String((b.data as { setId?: string }).setId)));
   return { course, lesson: { ...lesson, blocks }, sets: Object.fromEntries(visibleSets), owner };
 }
 
@@ -261,12 +262,33 @@ async function nextBlockOrder(lessonId: string) {
   return (last?.order ?? -1) + 1;
 }
 
-export type BlockInput = { kind: "markdown"; text: string } | { kind: "desmos"; state: object; interactive: boolean; title?: string } | { kind: "question_set"; setId: string };
+export type BlockInput =
+  | { kind: "markdown"; text: string }
+  | { kind: "desmos"; state: object; interactive: boolean; title?: string }
+  | { kind: "question_set"; setId: string }
+  | { kind: "video"; url: string; title: string; whyWatch?: string }
+  | { kind: "callout"; variant: "trap" | "tip"; title?: string; content: string }
+  | { kind: "checkpoint"; title?: string; instructions?: string; items: { id: string; prompt: string; answer: string; explanation?: string }[] };
 
 async function blockData(input: BlockInput): Promise<Prisma.InputJsonValue> {
   if (input.kind === "markdown") {
     if (input.text.length > 100_000) throw new StudioError("That text is too long (100,000 characters at most).");
     return { text: input.text };
+  }
+  if (input.kind === "video") {
+    const v = videoFromUrl(input.url, input.title, input.whyWatch ?? "");
+    if (!v) throw new StudioError("Paste a YouTube link (youtube.com/watch, youtu.be, /shorts/ or a playlist).");
+    return v;
+  }
+  if (input.kind === "callout") {
+    const r = CalloutDataSchema.safeParse(input);
+    if (!r.success || !r.data.content.trim()) throw new StudioError("A callout needs some text.");
+    return r.data;
+  }
+  if (input.kind === "checkpoint") {
+    const r = CheckpointDataSchema.safeParse(input);
+    if (!r.success) throw new StudioError("Each checkpoint item needs a prompt and an answer.");
+    return r.data;
   }
   if (input.kind === "desmos") {
     if (!input.state || typeof input.state !== "object") throw new StudioError("Save a graph first.");
@@ -293,7 +315,41 @@ async function ownBlock(ownerId: string, blockId: string) {
 export async function updateBlock(ownerId: string, blockId: string, input: BlockInput) {
   const b = await ownBlock(ownerId, blockId);
   if (b.kind !== input.kind) throw new StudioError("That block is a different kind.");
-  return db.studioBlock.update({ where: { id: blockId }, data: { data: await blockData(input) } });
+  let data = await blockData(input);
+  // Editing a video's link or title keeps its review status.
+  if (input.kind === "video") data = { ...(data as object), reviewStatus: VideoDataSchema.safeParse(b.data).data?.reviewStatus ?? "unreviewed" };
+  return db.studioBlock.update({ where: { id: blockId }, data: { data } });
+}
+
+/** Video review: unreviewed → approved → hidden. Students only ever see approved videos. */
+export async function setVideoStatus(ownerId: string, blockId: string, status: ReviewStatus) {
+  const b = await ownBlock(ownerId, blockId);
+  const v = VideoDataSchema.safeParse(b.data);
+  if (b.kind !== "video" || !v.success) throw new StudioError("That isn't a video.");
+  return db.studioBlock.update({ where: { id: blockId }, data: { data: { ...v.data, reviewStatus: status } } });
+}
+
+/** What students see of a lesson's blocks: approved videos only. */
+export function studentBlocks<B extends { kind: string; data: unknown }>(blocks: B[]): B[] {
+  return blocks.filter((b) => b.kind !== "video" || VideoDataSchema.safeParse(b.data).data?.reviewStatus === "approved");
+}
+
+/** A student's own "I got it / I missed it" on a checkpoint item, in a lesson they can see. */
+export async function recordCheckpoint(userId: string, blockId: string, itemId: string, result: "GOT" | "MISSED") {
+  const b = await db.studioBlock.findUnique({ where: { id: blockId }, include: { lesson: { select: { unit: { select: { course: { select: { status: true, visibility: true } } } } } } } });
+  if (!b || b.kind !== "checkpoint" || !canView(b.lesson.unit.course, await contentAccess(userId))) throw new NotFoundError("Not found");
+  const items = CheckpointDataSchema.safeParse(b.data).data?.items ?? [];
+  if (!items.some((i) => i.id === itemId)) throw new NotFoundError("Not found");
+  await db.checkpointResponse.upsert({ where: { userId_blockId_itemId: { userId, blockId, itemId } }, create: { userId, blockId, itemId, result }, update: { result } });
+}
+
+/** The viewer's checkpoint answers for some blocks: { blockId: { itemId: "GOT" | "MISSED" } }. */
+export async function checkpointResponses(userId: string | null, blockIds: string[]) {
+  if (!userId || !blockIds.length) return {};
+  const rows = await db.checkpointResponse.findMany({ where: { userId, blockId: { in: blockIds } }, select: { blockId: true, itemId: true, result: true } });
+  const out: Record<string, Record<string, string>> = {};
+  for (const r of rows) (out[r.blockId] ??= {})[r.itemId] = r.result;
+  return out;
 }
 
 export async function deleteBlock(ownerId: string, blockId: string) {

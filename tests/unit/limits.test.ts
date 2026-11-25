@@ -113,7 +113,7 @@ describe("Content-Security-Policy", () => {
     expect(csp).toContain("'unsafe-eval'");
     expect(csp).not.toContain("upgrade-insecure-requests");
     expect(csp).toContain("connect-src 'self' https://acc.r2.cloudflarestorage.com");
-    expect(csp).toContain("img-src 'self' data: blob: https://acc.r2.cloudflarestorage.com");
+    expect(csp).toContain("img-src 'self' data: blob: https://i.ytimg.com https://acc.r2.cloudflarestorage.com");
   });
   it("works out storage origins from the environment", () => {
     expect(storageOrigins({ STORAGE_DRIVER: "local" })).toEqual([]);

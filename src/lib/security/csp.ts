@@ -9,6 +9,10 @@
  */
 export type CspOptions = { nonce: string; dev: boolean; https: boolean; storageOrigins: string[]; desmos?: boolean };
 
+/** Lesson videos: the privacy-enhanced YouTube player (loaded only on click) and its thumbnails. */
+const YOUTUBE_FRAME = "https://www.youtube-nocookie.com";
+const YOUTUBE_THUMBS = "https://i.ytimg.com";
+
 /** The Desmos graphing calculator (only when a Desmos API key is set). Its script loads through our own code, which 'strict-dynamic' allows. */
 const DESMOS = "https://www.desmos.com";
 
@@ -18,11 +22,11 @@ export function buildCsp({ nonce, dev, https, storageOrigins, desmos = false }: 
     ["default-src", "'self'"],
     ["script-src", `'self' 'nonce-${nonce}' 'strict-dynamic' 'wasm-unsafe-eval'${dev ? " 'unsafe-eval'" : ""}`],
     ["style-src", `'self' 'unsafe-inline'${desmos ? ` ${DESMOS}` : ""}`],
-    ["img-src", `'self' data: blob:${storage ? ` ${storage}` : ""}`],
+    ["img-src", `'self' data: blob: ${YOUTUBE_THUMBS}${storage ? ` ${storage}` : ""}`],
     ["font-src", `'self' data:${desmos ? ` ${DESMOS}` : ""}`],
     ["connect-src", `'self'${storage ? ` ${storage}` : ""}`],
     ["worker-src", "'self' blob:"],
-    ["frame-src", "'self'"],
+    ["frame-src", `'self' ${YOUTUBE_FRAME}`],
     ["object-src", "'none'"],
     ["base-uri", "'self'"],
     ["form-action", "'self'"],

@@ -14,6 +14,7 @@ export type DesmosCalculator = {
   getState: () => object;
   setState: (state: object, opts?: { allowUndo?: boolean }) => void;
   setBlank: () => void;
+  setExpression: (e: { id: string; latex: string }) => void;
   updateSettings: (s: Record<string, unknown>) => void;
   resize: () => void;
   observeEvent: (e: string, cb: () => void) => void;

@@ -8,7 +8,7 @@ import { requireOwner } from "@/server/owner-guard";
 import { NotFoundError } from "@/server/courses";
 import { db } from "@/server/db";
 import { contentAccess, setWhere } from "@/server/in-house";
-import { studioLesson } from "@/server/studio";
+import { studentBlocks, studioLesson } from "@/server/studio";
 import { env } from "@/server/env";
 
 export const metadata: Metadata = { title: "Preview", robots: { index: false, follow: false } };
@@ -30,13 +30,13 @@ export default async function PreviewLessonPage({ params }: PageProps<"/studio/c
   return (
     <div className="mx-auto flex max-w-4xl flex-col gap-4">
       <Alert tone="info">
-        Preview as a student. <Link href={`/studio/lessons/${l.id}`} className="underline">Back to editing</Link>
+        Preview as a student: only approved videos and published sets show. <Link href={`/studio/lessons/${l.id}`} className="underline">Back to editing</Link>
       </Alert>
       <p className="text-sm">
         <Link href={`/studio/courses/${courseId}/preview`} className="text-muted hover:underline">← {l.unit.course.title}</Link>
       </p>
       <PageHeader eyebrow={l.unit.title} title={l.title} />
-      <LessonBlocks blocks={l.blocks} files={l.files} sets={Object.fromEntries(sets.map((s) => [s.id, s]))} section={l.unit.course.section} desmosKey={env.DESMOS_API_KEY ?? null} lessonId={l.id} />
+      <LessonBlocks blocks={studentBlocks(l.blocks)} files={l.files} sets={Object.fromEntries(sets.map((s) => [s.id, s]))} section={l.unit.course.section} desmosKey={env.DESMOS_API_KEY ?? null} lessonId={l.id} />
     </div>
   );
 }

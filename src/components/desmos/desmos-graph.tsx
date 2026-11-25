@@ -5,7 +5,8 @@ import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "re
 import { DESMOS_CALCULATOR_URL, loadDesmos, type DesmosCalculator } from "@/lib/desmos/loader";
 import { cn } from "@/lib/utils";
 
-export type DesmosHandle = { getState: () => object | null; setState: (s: object | null) => void; ready: () => boolean; resize: () => void };
+export type DesmosExpression = { id: string; latex: string };
+export type DesmosHandle = { getState: () => object | null; setState: (s: object | null) => void; setExpressions: (list: DesmosExpression[]) => void; ready: () => boolean; resize: () => void };
 
 /** Shown when there's no API key or the script fails: a short note and a link; the page keeps working. */
 export function DesmosFallback({ className, reason }: { className?: string; reason: "nokey" | "failed" }) {
@@ -23,6 +24,8 @@ type Props = {
   apiKey: string | null;
   /** A saved graph (calculator.getState()) to start from. */
   initialState?: object | null;
+  /** Or expressions to type in, one by one (calculator.setExpression({ id, latex })). */
+  initialExpressions?: DesmosExpression[];
   /** "calculator": the full graphing calculator. "check": an embedded graph from a saved state. */
   variant?: "calculator" | "check";
   /** For checks: let the student change it (true) or only look (false). */
@@ -37,13 +40,14 @@ type Props = {
  * questions, the editor). Loads the API lazily, follows the site's dark mode
  * (Desmos's inverted colors), and only ever gives Desmos the graph itself.
  */
-export const DesmosGraph = forwardRef<DesmosHandle, Props>(function DesmosGraph({ apiKey, initialState, variant = "calculator", interactive = true, className, label, onChange }, ref) {
+export const DesmosGraph = forwardRef<DesmosHandle, Props>(function DesmosGraph({ apiKey, initialState, initialExpressions, variant = "calculator", interactive = true, className, label, onChange }, ref) {
   const box = useRef<HTMLDivElement>(null);
   const calc = useRef<DesmosCalculator | null>(null);
   const [failed, setFailed] = useState(false);
   const { resolvedTheme } = useTheme();
   const dark = resolvedTheme === "dark";
   const initial = useRef(initialState ?? null);
+  const initialExprs = useRef(initialExpressions ?? []);
   const change = useRef(onChange);
   useEffect(() => {
     change.current = onChange;
@@ -52,6 +56,10 @@ export const DesmosGraph = forwardRef<DesmosHandle, Props>(function DesmosGraph(
   useImperativeHandle(ref, () => ({
     getState: () => calc.current?.getState() ?? null,
     setState: (s) => (s ? calc.current?.setState(s, { allowUndo: true }) : calc.current?.setBlank()),
+    setExpressions: (list) => {
+      calc.current?.setBlank();
+      for (const e of list) calc.current?.setExpression(e);
+    },
     ready: () => Boolean(calc.current),
     resize: () => calc.current?.resize(),
   }));
@@ -75,6 +83,7 @@ export const DesmosGraph = forwardRef<DesmosHandle, Props>(function DesmosGraph(
           invertedColors: dark,
         });
         if (initial.current) c.setState(initial.current);
+        for (const e of initialExprs.current) c.setExpression(e);
         c.observeEvent("change", () => change.current?.());
         calc.current = c;
       })
