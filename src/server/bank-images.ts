@@ -4,6 +4,7 @@ import { db } from "./db";
 import { storage } from "./storage";
 import { roleOf } from "./roles";
 import { contentAccess, questionWhere } from "./in-house";
+import { QBANK_IMAGE, qbankImageUrl } from "@/lib/bank/qbank";
 
 /** Images on bank questions. Stored privately; served only through /api/bank/images/<name>. */
 
@@ -44,3 +45,13 @@ export async function canSeeBankImage(userId: string, name: string) {
 }
 
 export const imageType = (name: string) => TYPES.find((t) => name.endsWith(`.${t.ext}`))?.type ?? "application/octet-stream";
+
+// ─── The in-house College Board Question Bank images (imported, never uploaded here) ───
+
+/** A Question Bank image (question or rationale): only for people who may see a question using it. */
+export async function canSeeQbankImage(userId: string | null, name: string) {
+  if (!userId || !QBANK_IMAGE.test(name)) return false;
+  const url = qbankImageUrl(name);
+  const r = await roleOf(userId);
+  return (await db.bankQuestion.count({ where: { AND: [{ OR: [{ imageUrl: url }, { rationaleImageUrl: url }] }, r.isAuthor ? {} : { status: "published" }, questionWhere(await contentAccess(userId))] } })) > 0;
+}

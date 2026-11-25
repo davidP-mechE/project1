@@ -7,7 +7,7 @@
  *    at least 3 decimal places and is either rounded or cut off: .666, .667, 0.6667
  *  - a shorter decimal (0.67) is not accepted for 2/3
  *  - mixed numbers ("1 1/2") are not valid entries
- * The stored answer may list several accepted answers separated by "|" or ";".
+ * The stored answer may list several accepted answers separated by "|", ";" or ",".
  */
 
 const MINUS = /[−‒–—﹣－]/g;
@@ -63,10 +63,14 @@ export function sameValue(given: string, accepted: string): boolean {
   return false;
 }
 
+/**
+ * Accepted answers are separated by "|", ";" or a comma (".1764, .1765, 3/17", as College Board
+ * keys list them). A comma inside a number ("1,000") is a thousands separator, not a break.
+ */
 export const acceptedAnswers = (answer: string) =>
   answer
-    .split(/[|;]/)
-    .map((s) => s.trim())
+    .split(/[|;]|,(?!\d{3}(?:\D|$))/)
+    .map((s) => s.trim().replace(/^(and|or)\s+/i, "").trim())
     .filter(Boolean);
 
 export function gridInCorrect(given: string, answer: string): boolean {

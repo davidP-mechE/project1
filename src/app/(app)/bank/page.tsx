@@ -167,7 +167,7 @@ export default async function BankPage({ searchParams }: PageProps<"/bank">) {
                   <tr key={q.id} className="border-t border-border align-top hover:bg-surface-2">
                     <td className="px-3 py-2 font-mono text-xs text-muted">{q.externalId ?? "–"}</td>
                     <td className="px-3 py-2">
-                      <Link href={`/bank/${q.id}`} className="font-medium text-primary underline-offset-2 hover:underline">{plain(q.stem).slice(0, 110) || "(no text)"}</Link>
+                      <Link href={`/bank/${q.id}`} className="font-medium text-primary underline-offset-2 hover:underline">{plain(q.stem).slice(0, 110) || (q.imageIsQuestion ? `Image question${q.skill ? ` · ${q.skill.name}` : ""}` : "(no text)")}</Link>
                       <span className="mt-0.5 flex flex-wrap items-center gap-x-2 text-xs text-muted">
                         <span>{q.skill?.name ?? "No skill"}</span>
                         <span>· D{q.difficulty}</span>

@@ -1,7 +1,7 @@
 import "server-only";
 import { randomInt } from "node:crypto";
 import { db } from "./db";
-import { classIsInHouse, classSetWhere, collegeBoardAllowed } from "./in-house";
+import { classSetWhere, collegeBoardAllowed } from "./in-house";
 import { NotFoundError } from "./courses";
 import { can, classAccess, ClassError, studentIdsInScope } from "./access";
 import { cleanTargets, isAssignedToStudent, studentsTargeted } from "./targets";
@@ -35,7 +35,7 @@ export async function liveSetOptions(classInHouse = false) {
 
 export async function startLiveRun(userId: string, classId: string, input: { setId: string; kind?: string; sessionId?: string | null; groupIds?: string[] }) {
   const access = await classAccess(userId, classId, "teach");
-  const set = await db.questionSet.findFirst({ where: { AND: [{ id: input.setId }, classSetWhere(await classIsInHouse(classId))] }, select: { id: true, status: true, visibility: true, questionIds: true, autoForStudentId: true } });
+  const set = await db.questionSet.findFirst({ where: { AND: [{ id: input.setId }, classSetWhere(false)] }, select: { id: true, status: true, visibility: true, questionIds: true, autoForStudentId: true } });
   if (!set || set.status !== "published" || set.visibility === "private" || set.autoForStudentId) throw new ClassError("Choose a published set that classes can use.");
   if (!set.questionIds.length || set.questionIds.length > MAX_QUESTIONS) throw new ClassError(`A live run can have 1 to ${MAX_QUESTIONS} questions.`);
   const kind: LiveKind = input.kind === "EXIT_TICKET" ? "EXIT_TICKET" : "WARM_UP";
@@ -219,7 +219,8 @@ export async function liveStartOptions(userId: string, classId: string, now = ne
       select: { id: true, title: true, startsAt: true },
     }),
     db.classGroup.findMany({ where: { classId, ...(access.groupIds.length ? { id: { in: access.groupIds } } : {}) }, orderBy: { name: "asc" }, select: { id: true, name: true } }),
-    liveSetOptions(await classIsInHouse(classId)),
+    // In-house sets aren't offered for live runs: the live screen doesn't show image questions yet.
+    liveSetOptions(false),
   ]);
   return { sessions, groups, sets };
 }

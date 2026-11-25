@@ -5,6 +5,8 @@ import { ClassError } from "./access";
 import { DOMAINS, domainName } from "@/lib/sat/domains";
 import { gridInMatches, nextReview } from "@/lib/sat/practice";
 import { quickCheck } from "@/lib/grading/normalize";
+import { acceptedAnswers, checkBankAnswer, LETTERS } from "@/lib/bank/answers";
+import { contentAccess, questionWhere } from "./in-house";
 
 /**
  * The mistake log: every wrong answer (worksheet assignments, diagnostics,
@@ -15,7 +17,8 @@ import { quickCheck } from "@/lib/grading/normalize";
  */
 
 export type NewMistake = {
-  sourceType: "ASSIGNMENT" | "DIAGNOSTIC" | "EXTERNAL" | "SCORE";
+  /** BANK: a question-bank question missed in the practice player (sourceId is the question's id). */
+  sourceType: "ASSIGNMENT" | "DIAGNOSTIC" | "EXTERNAL" | "SCORE" | "BANK";
   sourceId: string;
   itemId?: string | null;
   externalUrl?: string | null;
@@ -77,6 +80,15 @@ export async function practiceFor(userId: string, mistakeId: string) {
   const m = await db.mistakeItem.findFirst({ where: { id: mistakeId, studentId: userId, retiredAt: null } });
   if (!m) throw new NotFoundError("Mistake not found");
   if (m.sourceType === "EXTERNAL") return { mistake: m, kind: "external" as const, url: m.externalUrl, questionId: m.externalId, question: null };
+  if (m.sourceType === "BANK") {
+    // The bank question itself, if this student may still see it (in-house rule, College Board switch).
+    const q = await db.bankQuestion.findFirst({
+      where: { AND: [{ id: m.sourceId, status: "published" }, questionWhere(await contentAccess(userId))] },
+      select: { id: true, type: true, section: true, stem: true, choices: true, imageUrl: true, imageIsQuestion: true, imageAlt: true },
+    });
+    if (!q) return { mistake: m, kind: "self" as const, url: null, questionId: null, question: null };
+    return { mistake: m, kind: "bank" as const, url: null, questionId: m.externalId, question: null, bank: q };
+  }
   const itemId = m.sourceType === "SCORE" ? await similarItem(userId, m) : m.itemId;
   const item = itemId ? await db.worksheetItem.findUnique({ where: { id: itemId }, select: { id: true, label: true, type: true, prompt: true, choices: true, section: true } }) : null;
   if (!item) return { mistake: m, kind: "self" as const, url: null, questionId: null, question: null };
@@ -87,8 +99,14 @@ export async function practiceFor(userId: string, mistakeId: string) {
 export async function answerMistake(userId: string, mistakeId: string, input: { practiceItemId?: string; choice?: unknown; response?: unknown; selfReport?: unknown }, now = new Date()) {
   const p = await practiceFor(userId, mistakeId);
   let correct: boolean;
-  let feedback: { correctChoice: number | null; answer: string; explanation: string } | null = null;
-  if (p.kind === "question") {
+  let feedback: { correctChoice: number | null; answer: string; explanation: string; rationaleImageUrl?: string | null } | null = null;
+  if (p.kind === "bank") {
+    const q = await db.bankQuestion.findUniqueOrThrow({ where: { id: p.bank!.id } });
+    const given = q.type === "mcq" ? (typeof input.choice === "number" ? (LETTERS[input.choice] ?? "") : "") : typeof input.response === "string" ? input.response : "";
+    if (!given.trim()) throw new ClassError(q.type === "mcq" ? "Choose one of the options." : "Enter an answer.");
+    correct = checkBankAnswer({ type: q.type, answer: q.answer, distractorNotes: q.distractorNotes }, given).correct;
+    feedback = { correctChoice: q.type === "mcq" ? LETTERS.indexOf(q.answer as (typeof LETTERS)[number]) : null, answer: q.type === "mcq" ? q.answer : (acceptedAnswers(q.answer)[0] ?? q.answer), explanation: q.rationaleImageUrl ? "" : q.explanation, rationaleImageUrl: q.rationaleImageUrl };
+  } else if (p.kind === "question") {
     if (input.practiceItemId !== p.question!.id) throw new ClassError("That question changed. Reload and try again.", 409);
     const item = await db.worksheetItem.findUniqueOrThrow({ where: { id: p.question!.id } });
     if (item.type === "MULTIPLE_CHOICE") {

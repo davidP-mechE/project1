@@ -4,9 +4,11 @@ import { NotFoundError } from "./courses";
 import { roleOf } from "./roles";
 import { isAssignedToStudent } from "./targets";
 import { statsFor } from "./question-stats";
+import { addMistakes } from "./mistakes";
+import { DOMAINS } from "@/lib/sat/domains";
 import { canEditContent, canSeeContent, contentAccess, questionWhere, setSourceFor, setWhere } from "./in-house";
 import { Prisma } from "@/generated/prisma/client";
-import { checkBankAnswer, LETTERS } from "@/lib/bank/answers";
+import { acceptedAnswers, checkBankAnswer, LETTERS } from "@/lib/bank/answers";
 import { readRecords, skillResolver, techniqueFromDb, techniqueToDb, validateRecord, validateRecords, type ImportedQuestion, type RowResult } from "@/lib/bank/import";
 
 /**
@@ -72,11 +74,11 @@ export async function listBank(userId: string, f: BankFilters = {}) {
     ...(f.difficulty ? { difficulty: f.difficulty } : {}),
     ...(f.type === "mcq" || f.type === "grid_in" ? { type: f.type } : {}),
     ...(f.status === "draft" || f.status === "published" ? { status: f.status } : {}),
-    ...(f.q?.trim() ? { OR: [{ stem: { contains: f.q.trim(), mode: "insensitive" as const } }, { externalId: { contains: f.q.trim(), mode: "insensitive" as const } }] } : {}),
+    ...(f.q?.trim() ? { OR: [{ stem: { contains: f.q.trim(), mode: "insensitive" as const } }, { searchText: { contains: f.q.trim(), mode: "insensitive" as const } }, { externalId: { contains: f.q.trim(), mode: "insensitive" as const } }] } : {}),
   };
   const where: Prisma.BankQuestionWhereInput = { AND: [filters, questionWhere(access)] };
   const page = Math.max(1, f.page ?? 1);
-  const select = { id: true, externalId: true, section: true, type: true, difficulty: true, status: true, version: true, week: true, stem: true, skill: { select: { name: true } }, author: { select: { name: true } } } as const;
+  const select = { id: true, externalId: true, section: true, type: true, difficulty: true, status: true, version: true, week: true, stem: true, imageIsQuestion: true, skill: { select: { name: true } }, author: { select: { name: true } } } as const;
   const order = [{ week: { sort: "asc", nulls: "last" } }, { externalId: { sort: "asc", nulls: "last" } }, { createdAt: "asc" }] as Prisma.BankQuestionOrderByWithRelationInput[];
   // Sorting or filtering by statistics needs every matching question's numbers, then a page of them.
   if (f.sort || f.flagged) {
@@ -433,7 +435,7 @@ async function playAccess(userId: string, setId: string, assignmentId?: string |
 async function playableQuestions(userId: string, setIds: string[], isAuthor: boolean) {
   const qs = await db.bankQuestion.findMany({
     where: { AND: [{ id: { in: setIds }, ...(isAuthor ? {} : { status: "published" }) }, questionWhere(await contentAccess(userId))] },
-    select: { id: true, version: true, type: true, section: true, stem: true, choices: true, imageUrl: true, difficulty: true, skill: { select: { name: true } } },
+    select: { id: true, version: true, type: true, section: true, stem: true, choices: true, imageUrl: true, imageIsQuestion: true, imageAlt: true, difficulty: true, skill: { select: { name: true } } },
   });
   const byId = new Map(qs.map((q) => [q.id, q]));
   return setIds.flatMap((id) => (byId.has(id) ? [byId.get(id)!] : []));
@@ -470,7 +472,7 @@ export async function practiceState(userId: string, sessionId: string, now = new
     timeUp: Boolean(endsAt && now >= endsAt),
     finishedAt: s.finishedAt,
     isAuthor: r.isAuthor,
-    questions: questions.map((q) => ({ id: q.id, type: q.type, section: q.section, stem: q.stem, choices: q.choices, imageUrl: q.imageUrl, skill: q.skill?.name ?? null, difficulty: q.difficulty })),
+    questions: questions.map((q) => ({ id: q.id, type: q.type, section: q.section, stem: q.stem, choices: q.choices, imageUrl: q.imageUrl, imageIsQuestion: q.imageIsQuestion, imageAlt: q.imageAlt, skill: q.skill?.name ?? null, difficulty: q.difficulty })),
     answers: Object.fromEntries(feedback),
   };
 }
@@ -486,8 +488,9 @@ async function feedbackFor(questionId: string, version: number, given: string) {
     given,
     correct: result.correct,
     likelyMistake: result.likelyMistake,
-    correctAnswer: content.type === "mcq" ? `${content.answer}${content.answerText ? ` (${content.answerText})` : content.choices[LETTERS.indexOf(content.answer as (typeof LETTERS)[number])] ? ` (${content.choices[LETTERS.indexOf(content.answer as (typeof LETTERS)[number])]})` : ""}` : content.answer.split(/[|;]/)[0].trim(),
+    correctAnswer: content.type === "mcq" ? `${content.answer}${content.answerText ? ` (${content.answerText})` : content.choices[LETTERS.indexOf(content.answer as (typeof LETTERS)[number])] ? ` (${content.choices[LETTERS.indexOf(content.answer as (typeof LETTERS)[number])]})` : ""}` : (acceptedAnswers(content.answer)[0] ?? content.answer),
     explanation: content.explanation,
+    rationaleImageUrl: q.rationaleImageUrl,
     desmosState: (content.desmosState as object | null) ?? null,
     desmosTechnique: q.desmosTechnique ? techniqueFromDb(q.desmosTechnique) : null,
     toolkitLesson: lesson,
@@ -524,7 +527,29 @@ export async function answerPractice(userId: string, sessionId: string, question
   await db.bankAttempt.create({
     data: { userId, questionId, questionVersion: q.version, setId: s.setId, sessionId, answerGiven: result.normalized, correct: result.correct, timeSeconds: Math.max(0, Math.min(3600, Math.round(timeSeconds || 0))) },
   });
+  // A student's miss goes to their mistake log (spaced review), by question and skill.
+  if (!result.correct && !r.isAuthor) await logBankMiss(userId, q, now);
   return feedbackFor(questionId, q.version, result.normalized);
+}
+
+async function logBankMiss(userId: string, q: { id: string; externalId: string | null; source: string; section: string; skillId: string | null }, now: Date) {
+  const skill = q.skillId ? await db.skill.findUnique({ where: { id: q.skillId }, select: { name: true, domain: true } }) : null;
+  const ref = q.externalId?.replace(/^CB-/, "") ?? null;
+  await addMistakes(
+    userId,
+    [
+      {
+        sourceType: "BANK",
+        sourceId: q.id,
+        externalId: ref,
+        section: q.section === "math" ? "MATH" : "RW",
+        domain: DOMAINS.find((d) => d.name === skill?.domain)?.id ?? null,
+        skill: skill?.name ?? null,
+        label: q.source === "college_board" && ref ? `Question Bank ${ref}` : `Practice question${ref ? ` ${ref}` : ""}`,
+      },
+    ],
+    now,
+  );
 }
 
 export async function finishPractice(userId: string, sessionId: string) {

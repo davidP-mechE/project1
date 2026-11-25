@@ -19,11 +19,14 @@ export type Feedback = {
   likelyMistake: string | null;
   correctAnswer: string;
   explanation: string;
+  /** The explanation as an image (College Board items); shown instead of the text. */
+  rationaleImageUrl?: string | null;
   desmosState: object | null;
   desmosTechnique: string | null;
   toolkitLesson: { title: string; href: string } | null;
 };
-export type PlayerQuestion = { id: string; type: "mcq" | "grid_in"; section: string; stem: string; choices: string[]; imageUrl: string | null; skill: string | null; difficulty: number };
+/** imageIsQuestion: the image is the whole question (choices included); A–D buttons go under it. */
+export type PlayerQuestion = { id: string; type: "mcq" | "grid_in"; section: string; stem: string; choices: string[]; imageUrl: string | null; imageIsQuestion?: boolean; imageAlt?: string | null; skill: string | null; difficulty: number };
 export type PlayerState = {
   sessionId: string;
   setId: string;
@@ -184,17 +187,25 @@ export function PracticePlayer({ state, desmosKey }: { state: PlayerState; desmo
             {q.skill} · difficulty {q.difficulty}
           </span>
         </div>
-        <div className="overflow-x-auto">
-          <Markdown>{q.stem}</Markdown>
-        </div>
-        {q.imageUrl && (
+        {q.imageIsQuestion && q.imageUrl ? (
+          // The question exactly as printed (passage, equations and choices).
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={q.imageUrl} alt="Figure for this question" className="max-h-80 max-w-full rounded border border-border" />
+          <img src={q.imageUrl} alt={q.imageAlt || "The question"} className="h-auto max-w-full rounded border border-border bg-white" />
+        ) : (
+          <>
+            <div className="overflow-x-auto">
+              <Markdown>{q.stem}</Markdown>
+            </div>
+            {q.imageUrl && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={q.imageUrl} alt="Figure for this question" className="max-h-80 max-w-full rounded border border-border" />
+            )}
+          </>
         )}
         {q.type === "mcq" ? (
           <fieldset className="flex flex-col gap-2" disabled={Boolean(fb) || timeUp}>
             <legend className="sr-only">Choices</legend>
-            {q.choices.map((c, n) => {
+            {(q.choices.length ? q.choices : ["", "", "", ""]).map((c, n) => {
               const L = LETTERS[n];
               const picked = (fb?.given ?? draft[q.id]) === L;
               const isRight = fb && fb.correctAnswer.startsWith(L);
@@ -207,10 +218,12 @@ export function PracticePlayer({ state, desmosKey }: { state: PlayerState; desmo
                   )}
                 >
                   <input type="radio" name={`q-${q.id}`} value={L} checked={picked} onChange={() => setDraft({ ...draft, [q.id]: L })} className="mt-1" />
-                  <span className="font-semibold">{L}.</span>
-                  <span className="min-w-0 flex-1">
-                    <Markdown>{c}</Markdown>
-                  </span>
+                  <span className="font-semibold">{c ? `${L}.` : L}</span>
+                  {c && (
+                    <span className="min-w-0 flex-1">
+                      <Markdown>{c}</Markdown>
+                    </span>
+                  )}
                 </label>
               );
             })}
@@ -240,10 +253,15 @@ export function PracticePlayer({ state, desmosKey }: { state: PlayerState; desmo
                 <span className="font-semibold">Likely mistake:</span> {fb.likelyMistake}
               </p>
             )}
-            {fb.explanation && (
-              <div className="text-sm text-text">
-                <Markdown>{fb.explanation}</Markdown>
-              </div>
+            {fb.rationaleImageUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={fb.rationaleImageUrl} alt="Explanation of the answer" className="h-auto max-w-full rounded border border-border bg-white" />
+            ) : (
+              fb.explanation && (
+                <div className="text-sm text-text">
+                  <Markdown>{fb.explanation}</Markdown>
+                </div>
+              )
             )}
             {fb.desmosState && desmosCheck(fb.desmosState)}
             {fb.desmosTechnique && (

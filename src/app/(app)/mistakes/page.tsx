@@ -18,7 +18,9 @@ export default async function MistakesPage() {
   if (next) {
     const base = { mistakeId: next.mistake.id, label: next.mistake.label, domain: domainName(next.mistake.domain) };
     practice =
-      next.kind === "question" ? { kind: "question", ...base, question: next.question! } : next.kind === "external" ? { kind: "external", ...base, url: next.url!, questionId: next.questionId! } : { kind: "self", ...base };
+      next.kind === "bank" && next.bank
+        ? { kind: "bank", ...base, bank: { ...next.bank, type: next.bank.type === "mcq" ? "mcq" : "grid_in" } }
+        : next.kind === "question" ? { kind: "question", ...base, question: next.question! } : next.kind === "external" ? { kind: "external", ...base, url: next.url!, questionId: next.questionId! } : { kind: "self", ...base };
   }
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-6">

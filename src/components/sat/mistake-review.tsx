@@ -15,7 +15,8 @@ import { cn } from "@/lib/utils";
 export type Practice =
   | { kind: "question"; mistakeId: string; label: string; domain: string; question: { id: string; type: string; prompt: string; choices: string[]; section: string | null; similar: boolean } }
   | { kind: "external"; mistakeId: string; label: string; domain: string; url: string; questionId: string }
-  | { kind: "self"; mistakeId: string; label: string; domain: string };
+  | { kind: "self"; mistakeId: string; label: string; domain: string }
+  | { kind: "bank"; mistakeId: string; label: string; domain: string; bank: { id: string; type: "mcq" | "grid_in"; section: string; stem: string; choices: string[]; imageUrl: string | null; imageIsQuestion: boolean; imageAlt: string | null } };
 
 const letter = (i: number) => String.fromCharCode(65 + i);
 
@@ -24,7 +25,7 @@ export function MistakeReview({ p, desmosKey, zone }: { p: Practice; desmosKey: 
   const router = useRouter();
   const [choice, setChoice] = useState<number | null>(null);
   const [text, setText] = useState("");
-  const [result, setResult] = useState<{ correct: boolean; retired: boolean; due: string; feedback: { correctChoice: number | null; answer: string; explanation: string } | null } | null>(null);
+  const [result, setResult] = useState<{ correct: boolean; retired: boolean; due: string; feedback: { correctChoice: number | null; answer: string; explanation: string; rationaleImageUrl?: string | null } | null } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
   const send = (input: Parameters<typeof answerMistakeAction>[1]) =>
@@ -71,6 +72,47 @@ export function MistakeReview({ p, desmosKey, zone }: { p: Practice; desmosKey: 
           )}
         </>
       )}
+      {p.kind === "bank" && (
+        <>
+          {p.bank.imageIsQuestion && p.bank.imageUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={p.bank.imageUrl} alt={p.bank.imageAlt || "The question"} className="h-auto max-w-full rounded border border-border bg-white" />
+          ) : (
+            <>
+              <Markdown>{p.bank.stem}</Markdown>
+              {p.bank.imageUrl && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={p.bank.imageUrl} alt="Figure for this question" className="max-h-80 max-w-full rounded border border-border" />
+              )}
+            </>
+          )}
+          {p.bank.section === "math" && <DesmosButton apiKey={desmosKey} onUse={() => {}} />}
+          {p.bank.type === "mcq" ? (
+            <fieldset className="flex flex-col gap-2" disabled={Boolean(result)}>
+              <legend className="sr-only">Choices</legend>
+              {(p.bank.choices.length ? p.bank.choices : ["", "", "", ""]).map((c, k) => (
+                <label key={k} className={cn("flex cursor-pointer items-start gap-3 rounded-lg border px-3 py-2 text-sm", result?.feedback?.correctChoice === k ? "border-success bg-success-bg" : choice === k ? "border-primary bg-primary/10" : "border-border")}>
+                  <input type="radio" name={`m-${p.mistakeId}`} checked={choice === k} onChange={() => setChoice(k)} className="mt-1 size-4 accent-[var(--primary)]" />
+                  <span className="font-semibold text-muted">{c ? `${letter(k)}.` : letter(k)}</span>
+                  {c && <Markdown className="flex-1 [&_p]:m-0">{c}</Markdown>}
+                </label>
+              ))}
+            </fieldset>
+          ) : (
+            <label className="flex flex-col gap-1 text-sm">
+              <span className="font-medium">Your answer</span>
+              <input value={text} onChange={(e) => setText(e.target.value)} disabled={Boolean(result)} className="h-11 rounded-lg border border-border bg-surface px-3" />
+            </label>
+          )}
+          {!result && (
+            <div>
+              <Button disabled={pending || (p.bank.type === "mcq" ? choice === null : !text.trim())} onClick={() => send(p.bank.type === "mcq" ? { choice: choice! } : { response: text })}>
+                Check
+              </Button>
+            </div>
+          )}
+        </>
+      )}
       {p.kind === "external" && (
         <>
           <p className="text-sm">
@@ -96,6 +138,10 @@ export function MistakeReview({ p, desmosKey, zone }: { p: Practice; desmosKey: 
             <p className="mt-1">
               Answer: {result.feedback.correctChoice !== null ? letter(result.feedback.correctChoice) : result.feedback.answer}. {result.feedback.explanation}
             </p>
+          )}
+          {result.feedback?.rationaleImageUrl && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={result.feedback.rationaleImageUrl} alt="Explanation of the answer" className="mt-2 h-auto max-w-full rounded border border-border bg-white" />
           )}
           <Button size="sm" variant="secondary" className="mt-2" onClick={() => router.refresh()}>
             Next

@@ -2178,40 +2178,49 @@ enum DesmosTechnique {
 }
 
 model BankQuestion {
-  id              String           @id @default(cuid())
-  externalId      String?          @unique @map("external_id")
-  authorId        String?          @map("author_id")
-  author          User?            @relation("bankAuthor", fields: [authorId], references: [id], onDelete: SetNull)
-  source          QuestionSource   @default(original)
+  id                String           @id @default(cuid())
+  externalId        String?          @unique @map("external_id")
+  authorId          String?          @map("author_id")
+  author            User?            @relation("bankAuthor", fields: [authorId], references: [id], onDelete: SetNull)
+  source            QuestionSource   @default(original)
   /// Where an imported question came from, e.g. "SAT Suite Question Bank export, 2026-11-25".
-  sourceDetail    String?          @map("source_detail")
-  audience        ContentAudience  @default(public)
-  section         SatSection
-  skillId         String?          @map("skill_id")
-  skill           Skill?           @relation(fields: [skillId], references: [id], onDelete: SetNull)
-  blueprint       String?
-  lesson          String?
-  week            Int?
-  unit            String?
-  focus           String?
-  difficulty      Int              @default(2)
-  type            BankQuestionType
+  sourceDetail      String?          @map("source_detail")
+  audience          ContentAudience  @default(public)
+  section           SatSection
+  skillId           String?          @map("skill_id")
+  skill             Skill?           @relation(fields: [skillId], references: [id], onDelete: SetNull)
+  blueprint         String?
+  lesson            String?
+  week              Int?
+  unit              String?
+  focus             String?
+  difficulty        Int              @default(2)
+  type              BankQuestionType
   /// Markdown + LaTeX; may contain a Markdown table.
-  stem            String
-  choices         String[]
+  stem              String
+  choices           String[]
   /// MCQ: the letter (A–D). Grid-in: the accepted value (e.g. "3/4").
-  answer          String
-  answerText      String?          @map("answer_text")
-  explanation     String           @default("")
+  answer            String
+  answerText        String?          @map("answer_text")
+  explanation       String           @default("")
   /// MCQ: { "B": "mistake" } per wrong letter. Grid-in: { "-5": "mistake" } per likely wrong value.
-  distractorNotes Json             @default("{}") @map("distractor_notes")
-  desmosState     Json?            @map("desmos_state")
-  desmosTechnique DesmosTechnique? @map("desmos_technique")
-  imageUrl        String?          @map("image_url")
-  status          PublishStatus    @default(draft)
-  version         Int              @default(1)
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
+  distractorNotes   Json             @default("{}") @map("distractor_notes")
+  desmosState       Json?            @map("desmos_state")
+  desmosTechnique   DesmosTechnique? @map("desmos_technique")
+  imageUrl          String?          @map("image_url")
+  /// The image IS the question (College Board items printed as an image, choices included): show it
+  /// instead of the stem, with A–D buttons; the stem (or searchText) becomes its alt text.
+  imageIsQuestion   Boolean          @default(false) @map("image_is_question")
+  /// Alt text for the question image (screen readers only).
+  imageAlt          String?          @map("image_alt")
+  /// The explanation as an image (shown after answering, instead of the text).
+  rationaleImageUrl String?          @map("rationale_image_url")
+  /// Words for search only, never shown (math items whose equations were lost in text extraction).
+  searchText        String?          @map("search_text")
+  status            PublishStatus    @default(draft)
+  version           Int              @default(1)
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
 
   versions BankQuestionVersion[]
   attempts BankAttempt[]
