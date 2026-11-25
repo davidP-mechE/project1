@@ -81,6 +81,9 @@ const schema = z.object({
   LEGAL_UPDATED: z.string().default("November 11, 2026"),
   // Development only: write placeholder "demo" lessons without calling Claude (free).
   FAKE_CLAUDE: z.stringbool().default(false),
+  // Kill switch for official College Board questions (the in-house Question Bank import and the
+  // College Board upload page). false hides every college_board question and set, for everyone.
+  ALLOW_COLLEGE_BOARD_CONTENT: z.stringbool().default(true),
 });
 
 // Treat empty strings in .env ("GOOGLE_CLIENT_ID=") as "not set".

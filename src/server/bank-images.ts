@@ -3,6 +3,7 @@ import { randomBytes } from "node:crypto";
 import { db } from "./db";
 import { storage } from "./storage";
 import { roleOf } from "./roles";
+import { contentAccess, questionWhere } from "./in-house";
 
 /** Images on bank questions. Stored privately; served only through /api/bank/images/<name>. */
 
@@ -31,9 +32,15 @@ export async function saveBankImage(userId: string, bytes: Buffer): Promise<{ ur
 
 /** Authors see any image; others only images on a published question. */
 export async function canSeeBankImage(userId: string, name: string) {
-  if ((await roleOf(userId)).isAuthor) return true;
   const url = `/api/bank/images/${name}`;
-  return (await db.bankQuestion.count({ where: { status: "published", OR: [{ imageUrl: url }, { versions: { some: { imageUrl: url } } }] } })) > 0;
+  const visible = questionWhere(await contentAccess(userId));
+  const onQuestion = { OR: [{ imageUrl: url }, { versions: { some: { imageUrl: url } } }] };
+  if ((await roleOf(userId)).isAuthor) {
+    // Authors may see an image not yet on any question (just uploaded), but not one only on content hidden from them.
+    const all = await db.bankQuestion.count({ where: onQuestion });
+    return all === 0 || (await db.bankQuestion.count({ where: { AND: [onQuestion, visible] } })) > 0;
+  }
+  return (await db.bankQuestion.count({ where: { AND: [{ status: "published" }, onQuestion, visible] } })) > 0;
 }
 
 export const imageType = (name: string) => TYPES.find((t) => name.endsWith(`.${t.ext}`))?.type ?? "application/octet-stream";

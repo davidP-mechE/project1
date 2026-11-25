@@ -1,4 +1,5 @@
 import "server-only";
+import { canSeeContent, classIsInHouse, classSetWhere, contentAccess } from "./in-house";
 import { allowsProgram, isNoAi, programAccess, programDeniedMessage, programIdFilter } from "./program-access";
 import { randomInt } from "node:crypto";
 import { db } from "./db";
@@ -369,8 +370,9 @@ export type SetAssignmentInput = { setId: string; title?: string; note?: string;
 /** A published question-bank set, played in the practice player, with the calculator allowed or by hand only. */
 export async function assignQuestionSet(userId: string, classId: string, input: SetAssignmentInput) {
   const access = await classAccess(userId, classId, "teach");
-  const set = await db.questionSet.findUnique({ where: { id: input.setId }, select: { id: true, title: true, status: true, visibility: true, questionIds: true } });
-  if (!set || set.status !== "published" || set.visibility === "private") throw new ClassError("Choose a published set that classes can use.");
+  const set = await db.questionSet.findFirst({ where: { AND: [{ id: input.setId }, classSetWhere(await classIsInHouse(classId))] }, select: { id: true, title: true, status: true, visibility: true, questionIds: true, source: true, audience: true } });
+  // In-house sets go only to classes with in-house access, and only from someone who can see them.
+  if (!set || set.status !== "published" || set.visibility === "private" || !canSeeContent(await contentAccess(userId), set)) throw new ClassError("Choose a published set that classes can use.");
   const limit = input.timeLimitMin ? Math.round(input.timeLimitMin) : null;
   if (limit !== null && (limit < 1 || limit > 300)) throw new ClassError("A time limit can be 1 to 300 minutes.");
   const targets = await cleanTargets(access, input.targets);

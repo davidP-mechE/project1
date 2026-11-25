@@ -1,6 +1,7 @@
 import "server-only";
 import { randomInt } from "node:crypto";
 import { db } from "./db";
+import { classIsInHouse, classSetWhere, collegeBoardAllowed } from "./in-house";
 import { NotFoundError } from "./courses";
 import { can, classAccess, ClassError, studentIdsInScope } from "./access";
 import { cleanTargets, isAssignedToStudent, studentsTargeted } from "./targets";
@@ -27,14 +28,14 @@ export type LiveKind = keyof typeof KIND_LABEL;
 const newCode = () => Array.from({ length: 6 }, () => CODE_CHARS[randomInt(CODE_CHARS.length)]).join("");
 
 /** Published, class-usable sets short enough to run live. */
-export async function liveSetOptions() {
-  const sets = await db.questionSet.findMany({ where: { status: "published", visibility: { not: "private" }, autoForStudentId: null }, orderBy: { title: "asc" }, select: { id: true, title: true, questionIds: true } });
+export async function liveSetOptions(classInHouse = false) {
+  const sets = await db.questionSet.findMany({ where: { AND: [{ status: "published", visibility: { not: "private" }, autoForStudentId: null }, classSetWhere(classInHouse)] }, orderBy: { title: "asc" }, select: { id: true, title: true, questionIds: true } });
   return sets.filter((s) => s.questionIds.length > 0 && s.questionIds.length <= MAX_QUESTIONS).map((s) => ({ id: s.id, title: s.title, count: s.questionIds.length }));
 }
 
 export async function startLiveRun(userId: string, classId: string, input: { setId: string; kind?: string; sessionId?: string | null; groupIds?: string[] }) {
   const access = await classAccess(userId, classId, "teach");
-  const set = await db.questionSet.findUnique({ where: { id: input.setId }, select: { id: true, status: true, visibility: true, questionIds: true, autoForStudentId: true } });
+  const set = await db.questionSet.findFirst({ where: { AND: [{ id: input.setId }, classSetWhere(await classIsInHouse(classId))] }, select: { id: true, status: true, visibility: true, questionIds: true, autoForStudentId: true } });
   if (!set || set.status !== "published" || set.visibility === "private" || set.autoForStudentId) throw new ClassError("Choose a published set that classes can use.");
   if (!set.questionIds.length || set.questionIds.length > MAX_QUESTIONS) throw new ClassError(`A live run can have 1 to ${MAX_QUESTIONS} questions.`);
   const kind: LiveKind = input.kind === "EXIT_TICKET" ? "EXIT_TICKET" : "WARM_UP";
@@ -55,8 +56,9 @@ export async function startLiveRun(userId: string, classId: string, input: { set
 }
 
 async function runFor(runId: string) {
-  const run = await db.liveRun.findUnique({ where: { id: runId }, include: { set: { select: { title: true, questionIds: true } }, class: { select: { name: true } }, session: { select: { id: true, title: true, startsAt: true } } } });
-  if (!run) throw new NotFoundError("Not found");
+  const run = await db.liveRun.findUnique({ where: { id: runId }, include: { set: { select: { title: true, questionIds: true, source: true, audience: true } }, class: { select: { name: true, inHouseAccess: true } }, session: { select: { id: true, title: true, startsAt: true } } } });
+  // The in-house rule and the College Board switch still apply to a run already open.
+  if (!run || (!collegeBoardAllowed() && run.set.source === "college_board") || (run.set.audience === "in_house" && !run.class.inHouseAccess)) throw new NotFoundError("Not found");
   return run;
 }
 
@@ -217,7 +219,7 @@ export async function liveStartOptions(userId: string, classId: string, now = ne
       select: { id: true, title: true, startsAt: true },
     }),
     db.classGroup.findMany({ where: { classId, ...(access.groupIds.length ? { id: { in: access.groupIds } } : {}) }, orderBy: { name: "asc" }, select: { id: true, name: true } }),
-    liveSetOptions(),
+    liveSetOptions(await classIsInHouse(classId)),
   ]);
   return { sessions, groups, sets };
 }

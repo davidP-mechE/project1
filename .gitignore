@@ -62,3 +62,8 @@ dump.rdb
 # Playwright
 /test-results/
 /playwright-report/
+
+# College Board Question Bank files for the in-house import (never committed:
+# run `npm run import:bank` with them locally; images go to private storage)
+/data/course-packets/qbank_images/
+/data/course-packets/coursebook_sat_question_bank.json

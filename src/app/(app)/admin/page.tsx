@@ -2,7 +2,7 @@ import { formatInZone } from "@/lib/dates";
 import { viewerZone } from "@/server/session";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import { AccessRuleForm, DemoDataControls, PlanSelect, RemoveRuleButton, RetryButton, RoleSelect, TestEmailButton } from "@/components/admin/admin-controls";
+import { AccessRuleForm, DemoDataControls, InHouseToggle, PlanSelect, RemoveRuleButton, RetryButton, RoleSelect, TestEmailButton } from "@/components/admin/admin-controls";
 import { listAccessRules, ruleLabel } from "@/server/program-access";
 import { emailStatus } from "@/server/email";
 import { DEMO_MODE_DOMAIN, DEMO_MODE_PASSWORD, DEMO_TUTOR_EMAIL, demoStatus } from "@/server/demo-data";
@@ -12,6 +12,8 @@ import { buttonClasses } from "@/components/ui/button";
 import { getAiSpend, getFailures, getFeatureUsage, getOverview, listUsers, requireAdmin } from "@/server/admin";
 import { listProblems } from "@/server/monitoring";
 import { isOwner } from "@/server/roles";
+import { db } from "@/server/db";
+import { collegeBoardAllowed } from "@/server/in-house";
 import { DeleteAccountForm, ResolveButton } from "@/components/support/data-forms";
 
 export const metadata: Metadata = { title: "Admin" };
@@ -92,6 +94,7 @@ export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
   const q = typeof sp.q === "string" ? sp.q : "";
   const [overview, spend, usage, failures, users, problems, demo, access] = await Promise.all([getOverview(), getAiSpend(), getFeatureUsage(), getFailures(), listUsers(q), listProblems(), demoStatus(), listAccessRules()]);
   const mail = emailStatus();
+  const inHouseClasses = viewerIsOwner ? await db.class.findMany({ where: { archivedAt: null, isDemo: false }, orderBy: [{ program: { name: "asc" } }, { name: "asc" }], select: { id: true, name: true, inHouseAccess: true, program: { select: { name: true } }, _count: { select: { members: true } } } }) : [];
   const maxDay = Math.max(0.01, ...spend.daily.map((d) => d.usd));
   const failedTotal = failures.books.length + failures.lessons.length + failures.assessments.length;
 
@@ -130,6 +133,24 @@ export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
         )}
       </Section>
 
+      {viewerIsOwner && (
+        <Section id="in-house" title="In-house content" description="College Board Question Bank questions, their sets and in-house courses are seen only by you and by the students and staff of the classes ticked here. Nobody else, tutors included, can find them.">
+          <p className="mb-3 text-sm">
+            College Board content is <strong>{collegeBoardAllowed() ? "on" : "off"}</strong> (the <code>ALLOW_COLLEGE_BOARD_CONTENT</code> setting{collegeBoardAllowed() ? "; set it to false to hide all of it, for everyone" : ": every College Board question and set is hidden, for you too"}).
+          </p>
+          {inHouseClasses.length === 0 ? (
+            <p className="text-sm text-muted">No classes yet.</p>
+          ) : (
+            <ul className="flex flex-col gap-2">
+              {inHouseClasses.map((c) => (
+                <li key={c.id}>
+                  <InHouseToggle classId={c.id} name={`${c.program.name} · ${c.name} (${c._count.members} students)`} on={c.inHouseAccess} />
+                </li>
+              ))}
+            </ul>
+          )}
+        </Section>
+      )}
       <Section id="overview" title="Overview">
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
           <Stat label="Users" value={num(overview.users)} sub={`${num(overview.verified)} verified · ${num(overview.new7)} new this week`} />

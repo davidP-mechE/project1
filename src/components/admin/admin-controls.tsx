@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
-import { demoDataAction, removeAccessRuleAction, retryAssessmentAction, retryBookAction, retryLessonsAction, sendTestEmailAction, setAccessRuleAction, setPlanAction, setRoleAction } from "@/server/actions/admin";
+import { demoDataAction, removeAccessRuleAction, setInHouseAccessAction, retryAssessmentAction, retryBookAction, retryLessonsAction, sendTestEmailAction, setAccessRuleAction, setPlanAction, setRoleAction } from "@/server/actions/admin";
 import { inputClasses } from "@/components/ui/field";
 
 type Result = { ok: true; message?: string } | { ok: false; error: string };
@@ -214,5 +214,33 @@ export function TestEmailButton() {
         {result ? (result.ok ? result.message : result.error) : ""}
       </span>
     </span>
+  );
+}
+
+/** Owner: switch in-house access on or off for one class. */
+export function InHouseToggle({ classId, name, on }: { classId: string; name: string; on: boolean }) {
+  const [checked, setChecked] = useState(on);
+  const [pending, start] = useTransition();
+  const [result, setResult] = useState<Result | null>(null);
+  return (
+    <label className="flex flex-wrap items-center gap-2 text-sm">
+      <input
+        type="checkbox"
+        className="size-4"
+        checked={checked}
+        disabled={pending}
+        onChange={(e) => {
+          const next = e.target.checked;
+          setChecked(next);
+          start(async () => {
+            const r = await setInHouseAccessAction(classId, next);
+            setResult(r);
+            if (!r.ok) setChecked(!next);
+          });
+        }}
+      />
+      <span>{name}</span>
+      <span role="status" className={result?.ok === false ? "text-xs text-danger" : "text-xs text-muted"}>{result ? (result.ok ? result.message : result.error) : ""}</span>
+    </label>
   );
 }

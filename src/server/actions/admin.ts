@@ -6,6 +6,7 @@ import { requireAdmin, retryAssessment, retryBook, retryLessons, setUserPlan } f
 import { GenerationError } from "../generation/lessons";
 import { LimitError } from "../limits";
 import { RoleError, setSiteRole } from "../roles";
+import { setClassInHouseAccess } from "../in-house";
 
 const id = z.string().min(1).max(64);
 type Result = { ok: true; message?: string } | { ok: false; error: string };
@@ -121,4 +122,17 @@ export async function sendTestEmailAction(): Promise<Result> {
   } catch (err) {
     return { ok: false, error: `Not sent: ${err instanceof Error ? err.message : String(err)}` };
   }
+}
+
+/** Owner only: mark a class as a 1600 Project class (its students and staff see in-house content). */
+export async function setInHouseAccessAction(classId: string, on: boolean): Promise<Result> {
+  return run(async (adminId) => {
+    try {
+      await setClassInHouseAccess(adminId, id.parse(classId), z.boolean().parse(on));
+    } catch (err) {
+      if (err instanceof Error && /owner/.test(err.message)) throw new RoleError(err.message, 403);
+      throw err;
+    }
+    return on ? "In-house access on." : "In-house access off.";
+  });
 }

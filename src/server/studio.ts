@@ -3,6 +3,7 @@ import { randomBytes } from "node:crypto";
 import { db } from "./db";
 import { NotFoundError } from "./courses";
 import { isOwner } from "./roles";
+import { contentAccess, setWhere } from "./in-house";
 import { storage } from "./storage";
 import { runImport } from "./bank";
 import { slug as slugify } from "./seed/reference";
@@ -34,9 +35,14 @@ export class StudioError extends Error {
 export const PUBLIC_COURSE = { status: "published", visibility: "public" } as const satisfies Prisma.StudioCourseWhereInput;
 
 type CourseGate = { status: string; visibility: string };
-/** The single visibility rule. (Future: also allow rows in StudioCourseShare for this viewer or their classes.) */
-export function canView(course: CourseGate, viewer: { isOwner: boolean }) {
-  return viewer.isOwner || (course.status === "published" && course.visibility === "public");
+/**
+ * The single visibility rule. Published + public: everyone. Published + in_house: the owner and
+ * people in classes with in-house access (src/server/in-house.ts). Drafts: the owner only.
+ */
+export function canView(course: CourseGate, viewer: { isOwner: boolean; inHouse?: boolean }) {
+  if (viewer.isOwner) return true;
+  if (course.status !== "published") return false;
+  return course.visibility === "public" || (course.visibility === "in_house" && Boolean(viewer.inHouse));
 }
 
 async function requireOwnerId(userId: string | null) {
@@ -58,7 +64,7 @@ export async function listPublicCourses(q?: string) {
 /** A course by slug, with units and lessons, if this viewer may see it; otherwise "not found". */
 export async function courseForViewer(viewerId: string | null, slug: string) {
   const c = await db.studioCourse.findUnique({ where: { slug }, include: { units: { orderBy: { order: "asc" }, include: { lessons: { orderBy: { order: "asc" }, select: { id: true, title: true } } } } } });
-  if (!c || !canView(c, { isOwner: await isOwner(viewerId) })) throw new NotFoundError("Not found");
+  if (!c || !canView(c, await contentAccess(viewerId))) throw new NotFoundError("Not found");
   return c;
 }
 
@@ -66,10 +72,11 @@ export async function lessonForViewer(viewerId: string | null, slug: string, les
   const course = await courseForViewer(viewerId, slug);
   const lesson = await db.studioLesson.findFirst({ where: { id: lessonId, unit: { courseId: course.id } }, include: { blocks: { orderBy: { order: "asc" } }, files: true, unit: { select: { title: true } } } });
   if (!lesson) throw new NotFoundError("Not found");
-  const owner = await isOwner(viewerId);
-  // Question-set blocks: students see only published sets with their published questions.
+  const access = await contentAccess(viewerId);
+  const owner = access.isOwner;
+  // Question-set blocks: students see only published sets with their published questions (and the in-house rule).
   const setIds = lesson.blocks.flatMap((b) => (b.kind === "question_set" ? [String((b.data as { setId?: string }).setId ?? "")] : []));
-  const sets = await db.questionSet.findMany({ where: { id: { in: setIds } }, select: { id: true, title: true, status: true, questionIds: true } });
+  const sets = await db.questionSet.findMany({ where: { AND: [{ id: { in: setIds } }, setWhere(access)] }, select: { id: true, title: true, status: true, questionIds: true } });
   const visibleSets = new Map(sets.filter((s) => owner || s.status === "published").map((s) => [s.id, s]));
   const blocks = lesson.blocks.filter((b) => b.kind !== "question_set" || visibleSets.has(String((b.data as { setId?: string }).setId)));
   return { course, lesson: { ...lesson, blocks }, sets: Object.fromEntries(visibleSets), owner };
@@ -78,7 +85,7 @@ export async function lessonForViewer(viewerId: string | null, slug: string, les
 /** A lesson file, if its course is visible to this viewer. */
 export async function fileForViewer(viewerId: string | null, fileId: string) {
   const f = await db.studioFile.findUnique({ where: { id: fileId }, include: { lesson: { select: { unit: { select: { course: { select: { status: true, visibility: true } } } } } } } });
-  if (!f || !canView(f.lesson.unit.course, { isOwner: await isOwner(viewerId) })) throw new NotFoundError("Not found");
+  if (!f || !canView(f.lesson.unit.course, await contentAccess(viewerId))) throw new NotFoundError("Not found");
   return f;
 }
 
@@ -390,5 +397,5 @@ export async function uploadToLesson(ownerId: string, lessonId: string, name: st
 
 export async function studioSetOptions(ownerId: string) {
   await requireOwnerId(ownerId);
-  return db.questionSet.findMany({ orderBy: { title: "asc" }, select: { id: true, title: true, status: true } });
+  return db.questionSet.findMany({ where: setWhere(await contentAccess(ownerId)), orderBy: { title: "asc" }, select: { id: true, title: true, status: true } });
 }

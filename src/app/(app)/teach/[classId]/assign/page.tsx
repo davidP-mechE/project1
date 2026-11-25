@@ -8,6 +8,7 @@ import { AssignLessonsForm } from "@/components/classes/assign-lessons-form";
 import { ExternalAssignForm } from "@/components/classes/external-forms";
 import { AssignDiagnosticForm } from "@/components/sat/diagnostic-forms";
 import { db } from "@/server/db";
+import { classIsInHouse, classSetWhere, contentAccess, setWhere } from "@/server/in-house";
 import { NotFoundError } from "@/server/courses";
 import { assignableCourses, getClassForTeacher } from "@/server/classes";
 import { requireUser } from "@/server/session";
@@ -58,7 +59,7 @@ export default async function AssignPage({ params }: PageProps<"/teach/[classId]
         <p className="mb-4 text-sm text-muted">A published set from the question bank, played with instant feedback. Choose whether the Desmos calculator is allowed.</p>
         <AssignSetForm
           classId={c.id}
-          sets={(await db.questionSet.findMany({ where: { status: "published", visibility: { in: ["class", "public"] }, autoForStudentId: null }, orderBy: { title: "asc" }, select: { id: true, title: true, questionIds: true } })).map((x) => ({ id: x.id, title: x.title, count: x.questionIds.length }))}
+          sets={(await db.questionSet.findMany({ where: { AND: [{ status: "published", visibility: { in: ["class", "public"] }, autoForStudentId: null }, classSetWhere(await classIsInHouse(classId)), setWhere(await contentAccess(user.id))] }, orderBy: { title: "asc" }, select: { id: true, title: true, questionIds: true } })).map((x) => ({ id: x.id, title: x.title, count: x.questionIds.length }))}
           targetOptions={targetOptions}
         />
       </Card>

@@ -1,5 +1,6 @@
 import "server-only";
 import { db } from "./db";
+import { classQuestionWhere } from "./in-house";
 import { NotFoundError } from "./courses";
 import { can, classAccess, ClassError, studentIdsInScope, type ClassAccess } from "./access";
 import { assignQuestionSet } from "./classes";
@@ -28,7 +29,8 @@ type Inputs = { pool: PoolQuestion[]; exclude: Map<string, Set<string>>; seen: M
 
 async function inputsFor(studentIds: string[], now: Date): Promise<Inputs> {
   const [pool, attempts, recentAuto] = await Promise.all([
-    db.bankQuestion.findMany({ where: { status: "published", skillId: { not: null } }, select: { id: true, skillId: true, difficulty: true } }),
+    // Weekly auto-practice draws from public questions only (never in-house content).
+    db.bankQuestion.findMany({ where: { AND: [{ status: "published", skillId: { not: null } }, classQuestionWhere(false)] }, select: { id: true, skillId: true, difficulty: true } }),
     db.bankAttempt.findMany({ where: { userId: { in: studentIds } }, select: { userId: true, questionId: true, correct: true, createdAt: true } }),
     db.autoPracticeItem.findMany({ where: { studentId: { in: studentIds }, createdAt: { gte: new Date(now.getTime() - RECENT_AUTO_DAYS * DAY) } }, select: { studentId: true, questionIds: true } }),
   ]);

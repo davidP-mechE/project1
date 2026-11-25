@@ -1265,6 +1265,8 @@ model Class {
   assignments         Assignment[]
   /// Demo data (Admin → Demo data, or npm run demo:load). Cleared in one step; never mixed with real records.
   isDemo              Boolean              @default(false)
+  /// A 1600 Project class: its students and staff may see in-house content. Only the owner can change it.
+  inHouseAccess       Boolean              @default(false)
 
   @@index([teacherId])
   @@index([programId])
@@ -2149,6 +2151,12 @@ enum QuestionSource {
   college_board
 }
 
+/// Who may see bank content. in_house: only the owner and people in classes with inHouseAccess (src/server/in-house.ts).
+enum ContentAudience {
+  public
+  in_house
+}
+
 enum BankQuestionType {
   mcq
   grid_in @map("grid-in")
@@ -2175,6 +2183,9 @@ model BankQuestion {
   authorId        String?          @map("author_id")
   author          User?            @relation("bankAuthor", fields: [authorId], references: [id], onDelete: SetNull)
   source          QuestionSource   @default(original)
+  /// Where an imported question came from, e.g. "SAT Suite Question Bank export, 2026-11-25".
+  sourceDetail    String?          @map("source_detail")
+  audience        ContentAudience  @default(public)
   section         SatSection
   skillId         String?          @map("skill_id")
   skill           Skill?           @relation(fields: [skillId], references: [id], onDelete: SetNull)
@@ -2240,22 +2251,26 @@ enum SetVisibility {
 }
 
 model QuestionSet {
-  id               String        @id @default(cuid())
+  id               String          @id @default(cuid())
   title            String
   description      String?
-  authorId         String?       @map("author_id")
-  author           User?         @relation("setAuthor", fields: [authorId], references: [id], onDelete: SetNull)
-  questionIds      String[]      @map("question_ids")
-  visibility       SetVisibility @default(private)
-  status           PublishStatus @default(draft)
+  authorId         String?         @map("author_id")
+  author           User?           @relation("setAuthor", fields: [authorId], references: [id], onDelete: SetNull)
+  questionIds      String[]        @map("question_ids")
+  visibility       SetVisibility   @default(private)
+  /// in_house sets follow the in-house rule (owner + classes with inHouseAccess), whatever `visibility` says.
+  audience         ContentAudience @default(public)
+  /// college_board when any of its questions is; kept in step on save, for the ALLOW_COLLEGE_BOARD_CONTENT switch.
+  source           QuestionSource  @default(original)
+  status           PublishStatus   @default(draft)
   /// Skills its questions cover (kept in step on save), for "Focus next".
-  skillIds         String[]      @map("skill_ids")
+  skillIds         String[]        @map("skill_ids")
   /// Optional time limit for timed play.
-  timeLimitMin     Int?          @map("time_limit_min")
+  timeLimitMin     Int?            @map("time_limit_min")
   /// Weekly auto-assigned practice: the student this set was built for. Such sets are hidden from the bank's set lists and the catalog.
-  autoForStudentId String?       @map("auto_for_student_id")
-  createdAt        DateTime      @default(now())
-  updatedAt        DateTime      @updatedAt
+  autoForStudentId String?         @map("auto_for_student_id")
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
 
   sessions    PracticeSession[]
   attempts    BankAttempt[]
@@ -2325,6 +2340,8 @@ enum StudioStatus {
 enum StudioVisibility {
   owner_only
   public
+  /// Published to the owner and classes with inHouseAccess only.
+  in_house
 }
 
 model StudioCourse {

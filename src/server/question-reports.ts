@@ -1,5 +1,6 @@
 import "server-only";
 import { db } from "./db";
+import { canSeeContent, contentAccess, questionWhere } from "./in-house";
 import { NotFoundError } from "./courses";
 import { ClassError } from "./access";
 import { BankError, requireAuthor, setQuestionStatus } from "./bank";
@@ -42,8 +43,8 @@ export async function reportQuestion(userId: string, target: ReportTarget, input
     // The student's own sitting of a set that contains the question.
     const s = await db.practiceSession.findUnique({ where: { id: target.sessionId }, select: { userId: true, assignmentId: true, set: { select: { questionIds: true } } } });
     if (!s || s.userId !== userId || !s.set.questionIds.includes(target.questionId)) throw new NotFoundError("Not found");
-    const q = await db.bankQuestion.findUnique({ where: { id: target.questionId }, select: { id: true, version: true, authorId: true, externalId: true } });
-    if (!q) throw new NotFoundError("Not found");
+    const q = await db.bankQuestion.findUnique({ where: { id: target.questionId }, select: { id: true, version: true, authorId: true, externalId: true, source: true, audience: true } });
+    if (!q || !canSeeContent(await contentAccess(userId), q)) throw new NotFoundError("Not found");
     const last = await db.bankAttempt.findFirst({ where: { userId, questionId: q.id }, orderBy: { createdAt: "desc" }, select: { answerGiven: true } });
     data = { bankQuestionId: q.id, questionVersion: q.version, assignmentId: s.assignmentId ?? undefined, answerGiven: last?.answerGiven ?? null };
     notifyIds = q.authorId ? [q.authorId] : (await db.user.findMany({ where: { role: "OWNER" }, select: { id: true } })).map((u) => u.id);
@@ -74,7 +75,7 @@ export async function reportQueue(userId: string, opts: { resolved?: boolean } =
   const status = opts.resolved ? "RESOLVED" : "OPEN";
   const [bank, items] = await Promise.all([
     role.isAuthor
-      ? db.questionReport.findMany({ where: { status, bankQuestionId: { not: null } }, orderBy: { createdAt: "desc" }, take: 500, include: { bankQuestion: { select: { id: true, externalId: true, stem: true, choices: true, answer: true, type: true, version: true, status: true, authorId: true, author: { select: { name: true } } } } } })
+      ? db.questionReport.findMany({ where: { status, bankQuestionId: { not: null }, bankQuestion: questionWhere(await contentAccess(userId)) }, orderBy: { createdAt: "desc" }, take: 500, include: { bankQuestion: { select: { id: true, externalId: true, stem: true, choices: true, answer: true, type: true, version: true, status: true, authorId: true, author: { select: { name: true } } } } } })
       : [],
     db.questionReport.findMany({ where: { status, worksheetItem: { worksheet: { ownerId: userId } } }, orderBy: { createdAt: "desc" }, take: 500, include: { worksheetItem: { select: { id: true, label: true, prompt: true, choices: true, correctChoice: true, answer: true, worksheet: { select: { id: true, title: true } } } } } }),
   ]);
@@ -98,7 +99,8 @@ export async function reportQueue(userId: string, opts: { resolved?: boolean } =
 
 export async function openReportCount(userId: string) {
   const role = await roleOf(userId);
-  return db.questionReport.count({ where: { status: "OPEN", OR: [...(role.isAuthor ? [{ bankQuestionId: { not: null } }] : []), { worksheetItem: { worksheet: { ownerId: userId } } }] } });
+  const visible = questionWhere(await contentAccess(userId));
+  return db.questionReport.count({ where: { status: "OPEN", OR: [...(role.isAuthor ? [{ bankQuestionId: { not: null }, bankQuestion: visible }] : []), { worksheetItem: { worksheet: { ownerId: userId } } }] } });
 }
 
 /** Check the reviewer may act on this question's reports. */
@@ -106,7 +108,7 @@ async function reviewable(userId: string, key: string) {
   const [kind, id] = key.split(":");
   if (kind === "bank") {
     await requireAuthor(userId);
-    if (!(await db.bankQuestion.count({ where: { id } }))) throw new NotFoundError("Not found");
+    if (!(await db.bankQuestion.count({ where: { AND: [{ id }, questionWhere(await contentAccess(userId))] } }))) throw new NotFoundError("Not found");
     return { bankQuestionId: id };
   }
   if (kind === "item") {

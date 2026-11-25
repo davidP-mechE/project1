@@ -7,6 +7,7 @@ import { LessonBlocks } from "@/components/studio/course-view";
 import { requireOwner } from "@/server/owner-guard";
 import { NotFoundError } from "@/server/courses";
 import { db } from "@/server/db";
+import { contentAccess, setWhere } from "@/server/in-house";
 import { studioLesson } from "@/server/studio";
 import { env } from "@/server/env";
 
@@ -25,7 +26,7 @@ export default async function PreviewLessonPage({ params }: PageProps<"/studio/c
   if (l.unit.course.id !== courseId) notFound();
   // As a student: question-set blocks only for published sets.
   const setIds = l.blocks.flatMap((b) => (b.kind === "question_set" ? [String((b.data as { setId?: string }).setId)] : []));
-  const sets = await db.questionSet.findMany({ where: { id: { in: setIds }, status: "published" }, select: { id: true, title: true, status: true, questionIds: true } });
+  const sets = await db.questionSet.findMany({ where: { AND: [{ id: { in: setIds }, status: "published" }, setWhere(await contentAccess(owner.id))] }, select: { id: true, title: true, status: true, questionIds: true } });
   return (
     <div className="mx-auto flex max-w-4xl flex-col gap-4">
       <Alert tone="info">

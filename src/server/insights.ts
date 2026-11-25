@@ -1,5 +1,6 @@
 import "server-only";
 import { db } from "./db";
+import { classSetWhere } from "./in-house";
 import { NotFoundError } from "./courses";
 import { computeInsights } from "@/lib/tracker/insights";
 import { toCsv } from "@/lib/csv";
@@ -32,7 +33,7 @@ export async function studentInsights(studentId: string) {
 /** Link each "Focus next" skill to the published, public set with the most published questions on it. */
 async function withSets(focus: { skillId: string; name: string; misses: number }[]) {
   if (!focus.length) return [];
-  const sets = await db.questionSet.findMany({ where: { status: "published", visibility: "public", skillIds: { hasSome: focus.map((f) => f.skillId) } }, select: { id: true, title: true, questionIds: true } });
+  const sets = await db.questionSet.findMany({ where: { AND: [{ status: "published", visibility: "public", skillIds: { hasSome: focus.map((f) => f.skillId) } }, classSetWhere(false)] }, select: { id: true, title: true, questionIds: true } });
   const qs = await db.bankQuestion.findMany({ where: { id: { in: sets.flatMap((s) => s.questionIds) }, status: "published" }, select: { id: true, skillId: true } });
   const skillOf = new Map(qs.map((q) => [q.id, q.skillId]));
   return focus.map((f) => {

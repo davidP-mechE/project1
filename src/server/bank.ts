@@ -4,6 +4,7 @@ import { NotFoundError } from "./courses";
 import { roleOf } from "./roles";
 import { isAssignedToStudent } from "./targets";
 import { statsFor } from "./question-stats";
+import { canEditContent, canSeeContent, contentAccess, questionWhere, setSourceFor, setWhere } from "./in-house";
 import { Prisma } from "@/generated/prisma/client";
 import { checkBankAnswer, LETTERS } from "@/lib/bank/answers";
 import { readRecords, skillResolver, techniqueFromDb, techniqueToDb, validateRecord, validateRecords, type ImportedQuestion, type RowResult } from "@/lib/bank/import";
@@ -17,6 +18,10 @@ import { readRecords, skillResolver, techniqueFromDb, techniqueToDb, validateRec
  *                            Tutors edit their own questions and sets; the owner edits any.
  *   students                 never see the bank itself; they play published sets and
  *                            only ever see published questions in them.
+ *
+ * In-house content (src/server/in-house.ts): in_house questions and sets are seen only by the owner and
+ * people in classes with in-house access, and edited only by the owner; with ALLOW_COLLEGE_BOARD_CONTENT
+ * off, College Board questions and sets are hidden from everyone.
  *
  * Versions: editing a published question (or one that's been answered) saves the
  * old content as a version and bumps `version`; attempts keep the version they answered.
@@ -59,7 +64,8 @@ const PAGE = 50;
 
 export async function listBank(userId: string, f: BankFilters = {}) {
   await requireAuthor(userId);
-  const where: Prisma.BankQuestionWhereInput = {
+  const access = await contentAccess(userId);
+  const filters: Prisma.BankQuestionWhereInput = {
     ...(f.section === "math" || f.section === "rw" ? { section: f.section } : {}),
     ...(f.skillId ? { skillId: f.skillId } : {}),
     ...(f.week ? { week: f.week } : {}),
@@ -68,6 +74,7 @@ export async function listBank(userId: string, f: BankFilters = {}) {
     ...(f.status === "draft" || f.status === "published" ? { status: f.status } : {}),
     ...(f.q?.trim() ? { OR: [{ stem: { contains: f.q.trim(), mode: "insensitive" as const } }, { externalId: { contains: f.q.trim(), mode: "insensitive" as const } }] } : {}),
   };
+  const where: Prisma.BankQuestionWhereInput = { AND: [filters, questionWhere(access)] };
   const page = Math.max(1, f.page ?? 1);
   const select = { id: true, externalId: true, section: true, type: true, difficulty: true, status: true, version: true, week: true, stem: true, skill: { select: { name: true } }, author: { select: { name: true } } } as const;
   const order = [{ week: { sort: "asc", nulls: "last" } }, { externalId: { sort: "asc", nulls: "last" } }, { createdAt: "asc" }] as Prisma.BankQuestionOrderByWithRelationInput[];
@@ -105,8 +112,8 @@ export async function listBank(userId: string, f: BankFilters = {}) {
 export async function getBankQuestion(userId: string, id: string) {
   await requireAuthor(userId);
   const q = await db.bankQuestion.findUnique({ where: { id }, include: { skill: true, author: { select: { id: true, name: true } }, versions: { orderBy: { version: "desc" }, select: { version: true, createdAt: true } }, _count: { select: { attempts: true } } } });
-  if (!q) throw new NotFoundError("Question not found");
-  return q;
+  if (!q || !canSeeContent(await contentAccess(userId), q)) throw new NotFoundError("Question not found");
+  return { ...q, canEdit: canEditContent(await contentAccess(userId), q) };
 }
 
 // ─── Creating and editing ────────────────────────────────────────────────
@@ -154,7 +161,9 @@ const VERSIONED = ["type", "stem", "choices", "answer", "answerText", "explanati
 async function editable(userId: string, id: string) {
   const r = await requireAuthor(userId);
   const q = await db.bankQuestion.findUnique({ where: { id } });
-  if (!q) throw new NotFoundError("Question not found");
+  const access = await contentAccess(userId);
+  if (!q || !canSeeContent(access, q)) throw new NotFoundError("Question not found");
+  if (!canEditContent(access, q)) throw new BankError("Only the owner can change in-house questions.", 403);
   if (!r.isOwner && q.authorId !== userId) throw new BankError("Only the question's author (or the owner) can change it.", 403);
   return q;
 }
@@ -305,17 +314,26 @@ function cleanSet(input: SetInput) {
   return { title, description: input.description?.trim().slice(0, 2000) || null, questionIds: ids, visibility: input.visibility ?? "private", timeLimitMin: limit };
 }
 
+/** A set's audience and source follow its questions: any in-house question makes it in-house. */
+async function setLabels(userId: string, questionIds: string[]) {
+  const access = await contentAccess(userId);
+  if ((await db.bankQuestion.count({ where: { AND: [{ id: { in: questionIds } }, questionWhere(access)] } })) !== questionIds.length) throw new BankError("Some of those questions aren't in the bank.");
+  const inHouse = await db.bankQuestion.count({ where: { id: { in: questionIds }, audience: "in_house" } });
+  return { audience: inHouse ? ("in_house" as const) : ("public" as const), source: await setSourceFor(questionIds) };
+}
+
 export async function createSet(userId: string, input: SetInput) {
   await requireAuthor(userId);
   const s = cleanSet(input);
-  if ((await db.bankQuestion.count({ where: { id: { in: s.questionIds } } })) !== s.questionIds.length) throw new BankError("Some of those questions aren't in the bank.");
-  return db.questionSet.create({ data: { ...s, authorId: userId, skillIds: await setSkills(s.questionIds) } });
+  return db.questionSet.create({ data: { ...s, ...(await setLabels(userId, s.questionIds)), authorId: userId, skillIds: await setSkills(s.questionIds) } });
 }
 
 async function editableSet(userId: string, setId: string) {
   const r = await requireAuthor(userId);
   const s = await db.questionSet.findUnique({ where: { id: setId } });
-  if (!s) throw new NotFoundError("Set not found");
+  const access = await contentAccess(userId);
+  if (!s || !canSeeContent(access, s)) throw new NotFoundError("Set not found");
+  if (!canEditContent(access, s)) throw new BankError("Only the owner can change in-house sets.", 403);
   if (!r.isOwner && s.authorId !== userId) throw new BankError("Only the set's author (or the owner) can change it.", 403);
   return s;
 }
@@ -323,8 +341,7 @@ async function editableSet(userId: string, setId: string) {
 export async function updateSet(userId: string, setId: string, input: SetInput) {
   await editableSet(userId, setId);
   const s = cleanSet(input);
-  if ((await db.bankQuestion.count({ where: { id: { in: s.questionIds } } })) !== s.questionIds.length) throw new BankError("Some of those questions aren't in the bank.");
-  return db.questionSet.update({ where: { id: setId }, data: { ...s, skillIds: await setSkills(s.questionIds) } });
+  return db.questionSet.update({ where: { id: setId }, data: { ...s, ...(await setLabels(userId, s.questionIds)), skillIds: await setSkills(s.questionIds) } });
 }
 
 /** Publish or unpublish a set. With `withQuestions`, its draft questions are published too. */
@@ -350,8 +367,10 @@ export async function autoGenerateSet(userId: string, input: { title?: string; c
   if (!(count >= 1 && count <= 100)) throw new BankError("Choose 1 to 100 questions.");
   const lo = Math.max(1, Math.min(3, input.difficultyMin ?? 1));
   const hi = Math.max(lo, Math.min(3, input.difficultyMax ?? 3));
+  const access = await contentAccess(userId);
   const pool = await db.bankQuestion.findMany({
     where: {
+      ...questionWhere(access),
       difficulty: { gte: lo, lte: hi },
       ...(input.skillId ? { skillId: input.skillId } : {}),
       ...(input.section === "math" || input.section === "rw" ? { section: input.section } : {}),
@@ -371,14 +390,15 @@ export async function autoGenerateSet(userId: string, input: { title?: string; c
 export async function listSets(userId: string) {
   await requireAuthor(userId);
   // Weekly auto-practice sets belong to one student each; they live on the class's batch screen, not here.
-  return db.questionSet.findMany({ where: { autoForStudentId: null }, orderBy: { createdAt: "desc" }, select: { id: true, title: true, status: true, visibility: true, questionIds: true, timeLimitMin: true, author: { select: { name: true } }, updatedAt: true } });
+  return db.questionSet.findMany({ where: { autoForStudentId: null, ...setWhere(await contentAccess(userId)) }, orderBy: { createdAt: "desc" }, select: { id: true, title: true, status: true, visibility: true, questionIds: true, timeLimitMin: true, author: { select: { name: true } }, updatedAt: true } });
 }
 
 export async function getSetForAuthor(userId: string, setId: string) {
   await requireAuthor(userId);
   const s = await db.questionSet.findUnique({ where: { id: setId }, include: { author: { select: { name: true } } } });
-  if (!s) throw new NotFoundError("Set not found");
-  const qs = await db.bankQuestion.findMany({ where: { id: { in: s.questionIds } }, select: { id: true, externalId: true, stem: true, status: true, difficulty: true, type: true, skill: { select: { name: true } } } });
+  const access = await contentAccess(userId);
+  if (!s || !canSeeContent(access, s)) throw new NotFoundError("Set not found");
+  const qs = await db.bankQuestion.findMany({ where: { AND: [{ id: { in: s.questionIds } }, questionWhere(access)] }, select: { id: true, externalId: true, stem: true, status: true, difficulty: true, type: true, skill: { select: { name: true } } } });
   const byId = new Map(qs.map((q) => [q.id, q]));
   return { ...s, questions: s.questionIds.flatMap((id) => (byId.has(id) ? [byId.get(id)!] : [])) };
 }
@@ -386,12 +406,14 @@ export async function getSetForAuthor(userId: string, setId: string) {
 // ─── Practice player ─────────────────────────────────────────────────────
 
 /**
- * May this person play this set? Authors: any set (to preview). Students: a
- * published set that's public, or assigned to them in one of their classes.
+ * May this person play this set? Authors: any set they can see (to preview). Students: a
+ * published set that's public, assigned to them in one of their classes, or in-house
+ * (when they're in a class with in-house access). In-house and College Board rules first.
  */
 async function playAccess(userId: string, setId: string, assignmentId?: string | null) {
   const set = await db.questionSet.findUnique({ where: { id: setId } });
-  if (!set) throw new NotFoundError("Set not found");
+  const access = await contentAccess(userId);
+  if (!set || !canSeeContent(access, set)) throw new NotFoundError("Set not found");
   const r = await roleOf(userId);
   let assignment: { id: string; calculator: "ALLOWED" | "BY_HAND"; timeLimitMin: number | null } | null = null;
   if (assignmentId) {
@@ -402,15 +424,15 @@ async function playAccess(userId: string, setId: string, assignmentId?: string |
   }
   if (!r.isAuthor) {
     if (set.status !== "published") throw new NotFoundError("Set not found");
-    if (!assignment && set.visibility !== "public") throw new NotFoundError("Set not found");
+    if (!assignment && set.visibility !== "public" && !(set.audience === "in_house" && access.inHouse)) throw new NotFoundError("Set not found");
   }
   return { set, isAuthor: r.isAuthor, assignment };
 }
 
 /** Questions as the player shows them: never the answer, explanation or notes (those come back after answering). */
-async function playableQuestions(setIds: string[], isAuthor: boolean) {
+async function playableQuestions(userId: string, setIds: string[], isAuthor: boolean) {
   const qs = await db.bankQuestion.findMany({
-    where: { id: { in: setIds }, ...(isAuthor ? {} : { status: "published" }) },
+    where: { AND: [{ id: { in: setIds }, ...(isAuthor ? {} : { status: "published" }) }, questionWhere(await contentAccess(userId))] },
     select: { id: true, version: true, type: true, section: true, stem: true, choices: true, imageUrl: true, difficulty: true, skill: { select: { name: true } } },
   });
   const byId = new Map(qs.map((q) => [q.id, q]));
@@ -429,9 +451,9 @@ export async function startPractice(userId: string, setId: string, opts: { assig
 
 export async function practiceState(userId: string, sessionId: string, now = new Date()) {
   const s = await db.practiceSession.findUnique({ where: { id: sessionId }, include: { set: true, attempts: { orderBy: { createdAt: "asc" } } } });
-  if (!s || s.userId !== userId) throw new NotFoundError("Not found");
+  if (!s || s.userId !== userId || !canSeeContent(await contentAccess(userId), s.set)) throw new NotFoundError("Not found");
   const r = await roleOf(userId);
-  const questions = await playableQuestions(s.set.questionIds, r.isAuthor);
+  const questions = await playableQuestions(userId, s.set.questionIds, r.isAuthor);
   const endsAt = s.timeLimitSec ? new Date(s.startedAt.getTime() + s.timeLimitSec * 1000) : null;
   const answered = new Map(s.attempts.map((a) => [a.questionId, a]));
   const feedback = await Promise.all(
@@ -486,14 +508,15 @@ const GRACE_MS = 5_000;
 
 /** Check one answer, record it against the question's current version, and return the feedback. One answer per question per sitting. */
 export async function answerPractice(userId: string, sessionId: string, questionId: string, given: string, timeSeconds: number, now = new Date()) {
-  const s = await db.practiceSession.findUnique({ where: { id: sessionId }, include: { set: { select: { questionIds: true } } } });
-  if (!s || s.userId !== userId) throw new NotFoundError("Not found");
+  const s = await db.practiceSession.findUnique({ where: { id: sessionId }, include: { set: { select: { questionIds: true, source: true, audience: true } } } });
+  const access = await contentAccess(userId);
+  if (!s || s.userId !== userId || !canSeeContent(access, s.set)) throw new NotFoundError("Not found");
   if (s.finishedAt) throw new BankError("This set is finished. Start it again to practise more.");
   if (s.timeLimitSec && now.getTime() > s.startedAt.getTime() + s.timeLimitSec * 1000 + GRACE_MS) throw new BankError("Time's up for this set.", 409);
   if (!s.set.questionIds.includes(questionId)) throw new NotFoundError("Not found");
   const r = await roleOf(userId);
   const q = await db.bankQuestion.findUnique({ where: { id: questionId } });
-  if (!q || (!r.isAuthor && q.status !== "published")) throw new NotFoundError("Not found");
+  if (!q || (!r.isAuthor && q.status !== "published") || !canSeeContent(access, q)) throw new NotFoundError("Not found");
   const answer = given.trim().slice(0, 40);
   if (!answer) throw new BankError("Enter an answer first.");
   if (await db.bankAttempt.findFirst({ where: { sessionId, questionId }, select: { id: true } })) throw new BankError("You've already answered this one in this sitting.", 409);
@@ -515,12 +538,13 @@ export async function finishPractice(userId: string, sessionId: string) {
 /** Sets a student can play: published + public, plus anything assigned to them (found from their classes). */
 export async function practiceCatalog(userId: string) {
   const r = await roleOf(userId);
+  const access = await contentAccess(userId);
   const sets = await db.questionSet.findMany({
-    where: r.isAuthor ? { autoForStudentId: null } : { status: "published", visibility: "public", autoForStudentId: null },
+    where: { AND: [r.isAuthor ? { autoForStudentId: null } : { status: "published", visibility: "public", autoForStudentId: null }, setWhere(access)] },
     orderBy: { title: "asc" },
     select: { id: true, title: true, description: true, status: true, questionIds: true, timeLimitMin: true },
   });
-  const counts = await db.bankQuestion.findMany({ where: { id: { in: sets.flatMap((s) => s.questionIds) }, ...(r.isAuthor ? {} : { status: "published" }) }, select: { id: true } });
+  const counts = await db.bankQuestion.findMany({ where: { AND: [{ id: { in: sets.flatMap((s) => s.questionIds) }, ...(r.isAuthor ? {} : { status: "published" }) }, questionWhere(access)] }, select: { id: true } });
   const visible = new Set(counts.map((c) => c.id));
   return sets.map((s) => ({ ...s, count: s.questionIds.filter((id) => visible.has(id)).length })).filter((s) => r.isAuthor || s.count > 0);
 }
@@ -529,7 +553,7 @@ export async function practiceCatalog(userId: string) {
 export async function findQuestions(userId: string, refs: string[]) {
   await requireAuthor(userId);
   const clean = [...new Set(refs.map((r) => r.trim()).filter(Boolean))].slice(0, 200);
-  const qs = await db.bankQuestion.findMany({ where: { OR: [{ externalId: { in: clean } }, { id: { in: clean } }] }, select: { id: true, externalId: true, stem: true, status: true, difficulty: true, type: true, skill: { select: { name: true } } } });
+  const qs = await db.bankQuestion.findMany({ where: { AND: [{ OR: [{ externalId: { in: clean } }, { id: { in: clean } }] }, questionWhere(await contentAccess(userId))] }, select: { id: true, externalId: true, stem: true, status: true, difficulty: true, type: true, skill: { select: { name: true } } } });
   const found = new Map<string, (typeof qs)[number]>();
   for (const q of qs) {
     if (q.externalId) found.set(q.externalId, q);
@@ -541,6 +565,6 @@ export async function findQuestions(userId: string, refs: string[]) {
 /** The start screen for a set (same access rules as playing it). */
 export async function practiceIntro(userId: string, setId: string, assignmentId?: string | null) {
   const { set, isAuthor, assignment } = await playAccess(userId, setId, assignmentId);
-  const count = await db.bankQuestion.count({ where: { id: { in: set.questionIds }, ...(isAuthor ? {} : { status: "published" }) } });
+  const count = await db.bankQuestion.count({ where: { AND: [{ id: { in: set.questionIds }, ...(isAuthor ? {} : { status: "published" }) }, questionWhere(await contentAccess(userId))] } });
   return { id: set.id, title: set.title, description: set.description, status: set.status, count, timeLimitMin: assignment?.timeLimitMin ?? set.timeLimitMin, assignment, isAuthor };
 }

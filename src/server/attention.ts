@@ -1,5 +1,6 @@
 import "server-only";
 import { db } from "./db";
+import { classSetWhere } from "./in-house";
 import { NotFoundError } from "./courses";
 import { can, classAccess, ClassError, staffClassIds, studentInScope, type ClassAccess } from "./access";
 import { classProgress } from "./classes";
@@ -397,7 +398,7 @@ export async function reopenAttention(userId: string, input: { classId: string; 
 /** Published sets a student could practise for a skill (most questions on it first), for "assign practice". */
 export async function setsForSkill(skillId: string | null, take = 5) {
   const sets = await db.questionSet.findMany({
-    where: { status: "published", visibility: { not: "private" }, autoForStudentId: null, ...(skillId ? { skillIds: { has: skillId } } : {}) },
+    where: { AND: [{ status: "published", visibility: { not: "private" }, autoForStudentId: null, ...(skillId ? { skillIds: { has: skillId } } : {}) }, classSetWhere(false)] },
     select: { id: true, title: true, questionIds: true },
     take: 50,
   });
