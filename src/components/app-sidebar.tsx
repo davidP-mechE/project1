@@ -157,6 +157,7 @@ function NavLinks({ isStaff, coursebook, roles, dueCount, unread, attention, rep
     { href: "/messages", label: "Messages", icon: "messages", badge: unread.threads, badgeLabel: "unread conversations" },
     { href: "/calendar", label: "Calendar", icon: "calendar" },
     { href: "/scores", label: "SAT scores", icon: "scores" },
+    { href: "/academic-index", label: "Academic Index", icon: "mastery" },
   ];
   const groups: { label: string; links: NavLink[] }[] = [
     {
@@ -354,6 +355,7 @@ function sections(isStaff: boolean, coursebook: boolean, dueCount: number, unrea
     { href: "/messages", label: "Messages", icon: "messages", badge: unread.threads, badgeLabel: "unread conversations" },
     { href: "/calendar", label: "Calendar", icon: "calendar" },
     { href: "/scores", label: "SAT scores", icon: "scores" },
+    { href: "/academic-index", label: "Academic Index", icon: "mastery" },
   ];
   return { top, groups };
 }
@@ -475,6 +477,7 @@ export function AppSidebar({ user, dueCount, timeZone, game, unread, attention, 
             ))}
             {plain("/calendar", "Calendar")}
             {plain("/scores", "SAT scores")}
+            {plain("/academic-index", "Academic Index")}
           </nav>
           <div className="ml-auto flex items-center gap-1 sm:gap-2">
             <span className="hidden sm:block">

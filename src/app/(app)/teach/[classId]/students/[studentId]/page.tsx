@@ -19,6 +19,8 @@ import { planFor } from "@/server/pacing";
 import { openMistakesByDomain } from "@/server/mistakes";
 import { PlanView } from "@/components/sat/plan-view";
 import { PurgeStudentForm } from "@/components/support/data-forms";
+import { sharedIndexForStaff } from "@/server/academic-index";
+import { ComponentBars, HistoryChart, ScoreHero } from "@/components/academic-index/result-view";
 
 export const metadata: Metadata = { title: "Student" };
 
@@ -43,7 +45,7 @@ export default async function StudentPage({ params }: PageProps<"/teach/[classId
     // The caseload: who is this student's primary tutor in the program?
     db.primaryTutor.findUnique({ where: { programId_studentId: { programId: s.access.programId, studentId } }, select: { tutor: { select: { id: true, name: true } } } }),
   ]);
-  const weak = await studentWeakSpots(user.id, classId, studentId);
+  const [weak, academicIndex] = await Promise.all([studentWeakSpots(user.id, classId, studentId), sharedIndexForStaff(user.id, classId, studentId)]);
   const sections = { rw: s.scores.some((x) => x.rw !== null) || !s.access.subjects, math: s.scores.some((x) => x.math !== null) || !s.access.subjects };
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-6">
@@ -112,6 +114,15 @@ export default async function StudentPage({ params }: PageProps<"/teach/[classId
           </ul>
         )}
       </Card>
+      {academicIndex?.latest && (
+        <Card className="flex flex-col gap-4">
+          <h2 className="text-lg font-semibold">Academic Index</h2>
+          <p className="-mt-2 text-sm text-muted">Shared by {s.student.name || "the student"} with this class. Their essays and answers stay private.</p>
+          <ScoreHero size="sm" total={academicIndex.latest.total} tier={academicIndex.latest.tier} tierMessage={academicIndex.latest.tierMessage} labels={academicIndex.latest.labels} />
+          <ComponentBars components={academicIndex.latest.components} />
+          <HistoryChart points={academicIndex.history} zone={zone} />
+        </Card>
+      )}
       {plan && (
         <Card>
           <h2 className="mb-3 text-lg font-semibold">Plan to test day</h2>

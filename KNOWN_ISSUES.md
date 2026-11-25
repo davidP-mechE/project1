@@ -115,6 +115,15 @@ The final review of Coursebook and The 1600 Project's setup on it, most serious 
 
 18. **Four database migrations** (`program_public_identity`, `calendar_token`, `badges` and `answer_indexes`) were generated with `prisma migrate diff` and applied with `migrate deploy`, because `migrate dev` can't run non-interactively in the build environment. They're ordinary SQL files. Review them like any migration.
 
+19. **Academic Index: things to do before launch.**
+- **Test the importer with real PDFs.** The PDF import was built and tested with made-up extractions, never with real Common App or College Board PDFs or the real Claude API. Collect 3–5 real PDFs of each type (with permission, personal details removed) and check every field before launch, as the spec says.
+- **Check the ACT table.** The ACT → SAT table is the 2018 concordance. Check act.org for a newer official table (the ACT changed format in 2025) and update `ACT_TO_SAT` in `src/lib/academic-index/config.ts`.
+- **No temperature 0.** The spec asks for temperature 0 when grading essays. Current Claude models don't accept a temperature setting (thinking is always on), so it isn't sent. Stability comes from the fixed, cached rubric, structured output, and the median of 3 runs per criterion.
+- **Cost.** Each changed essay is graded 3 times. With the default model (`CLAUDE_MODEL_ACADEMIC_INDEX=claude-opus-5-5`, low effort), a personal statement plus five supplements is roughly 18 requests. Unchanged essays reuse their last grade, and each student can score changed essays 5 times a day. Watch Admin → Claude spend after launch.
+- **The age screen** asks for a date of birth before any application data is collected and blocks under-13s for good (only the outcome is stored). There's no parent-consent step. A student blocked by a typo needs an admin to clear `ageCheck` on their `AcademicIndexInputs` row.
+- **Scoring runs in the request.** Grading waits for Claude in the web request (up to 5 minutes allowed). If that's too slow on the host, move essay grading to the worker queue.
+- **Upload limit wording.** "Up to 5 files per session" is enforced as at most 5 files waiting for review at a time.
+
 ## Checked and fine
 
 - **Performance with 30 students and a year of data** (`npm run perf:check`): every staff and student page's server work takes under 40 ms warm. The hourly staff-notice job takes about 0.4 s for the whole program.

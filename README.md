@@ -393,6 +393,15 @@ The sidebar now has a **Practice** section: Review, Spaced repetition, Error log
 
 **Deployment:** [DEPLOY.md](DEPLOY.md) walks through Vercel (web), Railway (worker, from `Dockerfile.worker`), Neon, Cloudflare R2, Resend and Redis, with every environment variable, the R2 CORS policy, RAM sizing for the worker, the first-admin step, usage limits and a security checklist.
 
+### Academic Index
+
+One application strength score from 0 to 230 (test 70, GPA 70, rigor 35, activities 30, essays 25), with a tier, a breakdown, essay feedback and the biggest-lever tip. Formula version `v1`.
+
+- **Formula:** `computeAcademicIndex` in [src/lib/academic-index/score.ts](src/lib/academic-index/score.ts), a pure function. Tier cut-offs, the ACT → SAT table, the grade converter and every other number are in [config.ts](src/lib/academic-index/config.ts). The spec's worked examples are unit tests (`tests/unit/academic-index.test.ts`).
+- **PDF import:** the student uploads up to 5 PDFs (Common App, SAT and AP score reports, transcript; 20 MB each) straight to storage. The worker reads each page's text (OCR for scanned pages) and Claude fills a fixed schema with a page and confidence per field ([extraction.ts](src/lib/academic-index/extraction.ts)). The review screen shows where every field came from. Low-confidence fields must be ticked, and the review confirmed, before scoring. When the Common App and a College Board report disagree, the College Board value is used and both are shown. PDFs are deleted on confirm or after 24 hours.
+- **Essays:** a fixed rubric with anchors for 1, 3 and 5 ([essay-prompt.ts](src/lib/academic-index/essay-prompt.ts)). Each essay is graded 3 times and each criterion's median kept. Word limits and the prompt check are applied in code. Feedback only, never rewrites, and no AI detection. Up to 5 changed-essay scorings a day; unchanged essays reuse their grade.
+- **Privacy:** a neutral age screen (under 13 blocked), private by default, shared with a class only if the student chooses, and the disclaimer under every score. Pages: `/academic-index`, `/academic-index/import`, `/academic-index/inputs`, `/academic-index/results/[id]`. Before launch, see KNOWN_ISSUES §19.
+
 ### Key decisions
 
 See the table at the top of [PLAN.md](PLAN.md). Short version: Postgres everywhere (pgvector later), Better Auth for accounts, a separate background worker for heavy PDF processing, direct-to-storage uploads, and Next.js "Cache Components" turned off because almost every page is personal to the logged-in student.

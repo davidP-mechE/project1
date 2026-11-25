@@ -177,6 +177,7 @@ All secrets are environment variables on the host. `.env.example` lists every on
 - **Monthly cost:** Admin → *Claude spend* shows this month's spend by feature.
 - **Daily cap:** set one on the program page. If the program reaches it, AI features (grading written answers, the tutor, worksheets, the assistant) pause until midnight UTC, and you get an email.
 - **Monthly limit:** also set one in the Anthropic console, as a second safety net.
+- **Academic Index:** reading application PDFs and grading essays use `CLAUDE_MODEL_ACADEMIC_INDEX` (shown as *Academic Index import* and *Essay grading* in Claude spend). Each changed essay is graded 3 times; students can score changed essays 5 times a day.
 - **What runs on Claude:** see `PHASE3_SPEC.md` §7 for which model each feature uses. Most SAT work is multiple choice and grid-in, which is graded without Claude, for free.
 
 ## 9. Privacy requests
@@ -189,6 +190,8 @@ All secrets are environment variables on the host. `.env.example` lists every on
 | Delete a whole account | Site admin | Admin → **Delete an account** (or the person: Settings → Delete account) |
 
 Backups age out after 30 days, so deleted data is gone from backups within a month.
+
+**Academic Index:** a student's inputs and results are private to them. Tutors see a student's score, tier, breakdown and history only for classes the student shared it with, never their essays. Uploaded application PDFs are deleted as soon as the student confirms the review, or 24 hours after upload (the hourly maintenance job). Essays are stored only if the student ticks "Keep my essays saved here". Deleting the account deletes all of it.
 
 Before real students use the site, go through `PRIVACY_REVIEW.md` with your school.
 
