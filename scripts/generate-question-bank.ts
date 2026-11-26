@@ -9,6 +9,7 @@
  *   npm run generate:bank                    everything else as batches (half price): write, then verify; waits until done
  *   npm run generate:bank -- --collect       pick up batches sent earlier (if the command was stopped)
  *   npm run generate:bank -- --only A1,E12   just these blueprints
+ *   npm run generate:bank -- --limit 180     at most 180 questions this run, spread over every blueprint (to cap the cost)
  *   npm run generate:bank -- --assemble      rebuild the output file from saved results (no API calls)
  *
  * Needs COURSEBOOK_ANTHROPIC_API_KEY (or ANTHROPIC_API_KEY). Working files: data/generated/ (not committed).
@@ -26,6 +27,7 @@ import {
   genParams,
   generateNow,
   itemsBySlot,
+  limitRequests,
   OUTPUT_FILE,
   readBlueprints,
   readGen,
@@ -52,6 +54,8 @@ const arg = (name: string) => {
   return i >= 0 ? process.argv[i + 1] : undefined;
 };
 const has = (name: string) => process.argv.includes(name);
+/** --limit N: write at most N questions this run, spread over every blueprint and difficulty (to keep a run small). */
+const limit = (reqs: Parameters<typeof limitRequests>[0]) => (arg("--limit") ? limitRequests(reqs, Math.max(1, Number(arg("--limit")) || 0)) : reqs);
 const log = (m: string) => console.info(`  ${m}`);
 type Effort = GenConfig["effort"];
 
@@ -73,7 +77,7 @@ async function main() {
   if (has("--assemble")) return finish(r);
 
   if (has("--dry-run")) {
-    const todo = requestsToDo(blueprints, r, only);
+    const todo = limit(requestsToDo(blueprints, r, only));
     const n = todo.reduce((a, q) => a + q.slots.length, 0);
     const target = blueprints.filter((b) => !only || only.includes(b.id)).reduce((a, b) => a + b.count, 0);
     const e = estimate(todo.length, n, n + unverified().length, cfg);
@@ -134,7 +138,7 @@ async function main() {
   if (state && !has("--collect")) throw new Error(`Batches were already sent (${state.phase}: ${state.batchIds.join(", ")}). Run with --collect to pick them up.`);
 
   if (!state) {
-    const todo = requestsToDo(blueprints, r, only);
+    const todo = limit(requestsToDo(blueprints, r, only));
     if (todo.length) {
       const n = todo.reduce((a, q) => a + q.slots.length, 0);
       const e = estimate(todo.length, n, n + unverified().length, cfg);

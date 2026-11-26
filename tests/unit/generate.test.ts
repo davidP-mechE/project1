@@ -92,3 +92,15 @@ describe("style spec", () => {
     expect(generateUserText(A1, [slot], spec)).not.toMatch(/Style targets/);
   });
 });
+
+describe("a limited run", () => {
+  it("spreads the questions over every blueprint and difficulty", async () => {
+    const { limitRequests } = await import("@/server/qbank-generate");
+    const reqs = limitRequests(planRequests(blueprints), 141);
+    const slots = reqs.flatMap((q) => q.slots);
+    expect(slots).toHaveLength(141);
+    expect(new Set(slots.map((s) => s.blueprint)).size).toBe(47);
+    expect(new Set(slots.map((s) => s.difficulty))).toEqual(new Set([1, 2, 3]));
+    expect(reqs.every((q) => q.slots.length <= 4 && q.slots.every((s) => s.blueprint === q.blueprint && s.difficulty === q.slots[0].difficulty))).toBe(true);
+  });
+});

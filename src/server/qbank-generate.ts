@@ -98,6 +98,31 @@ export function requestsToDo(blueprints: Blueprint[], r: ResultsFile, only?: str
   return out;
 }
 
+/** At most n questions, taken in turn from every blueprint (cycling easy, medium, hard), regrouped into requests. */
+export function limitRequests(reqs: GenRequest[], n: number): GenRequest[] {
+  const byBp = new Map<string, Slot[][]>();
+  for (const q of reqs) {
+    const lanes = byBp.get(q.blueprint) ?? [[], [], []];
+    for (const s of q.slots) lanes[s.difficulty - 1].push(s);
+    byBp.set(q.blueprint, lanes);
+  }
+  const picked: Slot[] = [];
+  for (let round = 0; picked.length < n && [...byBp.values()].some((l) => l.some((x) => x.length)); round++) {
+    for (const lanes of byBp.values()) {
+      if (picked.length >= n) break;
+      // This blueprint's next difficulty in turn, or any it still has.
+      const order = [round % 3, (round + 1) % 3, (round + 2) % 3];
+      const lane = order.map((i) => lanes[i]).find((l) => l.length);
+      if (lane) picked.push(lane.shift()!);
+    }
+  }
+  const groups = new Map<string, Slot[]>();
+  for (const s of picked) groups.set(`${s.blueprint}-${s.difficulty}`, [...(groups.get(`${s.blueprint}-${s.difficulty}`) ?? []), s]);
+  const out: GenRequest[] = [];
+  for (const slots of groups.values()) for (let i = 0; i < slots.length; i += SLOTS_PER_REQUEST) out.push({ id: `gen-${slots[i].slot}`, blueprint: slots[i].blueprint, slots: slots.slice(i, i + SLOTS_PER_REQUEST) });
+  return out;
+}
+
 export function allSlots(blueprints: Blueprint[]): Map<string, Slot> {
   return new Map(planRequests(blueprints).flatMap((q) => q.slots.map((s) => [s.slot, s] as const)));
 }
