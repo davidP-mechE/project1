@@ -109,10 +109,13 @@ export function limitRequests(reqs: GenRequest[], n: number): GenRequest[] {
   }
   const picked: Slot[] = [];
   for (let round = 0; picked.length < n && [...byBp.values()].some((l) => l.some((x) => x.length)); round++) {
+    let bi = 0;
     for (const lanes of byBp.values()) {
       if (picked.length >= n) break;
-      // This blueprint's next difficulty in turn, or any it still has.
-      const order = [round % 3, (round + 1) % 3, (round + 2) % 3];
+      // This blueprint's next difficulty in turn (staggered by blueprint, so a short run still mixes easy, medium
+      // and hard), or any it still has.
+      const start = (round + bi++) % 3;
+      const order = [start, (start + 1) % 3, (start + 2) % 3];
       const lane = order.map((i) => lanes[i]).find((l) => l.length);
       if (lane) picked.push(lane.shift()!);
     }

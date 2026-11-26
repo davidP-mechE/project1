@@ -82,6 +82,32 @@
   "external_id": "GEN-A1-004",
   "section": "math",
   "skill": "Linear equations in two variables",
+  "difficulty": 1,
+  "type": "mcq",
+  "stem": "A delivery company models the total time $T$, in minutes, needed to complete a route as a linear function of the number of stops $n$ on the route. According to the model, a route with 3 stops takes 48 minutes and a route with 7 stops takes 100 minutes. The model can be written as $T = mn + b$, where $m$ and $b$ are constants. What is the value of $b$?",
+  "answer": "A",
+  "explanation": "Choice A is correct. Find the slope first: $m = \\frac{100 - 48}{7 - 3} = \\frac{52}{4} = 13$. Then plug in the point $(3, 48)$: $48 = 13(3) + b$, so $48 = 39 + b$, and $b = 9$. Check with the other point: $13(7) + 9 = 91 + 9 = 100$. ✓\n\nChoice B is incorrect. This is the slope $m$, not the value of $b$.\n\nChoice C is incorrect. This is the time for a 3-stop route, a given $y$-value, not the constant $b$.\n\nChoice D is incorrect. This comes from a sign error when solving for $b$: adding $39$ to $48$ instead of subtracting.\n\n**Desmos check:** Enter a table with x₁: 3, 7 and y₁: 48, 100, then type y₁ ~ m x₁ + b; Desmos shows m = 13 and b = 9.",
+  "distractor_notes": {
+   "B": "Gives the slope, 13 minutes per stop, instead of b.",
+   "C": "Uses the given T-value for 3 stops as the constant b.",
+   "D": "Sign error solving for b: computes 48 + 39 instead of 48 − 39."
+  },
+  "lesson": "M-1.2",
+  "blueprint": "A1",
+  "desmos_technique": "regression",
+  "source": "original",
+  "status": "draft",
+  "sat_quality": 5,
+  "topic": "delivery route time vs. number of stops",
+  "choice_a": "$9$",
+  "choice_b": "$13$",
+  "choice_c": "$48$",
+  "choice_d": "$87$"
+ },
+ {
+  "external_id": "GEN-A1-005",
+  "section": "math",
+  "skill": "Linear equations in two variables",
   "difficulty": 2,
   "type": "mcq",
   "stem": "During a weekday morning, the number of bikes docked at a bike-share station decreased at a constant rate. At 15 minutes after 7:00 a.m., there were 52 bikes docked at the station. At 40 minutes after 7:00 a.m., there were 32 bikes docked at the station. The equation $y = mx + b$, where $m$ and $b$ are constants, gives the number of bikes, $y$, docked at the station $x$ minutes after 7:00 a.m. What is the value of $b$?",
@@ -160,6 +186,32 @@
   "external_id": "GEN-A2-003",
   "section": "math",
   "skill": "Linear equations in two variables",
+  "difficulty": 1,
+  "type": "mcq",
+  "stem": "On a coordinate map of a city's bike-share network, a bike lane lies along the line $y = \\frac{3}{2}x - 5$. A new path will be perpendicular to the bike lane and will pass through a docking station located at the point $(6, 2)$. Which equation represents the line along which the new path will lie?",
+  "answer": "B",
+  "explanation": "Choice B is correct. The bike lane has slope $\\frac{3}{2}$. A perpendicular line has the negative reciprocal slope: flip it and switch the sign to get $-\\frac{2}{3}$. Use point-slope form with $(6, 2)$: $y - 2 = -\\frac{2}{3}(x - 6)$, so $y = -\\frac{2}{3}x + 4 + 2 = -\\frac{2}{3}x + 6$. Check: $-\\frac{2}{3}(6) + 6 = -4 + 6 = 2$.\n\nChoice A is incorrect. This switches the sign of the slope but doesn't flip it, giving slope $-\\frac{3}{2}$.\n\nChoice C is incorrect. This flips the slope but doesn't switch the sign, giving slope $\\frac{2}{3}$.\n\nChoice D is incorrect. This keeps the slope $\\frac{3}{2}$, so it is the line parallel to the bike lane, not perpendicular.",
+  "distractor_notes": {
+   "A": "Switched the sign without flipping: used slope $-\\frac{3}{2}$.",
+   "C": "Flipped without switching the sign: used slope $\\frac{2}{3}$.",
+   "D": "Used the same slope $\\frac{3}{2}$, giving the parallel line through the point."
+  },
+  "lesson": "M-1.2",
+  "blueprint": "A2",
+  "desmos_technique": "",
+  "source": "original",
+  "status": "draft",
+  "sat_quality": 4,
+  "topic": "bike-share docking station path on a city map",
+  "choice_a": "$y = -\\frac{3}{2}x + 11$",
+  "choice_b": "$y = -\\frac{2}{3}x + 6$",
+  "choice_c": "$y = \\frac{2}{3}x - 2$",
+  "choice_d": "$y = \\frac{3}{2}x - 7$"
+ },
+ {
+  "external_id": "GEN-A2-004",
+  "section": "math",
+  "skill": "Linear equations in two variables",
   "difficulty": 2,
   "type": "mcq",
   "stem": "While planning a road trip, a driver sketches a map on a coordinate grid. Each unit on the grid represents 1 mile. The highway is represented by the line $3x + 4y = 72$. To save fuel, the driver plans to reach a gas station at the point $(12, 5)$ by taking a straight access road that is perpendicular to the highway and passes through the gas station.\n\nWhich equation represents the line that contains the access road?",
@@ -183,7 +235,7 @@
   "choice_d": "$y = \\frac{4}{3}x - 11$"
  },
  {
-  "external_id": "GEN-A2-004",
+  "external_id": "GEN-A2-005",
   "section": "math",
   "skill": "Linear equations in two variables",
   "difficulty": 2,
@@ -209,7 +261,7 @@
   "choice_d": "$y = \\frac{2}{3}x$"
  },
  {
-  "external_id": "GEN-A2-005",
+  "external_id": "GEN-A2-006",
   "section": "math",
   "skill": "Linear equations in two variables",
   "difficulty": 2,
@@ -233,6 +285,32 @@
   "choice_b": "$y = \\frac{5}{2}x - 22$",
   "choice_c": "$y = -\\frac{2}{5}x + 7$",
   "choice_d": "$y = \\frac{2}{5}x - 1$"
+ },
+ {
+  "external_id": "GEN-A2-007",
+  "section": "math",
+  "skill": "Linear equations in two variables",
+  "difficulty": 2,
+  "type": "mcq",
+  "stem": "A museum's floor plan is drawn on a coordinate grid. A rope barrier that guides visitors through a gallery lies along the line $3x + 4y = 24$. The museum will add a walkway for visitors that is perpendicular to the rope barrier and passes through the information desk, located at the point $(12, 5)$. Which equation represents the line along which the walkway lies?",
+  "answer": "A",
+  "explanation": "Choice A is correct. Write $3x + 4y = 24$ as $y = -\\frac{3}{4}x + 6$, so the barrier has slope $-\\frac{3}{4}$. A perpendicular line has the negative reciprocal slope. Flip it and switch the sign: $\\frac{4}{3}$. Use point-slope form with $(12, 5)$: $y - 5 = \\frac{4}{3}(x - 12)$. So $y = \\frac{4}{3}x - 16 + 5$, or $y = \\frac{4}{3}x - 11$. Check: $\\frac{4}{3}(12) - 11 = 16 - 11 = 5$, and $\\left(-\\frac{3}{4}\\right)\\left(\\frac{4}{3}\\right) = -1$.\n\nChoice B is incorrect. This line uses slope $-\\frac{4}{3}$. The slope was flipped, but the sign was not switched.\n\nChoice C is incorrect. This line uses slope $\\frac{3}{4}$. The sign was switched, but the slope was not flipped.\n\nChoice D is incorrect. This line uses slope $-\\frac{3}{4}$, the same slope as the barrier. It is parallel to the barrier, not perpendicular.",
+  "distractor_notes": {
+   "B": "Flipped the slope to $-\\frac{4}{3}$ without switching the sign.",
+   "C": "Switched the sign to $\\frac{3}{4}$ without flipping the slope.",
+   "D": "Used the barrier's own slope, $-\\frac{3}{4}$, which gives the parallel line through $(12, 5)$."
+  },
+  "lesson": "M-1.2",
+  "blueprint": "A2",
+  "desmos_technique": "",
+  "source": "original",
+  "status": "draft",
+  "sat_quality": 4,
+  "topic": "museum floor plan walkway",
+  "choice_a": "$y = \\frac{4}{3}x - 11$",
+  "choice_b": "$y = -\\frac{4}{3}x + 21$",
+  "choice_c": "$y = \\frac{3}{4}x - 4$",
+  "choice_d": "$y = -\\frac{3}{4}x + 14$"
  },
  {
   "external_id": "GEN-A3-001",
@@ -290,6 +368,32 @@
   "external_id": "GEN-A3-003",
   "section": "math",
   "skill": "Linear functions",
+  "difficulty": 1,
+  "type": "mcq",
+  "stem": "The table shows four values of $x$ and their corresponding values of $f(x)$, where $f(x)$ is the total number of visitors who have entered a museum $x$ minutes after it opens on a certain day. The function $f$ is linear.\n\n| $x$ | $f(x)$ |\n|---|---|\n| 0 | 30 |\n| 4 | 50 |\n| 8 | 70 |\n| 12 | 90 |\n\nFor what value of $x$ is $f(x) = 130$?",
+  "answer": "B",
+  "explanation": "Choice B is correct. When $x$ increases by 4, $f(x)$ increases by 20, so the slope is $\\frac{20}{4} = 5$. When $x = 0$, $f(x) = 30$, so $f(x) = 5x + 30$. Circle what the question asks for: the input $x$ that gives an output of 130. Solve $5x + 30 = 130$: $5x = 100$, so $x = 20$. Check by extending the table: $f(16) = 110$ and $f(20) = 130$.\n\nChoice A is incorrect. This uses 20 as the slope, ignoring that $x$ goes up by 4 each row: $20x + 30 = 130$ gives $x = 5$.\n\nChoice C is incorrect. This leaves out the 30 visitors at $x = 0$ and solves $5x = 130$.\n\nChoice D is incorrect. This is $f(130)$, the output when $x = 130$. The question asks for the input that gives an output of 130.\n\n**Desmos check:** Enter the table, run the regression $y_1 \\sim mx_1 + b$ to get $m = 5$ and $b = 30$, then graph $y = 5x + 30$ and $y = 130$; they intersect at $x = 20$.",
+  "distractor_notes": {
+   "A": "Took the slope to be 20, the change in $f(x)$, and ignored the x-step of 4: $20x + 30 = 130$ gives $x = 5$.",
+   "C": "Dropped the intercept and solved $5x = 130$, which gives $x = 26$.",
+   "D": "Found $f(130) = 5(130) + 30 = 680$ instead of the input that makes $f(x) = 130$."
+  },
+  "lesson": "M-1.3",
+  "blueprint": "A3",
+  "desmos_technique": "regression",
+  "source": "original",
+  "status": "draft",
+  "sat_quality": 4,
+  "topic": "museum visitors entering after opening",
+  "choice_a": "5",
+  "choice_b": "20",
+  "choice_c": "26",
+  "choice_d": "680"
+ },
+ {
+  "external_id": "GEN-A3-004",
+  "section": "math",
+  "skill": "Linear functions",
   "difficulty": 2,
   "type": "mcq",
   "stem": "A concert venue began selling tickets for an upcoming show. The linear function $f$ gives the total number of tickets sold $x$ days after tickets went on sale. The table shows selected values of $x$ and $f(x)$.\n\n| $x$ | $f(x)$ |\n|:---:|:---:|\n| 10 | 1,260 |\n| 13 | 1,620 |\n| 16 | 1,980 |\n| 19 | 2,340 |\n\nIf $f(a) = 540$, what is the value of $a$?",
@@ -311,6 +415,32 @@
   "choice_b": "4.5",
   "choice_c": "6",
   "choice_d": "8"
+ },
+ {
+  "external_id": "GEN-A3-005",
+  "section": "math",
+  "skill": "Linear functions",
+  "difficulty": 2,
+  "type": "mcq",
+  "stem": "A rectangular box is packed with identical ceramic tiles. The function $W$ gives the total weight $W(n)$, in grams, of the box and its contents when it holds $n$ tiles. The table shows several values of $W(n)$, and $W$ is a linear function.\n\n| $n$ | $W(n)$ |\n|---|---|\n| 4 | 580 |\n| 7 | 835 |\n| 10 | 1,090 |\n| 13 | 1,345 |\n\nWhat is the total weight, in grams, of the box and its contents when it holds 20 tiles?",
+  "answer": "A",
+  "explanation": "Choice A is correct. The input $n$ increases by 3 between rows, while the output increases by $835 - 580 = 255$. So the slope is $\\frac{255}{3} = 85$ grams per tile. Find the intercept from $(4, 580)$: $580 - 85(4) = 240$. So $W(n) = 85n + 240$, and $W(20) = 85(20) + 240 = 1{,}700 + 240 = 1{,}940$.\n\nChoice B is incorrect. This treats 580 as the weight at $n = 0$, giving $580 + 85(20)$. The table starts at $n = 4$, not $n = 0$.\n\nChoice C is incorrect. This uses 255 as the slope, ignoring that $n$ steps by 3: $580 + 255(20 - 4)$.\n\nChoice D is incorrect. This uses 255 as the slope and also treats 580 as the value at $n = 0$: $580 + 255(20)$.\n\n**Desmos check:** Enter the table as x1 and y1, run the regression y1 ~ m x1 + b to get m = 85 and b = 240, then type 85(20) + 240 to see 1940.",
+  "distractor_notes": {
+   "B": "Used the correct slope 85 but treated the first table value, 580, as the y-intercept: 580 + 85(20) = 2,280.",
+   "C": "Took the slope as the change in output, 255, ignoring the x-step of 3: 580 + 255(16) = 4,660.",
+   "D": "Used slope 255 and treated 580 as the value at n = 0: 580 + 255(20) = 5,680."
+  },
+  "lesson": "M-1.3",
+  "blueprint": "A3",
+  "desmos_technique": "regression",
+  "source": "original",
+  "status": "draft",
+  "sat_quality": 4,
+  "topic": "weight of a box packed with ceramic tiles",
+  "choice_a": "1,940",
+  "choice_b": "2,280",
+  "choice_c": "4,660",
+  "choice_d": "5,680"
  },
  {
   "external_id": "GEN-A4-001",
@@ -395,6 +525,32 @@
   "external_id": "GEN-A4-004",
   "section": "math",
   "skill": "Linear inequalities in one or two variables",
+  "difficulty": 1,
+  "type": "mcq",
+  "stem": "A city plans to install lamps along the walking path that circles a park. The total cost of the project must be at most \\$5,000. There is a one-time wiring fee of \\$650, and each lamp costs \\$300 to purchase and install. What is the maximum number of lamps the city can install?",
+  "answer": "A",
+  "explanation": "Choice A is correct. Let $n$ be the number of lamps. \"At most\" means $\\le$, so $650 + 300n \\le 5{,}000$. Subtract 650 to get $300n \\le 4{,}350$. Then divide by 300 to get $n \\le 14.5$. The number of lamps must be a whole number no greater than 14.5, so the maximum is 14. Check: $650 + 300(14) = 4{,}850$, which is within the limit, but $650 + 300(15) = 5{,}150$, which is over.\n\nChoice B is incorrect. This rounds 14.5 to the nearest whole number. Fifteen lamps would cost \\$5,150, which exceeds \\$5,000.\n\nChoice C is incorrect. This ignores the \\$650 fee and uses $5{,}000 \\div 300 \\approx 16.67$, then drops the decimal.\n\nChoice D is incorrect. This ignores the \\$650 fee and also rounds $5{,}000 \\div 300 \\approx 16.67$ up to 17.",
+  "distractor_notes": {
+   "B": "Rounded 14.5 to the nearest whole number instead of down; 15 lamps cost \\$5,150, which exceeds the limit.",
+   "C": "Ignored the \\$650 fixed fee, used 5,000 ÷ 300 ≈ 16.67, and dropped the decimal.",
+   "D": "Ignored the \\$650 fixed fee and rounded 5,000 ÷ 300 ≈ 16.67 up to 17."
+  },
+  "lesson": "M-1.5",
+  "blueprint": "A4",
+  "desmos_technique": "",
+  "source": "original",
+  "status": "draft",
+  "sat_quality": 5,
+  "topic": "lamps along a circular park path",
+  "choice_a": "14",
+  "choice_b": "15",
+  "choice_c": "16",
+  "choice_d": "17"
+ },
+ {
+  "external_id": "GEN-A4-005",
+  "section": "math",
+  "skill": "Linear inequalities in one or two variables",
   "difficulty": 2,
   "type": "grid-in",
   "stem": "A ramp is built from identical straight sections placed end to end. Each section has a horizontal length of 30 inches and a slope of $\\frac{1}{12}$. The bottom of the ramp starts on a landing that is 14 inches above the ground, and the top of the ramp must be at most 53 inches above the ground. What is the greatest number of sections the ramp can have?",
@@ -413,6 +569,33 @@
   "status": "draft",
   "sat_quality": 4,
   "topic": "modular access ramp height limit",
+  "choice_a": "",
+  "choice_b": "",
+  "choice_c": "",
+  "choice_d": ""
+ },
+ {
+  "external_id": "GEN-A4-006",
+  "section": "math",
+  "skill": "Linear inequalities in one or two variables",
+  "difficulty": 2,
+  "type": "grid-in",
+  "stem": "Priya's cell phone battery is fully charged when she boards a long flight. Before takeoff, texting and checking her boarding pass use $14\\%$ of the battery's full charge. During the flight, each episode of a downloaded show that she watches uses $6\\%$ of the full charge. Priya wants the total charge used, including the charge used before takeoff, to be at most $85\\%$ of the full charge. What is the maximum number of complete episodes Priya can watch?",
+  "answer": "11",
+  "explanation": "The correct answer is 11.\n\nLet $e$ be the number of episodes. The total charge used is $14 + 6e$ percent, and it must be at most $85$ percent:\n\n$$14 + 6e \\le 85$$\n\nSubtract 14 from both sides: $6e \\le 71$. Divide by 6: $e \\le 11.8\\overline{3}$.\n\nPriya can watch only whole episodes, and $e$ can't go above $11.8\\overline{3}$, so the largest whole number allowed is 11. Check: $14 + 6(11) = 80 \\le 85$, but $14 + 6(12) = 86 > 85$.\n\nAn answer of 12 is incorrect. This rounds $11.8\\overline{3}$ to the nearest whole number, but 12 episodes would use $86\\%$, which is more than allowed.\n\nAn answer of 14 is incorrect. This ignores the $14\\%$ used before takeoff and divides $85$ by $6$.\n\nAn answer of $11.83$ is incorrect. Only complete episodes count, so the answer must be a whole number.",
+  "distractor_notes": {
+   "12": "Rounded 71/6 ≈ 11.83 to the nearest whole number instead of rounding down; 12 episodes use 86%.",
+   "14": "Ignored the fixed 14% used before takeoff: 85 ÷ 6 ≈ 14.17, rounded down to 14.",
+   "16": "Divided the full 100% charge by 6 (≈16.67) and ignored both the 85% limit and the fixed 14%.",
+   "11.83": "Gave the boundary value of the inequality instead of the greatest whole number of complete episodes."
+  },
+  "lesson": "M-1.5",
+  "blueprint": "A4",
+  "desmos_technique": "",
+  "source": "original",
+  "status": "draft",
+  "sat_quality": 4,
+  "topic": "phone battery during a flight",
   "choice_a": "",
   "choice_b": "",
   "choice_c": "",
@@ -474,6 +657,32 @@
   "external_id": "GEN-A5-003",
   "section": "math",
   "skill": "Systems of two linear equations in two variables",
+  "difficulty": 1,
+  "type": "grid-in",
+  "stem": "A modular access ramp is assembled from 15 sections. Each steep section raises the ramp 3 inches, and each gentle section raises the ramp 1 inch. The finished ramp rises a total of 27 inches. How many steep sections are in the ramp?",
+  "answer": "6",
+  "explanation": "The correct answer is 6.\n\nLet $s$ be the number of steep sections and $g$ the number of gentle sections. Write one equation per fact.\n\n- Count: $s + g = 15$\n- Total rise: $3s + g = 27$\n\nSubtract the first equation from the second: $2s = 12$, so $s = 6$. Then $g = 15 - 6 = 9$.\n\nCheck: $3(6) + 1(9) = 18 + 9 = 27$ inches, and $6 + 9 = 15$ sections.\n\nCircle what the question asks for: the number of **steep** sections, which is 6.\n\n- 9 is incorrect. This is the number of gentle sections, the other variable.\n- 4 is incorrect. This comes from adding the two rises, $3 + 1$.\n- 15 is incorrect. This is the total number of sections, not the steep ones.\n\n**Desmos check:** Graph $x + y = 15$ and $3x + y = 27$; the intersection is $(6, 9)$, so $x = 6$ steep sections.",
+  "distractor_notes": {
+   "4": "Adds the two per-section rises, 3 + 1, instead of solving the system.",
+   "9": "Gives the number of gentle sections (the other variable) instead of steep sections.",
+   "15": "Reports the total number of sections given in the problem."
+  },
+  "lesson": "M-1.4",
+  "blueprint": "A5",
+  "desmos_technique": "intersection",
+  "source": "original",
+  "status": "draft",
+  "sat_quality": 4,
+  "topic": "modular access ramp sections and total rise",
+  "choice_a": "",
+  "choice_b": "",
+  "choice_c": "",
+  "choice_d": ""
+ },
+ {
+  "external_id": "GEN-A5-004",
+  "section": "math",
+  "skill": "Systems of two linear equations in two variables",
   "difficulty": 2,
   "type": "mcq",
   "stem": "A store received a shipment of 30 portable phone battery packs. Each pack is one of two models: the Lite model stores a charge of 3,000 milliampere-hours (mAh), and the Max model stores a charge of 5,000 mAh. The combined charge capacity of all 30 packs is 112,000 mAh. How many Lite model packs are in the shipment?",
@@ -497,7 +706,7 @@
   "choice_d": "30"
  },
  {
-  "external_id": "GEN-A5-004",
+  "external_id": "GEN-A5-005",
   "section": "math",
   "skill": "Systems of two linear equations in two variables",
   "difficulty": 2,
@@ -521,6 +730,32 @@
   "choice_b": "",
   "choice_c": "",
   "choice_d": ""
+ },
+ {
+  "external_id": "GEN-A5-006",
+  "section": "math",
+  "skill": "Systems of two linear equations in two variables",
+  "difficulty": 2,
+  "type": "mcq",
+  "stem": "A lab technician fills 30 containers with a buffer solution. Each container holds either 20 milliliters or 50 milliliters of the solution, and every container is filled completely. If the technician uses a total of 840 milliliters of the solution, how many 50-milliliter containers are filled?",
+  "answer": "A",
+  "explanation": "Choice A is correct. Let $x$ be the number of 20-milliliter containers and $y$ be the number of 50-milliliter containers. There is one equation for the count and one for the total volume:\n\n$x + y = 30$\n\n$20x + 50y = 840$\n\nMultiply the first equation by 20 to get $20x + 20y = 600$. Subtract this from the second equation: $30y = 240$, so $y = 8$. Circle what the question asks for: the number of 50-milliliter containers, which is $y = 8$.\n\nCheck: $x = 30 - 8 = 22$, and $20(22) + 50(8) = 440 + 400 = 840$.\n\nChoice B is incorrect. This comes from adding the two container sizes and dividing: $\\frac{840}{20 + 50} = 12$.\n\nChoice C is incorrect. This is the number of 20-milliliter containers, $x$, not the number of 50-milliliter containers.\n\nChoice D is incorrect. This is the total number of containers, not the number of 50-milliliter containers.\n\n**Desmos check:** Graph $x+y=30$ and $20x+50y=840$; they intersect at $(22, 8)$, so $y=8$.",
+  "distractor_notes": {
+   "B": "Divides the total volume by the sum of the two container sizes: 840 ÷ (20 + 50) = 12.",
+   "C": "Solves for the other variable, the number of 20-milliliter containers.",
+   "D": "Gives the total number of containers from the count equation."
+  },
+  "lesson": "M-1.4",
+  "blueprint": "A5",
+  "desmos_technique": "intersection",
+  "source": "original",
+  "status": "draft",
+  "sat_quality": 5,
+  "topic": "lab buffer solution containers",
+  "choice_a": "8",
+  "choice_b": "12",
+  "choice_c": "22",
+  "choice_d": "30"
  },
  {
   "external_id": "GEN-A6-001",
@@ -578,6 +813,32 @@
   "external_id": "GEN-A6-003",
   "section": "math",
   "skill": "Linear functions",
+  "difficulty": 1,
+  "type": "mcq",
+  "stem": "A university lab rents incubator space to grow a bacteria culture. The rental has a flat fee of \\$60, which covers the first 24 hours. Each additional hour costs \\$3. Which function gives the total cost $C(h)$, in dollars, of renting the incubator for $h$ hours, where $h > 24$?",
+  "answer": "D",
+  "explanation": "Choice D is correct. The \\$60 fee covers the first 24 hours. Only the hours past 24 cost extra, and there are $h - 24$ of them. Each costs \\$3, so the extra charge is $3(h - 24)$. The total is $C(h) = 60 + 3(h - 24)$. Test a value: for 30 hours, the lab pays \\$60 plus 6 extra hours at \\$3, or \\$78. Also, $60 + 3(30 - 24) = 78$.\n\nChoice A is incorrect. This charges the \\$60 fee for every hour and adds \\$3 only once. For 30 hours it gives \\$1,803.\n\nChoice B is incorrect. This counts only the extra hours and leaves out the \\$60 flat fee. For 30 hours it gives \\$18.\n\nChoice C is incorrect. This charges \\$3 for every hour, including the 24 hours the flat fee already covers. For 30 hours it gives \\$150.",
+  "distractor_notes": {
+   "A": "Multiplies the flat fee by the hours and adds the hourly rate once (base·t + rate).",
+   "B": "Uses only the overage charge and omits the \\$60 flat fee.",
+   "C": "Charges the \\$3 rate on all h hours instead of only the hours past 24 (base + rate·t)."
+  },
+  "lesson": "M-1.3",
+  "blueprint": "A6",
+  "desmos_technique": "",
+  "source": "original",
+  "status": "draft",
+  "sat_quality": 4,
+  "topic": "incubator rental for a bacteria culture",
+  "choice_a": "$C(h) = 60h + 3$",
+  "choice_b": "$C(h) = 3(h - 24)$",
+  "choice_c": "$C(h) = 60 + 3h$",
+  "choice_d": "$C(h) = 60 + 3(h - 24)$"
+ },
+ {
+  "external_id": "GEN-A6-004",
+  "section": "math",
+  "skill": "Linear functions",
   "difficulty": 2,
   "type": "mcq",
   "stem": "A chemistry lab orders a custom buffer solution from a supplier. The supplier charges a flat fee of \\$40, which covers the first 5 liters of solution, plus \\$6 for each liter beyond the first 5 liters. Which equation gives the total charge $C$, in dollars, for an order of $x$ liters of the solution, where $x > 5$?",
@@ -601,7 +862,33 @@
   "choice_d": "$C = 40x + 6$"
  },
  {
-  "external_id": "GEN-A6-004",
+  "external_id": "GEN-A6-005",
+  "section": "math",
+  "skill": "Linear functions",
+  "difficulty": 2,
+  "type": "mcq",
+  "stem": "A public library lends classroom book collections to teachers. Each semester, a teacher pays a flat fee of \\$6.00, which covers up to 25 borrowed books. Each book borrowed beyond the first 25 costs an additional \\$0.40. Which function $f$ gives the total cost, in dollars, for a teacher who borrows $b$ books in a semester, where $b > 25$?",
+  "answer": "C",
+  "explanation": "Choice C is correct. The \\$6.00 fee is paid once and covers the first 25 books. Only the books past 25 cost extra. There are $b - 25$ such books, and each costs \\$0.40, so the extra charge is $0.40(b - 25)$. The total is $f(b) = 6 + 0.40(b - 25)$.\n\nTest a value: a teacher who borrows 40 books pays the \\$6.00 fee plus 15 extra books at \\$0.40 each, or $6 + 6 = 12$ dollars. Choice C gives $6 + 0.40(15) = 12$. It checks.\n\nChoice A is incorrect. This is only the extra charge for books past 25. It leaves out the \\$6.00 flat fee.\n\nChoice B is incorrect. This charges \\$0.40 for every book, including the 25 that the flat fee already covers.\n\nChoice D is incorrect. This switches the roles of the numbers: it charges \\$6.00 per book and adds \\$0.40 once.",
+  "distractor_notes": {
+   "A": "Uses rate(t − threshold) alone, dropping the \\$6.00 base fee; gives \\$6 for 40 books.",
+   "B": "Uses base + rate·t, charging for all books instead of only those beyond 25; gives \\$22 for 40 books.",
+   "D": "Uses base·t + rate, swapping the fee and the per-book rate; gives \\$240.40 for 40 books."
+  },
+  "lesson": "M-1.3",
+  "blueprint": "A6",
+  "desmos_technique": "",
+  "source": "original",
+  "status": "draft",
+  "sat_quality": 4,
+  "topic": "library classroom book-collection lending fees",
+  "choice_a": "$f(b) = 0.40(b - 25)$",
+  "choice_b": "$f(b) = 6 + 0.40b$",
+  "choice_c": "$f(b) = 6 + 0.40(b - 25)$",
+  "choice_d": "$f(b) = 6b + 0.40$"
+ },
+ {
+  "external_id": "GEN-A6-006",
   "section": "math",
   "skill": "Linear functions",
   "difficulty": 3,
@@ -708,6 +995,32 @@
   "external_id": "GEN-A7-004",
   "section": "math",
   "skill": "Linear inequalities in one or two variables",
+  "difficulty": 1,
+  "type": "mcq",
+  "stem": "A contractor is designing a ramp with a horizontal run of $x$ feet and a vertical rise of $y$ feet. The ramp's slope can be no greater than $\\frac{1}{12}$, and the run must be less than $36$ feet to fit the available space. The system of inequalities below represents these conditions.\n\n$y \\le \\frac{1}{12}x$\n\n$x < 36$\n\nWhich of the following points $(x, y)$ is a solution to the system?",
+  "answer": "D",
+  "explanation": "Choice D is correct. Test the point in both inequalities. For $(30, 2)$: $\\frac{1}{12}(30) = 2.5$, and $2 \\le 2.5$ is true. Also, $30 < 36$ is true. The point satisfies both inequalities, so it is a solution.\n\nChoice A is incorrect. It satisfies $x < 36$, but $\\frac{1}{12}(24) = 2$, and $3 \\le 2$ is false.\n\nChoice B is incorrect. It satisfies $y \\le \\frac{1}{12}x$ because $2 \\le 3$, but it lies on the boundary $x = 36$. The inequality $x < 36$ is strict, so $36 < 36$ is false.\n\nChoice C is incorrect. It satisfies $y \\le \\frac{1}{12}x$ because $3 \\le 4$, but $48 < 36$ is false.\n\n**Desmos check:** Graph $y \\le \\frac{1}{12}x$ and $x < 36$; only $(30, 2)$ lies in the overlapping shading, and $(36, 2)$ sits on the dashed line $x = 36$, which is excluded.",
+  "distractor_notes": {
+   "A": "Satisfies only the second inequality ($x < 36$); the rise of 3 feet is too steep for a 24-foot run.",
+   "B": "Lies exactly on the strict boundary $x = 36$; the student treats $<$ as $\\le$.",
+   "C": "Satisfies only the first inequality; the run of 48 feet is not less than 36."
+  },
+  "lesson": "M-1.5",
+  "blueprint": "A7",
+  "desmos_technique": "shading",
+  "source": "original",
+  "status": "draft",
+  "sat_quality": 4,
+  "topic": "wheelchair ramp slope and run limit",
+  "choice_a": "$(24, 3)$",
+  "choice_b": "$(36, 2)$",
+  "choice_c": "$(48, 3)$",
+  "choice_d": "$(30, 2)$"
+ },
+ {
+  "external_id": "GEN-A7-005",
+  "section": "math",
+  "skill": "Linear inequalities in one or two variables",
   "difficulty": 2,
   "type": "mcq",
   "stem": "A car rental company charges \\$45 per day plus \\$0.50 per mile driven. Priya will rent a car for $x$ days and drive a total of $y$ miles. She wants to spend at most \\$300 on the rental, and she plans to drive more than 100 miles per day, on average. The system of inequalities below represents these conditions.\n\n$45x + 0.5y \\le 300$\n\n$y > 100x$\n\nWhich ordered pair $(x, y)$ is a solution to the system?",
@@ -729,6 +1042,32 @@
   "choice_b": "$(2, 200)$",
   "choice_c": "$(3, 250)$",
   "choice_d": "$(4, 500)$"
+ },
+ {
+  "external_id": "GEN-A7-006",
+  "section": "math",
+  "skill": "Linear inequalities in one or two variables",
+  "difficulty": 2,
+  "type": "mcq",
+  "stem": "A concert venue sells floor tickets for \\$60 each and balcony tickets for \\$40 each. For one show, the venue can sell at most 500 tickets in total, and the manager wants total ticket revenue to be greater than \\$24,000. The system below represents this situation, where $x$ is the number of floor tickets sold and $y$ is the number of balcony tickets sold.\n\n$x + y \\le 500$\n\n$60x + 40y > 24{,}000$\n\nWhich ordered pair $(x, y)$ is a solution to the system?",
+  "answer": "A",
+  "explanation": "Choice A is correct. Test the point in both inequalities. Capacity: $300 + 180 = 480$, and $480 \\le 500$ is true. Revenue: $60(300) + 40(180) = 18{,}000 + 7{,}200 = 25{,}200$, and $25{,}200 > 24{,}000$ is true. Both hold, so $(300, 180)$ is a solution.\n\nChoice B is incorrect. $200 + 250 = 450 \\le 500$ is true, but $60(200) + 40(250) = 22{,}000$, which is not greater than $24{,}000$. It satisfies only the first inequality.\n\nChoice C is incorrect. $200 + 300 = 500 \\le 500$ is true, but $60(200) + 40(300) = 24{,}000$ exactly. The revenue inequality is strict, so a point on its boundary is not a solution.\n\nChoice D is incorrect. $60(350) + 40(200) = 29{,}000 > 24{,}000$ is true, but $350 + 200 = 550$, which is more than $500$. It satisfies only the second inequality.\n\n**Desmos check:** Graph $x+y\\le500$ and $60x+40y>24000$ and plot the four points: only $(300,180)$ lies in the overlapping shaded region, and $(200,300)$ sits on the dashed (excluded) line.",
+  "distractor_notes": {
+   "B": "Satisfies only the capacity inequality; revenue is \\$22,000, not more than \\$24,000.",
+   "C": "Lies exactly on the strict boundary $60x + 40y = 24{,}000$; student treats > as ≥.",
+   "D": "Satisfies only the revenue inequality; 550 tickets exceeds the 500-ticket limit."
+  },
+  "lesson": "M-1.5",
+  "blueprint": "A7",
+  "desmos_technique": "shading",
+  "source": "original",
+  "status": "draft",
+  "sat_quality": 5,
+  "topic": "concert venue floor and balcony ticket sales",
+  "choice_a": "$(300, 180)$",
+  "choice_b": "$(200, 250)$",
+  "choice_c": "$(200, 300)$",
+  "choice_d": "$(350, 200)$"
  },
  {
   "external_id": "GEN-A8-001",
@@ -785,6 +1124,33 @@
  {
   "external_id": "GEN-A8-003",
   "section": "math",
+  "skill": "Linear equations in one variable",
+  "difficulty": 1,
+  "type": "grid-in",
+  "stem": "A theater's seating chart shows that the main floor has $r$ rows of 12 seats each, plus 8 wheelchair-accessible spaces, for a total of 200 places. The equation $12r + 8 = 200$ represents this situation. What is the value of $3r + 2$?",
+  "answer": "50",
+  "explanation": "The correct answer is 50. Circle what the question asks for: the value of $3r + 2$, not $r$. Notice that $12r + 8$ is 4 times $3r + 2$. So scale, don't solve: divide both sides of $12r + 8 = 200$ by 4 to get $3r + 2 = 50$.\n\nCheck by solving: $12r = 192$, so $r = 16$. Then $3(16) + 2 = 48 + 2 = 50$.",
+  "distractor_notes": {
+   "16": "Solves for $r$ and stops, instead of finding $3r + 2$.",
+   "48": "Finds $3r$ but forgets to add the 2.",
+   "200": "Gives the right side of the original equation without dividing by 4.",
+   "800": "Scales the wrong way, multiplying 200 by 4 instead of dividing."
+  },
+  "lesson": "M-1.1",
+  "blueprint": "A8",
+  "desmos_technique": "",
+  "source": "original",
+  "status": "draft",
+  "sat_quality": 5,
+  "topic": "theater main-floor seating rows",
+  "choice_a": "",
+  "choice_b": "",
+  "choice_c": "",
+  "choice_d": ""
+ },
+ {
+  "external_id": "GEN-A8-004",
+  "section": "math",
   "skill": "Linear equations in two variables",
   "difficulty": 2,
   "type": "grid-in",
@@ -810,7 +1176,7 @@
   "choice_d": ""
  },
  {
-  "external_id": "GEN-A8-004",
+  "external_id": "GEN-A8-005",
   "section": "math",
   "skill": "Linear equations in two variables",
   "difficulty": 2,
@@ -831,6 +1197,34 @@
   "status": "draft",
   "sat_quality": 4,
   "topic": "wheat and barley bushel harvest",
+  "choice_a": "",
+  "choice_b": "",
+  "choice_c": "",
+  "choice_d": ""
+ },
+ {
+  "external_id": "GEN-A8-006",
+  "section": "math",
+  "skill": "Linear equations in two variables",
+  "difficulty": 2,
+  "type": "grid-in",
+  "stem": "A coffee shop sold $x$ lattes and $y$ muffins on Saturday. The equation $6x + 4y = 540$ represents this situation, where $6x + 4y$ is the shop's total sales, in dollars, from these items. What is the value of $9x + 6y$?",
+  "answer": "810",
+  "explanation": "The correct answer is 810. Circle what the question asks for: $9x + 6y$, not $x$ or $y$. Each coefficient in $9x + 6y$ is $\\frac{3}{2}$ times the matching coefficient in $6x + 4y$, because $9 = \\frac{3}{2}(6)$ and $6 = \\frac{3}{2}(4)$. So $9x + 6y = \\frac{3}{2}(6x + 4y) = \\frac{3}{2}(540) = 810$. One equation with two unknowns has many solutions, so there is no need (and no way) to find $x$ and $y$; scale, don't solve.\n\nCheck with one possible solution: $x = 50$ and $y = 60$ give $6(50) + 4(60) = 540$, and $9(50) + 6(60) = 450 + 360 = 810$.\n\nA response of 540 is incorrect. This is the given total, not the value of the new expression.\nA response of 360 is incorrect. This comes from multiplying by $\\frac{2}{3}$, which scales the wrong way.\nA response of 1,620 is incorrect. This comes from multiplying by 3 because $9 = 3 \\cdot 3$, instead of finding the factor that turns 6 into 9.",
+  "distractor_notes": {
+   "270": "Halved 540, treating 9x + 6y as half of 6x + 4y.",
+   "360": "Scaled the wrong way: multiplied 540 by 2/3 instead of 3/2.",
+   "540": "Gave the right side of the original equation instead of scaling it.",
+   "675": "Scaled only one term, e.g. thought 6x becomes 9x (factor 3/2) but averaged with 6y vs. 4y incorrectly; a partial-scaling guess.",
+   "1620": "Used a scale factor of 3 instead of 3/2."
+  },
+  "lesson": "M-1.1",
+  "blueprint": "A8",
+  "desmos_technique": "",
+  "source": "original",
+  "status": "draft",
+  "sat_quality": 4,
+  "topic": "coffee shop lattes and muffins sales",
   "choice_a": "",
   "choice_b": "",
   "choice_c": "",
@@ -893,6 +1287,32 @@
   "external_id": "GEN-M1-003",
   "section": "math",
   "skill": "Equivalent expressions",
+  "difficulty": 1,
+  "type": "mcq",
+  "stem": "A circular park has a circular pond at its center. The radius of the park is $R$ meters, and the radius of the pond is $r$ meters. If $R^2 - r^2 = 1{,}500$ and $R + r = 50$, what is the value of $R - r$?",
+  "answer": "B",
+  "explanation": "Choice B is correct. Factor the difference of squares: $R^2 - r^2 = (R + r)(R - r)$. Substitute the given values: $1{,}500 = 50(R - r)$. Divide both sides by 50: $R - r = 30$. Check: $R + r = 50$ and $R - r = 30$ give $R = 40$ and $r = 10$, and $40^2 - 10^2 = 1{,}600 - 100 = 1{,}500$.\n\nChoice A is incorrect. This is the value of $r$, not $R - r$.\n\nChoice C is incorrect. This is the value of $R$, not $R - r$.\n\nChoice D is incorrect. This subtracts $R + r$ from $R^2 - r^2$ instead of dividing by it.",
+  "distractor_notes": {
+   "A": "Gives the pond's radius $r = 10$ instead of $R - r$.",
+   "C": "Gives the park's radius $R = 40$ instead of $R - r$.",
+   "D": "Subtracts instead of dividing: $1{,}500 - 50 = 1{,}450$."
+  },
+  "lesson": "M-2.1",
+  "blueprint": "M1",
+  "desmos_technique": "",
+  "source": "original",
+  "status": "draft",
+  "sat_quality": 4,
+  "topic": "circular park with a central pond",
+  "choice_a": "10",
+  "choice_b": "30",
+  "choice_c": "40",
+  "choice_d": "1,450"
+ },
+ {
+  "external_id": "GEN-M1-004",
+  "section": "math",
+  "skill": "Equivalent expressions",
   "difficulty": 2,
   "type": "mcq",
   "stem": "On a hiking trail, the elevation of a lookout point is $x$ hundred feet and the elevation of the trailhead is $y$ hundred feet, where $x$ and $y$ are positive integers. If $x^2 - y^2 = 64$ and $x + y = 16$, what is the value of $x$?",
@@ -916,7 +1336,7 @@
   "choice_d": "48"
  },
  {
-  "external_id": "GEN-M1-004",
+  "external_id": "GEN-M1-005",
   "section": "math",
   "skill": "Equivalent expressions",
   "difficulty": 2,
@@ -940,6 +1360,32 @@
   "choice_b": "$6$",
   "choice_c": "$10$",
   "choice_d": "$70$"
+ },
+ {
+  "external_id": "GEN-M1-006",
+  "section": "math",
+  "skill": "Equivalent expressions",
+  "difficulty": 2,
+  "type": "mcq",
+  "stem": "A circular park has a circular fountain at its center. A walking path covers the part of the park outside the fountain. The radius of the park is $R$ meters, and the radius of the fountain is $r$ meters, where $R > r$. The area of the walking path is $72\\pi$ square meters, and $R + r = 18$. What is the value of $R - r$?",
+  "answer": "A",
+  "explanation": "Choice A is correct. The area of the path is the area of the park minus the area of the fountain: $\\pi R^2 - \\pi r^2 = 72\\pi$. Divide both sides by $\\pi$ to get $R^2 - r^2 = 72$. Factor the difference of squares: $(R + r)(R - r) = 72$. Since $R + r = 18$, divide by the given factor: $R - r = \\frac{72}{18} = 4$. Check: adding $R + r = 18$ and $R - r = 4$ gives $R = 11$ and $r = 7$, and $11^2 - 7^2 = 121 - 49 = 72$.\n\nChoice B is incorrect. This is the value of $r$, not $R - r$.\n\nChoice C is incorrect. This is the value of $R$, not $R - r$.\n\nChoice D is incorrect. This is $72 - 18$, which comes from subtracting $R + r$ from $R^2 - r^2$ instead of dividing by it.",
+  "distractor_notes": {
+   "B": "Solves for $r$ (the fountain's radius) instead of $R - r$.",
+   "C": "Solves for $R$ (the park's radius) instead of $R - r$.",
+   "D": "Subtracts the given factor: $72 - 18 = 54$, instead of dividing $72$ by $18$."
+  },
+  "lesson": "M-2.1",
+  "blueprint": "M1",
+  "desmos_technique": "",
+  "source": "original",
+  "status": "draft",
+  "sat_quality": 4,
+  "topic": "walking path around a fountain in a circular park",
+  "choice_a": "$4$",
+  "choice_b": "$7$",
+  "choice_c": "$11$",
+  "choice_d": "$54$"
  },
  {
   "external_id": "GEN-M2-001",
@@ -971,6 +1417,32 @@
   "external_id": "GEN-M2-002",
   "section": "math",
   "skill": "Equivalent expressions",
+  "difficulty": 1,
+  "type": "mcq",
+  "stem": "While designing a wheelchair ramp, an engineering student writes the expression $(2x + 5)(x - 3)$. This expression is equivalent to $2x^2 + bx - 15$ for all values of $x$, where $b$ is a constant. What is the value of $b$?",
+  "answer": "B",
+  "explanation": "Choice B is correct. Expand: $(2x + 5)(x - 3) = 2x^2 - 6x + 5x - 15 = 2x^2 - x - 15$. The constant $-15$ matches. Now match the $x$-terms: $bx = -x$, so $b = -1$.\n\nChoice A is incorrect. This comes from giving both middle terms a negative sign, $-6x - 5x = -11x$.\n\nChoice C is incorrect. This comes from a sign error that gives $6x - 5x = x$ instead of $-6x + 5x = -x$.\n\nChoice D is incorrect. This comes from treating $(x - 3)$ as $(x + 3)$, which gives $6x + 5x = 11x$.\n\n**Desmos check:** Make a table with x₁ = 0, 1, 2, 3 and y₁ = (2x₁+5)(x₁−3), then type y₁ ~ 2x₁² + bx₁ − 15; the regression gives b = −1.",
+  "distractor_notes": {
+   "A": "Made both middle terms negative: $-6x - 5x = -11x$.",
+   "C": "Sign error expanding: wrote $6x - 5x = x$ instead of $-6x + 5x = -x$.",
+   "D": "Treated $(x - 3)$ as $(x + 3)$, so the middle terms became $6x + 5x = 11x$."
+  },
+  "lesson": "M-2.1",
+  "blueprint": "M2",
+  "desmos_technique": "regression",
+  "source": "original",
+  "status": "draft",
+  "sat_quality": 4,
+  "topic": "wheelchair ramp design expression",
+  "choice_a": "$-11$",
+  "choice_b": "$-1$",
+  "choice_c": "$1$",
+  "choice_d": "$11$"
+ },
+ {
+  "external_id": "GEN-M2-003",
+  "section": "math",
+  "skill": "Equivalent expressions",
   "difficulty": 2,
   "type": "mcq",
   "stem": "A bank analyst models the growth of a savings account. In the model, the expression $(3x + a)(x - 4)$ is equivalent to $3x^2 + bx - 28$ for all values of $x$, where $a$ and $b$ are constants.\n\nWhat is the value of $b$?",
@@ -994,7 +1466,34 @@
   "choice_d": "$7$"
  },
  {
-  "external_id": "GEN-M2-003",
+  "external_id": "GEN-M2-004",
+  "section": "math",
+  "skill": "Equivalent expressions",
+  "difficulty": 2,
+  "type": "grid-in",
+  "stem": "In a theater's seating chart, a rectangular block of seats has $x + 4$ rows, and each row has $3x + a$ seats, where $a$ is a constant. The total number of seats in the block can also be written as $3x^2 + bx + 20$, where $b$ is a constant. The two expressions are equivalent for all values of $x$. What is the value of $b$?",
+  "answer": "17",
+  "explanation": "The correct answer is 17.\n\nThe total number of seats is (rows) × (seats per row), so $(3x + a)(x + 4) = 3x^2 + bx + 20$ for all $x$.\n\nExpand the left side: $(3x + a)(x + 4) = 3x^2 + 12x + ax + 4a = 3x^2 + (12 + a)x + 4a$.\n\nMatch the constants first: $4a = 20$, so $a = 5$.\n\nThen match the $x$-terms: $b = 12 + a = 12 + 5 = 17$.\n\nCheck: $(3x + 5)(x + 4) = 3x^2 + 12x + 5x + 20 = 3x^2 + 17x + 20$. Circle what the question asks for: it asks for $b$, not $a$.\n\n- 5 is incorrect. This is the value of $a$, not $b$.\n- 8 is incorrect. This comes from multiplying $3x$ by 1 instead of 4, giving $3x + ax$ rather than $12x + ax$.\n- 7 is incorrect. This comes from a sign error, writing the $x$-term as $12x - ax$.\n\n**Desmos check:** Enter a table with x₁ = 0, 1, 2 and y₁ = 0, 0, 0, then type y₁ ~ (3x₁ + a)(x₁ + 4) − (3x₁² + bx₁ + 20); Desmos returns a = 5 and b = 17.",
+  "distractor_notes": {
+   "5": "Answering with a instead of b.",
+   "7": "Sign error when expanding: using 12 − a for the x-coefficient.",
+   "8": "Multiplying 3x by 1 instead of 4 when expanding, so the x-coefficient becomes 3 + a.",
+   "9": "Adding 4 + a instead of 12 + a (multiplying x by 4 but forgetting the factor of 3)."
+  },
+  "lesson": "M-2.1",
+  "blueprint": "M2",
+  "desmos_technique": "regression",
+  "source": "original",
+  "status": "draft",
+  "sat_quality": 4,
+  "topic": "Theater seating block rows and seats",
+  "choice_a": "",
+  "choice_b": "",
+  "choice_c": "",
+  "choice_d": ""
+ },
+ {
+  "external_id": "GEN-M2-005",
   "section": "math",
   "skill": "Equivalent expressions",
   "difficulty": 3,
@@ -1020,7 +1519,7 @@
   "choice_d": "$17$"
  },
  {
-  "external_id": "GEN-M2-004",
+  "external_id": "GEN-M2-006",
   "section": "math",
   "skill": "Equivalent expressions",
   "difficulty": 3,
@@ -1076,6 +1575,32 @@
   "external_id": "GEN-M3-002",
   "section": "math",
   "skill": "Nonlinear functions",
+  "difficulty": 1,
+  "type": "mcq",
+  "stem": "The function $f$ is defined by $f(t) = t^2 - 10t + 16$. It models the yearly change in a city's population, in hundreds of people, $t$ years after 2010, where $0 \\le t \\le 10$. For what value of $t$ does $f(t)$ reach its minimum?",
+  "answer": "B",
+  "explanation": "Choice B is correct. Circle what the question asks for: the value of $t$ where the minimum occurs, not the minimum value itself. Factor: $f(t) = (t - 2)(t - 8)$, so the zeros are $t = 2$ and $t = 8$. A parabola's vertex lies halfway between its zeros, so the minimum occurs at $t = \\frac{2 + 8}{2} = 5$. The formula agrees: $t = -\\frac{b}{2a} = -\\frac{-10}{2(1)} = 5$. Check: $f(5) = 25 - 50 + 16 = -9$, and $f(4) = f(6) = -8$, both greater than $-9$.\n\nChoice A is incorrect. This is the minimum value $f(5) = -9$, not the value of $t$ where the minimum occurs.\n\nChoice C is incorrect. This is one of the zeros of $f$, where the change is $0$, not where the change is smallest.\n\nChoice D is incorrect. This is the constant term, $f(0) = 16$, the y-intercept.",
+  "distractor_notes": {
+   "A": "Gives the minimum value $f(5) = -9$ (the y-coordinate of the vertex) instead of the t-value where it occurs.",
+   "C": "Gives a zero of the function ($t = 8$) instead of the vertex.",
+   "D": "Gives the constant term $16$, the y-intercept $f(0)$."
+  },
+  "lesson": "M-2.2",
+  "blueprint": "M3",
+  "desmos_technique": "",
+  "source": "original",
+  "status": "draft",
+  "sat_quality": 4,
+  "topic": "city population yearly change",
+  "choice_a": "$-9$",
+  "choice_b": "$5$",
+  "choice_c": "$8$",
+  "choice_d": "$16$"
+ },
+ {
+  "external_id": "GEN-M3-003",
+  "section": "math",
+  "skill": "Nonlinear functions",
   "difficulty": 2,
   "type": "mcq",
   "stem": "During a maintenance cycle, the water level in a public swimming pool is lowered and then raised again. The function $V(t) = t^2 - 9t + 14$ gives the difference, in thousands of gallons, between the volume of water in the pool and the pool's standard operating volume, $t$ hours after the cycle begins, for $0 \\le t \\le 9$. A negative value of $V(t)$ means the volume is below the standard operating volume. At its lowest point during the cycle, how many thousand gallons below the standard operating volume is the volume of water in the pool?",
@@ -1099,7 +1624,7 @@
   "choice_d": "$14$"
  },
  {
-  "external_id": "GEN-M3-003",
+  "external_id": "GEN-M3-004",
   "section": "math",
   "skill": "Nonlinear functions",
   "difficulty": 2,
@@ -1123,6 +1648,32 @@
   "choice_b": "$-5.5$",
   "choice_c": "$5.5$",
   "choice_d": "$24$"
+ },
+ {
+  "external_id": "GEN-M3-005",
+  "section": "math",
+  "skill": "Nonlinear functions",
+  "difficulty": 2,
+  "type": "mcq",
+  "stem": "A delivery company changed one of its routes. The function $D(x) = x^2 - 9x + 14$ models the difference, in minutes, between the route's average actual delivery time and its scheduled delivery time $x$ weeks after the change, for $0 \\le x \\le 9$. A negative value of $D(x)$ means deliveries arrived early on average. According to the model, how many weeks after the change does $D(x)$ reach its minimum value?",
+  "answer": "D",
+  "explanation": "Choice D is correct. Circle what the question asks for: it asks *when* the minimum occurs, so you need the $x$-coordinate of the vertex, not the minimum value. Factor: $x^2 - 9x + 14 = (x - 2)(x - 7)$. The zeros are $x = 2$ and $x = 7$. A parabola is symmetric, so its vertex is halfway between the zeros: $x = \\frac{2 + 7}{2} = 4.5$. You can check this with $x = -\\frac{b}{2a} = -\\frac{-9}{2(1)} = 4.5$. The minimum therefore occurs 4.5 weeks after the change.\n\nChoice A is incorrect. This is one zero with the wrong sign. From $(x - 7)$, the zero is $x = 7$, not $x = -7$.\n\nChoice B is incorrect. This is the minimum value of $D$: $D(4.5) = 20.25 - 40.5 + 14 = -6.25$. It tells how early deliveries are, not when that happens.\n\nChoice C is incorrect. This is one of the zeros, where $D(x) = 0$. It is not where the minimum occurs.",
+  "distractor_notes": {
+   "A": "Reads the zero from the factor $(x - 7)$ with the wrong sign, giving $-7$.",
+   "B": "Gives the minimum value $D(4.5) = -6.25$ (the y-coordinate) when the question asks where the minimum occurs (the x-coordinate).",
+   "C": "Factors correctly but gives a zero of the function, $x = 2$, instead of the vertex."
+  },
+  "lesson": "M-2.2",
+  "blueprint": "M3",
+  "desmos_technique": "",
+  "source": "original",
+  "status": "draft",
+  "sat_quality": 4,
+  "topic": "delivery route timing after a route change",
+  "choice_a": "$-7$",
+  "choice_b": "$-6.25$",
+  "choice_c": "$2$",
+  "choice_d": "$4.5$"
  },
  {
   "external_id": "GEN-M4-001",
@@ -1180,6 +1731,32 @@
   "external_id": "GEN-M4-003",
   "section": "math",
   "skill": "Nonlinear equations in one variable and systems of equations in two variables",
+  "difficulty": 1,
+  "type": "mcq",
+  "stem": "A museum analyst uses the system below to model an exhibit. The first equation gives the number of visitors $y$, in hundreds, on day $x$ of the exhibit. The second equation gives the number of tickets sold online $y$, in hundreds, on day $x$.\n\n$y = x^2 - 6x + 14$\n\n$y = 2x - 2$\n\nThe graphs of these equations in the $xy$-plane intersect at exactly one point $(x, y)$. What is the value of $y$?",
+  "answer": "D",
+  "explanation": "Choice D is correct. Set the two expressions for $y$ equal: $x^2 - 6x + 14 = 2x - 2$. Move everything to one side: $x^2 - 8x + 16 = 0$. This factors as $(x - 4)^2 = 0$, so $x = 4$. The discriminant is $(-8)^2 - 4(1)(16) = 0$, which confirms that there is exactly one solution. Substitute $x = 4$ into the line: $y = 2(4) - 2 = 6$. The parabola gives the same value: $16 - 24 + 14 = 6$.\n\nChoice A is incorrect. This comes from taking $x = -4$, a sign error when solving $(x - 4)^2 = 0$, and then substituting into the line: $2(-4) - 2 = -10$.\n\nChoice B is incorrect. This is the $x$-value of the intersection point, not the $y$-value. Circle what the question asks for.\n\nChoice C is incorrect. This is the $y$-value of the parabola's vertex, at $x = 3$. The line touches the parabola at $x = 4$, not at the vertex.\n\n**Desmos check:** Graph $y = x^2 - 6x + 14$ and $y = 2x - 2$; tap the single intersection point to see $(4, 6)$.",
+  "distractor_notes": {
+   "A": "Wrong sign: solved $(x-4)^2=0$ as $x=-4$, then found $y = 2(-4) - 2 = -10$.",
+   "B": "Gave the $x$-coordinate (4) instead of the $y$-coordinate.",
+   "C": "Found the parabola's minimum ($y = 5$ at $x = 3$) instead of the intersection point."
+  },
+  "lesson": "M-2.2",
+  "blueprint": "M4",
+  "desmos_technique": "intersection",
+  "source": "original",
+  "status": "draft",
+  "sat_quality": 4,
+  "topic": "museum exhibit visitors vs. online ticket sales",
+  "choice_a": "$-10$",
+  "choice_b": "$4$",
+  "choice_c": "$5$",
+  "choice_d": "$6$"
+ },
+ {
+  "external_id": "GEN-M4-004",
+  "section": "math",
+  "skill": "Nonlinear equations in one variable and systems of equations in two variables",
   "difficulty": 2,
   "type": "grid-in",
   "stem": "On a road trip, the fuel efficiency, in miles per gallon, of Diego's car when it is driven at a constant speed of $x$ miles per hour is modeled by the function $f(x) = -0.01x^2 + 1.2x + 2$ for $30 \\le x \\le 80$. A second model for the same car, $g(x) = 0.4x + 18$, is also defined for $30 \\le x \\le 80$.\n\nFor how many values of $x$ does $f(x) = g(x)$?",
@@ -1204,7 +1781,33 @@
   "choice_d": ""
  },
  {
-  "external_id": "GEN-M4-004",
+  "external_id": "GEN-M4-005",
+  "section": "math",
+  "skill": "Nonlinear equations in one variable and systems of equations in two variables",
+  "difficulty": 2,
+  "type": "grid-in",
+  "stem": "In a solution-mixing experiment, a student stirs two mixtures and records their temperatures. The temperature, in degrees Celsius, of mixture P after $x$ minutes of stirring is modeled by $y = x^2 - 4x + 30$. The temperature, in degrees Celsius, of mixture Q after $x$ minutes is modeled by $y = 6x + 5$. Both models are valid for $x \\ge 0$.\n\nFor how many values of $x$ do the models predict that the two mixtures have the same temperature?",
+  "answer": "1",
+  "explanation": "The correct answer is 1. Set the two expressions equal: $x^2 - 4x + 30 = 6x + 5$. Move everything to one side: $x^2 - 10x + 25 = 0$. The discriminant is $(-10)^2 - 4(1)(25) = 100 - 100 = 0$, so there is exactly one solution. Factoring confirms this: $(x - 5)^2 = 0$, so $x = 5$. This value satisfies $x \\ge 0$, and both models give $35$ degrees at $x = 5$. The line just touches the parabola, so the temperatures match at exactly one time.\n\nA response of 2 is incorrect. This comes from assuming a line and a parabola always cross twice, or from miscomputing the discriminant as positive.\n\nA response of 0 is incorrect. This comes from a sign or arithmetic error, such as moving $6x$ as $+6x$ to get $x^2 + 2x + 25 = 0$, which has a negative discriminant.\n\n**Desmos check:** Graph $y = x^2 - 4x + 30$ and $y = 6x + 5$; they meet at the single point $(5, 35)$, where the line is tangent to the parabola.",
+  "distractor_notes": {
+   "0": "Moves $6x$ with the wrong sign, getting $x^2 + 2x + 25 = 0$, whose discriminant is negative.",
+   "2": "Assumes a line and a parabola always intersect twice, or computes a positive discriminant by error (e.g., using $x^2 - 10x + 35$ after forgetting to move the 5, then misreading the result).",
+   "5": "Gives the value of $x$ where the temperatures match instead of the number of such values."
+  },
+  "lesson": "M-2.2",
+  "blueprint": "M4",
+  "desmos_technique": "intersection",
+  "source": "original",
+  "status": "draft",
+  "sat_quality": 4,
+  "topic": "temperatures of two stirred lab mixtures",
+  "choice_a": "",
+  "choice_b": "",
+  "choice_c": "",
+  "choice_d": ""
+ },
+ {
+  "external_id": "GEN-M4-006",
   "section": "math",
   "skill": "Nonlinear equations in one variable and systems of equations in two variables",
   "difficulty": 3,
@@ -1308,6 +1911,59 @@
   "choice_d": "82"
  },
  {
+  "external_id": "GEN-M5-004",
+  "section": "math",
+  "skill": "Nonlinear functions",
+  "difficulty": 1,
+  "type": "grid-in",
+  "stem": "A farmer models the yield of a crop, in bushels per acre, with the function $f(x) = -2(x - 6)^2 + 90$, where $x$ is the amount of fertilizer applied, in hundreds of pounds per acre. A revised model for a second field is $g(x) = f(x + 2) + 5$. For what value of $x$ does $g(x)$ reach its maximum value?",
+  "answer": "4",
+  "explanation": "The correct answer is 4. The graph of $f$ is a downward-opening parabola with vertex $(6, 90)$, so $f$ reaches its maximum at $x = 6$. Replacing $x$ with $x + 2$ moves the graph LEFT 2 units, and adding 5 moves it up 5 units. The vertex of $g$ is $(6 - 2, 90 + 5) = (4, 95)$. To check, write $g$ directly: $g(x) = -2((x + 2) - 6)^2 + 90 + 5 = -2(x - 4)^2 + 95$. This is greatest when $x - 4 = 0$, so $x = 4$. Circle what the question asks for: the value of $x$, not the maximum yield.\n\nA likely wrong answer is 8. This shifts the graph right instead of left.\nAnother is 6. This is where $f$, not $g$, reaches its maximum.\nAnother is 95. This is the maximum value of $g(x)$, not the value of $x$ where it occurs.",
+  "distractor_notes": {
+   "6": "Gave the x-coordinate of the vertex of f instead of g, ignoring the horizontal shift.",
+   "8": "Shifted the vertex right 2 units instead of left; f(x + 2) moves the graph left.",
+   "90": "Gave the maximum value of f, answering for the wrong function and the wrong coordinate.",
+   "95": "Gave the maximum value of g(x) (the y-coordinate of the vertex) instead of the x-value where it occurs."
+  },
+  "lesson": "M-2.4",
+  "blueprint": "M5",
+  "desmos_technique": "",
+  "source": "original",
+  "status": "draft",
+  "sat_quality": 4,
+  "topic": "crop yield vs. fertilizer amount",
+  "choice_a": "",
+  "choice_b": "",
+  "choice_c": "",
+  "choice_d": ""
+ },
+ {
+  "external_id": "GEN-M5-005",
+  "section": "math",
+  "skill": "Nonlinear functions",
+  "difficulty": 2,
+  "type": "mcq",
+  "stem": "The power output, in watts, of a rooftop solar panel $t$ hours after midnight on a certain day is modeled by the function $f(t) = -15(t - 12)^2 + 840$, for $6 \\le t \\le 18$. A second panel, which faces farther east, has a power output, in watts, modeled by the function $g(t) = f(t + 2) - 60$. According to the model, what is the power output, in watts, of the second panel at 9:00 a.m.?",
+  "answer": "C",
+  "explanation": "Choice C is correct. At 9:00 a.m., $t = 9$, so you need to **evaluate** $g(9)$. By definition, $g(9) = f(9 + 2) - 60 = f(11) - 60$. Then $f(11) = -15(11 - 12)^2 + 840 = -15 + 840 = 825$, so $g(9) = 825 - 60 = 765$. As a check, $g(t) = -15(t - 10)^2 + 780$: the $+2$ inside moves the graph LEFT 2, so the peak moves from $t = 12$ to $t = 10$, and the $-60$ moves it down. Then $g(9) = -15(-1)^2 + 780 = 765$.\n\nChoice A is incorrect. This comes from shifting right instead of left, which gives $f(9 - 2) - 60 = f(7) - 60 = 405$.\n\nChoice B is incorrect. This comes from ignoring the horizontal shift and computing $f(9) - 60 = 645$.\n\nChoice D is incorrect. This comes from moving up 60 instead of down 60, which gives $f(11) + 60 = 885$.",
+  "distractor_notes": {
+   "A": "Shifted right instead of left: computed f(9 − 2) − 60 = f(7) − 60 = 405.",
+   "B": "Ignored the horizontal shift and used f(9) − 60 = 645, effectively using f's vertex at t = 12 instead of g's at t = 10.",
+   "D": "Treated − 60 as a shift up: computed f(11) + 60 = 885."
+  },
+  "lesson": "M-2.4",
+  "blueprint": "M5",
+  "desmos_technique": "",
+  "source": "original",
+  "status": "draft",
+  "sat_quality": 4,
+  "topic": "solar panel power output over a day",
+  "choice_a": "$405$",
+  "choice_b": "$645$",
+  "choice_c": "$765$",
+  "choice_d": "$885$"
+ },
+ {
   "external_id": "GEN-M6-001",
   "section": "math",
   "skill": "Nonlinear functions",
@@ -1364,6 +2020,32 @@
   "external_id": "GEN-M6-003",
   "section": "math",
   "skill": "Nonlinear functions",
+  "difficulty": 1,
+  "type": "mcq",
+  "stem": "When tickets for a play went on sale, a theater's online seating chart showed $800$ unsold seats. Each day after that, the number of unsold seats decreased by $15\\%$ of the number of unsold seats on the previous day. Which function $f$ gives the number of unsold seats $d$ days after tickets went on sale?",
+  "answer": "B",
+  "explanation": "Choice B is correct. The number of unsold seats drops by $15\\%$ each day, so $100\\%-15\\%=85\\%$ of the seats remain unsold each day. Starting at $800$, multiply by $0.85$ once per day: $f(d)=800(0.85)^d$. For example, after 1 day there are $800(0.85)=680$ unsold seats, and after 2 days there are $680(0.85)=578$.\n\nChoice A is incorrect. This multiplies by the rate, $0.15$, instead of what remains, $0.85$. It would leave only $120$ unsold seats after 1 day.\n\nChoice C is incorrect. This multiplies by $1.15$, which models a $15\\%$ increase, not a decrease.\n\nChoice D is incorrect. This subtracts $15\\%$ of the original $800$ (that is, $120$) every day, which is a linear decrease. The problem says each decrease is $15\\%$ of the previous day's number, which is exponential.\n\n**Desmos check:** Enter a table with points (0, 800), (1, 680), (2, 578) and run the regression y1 ~ a·b^x1; Desmos returns a = 800 and b = 0.85.",
+  "distractor_notes": {
+   "A": "Used the rate 0.15 as the multiplier instead of the remaining 0.85.",
+   "C": "Used 1 + r (growth) instead of 1 − r (decay).",
+   "D": "Treated the decrease as linear, subtracting 15% of the original 800 each day."
+  },
+  "lesson": "M-2.3",
+  "blueprint": "M6",
+  "desmos_technique": "regression",
+  "source": "original",
+  "status": "draft",
+  "sat_quality": 4,
+  "topic": "unsold seats on a theater's seating chart",
+  "choice_a": "$f(d)=800(0.15)^d$",
+  "choice_b": "$f(d)=800(0.85)^d$",
+  "choice_c": "$f(d)=800(1.15)^d$",
+  "choice_d": "$f(d)=800-120d$"
+ },
+ {
+  "external_id": "GEN-M6-004",
+  "section": "math",
+  "skill": "Nonlinear functions",
   "difficulty": 2,
   "type": "mcq",
   "stem": "During its first season in a new league, a hockey team allowed 125 goals. In each season after the first, the number of goals the team allowed was 20% less than the number of goals it allowed the previous season. How many goals did the team allow in its fourth season?",
@@ -1387,7 +2069,7 @@
   "choice_d": "216"
  },
  {
-  "external_id": "GEN-M6-004",
+  "external_id": "GEN-M6-005",
   "section": "math",
   "skill": "Nonlinear functions",
   "difficulty": 2,
@@ -1492,6 +2174,32 @@
  },
  {
   "external_id": "GEN-D1-004",
+  "section": "math",
+  "skill": "One-variable data: distributions and measures of center and spread",
+  "difficulty": 1,
+  "type": "mcq",
+  "stem": "A city's population was recorded once every 10 years, for a total of 6 recordings. The mean of the 6 recorded populations is 48,000. The first recording, which was 18,000, is removed from the data set. What is the mean of the remaining 5 recorded populations?",
+  "answer": "D",
+  "explanation": "Choice D is correct. Think in sums. The sum of the 6 populations is $6 \\times 48{,}000 = 288{,}000$. Removing the first recording leaves a sum of $288{,}000 - 18{,}000 = 270{,}000$. Divide by the new count, 5: $\\frac{270{,}000}{5} = 54{,}000$. The mean goes up, which makes sense because the removed value was below the mean.\n\nChoice A is incorrect. This subtracts the removed value from the mean: $48{,}000 - 18{,}000$.\n\nChoice B is incorrect. This divides the new sum by the old count: $\\frac{270{,}000}{6}$.\n\nChoice C is incorrect. This assumes the mean doesn't change when a value is removed.\n\n**Desmos check:** Enter a sample list with mean 48,000 that starts at 18,000, such as L=[18000,40000,50000,55000,60000,65000]; mean(L) gives 48000 and mean(L[2...6]) gives 54000.",
+  "distractor_notes": {
+   "A": "Subtracted the removed value from the mean: 48,000 − 18,000 = 30,000.",
+   "B": "Adjusted the sum correctly but divided by the old count of 6: 270,000 ÷ 6 = 45,000.",
+   "C": "Assumed the mean stays the same after a value is removed."
+  },
+  "lesson": "M-3.3",
+  "blueprint": "D1",
+  "desmos_technique": "list-plug-in",
+  "source": "original",
+  "status": "draft",
+  "sat_quality": 4,
+  "topic": "city population recorded each decade",
+  "choice_a": "30,000",
+  "choice_b": "45,000",
+  "choice_c": "48,000",
+  "choice_d": "54,000"
+ },
+ {
+  "external_id": "GEN-D1-005",
   "section": "math",
   "skill": "One-variable data: distributions and measures of center and spread",
   "difficulty": 2,
@@ -1733,6 +2441,33 @@
   "external_id": "GEN-D3-003",
   "section": "math",
   "skill": "Two-variable data: models and scatterplots",
+  "difficulty": 1,
+  "type": "grid-in",
+  "stem": "The line of best fit for a scatterplot is given by the equation $y = 2.5x + 4$. One of the data points in the scatterplot is $(6, 21)$. By how much does the actual $y$-value of this data point exceed the $y$-value predicted by the line of best fit at $x = 6$?",
+  "answer": "2",
+  "explanation": "The correct answer is 2. At $x = 6$, the line of best fit predicts $y = 2.5(6) + 4 = 15 + 4 = 19$. The actual $y$-value is $21$. The amount by which the actual value exceeds the predicted value is actual − predicted $= 21 - 19 = 2$.\n\n- A value of $-2$ is incorrect. This is predicted − actual, which reverses the order. The data point is above the line, so the actual value is greater.\n- A value of $19$ is incorrect. This is the predicted $y$-value, not the difference between the actual and predicted values.\n- A value of $6$ is incorrect. This comes from leaving out the $+4$ when finding the prediction: $21 - 15 = 6$.\n\n**Desmos check:** Graph $y=2.5x+4$ and the point $(6,21)$; clicking the line at $x=6$ shows $(6,19)$, so the point sits $21-19=2$ units above the line.",
+  "distractor_notes": {
+   "6": "Forgot the y-intercept, using 2.5(6) = 15 as the prediction.",
+   "19": "Gave the predicted y-value and stopped before comparing it with the actual value.",
+   "21": "Gave the actual y-value instead of the difference.",
+   "-2": "Subtracted actual from predicted (19 − 21), reversing the order of the difference."
+  },
+  "lesson": "M-3.4",
+  "blueprint": "D3",
+  "desmos_technique": "regression",
+  "source": "original",
+  "status": "draft",
+  "sat_quality": 4,
+  "topic": "Pure math: residual from a given line of best fit",
+  "choice_a": "",
+  "choice_b": "",
+  "choice_c": "",
+  "choice_d": ""
+ },
+ {
+  "external_id": "GEN-D3-004",
+  "section": "math",
+  "skill": "Two-variable data: models and scatterplots",
   "difficulty": 2,
   "type": "mcq",
   "stem": "A farmer applied different amounts of fertilizer to 12 fields of corn and recorded each field's yield. The line of best fit for the data is $y = 1.8x + 112$, where $y$ is the predicted yield, in bushels per acre, and $x$ is the amount of fertilizer applied, in kilograms per acre. One of the fields received 40 kilograms of fertilizer per acre and had an actual yield of 175 bushels per acre. Which of the following statements is true about this field?",
@@ -1756,7 +2491,7 @@
   "choice_d": "The actual yield is 5 bushels per acre less than the yield predicted by the line of best fit."
  },
  {
-  "external_id": "GEN-D3-004",
+  "external_id": "GEN-D3-005",
   "section": "math",
   "skill": "Two-variable data: models and scatterplots",
   "difficulty": 2,
@@ -1782,7 +2517,7 @@
   "choice_d": "The actual amount was 12 gallons more than the predicted amount."
  },
  {
-  "external_id": "GEN-D3-005",
+  "external_id": "GEN-D3-006",
   "section": "math",
   "skill": "Two-variable data: models and scatterplots",
   "difficulty": 3,
@@ -1861,6 +2596,32 @@
  },
  {
   "external_id": "GEN-D4-003",
+  "section": "math",
+  "skill": "Inference from sample statistics and margin of error",
+  "difficulty": 1,
+  "type": "mcq",
+  "stem": "A sample of values is selected at random from a large population of numbers. The mean of the sample is $42$. Based on the sample, the population mean is estimated to be $42$ with an associated margin of error of $3$.\n\nWhich of the following is a plausible value for the mean of the population?",
+  "answer": "C",
+  "explanation": "Choice C is correct. An estimate plus or minus its margin of error gives a range of plausible values. Here that range is $42 - 3 = 39$ to $42 + 3 = 45$. Since $39 \\le 44 \\le 45$, the value $44$ is a plausible population mean. The population mean does not have to equal $42$ exactly. Any value in the range is plausible.\n\nChoice A is incorrect. This is the margin of error, not a value of the population mean.\n\nChoice B is incorrect. This is $42 - 2(3)$. It subtracts the margin twice, so it falls below the plausible range of $39$ to $45$.\n\nChoice D is incorrect. This is $42 + 2(3)$. It adds the margin twice, so it falls above the plausible range of $39$ to $45$.",
+  "distractor_notes": {
+   "A": "Treats the margin of error as if it were the estimated population mean.",
+   "B": "Subtracts twice the margin of error ($42-6$), landing outside the range of $39$ to $45$.",
+   "D": "Adds twice the margin of error ($42+6$), landing outside the range of $39$ to $45$."
+  },
+  "lesson": "M-3.6",
+  "blueprint": "D4",
+  "desmos_technique": "",
+  "source": "original",
+  "status": "draft",
+  "sat_quality": 4,
+  "topic": "abstract sample mean with margin of error",
+  "choice_a": "$3$",
+  "choice_b": "$36$",
+  "choice_c": "$44$",
+  "choice_d": "$48$"
+ },
+ {
+  "external_id": "GEN-D4-004",
   "section": "math",
   "skill": "Inference from sample statistics and margin of error",
   "difficulty": 2,
@@ -1968,6 +2729,32 @@
   "external_id": "GEN-G1-004",
   "section": "math",
   "skill": "Right triangles and trigonometry",
+  "difficulty": 1,
+  "type": "mcq",
+  "stem": "On a road trip, a driver compares two routes from Dalton to Pine Ridge to estimate fuel use. The direct highway from Dalton to Pine Ridge is 120 miles long. The other route goes due east from Dalton to Corley and then due north from Corley to Pine Ridge, so the three towns form a right triangle with the right angle at Corley. The direct highway makes a $30^\\circ$ angle with the road from Dalton to Corley. What is the length, in miles, of the road from Dalton to Corley?",
+  "answer": "C",
+  "explanation": "Choice C is correct. The three towns form a 30-60-90 triangle. The direct highway is the hypotenuse, so $2x = 120$ and $x = 60$. The road from Dalton to Corley touches the $30^\\circ$ angle, so it is not the side opposite $30^\\circ$. It is the long leg, $x\\sqrt{3} = 60\\sqrt{3}$ miles.\n\nChoice A is incorrect. This is the short leg, the road from Corley to Pine Ridge, which is opposite the $30^\\circ$ angle.\n\nChoice B is incorrect. This uses the 45-45-90 pattern, $\\frac{120}{\\sqrt{2}} = 60\\sqrt{2}$.\n\nChoice D is incorrect. This treats the 120-mile hypotenuse as the short leg and multiplies by $\\sqrt{3}$.",
+  "distractor_notes": {
+   "A": "Swapped which leg is opposite 30°; found the short leg (Corley to Pine Ridge) instead of the long leg.",
+   "B": "Used the 45-45-90 pattern, dividing the hypotenuse by √2.",
+   "D": "Treated the hypotenuse (120) as the short leg and multiplied by √3."
+  },
+  "lesson": "M-4.2",
+  "blueprint": "G1",
+  "desmos_technique": "",
+  "source": "original",
+  "status": "draft",
+  "sat_quality": 4,
+  "topic": "road trip route comparison for fuel use",
+  "choice_a": "$60$",
+  "choice_b": "$60\\sqrt{2}$",
+  "choice_c": "$60\\sqrt{3}$",
+  "choice_d": "$120\\sqrt{3}$"
+ },
+ {
+  "external_id": "GEN-G1-005",
+  "section": "math",
+  "skill": "Right triangles and trigonometry",
   "difficulty": 2,
   "type": "mcq",
   "stem": "A cell phone battery is a thin rectangular block. On its largest rectangular face, a designer plans to print a straight charge-indicator stripe from one corner to the opposite corner. The stripe makes a $30^\\circ$ angle with the longer side of the face, and the longer side is $9$ centimeters long. What is the length, in centimeters, of the stripe?",
@@ -2046,6 +2833,32 @@
   "external_id": "GEN-G2-003",
   "section": "math",
   "skill": "Lines, angles, and triangles",
+  "difficulty": 1,
+  "type": "mcq",
+  "stem": "To decorate a pie for a daily order, a baker lays two straight strips of dough that are parallel to each other. The baker then lays a third straight strip that crosses both of them. Two of the angles formed lie between the two parallel strips and on the same side of the third strip. Their measures are $(4x - 20)^\\circ$ and $(2x + 20)^\\circ$.\n\nWhat is the value of $2x + 20$?",
+  "answer": "C",
+  "explanation": "Choice C is correct. The two angles lie between the parallel strips and on the same side of the crossing strip, so they are same-side interior angles. Same-side interior angles add to $180^\\circ$: $(4x - 20) + (2x + 20) = 180$, so $6x = 180$ and $x = 30$. Then $2x + 20 = 2(30) + 20 = 80$. Check: $4(30) - 20 = 100$, and $80 + 100 = 180$.\n\nChoice A is incorrect. This is the value of $x$, not the value of $2x + 20$. Circle what the question asks for.\n\nChoice B is incorrect. This comes from setting the angles equal, $4x - 20 = 2x + 20$, which gives $x = 20$ and $2x + 20 = 60$. Same-side interior angles are supplementary, not equal.\n\nChoice D is incorrect. This is $4x - 20$, the other angle of the pair.",
+  "distractor_notes": {
+   "A": "Reported x = 30 instead of the value of 2x + 20.",
+   "B": "Set the angles equal (4x − 20 = 2x + 20), getting x = 20 and 2x + 20 = 60, instead of making them add to 180.",
+   "D": "Found the other angle of the pair, 4x − 20 = 100."
+  },
+  "lesson": "M-4.1",
+  "blueprint": "G2",
+  "desmos_technique": "",
+  "source": "original",
+  "status": "draft",
+  "sat_quality": 4,
+  "topic": "lattice strips on a pie for a bakery order",
+  "choice_a": "30",
+  "choice_b": "60",
+  "choice_c": "80",
+  "choice_d": "100"
+ },
+ {
+  "external_id": "GEN-G2-004",
+  "section": "math",
+  "skill": "Lines, angles, and triangles",
   "difficulty": 2,
   "type": "mcq",
   "stem": "An engineer's cross-sectional drawing of a draining water tank shows two parallel horizontal support beams. A straight drain pipe runs diagonally from the upper beam to the lower beam, crossing both. Of the angles that the pipe forms with the beams, two lie between the beams and on the same side of the pipe. One of these angles measures $(2x - 110)^\\circ$, and the other measures $(x + 50)^\\circ$. What is the measure, in degrees, of the angle that measures $(2x - 110)^\\circ$?",
@@ -2098,6 +2911,32 @@
   "external_id": "GEN-G3-002",
   "section": "math",
   "skill": "Right triangles and trigonometry",
+  "difficulty": 1,
+  "type": "mcq",
+  "stem": "In a clinical trial of a new physical therapy routine, each participant rests one leg on a foam wedge. The side of the wedge has the shape of right triangle $PQR$, where angle $Q$ is the right angle. The lengths of the sides are $PQ = 8$ inches, $QR = 15$ inches, and $PR = 17$ inches. What is the value of $\\cos R$?",
+  "answer": "C",
+  "explanation": "Choice C is correct. The cosine of an angle is the length of the adjacent leg divided by the length of the hypotenuse. The hypotenuse is opposite the right angle $Q$, so it is $PR = 17$. The leg adjacent to angle $R$ is $QR = 15$. So $\\cos R = \\frac{15}{17}$. As a check, angles $P$ and $R$ are complementary, so $\\cos R = \\sin P$. The leg opposite angle $P$ is $QR = 15$, so $\\sin P = \\frac{15}{17}$ as well.\n\nChoice A is incorrect. This is $\\sin R$: it uses the leg opposite angle $R$ instead of the adjacent leg.\n\nChoice B is incorrect. This is $\\tan R$, opposite over adjacent, not adjacent over hypotenuse.\n\nChoice D is incorrect. This is $\\tan P$, the adjacent leg of $R$ divided by the other leg instead of by the hypotenuse.",
+  "distractor_notes": {
+   "A": "Used the other leg (opposite R) over the hypotenuse, giving sin R instead of cos R.",
+   "B": "Computed opposite/adjacent for angle R (tan R).",
+   "D": "Divided the adjacent leg by the other leg instead of the hypotenuse (tan P)."
+  },
+  "lesson": "M-4.2",
+  "blueprint": "G3",
+  "desmos_technique": "",
+  "source": "original",
+  "status": "draft",
+  "sat_quality": 4,
+  "topic": "foam leg wedge in a physical therapy clinical trial",
+  "choice_a": "$\\frac{8}{17}$",
+  "choice_b": "$\\frac{8}{15}$",
+  "choice_c": "$\\frac{15}{17}$",
+  "choice_d": "$\\frac{15}{8}$"
+ },
+ {
+  "external_id": "GEN-G3-003",
+  "section": "math",
+  "skill": "Right triangles and trigonometry",
   "difficulty": 2,
   "type": "mcq",
   "stem": "For one of its daily orders, a bakery cuts a rectangular sheet cake that measures 24 inches by 10 inches along one diagonal, forming two congruent right triangles. One of these triangles is labeled $PQR$, where angle $Q$ is the right angle, $PQ = 24$ inches, and $QR = 10$ inches. What is the value of $\\cos P$?",
@@ -2121,7 +2960,7 @@
   "choice_d": "$\\frac{12}{5}$"
  },
  {
-  "external_id": "GEN-G3-003",
+  "external_id": "GEN-G3-004",
   "section": "math",
   "skill": "Right triangles and trigonometry",
   "difficulty": 2,
@@ -2176,6 +3015,33 @@
   "external_id": "GEN-G4-002",
   "section": "math",
   "skill": "Circles",
+  "difficulty": 1,
+  "type": "grid-in",
+  "stem": "A circular label is printed on the lid of a rectangular box. When the lid is placed on the $xy$-plane, with coordinates measured in centimeters, the edge of the label is represented by the equation\n\n$$x^2+y^2-6x+10y+18=0$$\n\nWhat is the radius, in centimeters, of the label?",
+  "answer": "4",
+  "explanation": "The correct answer is 4.\n\nComplete the square for $x$ and for $y$.\n\nMove the constant: $x^2-6x+y^2+10y=-18$.\n\nHalf of $-6$ is $-3$, and $(-3)^2=9$. Half of $10$ is $5$, and $5^2=25$. Add both squares to **both** sides:\n\n$x^2-6x+9+y^2+10y+25=-18+9+25$\n\n$(x-3)^2+(y+5)^2=16$\n\nSo $r^2=16$, and the radius is $r=\\sqrt{16}=4$. The center is $(3,-5)$.\n\nCheck: the point $(7,-5)$ is 4 units right of the center. Substituting it gives $49+25-42-50+18=0$. It works.\n\nCommon wrong answers:\n- 16 is $r^2$, not the radius. Find $r$ by taking the square root.\n- $\\sqrt{52}$ comes from moving 18 without changing its sign, which gives $18+9+25=52$.\n- A negative right side such as $-18$ comes from forgetting to add 9 and 25 to the right side. A circle cannot have a negative $r^2$.",
+  "distractor_notes": {
+   "16": "Gave $r^2$ as the radius instead of taking the square root.",
+   "√52 (about 7.21)": "Moved the constant 18 to the right side without changing its sign: $18+9+25=52$.",
+   "√7 (about 2.65)": "Added only the $y$-square (25) to the right side and forgot the 9: $-18+25=7$.",
+   "-18 or no answer": "Forgot to add both squares to the right side, which leaves a negative value for $r^2$."
+  },
+  "lesson": "M-4.3",
+  "blueprint": "G4",
+  "desmos_technique": "",
+  "source": "original",
+  "status": "draft",
+  "sat_quality": 4,
+  "topic": "circular label on a box lid",
+  "choice_a": "",
+  "choice_b": "",
+  "choice_c": "",
+  "choice_d": ""
+ },
+ {
+  "external_id": "GEN-G4-003",
+  "section": "math",
+  "skill": "Circles",
   "difficulty": 2,
   "type": "mcq",
   "stem": "The equation $x^2 + y^2 - 6x + 10y - 2 = 0$ defines a circle in the $xy$-plane. Which of the following gives the center and the radius of the circle?",
@@ -2199,7 +3065,7 @@
   "choice_d": "Center $(3, -5)$; radius $36$"
  },
  {
-  "external_id": "GEN-G4-003",
+  "external_id": "GEN-G4-004",
   "section": "math",
   "skill": "Circles",
   "difficulty": 2,
@@ -2225,7 +3091,7 @@
   "choice_d": "$49$"
  },
  {
-  "external_id": "GEN-G4-004",
+  "external_id": "GEN-G4-005",
   "section": "math",
   "skill": "Circles",
   "difficulty": 3,
@@ -2386,6 +3252,32 @@
   "external_id": "GEN-G6-002",
   "section": "math",
   "skill": "Area and volume",
+  "difficulty": 1,
+  "type": "mcq",
+  "stem": "A farmer grows wheat on two rectangular fields that are similar. The length of the smaller field is 150 meters, and the corresponding length of the larger field is 300 meters. Both fields produce the same amount of wheat per square meter. This season, the smaller field produced 2,400 kilograms of wheat. How many kilograms of wheat did the larger field produce this season?",
+  "answer": "C",
+  "explanation": "Choice C is correct. The scale factor from the smaller field to the larger field is $k = \\frac{300}{150} = 2$. Areas of similar figures scale by $k^2 = 4$, so the larger field has 4 times the area of the smaller field. Because the yield per square meter is the same, the larger field produces $4 \\times 2{,}400 = 9{,}600$ kilograms.\n\nChoice A is incorrect. This divides by the length scale factor, scaling in the wrong direction.\n\nChoice B is incorrect. This multiplies by the length scale factor $k = 2$ instead of the area scale factor $k^2 = 4$.\n\nChoice D is incorrect. This multiplies by $k^3 = 8$, the scale factor for volume, not area.",
+  "distractor_notes": {
+   "A": "Scaled the wrong direction: divided 2,400 by 2.",
+   "B": "Scaled by k = 2 instead of k² = 4.",
+   "D": "Scaled by k³ = 8 as if it were a volume."
+  },
+  "lesson": "M-4.1",
+  "blueprint": "G6",
+  "desmos_technique": "",
+  "source": "original",
+  "status": "draft",
+  "sat_quality": 4,
+  "topic": "wheat yield from two similar fields",
+  "choice_a": "1,200",
+  "choice_b": "4,800",
+  "choice_c": "9,600",
+  "choice_d": "19,200"
+ },
+ {
+  "external_id": "GEN-G6-003",
+  "section": "math",
+  "skill": "Area and volume",
   "difficulty": 2,
   "type": "mcq",
   "stem": "An online store sets its shipping fees based on the volume of the box an order is packed in. The store's medium box and large box are similar rectangular prisms. The longest edge of the large box is $45$ centimeters, and the longest edge of the medium box is $30$ centimeters. The volume of the large box is $27{,}000$ cubic centimeters. What is the volume, in cubic centimeters, of the medium box?",
@@ -2409,7 +3301,7 @@
   "choice_d": "$91{,}125$"
  },
  {
-  "external_id": "GEN-G6-003",
+  "external_id": "GEN-G6-004",
   "section": "math",
   "skill": "Area and volume",
   "difficulty": 3,
@@ -2462,6 +3354,32 @@
  },
  {
   "external_id": "GEN-U1-002",
+  "section": "math",
+  "skill": "Ratios, rates, proportional relationships, and units",
+  "difficulty": 1,
+  "type": "mcq",
+  "stem": "A hiker climbs a mountain trail at a constant rate, gaining 20 feet of elevation per minute. At this rate, how many hours will it take the hiker to gain 2,400 feet of elevation?",
+  "answer": "A",
+  "explanation": "Choice A is correct. Time = amount ÷ rate, so $\\frac{2{,}400 \\text{ feet}}{20 \\text{ feet per minute}} = 120$ minutes. Circle what the question asks for: hours. Since $120 \\text{ minutes} \\times \\frac{1 \\text{ hour}}{60 \\text{ minutes}} = 2$ hours, the answer is 2. Check: $20 \\times 60 = 1{,}200$ feet per hour, and $1{,}200 \\times 2 = 2{,}400$ feet.\n\nChoice B is incorrect. This is the time in minutes. It was never converted to hours.\n\nChoice C is incorrect. This comes from multiplying the elevation by the rate instead of dividing, then dividing by 60: $\\frac{2{,}400 \\times 20}{60} = 800$.\n\nChoice D is incorrect. This comes from multiplying the elevation by the rate, $2{,}400 \\times 20$, instead of dividing.",
+  "distractor_notes": {
+   "B": "Found the time in minutes (120) but did not convert minutes to hours.",
+   "C": "Multiplied 2,400 by 20 instead of dividing, then divided by 60 to convert.",
+   "D": "Multiplied the elevation by the rate instead of dividing, and did no unit conversion."
+  },
+  "lesson": "M-3.1",
+  "blueprint": "U1",
+  "desmos_technique": "",
+  "source": "original",
+  "status": "draft",
+  "sat_quality": 4,
+  "topic": "hiking trail elevation gain",
+  "choice_a": "2",
+  "choice_b": "120",
+  "choice_c": "800",
+  "choice_d": "48,000"
+ },
+ {
+  "external_id": "GEN-U1-003",
   "section": "math",
   "skill": "Ratios, rates, proportional relationships, and units",
   "difficulty": 2,
@@ -2542,6 +3460,32 @@
   "external_id": "GEN-U2-003",
   "section": "math",
   "skill": "Percentages",
+  "difficulty": 1,
+  "type": "mcq",
+  "stem": "In a poll of 480 residents of a town, 15% said they ride a bicycle to work. How many of the polled residents said they ride a bicycle to work?",
+  "answer": "A",
+  "explanation": "Choice A is correct. Part = percent × whole, so the number of residents who ride a bicycle to work is $0.15 \\times 480 = 72$. Check: $\\frac{72}{480} = 0.15$, which is 15%.\n\nChoice B is incorrect. This is $0.85 \\times 480$, the number of residents who did **not** say they ride a bicycle to work. Circle what the question asks for.\n\nChoice C is incorrect. This is $480 - 15$, which subtracts the percent as if it were a number of people.\n\nChoice D is incorrect. This is $480 \\times 1.15$, which increases the total by 15% instead of finding 15% of it.",
+  "distractor_notes": {
+   "B": "Used what remains (85%) instead of the rate: $0.85 \\times 480 = 408$.",
+   "C": "Subtracted 15 from 480 as if the percent were a count of people.",
+   "D": "Treated 15% as an increase: $480 \\times 1.15 = 552$."
+  },
+  "lesson": "M-3.2",
+  "blueprint": "U2",
+  "desmos_technique": "",
+  "source": "original",
+  "status": "draft",
+  "sat_quality": 5,
+  "topic": "town poll on bicycle commuting",
+  "choice_a": "72",
+  "choice_b": "408",
+  "choice_c": "465",
+  "choice_d": "552"
+ },
+ {
+  "external_id": "GEN-U2-004",
+  "section": "math",
+  "skill": "Percentages",
   "difficulty": 2,
   "type": "mcq",
   "stem": "In a poll of 800 town residents, $30\\%$ said they supported a plan to build a new library branch. Six months later, the same 800 residents were polled again, and 180 of them said they supported the plan. By what percent did the number of residents who supported the plan decrease from the first poll to the second poll?",
@@ -2565,7 +3509,7 @@
   "choice_d": "$75\\%$"
  },
  {
-  "external_id": "GEN-U2-004",
+  "external_id": "GEN-U2-005",
   "section": "math",
   "skill": "Percentages",
   "difficulty": 3,
@@ -2619,6 +3563,32 @@
  {
   "external_id": "GEN-S1-002",
   "section": "math",
+  "skill": "Nonlinear functions",
+  "difficulty": 1,
+  "type": "mcq",
+  "stem": "A lab technician adds $x$ milliliters of pure acid to 40 milliliters of a solution that is 10% acid. The function $C$ gives the concentration of acid in the resulting mixture, where $C(x)=\\frac{4+x}{40+x}$. For what value of $x$ is $C(x)=0.25$?",
+  "answer": "C",
+  "explanation": "Choice C is correct. Test each choice in $C(x)$. For $x=8$: $C(8)=\\frac{4+8}{40+8}=\\frac{12}{48}=0.25$. That is the target.\n\nThe other choices give:\n- $C(4)=\\frac{8}{44}\\approx 0.182$\n- $C(6)=\\frac{10}{46}\\approx 0.217$\n- $C(12)=\\frac{16}{52}\\approx 0.308$\n\nYou can also solve it by hand. Multiply both sides of $\\frac{4+x}{40+x}=0.25$ by $40+x$ to get $4+x=10+0.25x$. Then $0.75x=6$, so $x=8$.\n\nChoice A is incorrect. This is the 4 milliliters of acid already in the original solution (10% of 40), not the amount added.\n\nChoice B is incorrect. This comes from keeping the total volume at 40 and solving $\\frac{4+x}{40}=0.25$. It forgets that adding acid also increases the volume.\n\nChoice D is incorrect. This is the total acid in the final mixture, $4+8=12$, not the amount $x$ that was added.\n\n**Desmos check:** Enter C(x)=(4+x)/(40+x), then type C([4,6,8,12]). The output is about [0.182, 0.217, 0.25, 0.308], so only x = 8 gives 0.25.",
+  "distractor_notes": {
+   "A": "Uses the 4 mL of acid already in the original solution (10% of 40) instead of the amount added.",
+   "B": "Ignores the added volume and solves (4 + x)/40 = 0.25, a different function.",
+   "D": "Gives the total acid in the final mixture, 4 + 8 = 12, instead of x."
+  },
+  "lesson": "M-5.3",
+  "blueprint": "S1",
+  "desmos_technique": "list-plug-in",
+  "source": "original",
+  "status": "draft",
+  "sat_quality": 4,
+  "topic": "chemistry lab acid solution mixing",
+  "choice_a": "4",
+  "choice_b": "6",
+  "choice_c": "8",
+  "choice_d": "12"
+ },
+ {
+  "external_id": "GEN-S1-003",
+  "section": "math",
   "skill": "Nonlinear equations in one variable and systems of equations in two variables",
   "difficulty": 2,
   "type": "mcq",
@@ -2643,7 +3613,7 @@
   "choice_d": "$10$"
  },
  {
-  "external_id": "GEN-S1-003",
+  "external_id": "GEN-S1-004",
   "section": "math",
   "skill": "Nonlinear equations in one variable and systems of equations in two variables",
   "difficulty": 3,
@@ -2698,6 +3668,32 @@
   "external_id": "GEN-DR1-002",
   "section": "math",
   "skill": "Linear functions",
+  "difficulty": 1,
+  "type": "mcq",
+  "stem": "Water drains at a constant rate from a tank shaped like a rectangular box. The depth of the water in the tank, in centimeters, $t$ minutes after the water began draining is given by the linear function $d$. The table shows three values of $t$ and their corresponding values of $d(t)$.\n\n| $t$ (minutes) | $d(t)$ (centimeters) |\n|:---:|:---:|\n| 4 | 60 |\n| 9 | 45 |\n| 14 | 30 |\n\nWhat was the depth of the water, in centimeters, at the moment the water began draining?",
+  "answer": "D",
+  "explanation": "Choice D is correct. Circle what the question asks for: the depth at $t = 0$, which is the $d$-intercept. From $t = 4$ to $t = 9$, the depth drops by $60 - 45 = 15$ centimeters over $5$ minutes, so the slope is $\\frac{-15}{5} = -3$ centimeters per minute. Going back 4 minutes from $t = 4$ to $t = 0$ adds $4 \\times 3 = 12$ centimeters, so $d(0) = 60 + 12 = 72$. Check: $d(t) = 72 - 3t$ gives $d(9) = 45$ and $d(14) = 30$.\n\nChoice A is incorrect. This is the rate at which the depth decreases (the size of the slope), not the starting depth.\n\nChoice B is incorrect. This is the depth at $t = 4$, the first row of the table, not at $t = 0$.\n\nChoice C is incorrect. This adds only one minute of draining back to the first row, which gives the depth at $t = 3$, not $t = 0$.\n\n**Desmos check:** Enter the table as $x_1$, $y_1$, then type $y_1 \\sim mx_1 + b$; Desmos gives $m = -3$ and $b = 72$.",
+  "distractor_notes": {
+   "A": "Gives the rate of decrease (3 cm per minute) instead of the intercept.",
+   "B": "Uses the first table row, $d(4) = 60$, as the intercept.",
+   "C": "Steps back only one minute from $t = 4$, giving the value at the wrong input, $d(3) = 63$."
+  },
+  "lesson": "M-5.2",
+  "blueprint": "DR1",
+  "desmos_technique": "regression",
+  "source": "original",
+  "status": "draft",
+  "sat_quality": 5,
+  "topic": "water draining from a rectangular box-shaped tank",
+  "choice_a": "3",
+  "choice_b": "60",
+  "choice_c": "63",
+  "choice_d": "72"
+ },
+ {
+  "external_id": "GEN-DR1-003",
+  "section": "math",
+  "skill": "Linear functions",
   "difficulty": 2,
   "type": "mcq",
   "stem": "A straight highway runs east from a city's center, and a map of the region shows part of the highway. For a point on the highway, the linear function $f$ gives the actual distance, in kilometers, of the point from the city center. Here $x$ is the distance, in centimeters, of the point on the map from the map's western edge. The table shows several values of $x$ and their corresponding values of $f(x)$.\n\n| $x$ | $f(x)$ |\n|:---:|:---:|\n| $4$ | $22$ |\n| $10$ | $37$ |\n| $16$ | $52$ |\n| $22$ | $67$ |\n\nWhat is the value of $f(0)$?",
@@ -2721,7 +3717,7 @@
   "choice_d": "$22$"
  },
  {
-  "external_id": "GEN-DR1-003",
+  "external_id": "GEN-DR1-004",
   "section": "math",
   "skill": "Nonlinear functions",
   "difficulty": 2,
@@ -2748,7 +3744,7 @@
   "choice_d": ""
  },
  {
-  "external_id": "GEN-DR1-004",
+  "external_id": "GEN-DR1-005",
   "section": "math",
   "skill": "Nonlinear functions",
   "difficulty": 3,
@@ -2883,6 +3879,32 @@
   "external_id": "GEN-DR3-002",
   "section": "math",
   "skill": "Nonlinear functions",
+  "difficulty": 1,
+  "type": "mcq",
+  "stem": "The function $f$ is defined by $f(x) = a \\cdot b^{x}$, where $a$ and $b$ are positive constants. If $f(0) = 2$ and $f(1) = 6$, what is the value of $b$?",
+  "answer": "B",
+  "explanation": "Choice B is correct. Substitute $x = 0$: $f(0) = a \\cdot b^{0} = a$, so $a = 2$. Substitute $x = 1$: $f(1) = a \\cdot b = 6$, so $2b = 6$ and $b = 3$. Check: $f(x) = 2 \\cdot 3^{x}$ gives $f(0) = 2$ and $f(1) = 6$.\n\nChoice A is incorrect. This is the value of $a$, the initial value, not the base $b$.\n\nChoice C is incorrect. This is the difference $6 - 2$, which treats the function as linear instead of exponential.\n\nChoice D is incorrect. This is $f(1)$, the output at $x = 1$, not the constant $b$.\n\n**Desmos check:** Enter $x_1 = [0, 1]$ and $y_1 = [2, 6]$, then type $y_1 \\sim a \\cdot b^{x_1}$; the regression shows $a = 2$ and $b = 3$.",
+  "distractor_notes": {
+   "A": "Swaps the constants: gives $a = 2$ instead of $b$.",
+   "C": "Subtracts the outputs ($6 - 2 = 4$) as if the growth were linear rather than multiplying by a constant factor.",
+   "D": "Reports the function value $f(1) = 6$ instead of the constant $b$."
+  },
+  "lesson": "M-5.2",
+  "blueprint": "DR3",
+  "desmos_technique": "regression",
+  "source": "original",
+  "status": "draft",
+  "sat_quality": 4,
+  "topic": "exponential function through two points, pure math",
+  "choice_a": "$2$",
+  "choice_b": "$3$",
+  "choice_c": "$4$",
+  "choice_d": "$6$"
+ },
+ {
+  "external_id": "GEN-DR3-003",
+  "section": "math",
+  "skill": "Nonlinear functions",
   "difficulty": 2,
   "type": "mcq",
   "stem": "A town council conducted a series of polls of town residents after a new community garden opened. The estimated number of residents who had heard about the garden $t$ weeks after it opened is modeled by the function $N(t) = a \\cdot b^t$, where $a$ and $b$ are positive constants. The model estimates that 180 residents had heard about the garden 2 weeks after it opened and 405 residents had heard about it 4 weeks after it opened. What is the value of $a$?",
@@ -2906,7 +3928,7 @@
   "choice_d": "270"
  },
  {
-  "external_id": "GEN-DR3-003",
+  "external_id": "GEN-DR3-004",
   "section": "math",
   "skill": "Nonlinear functions",
   "difficulty": 3,
@@ -2961,6 +3983,32 @@
   "external_id": "GEN-E1-002",
   "section": "rw",
   "skill": "Boundaries",
+  "difficulty": 1,
+  "type": "mcq",
+  "stem": "Each autumn, many migratory songbirds make their long journeys south at night. To stay on course, some species rely on the patterns of stars in the night ______ others appear to sense Earth's magnetic field and use it as a kind of internal compass.\n\nWhich choice completes the text so that it conforms to the conventions of Standard English?",
+  "answer": "A",
+  "explanation": "Choice A is correct. \"Some species rely on the patterns of stars in the night sky\" is a complete sentence. \"Others appear to sense Earth's magnetic field and use it as a kind of internal compass\" is also a complete sentence. Two complete sentences can be joined with a semicolon, so \"sky; others\" works.\n\nChoice B is incorrect. A comma alone cannot join two complete sentences. This creates a comma splice.\n\nChoice C is incorrect. With no punctuation between the two complete sentences, this creates a run-on sentence.\n\nChoice D is incorrect. \"However\" is not a FANBOYS conjunction, so a comma before it cannot join two complete sentences. This is still a comma splice.",
+  "distractor_notes": {
+   "B": "Uses a comma alone between two independent clauses (comma splice).",
+   "C": "Leaves out punctuation between two independent clauses (run-on).",
+   "D": "Treats \"however\" as a joining word; comma + however between two independent clauses is still a comma splice."
+  },
+  "lesson": "RW-4.1",
+  "blueprint": "E1",
+  "desmos_technique": "",
+  "source": "original",
+  "status": "draft",
+  "sat_quality": 4,
+  "topic": "songbird navigation by stars and magnetic field",
+  "choice_a": "sky; others",
+  "choice_b": "sky, others",
+  "choice_c": "sky others",
+  "choice_d": "sky, however, others"
+ },
+ {
+  "external_id": "GEN-E1-003",
+  "section": "rw",
+  "skill": "Boundaries",
   "difficulty": 2,
   "type": "mcq",
   "stem": "In 1845, textile workers in Lowell, Massachusetts, formed the Lowell Female Labor Reform Association to campaign for a ten-hour workday. Led by mill worker Sarah Bagley, the group gathered thousands of signatures on petitions to the state legislature ______ these petitions prompted lawmakers to hold public hearings on conditions in the state's factories.\n\nWhich choice completes the text so that it conforms to the conventions of Standard English?",
@@ -2984,7 +4032,7 @@
   "choice_d": "legislature;"
  },
  {
-  "external_id": "GEN-E1-003",
+  "external_id": "GEN-E1-004",
   "section": "rw",
   "skill": "Boundaries",
   "difficulty": 3,
@@ -3010,7 +4058,7 @@
   "choice_d": "negotiations. After"
  },
  {
-  "external_id": "GEN-E1-004",
+  "external_id": "GEN-E1-005",
   "section": "rw",
   "skill": "Boundaries",
   "difficulty": 3,
@@ -3036,7 +4084,7 @@
   "choice_d": "advance she does, however,"
  },
  {
-  "external_id": "GEN-E1-005",
+  "external_id": "GEN-E1-006",
   "section": "rw",
   "skill": "Boundaries",
   "difficulty": 3,
@@ -3062,7 +4110,7 @@
   "choice_d": "later, then, by"
  },
  {
-  "external_id": "GEN-E1-006",
+  "external_id": "GEN-E1-007",
   "section": "rw",
   "skill": "Boundaries",
   "difficulty": 3,
@@ -3088,7 +4136,7 @@
   "choice_d": "northwest, thus Kauaʻi,"
  },
  {
-  "external_id": "GEN-E1-007",
+  "external_id": "GEN-E1-008",
   "section": "rw",
   "skill": "Boundaries",
   "difficulty": 3,
@@ -3114,7 +4162,7 @@
   "choice_d": "alone, however, among"
  },
  {
-  "external_id": "GEN-E1-008",
+  "external_id": "GEN-E1-009",
   "section": "rw",
   "skill": "Boundaries",
   "difficulty": 3,
@@ -3140,7 +4188,7 @@
   "choice_d": "charge however within"
  },
  {
-  "external_id": "GEN-E1-009",
+  "external_id": "GEN-E1-010",
   "section": "rw",
   "skill": "Boundaries",
   "difficulty": 3,
@@ -3195,6 +4243,32 @@
   "external_id": "GEN-E2-002",
   "section": "rw",
   "skill": "Boundaries",
+  "difficulty": 1,
+  "type": "mcq",
+  "stem": "Each autumn, monarch butterflies from eastern North America fly to forests in central Mexico. The trip, which can cover more than 3,000 kilometers for some ______ is made by insects that have never traveled the route before.\n\nWhich choice completes the text so that it conforms to the conventions of Standard English?",
+  "answer": "A",
+  "explanation": "Choice A is correct. The clause \"which can cover more than 3,000 kilometers for some butterflies\" is extra information. If you remove it, the sentence still works: \"The trip is made by insects that have never traveled the route before.\" The comma after \"trip\" opens the extra information, so a comma must close it.\n\nChoice B is incorrect. A dash cannot close extra information that a comma opened. The two marks must match.\n\nChoice C is incorrect. With no closing mark, the extra information runs into the main verb \"is made,\" and the sentence becomes hard to follow.\n\nChoice D is incorrect. A semicolon must join two complete sentences. \"The trip, which can cover more than 3,000 kilometers for some butterflies\" is not a complete sentence.",
+  "distractor_notes": {
+   "B": "Mismatched mark: closes comma-opened extra information with a dash.",
+   "C": "No mark: leaves the nonessential clause open, so it runs into the verb \"is made.\"",
+   "D": "Semicolon: splits the subject from its verb; neither side is a complete sentence."
+  },
+  "lesson": "RW-4.2",
+  "blueprint": "E2",
+  "desmos_technique": "",
+  "source": "original",
+  "status": "draft",
+  "sat_quality": 5,
+  "topic": "monarch butterfly migration to Mexico",
+  "choice_a": "butterflies,",
+  "choice_b": "butterflies—",
+  "choice_c": "butterflies",
+  "choice_d": "butterflies;"
+ },
+ {
+  "external_id": "GEN-E2-003",
+  "section": "rw",
+  "skill": "Boundaries",
   "difficulty": 2,
   "type": "mcq",
   "stem": "Choreographer Marisol Achterberg rarely begins a new work in the studio. Her early sketches, drawn in pencil on graph paper and annotated with musical ______ map each dancer's path across the stage before a single rehearsal takes place. Only after weeks of revision does she invite her company to test the patterns.\n\nWhich choice completes the text so that it conforms to the conventions of Standard English?",
@@ -3218,7 +4292,7 @@
   "choice_d": "counts"
  },
  {
-  "external_id": "GEN-E2-003",
+  "external_id": "GEN-E2-004",
   "section": "rw",
   "skill": "Boundaries",
   "difficulty": 3,
@@ -3244,7 +4318,7 @@
   "choice_d": "Culture"
  },
  {
-  "external_id": "GEN-E2-004",
+  "external_id": "GEN-E2-005",
   "section": "rw",
   "skill": "Boundaries",
   "difficulty": 3,
@@ -3270,7 +4344,7 @@
   "choice_d": "unfold"
  },
  {
-  "external_id": "GEN-E2-005",
+  "external_id": "GEN-E2-006",
   "section": "rw",
   "skill": "Boundaries",
   "difficulty": 3,
@@ -3296,7 +4370,7 @@
   "choice_d": "film;"
  },
  {
-  "external_id": "GEN-E2-006",
+  "external_id": "GEN-E2-007",
   "section": "rw",
   "skill": "Boundaries",
   "difficulty": 3,
@@ -3322,7 +4396,7 @@
   "choice_d": "chain;"
  },
  {
-  "external_id": "GEN-E2-007",
+  "external_id": "GEN-E2-008",
   "section": "rw",
   "skill": "Boundaries",
   "difficulty": 3,
@@ -3348,7 +4422,7 @@
   "choice_d": "MaSp2"
  },
  {
-  "external_id": "GEN-E2-008",
+  "external_id": "GEN-E2-009",
   "section": "rw",
   "skill": "Boundaries",
   "difficulty": 3,
@@ -3374,7 +4448,7 @@
   "choice_d": "manuals"
  },
  {
-  "external_id": "GEN-E2-009",
+  "external_id": "GEN-E2-010",
   "section": "rw",
   "skill": "Boundaries",
   "difficulty": 3,
@@ -3429,6 +4503,32 @@
   "external_id": "GEN-E3-002",
   "section": "rw",
   "skill": "Boundaries",
+  "difficulty": 1,
+  "type": "mcq",
+  "stem": "In 1926, a group of young Harlem Renaissance artists published *Fire!!*, a literary magazine that featured work by several writers who would become notable figures of the movement______ Langston Hughes, Zora Neale Hurston, and Gwendolyn Bennett.\n\nWhich choice completes the text so that it conforms to the conventions of Standard English?",
+  "answer": "A",
+  "explanation": "Choice A is correct. The words before the blank form a complete sentence: \"In 1926, a group of young Harlem Renaissance artists published *Fire!!*, a literary magazine that featured work by several writers who would become notable figures of the movement.\" What follows is a list naming those writers. A colon is the right mark to introduce a list after a complete sentence.\n\nChoice B is incorrect. A comma makes the list run into the sentence and makes the names read like more items in a series instead of a list explaining \"several writers.\"\n\nChoice C is incorrect. A semicolon must join two independent clauses, but \"Langston Hughes, Zora Neale Hurston, and Gwendolyn Bennett\" is only a list of names, not a clause.\n\nChoice D is incorrect. With no punctuation, the list runs straight into \"movement\" with nothing to mark that it names the writers.",
+  "distractor_notes": {
+   "B": "Uses a comma to introduce a list after a complete sentence, blurring the list into the sentence.",
+   "C": "Uses a semicolon even though what follows is a list, not an independent clause.",
+   "D": "Leaves out punctuation, so nothing separates the complete sentence from the list that explains it."
+  },
+  "lesson": "RW-4.2",
+  "blueprint": "E3",
+  "desmos_technique": "",
+  "source": "original",
+  "status": "draft",
+  "sat_quality": 4,
+  "topic": "Harlem Renaissance magazine Fire!!",
+  "choice_a": "movement:",
+  "choice_b": "movement,",
+  "choice_c": "movement;",
+  "choice_d": "movement"
+ },
+ {
+  "external_id": "GEN-E3-003",
+  "section": "rw",
+  "skill": "Boundaries",
   "difficulty": 2,
   "type": "mcq",
   "stem": "During sleep, the brain does not simply rest. According to neuroscientist Ingrid Solberg, it performs three tasks that help preserve the day's ______ replaying recent experiences in the hippocampus, transferring those experiences to the cortex for long-term storage, and weakening neural connections that are no longer useful.\n\nWhich choice completes the text so that it conforms to the conventions of Standard English?",
@@ -3452,7 +4552,7 @@
   "choice_d": "learning"
  },
  {
-  "external_id": "GEN-E3-003",
+  "external_id": "GEN-E3-004",
   "section": "rw",
   "skill": "Boundaries",
   "difficulty": 3,
@@ -3478,7 +4578,7 @@
   "choice_d": "were,"
  },
  {
-  "external_id": "GEN-E3-004",
+  "external_id": "GEN-E3-005",
   "section": "rw",
   "skill": "Boundaries",
   "difficulty": 3,
@@ -3504,7 +4604,7 @@
   "choice_d": "appreciate;"
  },
  {
-  "external_id": "GEN-E3-005",
+  "external_id": "GEN-E3-006",
   "section": "rw",
   "skill": "Boundaries",
   "difficulty": 3,
@@ -3530,7 +4630,7 @@
   "choice_d": "were;"
  },
  {
-  "external_id": "GEN-E3-006",
+  "external_id": "GEN-E3-007",
   "section": "rw",
   "skill": "Boundaries",
   "difficulty": 3,
@@ -3556,7 +4656,7 @@
   "choice_d": "years"
  },
  {
-  "external_id": "GEN-E3-007",
+  "external_id": "GEN-E3-008",
   "section": "rw",
   "skill": "Boundaries",
   "difficulty": 3,
@@ -3582,7 +4682,7 @@
   "choice_d": "side by side"
  },
  {
-  "external_id": "GEN-E3-008",
+  "external_id": "GEN-E3-009",
   "section": "rw",
   "skill": "Boundaries",
   "difficulty": 3,
@@ -3608,7 +4708,7 @@
   "choice_d": "notice neon"
  },
  {
-  "external_id": "GEN-E3-009",
+  "external_id": "GEN-E3-010",
   "section": "rw",
   "skill": "Boundaries",
   "difficulty": 3,
@@ -3689,6 +4789,32 @@
   "external_id": "GEN-E4-003",
   "section": "rw",
   "skill": "Form, structure, and sense",
+  "difficulty": 1,
+  "type": "mcq",
+  "stem": "Built by Inca engineers centuries ago, the stone terraces that cover the hillsides of Peru's Sacred Valley ______ still farmed in some areas today. By holding soil in place, the terraces reduce erosion and allow crops such as maize and potatoes to grow on steep slopes.\n\nWhich choice completes the text so that it conforms to the conventions of Standard English?",
+  "answer": "C",
+  "explanation": "Choice C is correct. Cross out the middle: remove \"that cover the hillsides of Peru's Sacred Valley.\" What's left is \"the stone terraces ______ still farmed.\" The subject \"terraces\" is plural, and \"today\" calls for the present tense, so the plural present verb \"are\" is correct.\n\nChoice A is incorrect. \"Is\" is singular. It matches the nearest noun, \"Valley,\" instead of the plural subject \"terraces.\"\n\nChoice B is incorrect. \"Being\" is an -ing form and can't serve as the main verb, so the sentence would have no main verb.\n\nChoice D is incorrect. \"Were\" is plural but in the past tense, which conflicts with \"today\" and with the present-tense verbs in the next sentence.",
+  "distractor_notes": {
+   "A": "Matches the nearest noun, \"Valley\" (singular), instead of the subject \"terraces.\"",
+   "B": "Uses an -ing form, leaving the sentence without a main verb.",
+   "D": "Right number (plural) but wrong tense: past tense conflicts with \"today.\""
+  },
+  "lesson": "RW-4.3",
+  "blueprint": "E4",
+  "desmos_technique": "",
+  "source": "original",
+  "status": "draft",
+  "sat_quality": 4,
+  "topic": "Inca stone terraces in Peru's Sacred Valley",
+  "choice_a": "is",
+  "choice_b": "being",
+  "choice_c": "are",
+  "choice_d": "were"
+ },
+ {
+  "external_id": "GEN-E4-004",
+  "section": "rw",
+  "skill": "Form, structure, and sense",
   "difficulty": 2,
   "type": "mcq",
   "stem": "In a study of workplace retirement plans, economist Priya Raman found that employees tend to keep whatever option is preselected for them. The automatic enrollment of new hires in such plans, Raman notes, ______ participation rates far more than voluntary financial education programs do.\n\nWhich choice completes the text so that it conforms to the conventions of Standard English?",
@@ -3712,7 +4838,7 @@
   "choice_d": "have consistently raised"
  },
  {
-  "external_id": "GEN-E4-004",
+  "external_id": "GEN-E4-005",
   "section": "rw",
   "skill": "Form, structure, and sense",
   "difficulty": 3,
@@ -3738,7 +4864,7 @@
   "choice_d": "have made a persuasive case"
  },
  {
-  "external_id": "GEN-E4-005",
+  "external_id": "GEN-E4-006",
   "section": "rw",
   "skill": "Form, structure, and sense",
   "difficulty": 3,
@@ -3764,7 +4890,7 @@
   "choice_d": "had substantially reshaped"
  },
  {
-  "external_id": "GEN-E4-006",
+  "external_id": "GEN-E4-007",
   "section": "rw",
   "skill": "Form, structure, and sense",
   "difficulty": 3,
@@ -3790,7 +4916,7 @@
   "choice_d": "became progressively shorter"
  },
  {
-  "external_id": "GEN-E4-007",
+  "external_id": "GEN-E4-008",
   "section": "rw",
   "skill": "Form, structure, and sense",
   "difficulty": 3,
@@ -3816,7 +4942,7 @@
   "choice_d": "are closely tied"
  },
  {
-  "external_id": "GEN-E4-008",
+  "external_id": "GEN-E4-009",
   "section": "rw",
   "skill": "Form, structure, and sense",
   "difficulty": 3,
@@ -3842,7 +4968,7 @@
   "choice_d": "is thought to help explain"
  },
  {
-  "external_id": "GEN-E4-009",
+  "external_id": "GEN-E4-010",
   "section": "rw",
   "skill": "Form, structure, and sense",
   "difficulty": 3,
@@ -3868,7 +4994,7 @@
   "choice_d": "had gradually lowered the pH"
  },
  {
-  "external_id": "GEN-E4-010",
+  "external_id": "GEN-E4-011",
   "section": "rw",
   "skill": "Form, structure, and sense",
   "difficulty": 3,
@@ -3923,6 +5049,32 @@
   "external_id": "GEN-E5-002",
   "section": "rw",
   "skill": "Form, structure, and sense",
+  "difficulty": 1,
+  "type": "mcq",
+  "stem": "In 2019, the Halvorsen Manufacturing Company changed ______ retirement plan: rather than asking new employees to sign up, it enrolled them automatically. Participation rose sharply, an outcome behavioral economists attribute to the default effect, the tendency of people to keep whichever option is already selected for them.\n\nWhich choice completes the text so that it conforms to the conventions of Standard English?",
+  "answer": "B",
+  "explanation": "Choice B is correct. The blank needs a possessive word for the plan, and the plan belongs to \"the Halvorsen Manufacturing Company.\" One company is one thing, so it takes the singular possessive \"its.\" The passage confirms this when it refers to the company again as \"it.\"\n\nChoice A is incorrect. \"Their\" is plural, but the antecedent is a single company.\n\nChoice C is incorrect. \"It's\" means \"it is\" or \"it has,\" and \"changed it is retirement plan\" makes no sense. A possessive is needed.\n\nChoice D is incorrect. \"They're\" means \"they are.\" It is not possessive, and it is also plural.",
+  "distractor_notes": {
+   "A": "Treats the company as a group of people and uses the plural \"their\" instead of the singular \"its.\"",
+   "C": "Confuses the contraction \"it's\" (it is) with the possessive \"its.\"",
+   "D": "Uses the contraction \"they're\" (they are), which is neither possessive nor singular."
+  },
+  "lesson": "RW-4.4",
+  "blueprint": "E5",
+  "desmos_technique": "",
+  "source": "original",
+  "status": "draft",
+  "sat_quality": 5,
+  "topic": "Company retirement plan auto-enrollment (default effect)",
+  "choice_a": "their",
+  "choice_b": "its",
+  "choice_c": "it's",
+  "choice_d": "they're"
+ },
+ {
+  "external_id": "GEN-E5-003",
+  "section": "rw",
+  "skill": "Form, structure, and sense",
   "difficulty": 2,
   "type": "mcq",
   "stem": "In the seventh century, a Sogdian trading house based in Samarkand might coordinate caravans traveling between China and Persia. According to historian Daniyar Seitkali, such a house succeeded largely because of ______ network of family agents, who were stationed in distant cities and could extend credit to partners on short notice.\n\nWhich choice completes the text so that it conforms to the conventions of Standard English?",
@@ -3946,7 +5098,7 @@
   "choice_d": "its"
  },
  {
-  "external_id": "GEN-E5-003",
+  "external_id": "GEN-E5-004",
   "section": "rw",
   "skill": "Form, structure, and sense",
   "difficulty": 2,
@@ -3972,7 +5124,7 @@
   "choice_d": "they're"
  },
  {
-  "external_id": "GEN-E5-004",
+  "external_id": "GEN-E5-005",
   "section": "rw",
   "skill": "Form, structure, and sense",
   "difficulty": 3,
@@ -3998,7 +5150,7 @@
   "choice_d": "its determination to keep"
  },
  {
-  "external_id": "GEN-E5-005",
+  "external_id": "GEN-E5-006",
   "section": "rw",
   "skill": "Form, structure, and sense",
   "difficulty": 3,
@@ -4053,6 +5205,32 @@
   "external_id": "GEN-E6-002",
   "section": "rw",
   "skill": "Form, structure, and sense",
+  "difficulty": 1,
+  "type": "mcq",
+  "stem": "Elephants produce low-frequency rumbles that can travel several kilometers through the air and the ground. In 2009, biologist Amara Okafor ______ recorded rumbles to herds near a watering hole in Namibia and found that many of the animals turned toward the speaker.\n\nWhich choice completes the text so that it conforms to the conventions of Standard English?",
+  "answer": "A",
+  "explanation": "Choice A is correct. The clue \"In 2009\" places the action at a finished point in the past, so the simple past tense \"played\" is needed. It also matches the other past-tense verbs in the sentence, \"found\" and \"turned.\"\n\nChoice B is incorrect. The present perfect \"has played\" can't be used with a finished past date like 2009.\n\nChoice C is incorrect. The future tense \"will play\" doesn't fit an event that happened in 2009.\n\nChoice D is incorrect. The present tense \"plays\" is a random tense shift. It clashes with the date and with \"found\" and \"turned.\"",
+  "distractor_notes": {
+   "B": "Uses the present perfect with a finished past date (\"In 2009\").",
+   "C": "Uses the future tense for an event that already happened in 2009.",
+   "D": "Shifts to the present tense, which doesn't match the date or the other past-tense verbs (\"found,\" \"turned\")."
+  },
+  "lesson": "RW-4.5",
+  "blueprint": "E6",
+  "desmos_technique": "",
+  "source": "original",
+  "status": "draft",
+  "sat_quality": 4,
+  "topic": "elephant rumble playback study",
+  "choice_a": "played",
+  "choice_b": "has played",
+  "choice_c": "will play",
+  "choice_d": "plays"
+ },
+ {
+  "external_id": "GEN-E6-003",
+  "section": "rw",
+  "skill": "Form, structure, and sense",
   "difficulty": 3,
   "type": "mcq",
   "stem": "When Edward Jenner published his account of cowpox inoculation in 1798, the principle behind it was far from novel. Practitioners in China, India, and the Ottoman Empire, seeking to induce a mild but protective case of smallpox in healthy individuals, ______ material from smallpox sores into cuts or the nostrils for generations, a technique known as variolation.\n\nWhich choice completes the text so that it conforms to the conventions of Standard English?",
@@ -4076,7 +5254,7 @@
   "choice_d": "are introducing"
  },
  {
-  "external_id": "GEN-E6-003",
+  "external_id": "GEN-E6-004",
   "section": "rw",
   "skill": "Form, structure, and sense",
   "difficulty": 3,
@@ -4102,7 +5280,7 @@
   "choice_d": "will gradually transfer"
  },
  {
-  "external_id": "GEN-E6-004",
+  "external_id": "GEN-E6-005",
   "section": "rw",
   "skill": "Form, structure, and sense",
   "difficulty": 3,
@@ -4157,6 +5335,32 @@
   "external_id": "GEN-E7-002",
   "section": "rw",
   "skill": "Form, structure, and sense",
+  "difficulty": 1,
+  "type": "mcq",
+  "stem": "Bloodroot, a wildflower of eastern North America, relies on ants to spread its seeds. Each seed bears a fatty appendage called an elaiosome. After carrying the seeds underground, an ant colony feeds the elaiosomes to ______ and discards the intact seeds, which may later sprout.\n\nWhich choice completes the text so that it conforms to the conventions of Standard English?",
+  "answer": "B",
+  "explanation": "Choice B is correct. The larvae belong to the colony, so the possessive pronoun \"its\" (belongs to it) is needed. \"Larvae\" is simply the plural object of \"to,\" and nothing follows it to own, so it takes no apostrophe.\n\nChoice A is incorrect. \"It's\" means \"it is\"; \"feeds the elaiosomes to it is larvae\" makes no sense.\n\nChoice C is incorrect. \"Larvae's\" is possessive, but the larvae don't own anything here; the word is a plain plural.\n\nChoice D is incorrect. It makes both errors: \"it's\" for possession and an apostrophe on a plain plural.",
+  "distractor_notes": {
+   "A": "Uses it's (it is) to show possession.",
+   "C": "Adds a possessive apostrophe to the plain plural \"larvae,\" which owns nothing.",
+   "D": "Combines it's for possession with an apostrophe on a plain plural."
+  },
+  "lesson": "RW-4.4",
+  "blueprint": "E7",
+  "desmos_technique": "",
+  "source": "original",
+  "status": "draft",
+  "sat_quality": 5,
+  "topic": "Bloodroot seed dispersal by ants (elaiosomes)",
+  "choice_a": "it's larvae",
+  "choice_b": "its larvae",
+  "choice_c": "its larvae's",
+  "choice_d": "it's larvae's"
+ },
+ {
+  "external_id": "GEN-E7-003",
+  "section": "rw",
+  "skill": "Form, structure, and sense",
   "difficulty": 2,
   "type": "mcq",
   "stem": "Completed in 1962, the Halvorsen Public Library was designed jointly by five architects from three countries. Critics at first dismissed the concrete building as austere, but many now praise ______ daring use of cantilevered reading rooms, which appear to float above the plaza below.\n\nWhich choice completes the text so that it conforms to the conventions of Standard English?",
@@ -4180,7 +5384,7 @@
   "choice_d": "its architects"
  },
  {
-  "external_id": "GEN-E7-003",
+  "external_id": "GEN-E7-004",
   "section": "rw",
   "skill": "Form, structure, and sense",
   "difficulty": 3,
@@ -4206,7 +5410,7 @@
   "choice_d": "its author's recipe's"
  },
  {
-  "external_id": "GEN-E7-004",
+  "external_id": "GEN-E7-005",
   "section": "rw",
   "skill": "Form, structure, and sense",
   "difficulty": 3,
@@ -4232,7 +5436,7 @@
   "choice_d": "its designers insistence"
  },
  {
-  "external_id": "GEN-E7-005",
+  "external_id": "GEN-E7-006",
   "section": "rw",
   "skill": "Form, structure, and sense",
   "difficulty": 3,
@@ -4258,7 +5462,7 @@
   "choice_d": "the gardens' longtime volunteers"
  },
  {
-  "external_id": "GEN-E7-006",
+  "external_id": "GEN-E7-007",
   "section": "rw",
   "skill": "Form, structure, and sense",
   "difficulty": 3,
@@ -4284,7 +5488,7 @@
   "choice_d": "it's the Reinholt's willingness"
  },
  {
-  "external_id": "GEN-E7-007",
+  "external_id": "GEN-E7-008",
   "section": "rw",
   "skill": "Form, structure, and sense",
   "difficulty": 3,
@@ -4310,7 +5514,7 @@
   "choice_d": "it's glazes'"
  },
  {
-  "external_id": "GEN-E7-008",
+  "external_id": "GEN-E7-009",
   "section": "rw",
   "skill": "Form, structure, and sense",
   "difficulty": 3,
@@ -4365,6 +5569,32 @@
   "external_id": "GEN-E8-002",
   "section": "rw",
   "skill": "Form, structure, and sense",
+  "difficulty": 1,
+  "type": "mcq",
+  "stem": "Bioluminescent fungi produce light through a chemical reaction in which a compound called luciferin reacts with oxygen. One such species is *Mycena chlorophos*, a small mushroom found in parts of Asia and Australia. Growing on fallen branches in humid subtropical forests, ______\n\nWhich choice completes the text so that it conforms to the conventions of Standard English?",
+  "answer": "D",
+  "explanation": "Choice D is correct. The opening phrase \"Growing on fallen branches in humid subtropical forests\" describes the mushroom, so the noun right after the comma must be the mushroom itself. Choice D places \"this mushroom\" immediately after the comma.\n\nChoice A is incorrect. The passive voice puts \"a pale green glow\" first, so the sentence says the glow is growing on fallen branches.\n\nChoice B is incorrect. The possessive makes \"cells\" the subject, so the sentence says the mushroom's cells are growing on the branches, not the mushroom.\n\nChoice C is incorrect. \"The glow\" comes right after the comma, so the sentence says the glow is growing on fallen branches. The mushroom is buried in a later phrase.",
+  "distractor_notes": {
+   "A": "Passive voice puts the wrong noun (\"a pale green glow\") right after the opening phrase, so the glow seems to be growing on branches.",
+   "B": "Possessive trap: \"this mushroom's cells\" makes \"cells,\" not the mushroom, the noun described by the opening phrase.",
+   "C": "The right noun is buried later in the clause; \"the glow\" follows the comma and is wrongly described as growing on branches."
+  },
+  "lesson": "RW-4.6",
+  "blueprint": "E8",
+  "desmos_technique": "",
+  "source": "original",
+  "status": "draft",
+  "sat_quality": 5,
+  "topic": "Bioluminescent fungi (Mycena chlorophos)",
+  "choice_a": "a pale green glow is given off by this mushroom.",
+  "choice_b": "this mushroom's cells give off a pale green glow.",
+  "choice_c": "the glow of this mushroom is a pale green color.",
+  "choice_d": "this mushroom gives off a pale green glow."
+ },
+ {
+  "external_id": "GEN-E8-003",
+  "section": "rw",
+  "skill": "Form, structure, and sense",
   "difficulty": 2,
   "type": "mcq",
   "stem": "Jian ware tea bowls, made in Fujian Province during China's Song dynasty (960–1279), owe their fame to a dark, iron-rich glaze. Applied thickly and fired at high temperatures, ______ that admirers called \"hare's fur.\" Such bowls were especially prized for serving whisked powdered tea.\n\nWhich choice completes the text so that it conforms to the conventions of Standard English?",
@@ -4388,7 +5618,7 @@
   "choice_d": "the glaze formed fine brown streaks"
  },
  {
-  "external_id": "GEN-E8-003",
+  "external_id": "GEN-E8-004",
   "section": "rw",
   "skill": "Form, structure, and sense",
   "difficulty": 3,
@@ -4414,7 +5644,7 @@
   "choice_d": "it was reported by most volunteers"
  },
  {
-  "external_id": "GEN-E8-004",
+  "external_id": "GEN-E8-005",
   "section": "rw",
   "skill": "Form, structure, and sense",
   "difficulty": 3,
@@ -4440,7 +5670,7 @@
   "choice_d": "Valcárcel-Duarte weaves those gestures"
  },
  {
-  "external_id": "GEN-E8-005",
+  "external_id": "GEN-E8-006",
   "section": "rw",
   "skill": "Form, structure, and sense",
   "difficulty": 3,
@@ -4466,7 +5696,7 @@
   "choice_d": "the tortoise's forelimbs create a refuge"
  },
  {
-  "external_id": "GEN-E8-006",
+  "external_id": "GEN-E8-007",
   "section": "rw",
   "skill": "Form, structure, and sense",
   "difficulty": 3,
@@ -4492,7 +5722,7 @@
   "choice_d": "several of the fragments exhibited"
  },
  {
-  "external_id": "GEN-E8-007",
+  "external_id": "GEN-E8-008",
   "section": "rw",
   "skill": "Form, structure, and sense",
   "difficulty": 3,
@@ -4518,7 +5748,7 @@
   "choice_d": "foraging ants transport the seeds"
  },
  {
-  "external_id": "GEN-E8-008",
+  "external_id": "GEN-E8-009",
   "section": "rw",
   "skill": "Form, structure, and sense",
   "difficulty": 3,
@@ -4544,7 +5774,7 @@
   "choice_d": "the monarchs hold a southwesterly heading using"
  },
  {
-  "external_id": "GEN-E8-009",
+  "external_id": "GEN-E8-010",
   "section": "rw",
   "skill": "Form, structure, and sense",
   "difficulty": 3,
@@ -4573,6 +5803,32 @@
   "external_id": "GEN-E9-001",
   "section": "rw",
   "skill": "Transitions",
+  "difficulty": 1,
+  "type": "mcq",
+  "stem": "For centuries, farmers in the Andes Mountains of South America have carved terraces into steep hillsides. These flat, stair-like platforms of soil slow the flow of rainwater down the slopes. ______ the terraces help keep soil from washing away, allowing crops such as potatoes and quinoa to grow on land that would otherwise be too steep to farm.\n\nWhich choice completes the text with the most logical transition?",
+  "answer": "D",
+  "explanation": "Choice D is correct. Cover the blank and connect the sentences. The terraces slow rainwater, and because of that, soil stays in place. The last sentence is an effect of the one before it, so a cause-and-effect transition fits: \"As a result.\"\n\nChoice A is incorrect. \"However\" signals contrast, but keeping soil in place agrees with slowing rainwater; it does not oppose it.\n\nChoice B is incorrect. \"For example\" introduces an instance of the previous idea, but holding soil in place is a result of slowing water, not an example of it.\n\nChoice C is incorrect. \"Similarly\" signals a comparable separate point, but the last sentence describes a consequence of the previous one, not a parallel fact.",
+  "distractor_notes": {
+   "A": "Contrast group: treats the result as if it opposed the previous sentence.",
+   "B": "Example group: mistakes a consequence for an illustration of the earlier claim.",
+   "C": "Addition/comparison group: reads the last sentence as a parallel fact rather than an effect."
+  },
+  "lesson": "RW-3.1",
+  "blueprint": "E9",
+  "desmos_technique": "",
+  "source": "original",
+  "status": "draft",
+  "sat_quality": 4,
+  "topic": "Andean terrace farming and soil erosion",
+  "choice_a": "However,",
+  "choice_b": "For example,",
+  "choice_c": "Similarly,",
+  "choice_d": "As a result,"
+ },
+ {
+  "external_id": "GEN-E9-002",
+  "section": "rw",
+  "skill": "Transitions",
   "difficulty": 2,
   "type": "mcq",
   "stem": "Polynesian wayfinders could steer without instruments partly by reading ocean swells. Swells generated by steady, distant wind systems often keep a consistent direction for days, even when local winds shift. ______ a navigator who noted the angle at which a dominant swell struck the canoe's hull could use that angle to hold a course long after the stars had disappeared behind clouds.\n\nWhich choice completes the text with the most logical transition?",
@@ -4596,7 +5852,7 @@
   "choice_d": "Previously,"
  },
  {
-  "external_id": "GEN-E9-002",
+  "external_id": "GEN-E9-003",
   "section": "rw",
   "skill": "Transitions",
   "difficulty": 3,
@@ -4622,7 +5878,7 @@
   "choice_d": "Likewise,"
  },
  {
-  "external_id": "GEN-E9-003",
+  "external_id": "GEN-E9-004",
   "section": "rw",
   "skill": "Transitions",
   "difficulty": 3,
@@ -4807,6 +6063,32 @@
   "external_id": "GEN-E11-003",
   "section": "rw",
   "skill": "Central ideas and details",
+  "difficulty": 1,
+  "type": "mcq",
+  "stem": "Because many abstract expressionist paintings feature loose drips, sweeping brushstrokes, and splattered color, viewers often assume that the works were created quickly and without a plan. However, art historian Daniel Osei argues that the painter Esther Kolodny, who worked in New York in the 1950s, approached her canvases with considerable deliberation. Osei points to Kolodny's studio notebooks, which contain dozens of small sketches testing different color arrangements before she began each large painting. He also notes that she often worked on a single canvas for several months, adding and scraping away layers of paint.\n\nWhich choice best states the main idea of the text?",
+  "answer": "B",
+  "explanation": "Choice B is correct. The text sets up a common assumption, that abstract expressionist works were made quickly and without a plan, and then turns with \"However\" to Osei's claim that Kolodny worked with \"considerable deliberation.\" The notebooks and the months spent on each canvas are evidence for that claim. Choice B captures both the appearance and the reality.\n\nChoice A is incorrect. It starts correctly, but the text says Kolodny often worked on a single canvas for several months, not one day.\n\nChoice C is incorrect. This detail is accurate, but it is one piece of evidence that supports the main idea, not the main idea itself.\n\nChoice D is incorrect. The text describes what viewers often assume, not what all painters did, and the word \"always\" is too extreme. The text's point actually runs against this claim.",
+  "distractor_notes": {
+   "A": "Half right: correct about careful planning but contradicts the text, which says she worked on canvases for several months.",
+   "C": "True but doesn't answer: an accurate supporting detail rather than the main idea.",
+   "D": "Too extreme and a reversal: turns viewers' assumption into an absolute claim about all painters, which the text argues against."
+  },
+  "lesson": "RW-1.1",
+  "blueprint": "E11",
+  "desmos_technique": "",
+  "source": "original",
+  "status": "draft",
+  "sat_quality": 4,
+  "topic": "Abstract expressionist painter's deliberate process",
+  "choice_a": "Kolodny planned her paintings carefully, but she usually completed each canvas in one day.",
+  "choice_b": "Although Kolodny's paintings may appear spontaneous, she created them through careful planning.",
+  "choice_c": "Kolodny's studio notebooks contain small sketches that test different arrangements of color.",
+  "choice_d": "Abstract expressionist painters always rejected planning in favor of working quickly and freely."
+ },
+ {
+  "external_id": "GEN-E11-004",
+  "section": "rw",
+  "skill": "Central ideas and details",
   "difficulty": 3,
   "type": "mcq",
   "stem": "Because a whistle carries only a single, shifting pitch, it cannot reproduce most of the acoustic detail of the voice, and whistled speech has often been characterized as a drastically reduced code, serviceable for calls across ravines but little else. Linguist Inés Aguado-Mbeki does not dispute that whistling discards much; she contends, however, that the discarding is far from indiscriminate. In Silbo Gomero, the whistled Spanish of the island of La Gomera, vowels are rendered as relative pitch heights and consonants as shifts or interruptions between them—precisely the cues, her perceptual experiments suggest, that listeners rely on most to tell words apart. What whistlers preserve, on her account, is thus less a remnant of speech than a distillation of its most informative contrasts.\n\nWhich choice best states the main idea of the text?",
@@ -4830,7 +6112,7 @@
   "choice_d": "A linguist disputes the claim that whistling discards much of the voice's acoustic detail, citing experiments suggesting that listeners perceive whistled and spoken words alike."
  },
  {
-  "external_id": "GEN-E11-004",
+  "external_id": "GEN-E11-005",
   "section": "rw",
   "skill": "Central ideas and details",
   "difficulty": 3,
@@ -4856,7 +6138,7 @@
   "choice_d": "Deltas can shift among river-, wave-, and tide-dominated forms over time, and a delta's present shape therefore reveals the full history of the forces that built it."
  },
  {
-  "external_id": "GEN-E11-005",
+  "external_id": "GEN-E11-006",
   "section": "rw",
   "skill": "Central ideas and details",
   "difficulty": 3,
@@ -4882,7 +6164,7 @@
   "choice_d": "Ferreyra shows that abandoned burrows attract more visitors than occupied ones, a pattern she attributes to tortoises aggressively driving other animals away from their burrows."
  },
  {
-  "external_id": "GEN-E11-006",
+  "external_id": "GEN-E11-007",
   "section": "rw",
   "skill": "Central ideas and details",
   "difficulty": 3,
@@ -4908,7 +6190,7 @@
   "choice_d": "Corals hosting heat-tolerant algae withstand later heat waves better than other corals do, so reefs dominated by them should recover quickly from storms and other damage."
  },
  {
-  "external_id": "GEN-E11-007",
+  "external_id": "GEN-E11-008",
   "section": "rw",
   "skill": "Central ideas and details",
   "difficulty": 3,
@@ -4934,7 +6216,7 @@
   "choice_d": "Clara comes to see the condescension that once irritated her as freeing, since a crowd that expects little leaves her answerable only to herself."
  },
  {
-  "external_id": "GEN-E11-008",
+  "external_id": "GEN-E11-009",
   "section": "rw",
   "skill": "Central ideas and details",
   "difficulty": 3,
@@ -4960,7 +6242,7 @@
   "choice_d": "Okafor contends that because abstract expressionist painters revised their canvases extensively, critics were mistaken to treat spontaneity as one of the movement's central aims."
  },
  {
-  "external_id": "GEN-E11-009",
+  "external_id": "GEN-E11-010",
   "section": "rw",
   "skill": "Central ideas and details",
   "difficulty": 3,
@@ -5015,6 +6297,32 @@
   "external_id": "GEN-E12-002",
   "section": "rw",
   "skill": "Command of evidence: textual",
+  "difficulty": 1,
+  "type": "mcq",
+  "stem": "Small-town newspapers often cover events that larger regional outlets ignore, such as city council meetings, school board votes, and debates over local budgets. Political scientist Tomasz Wierzbicki has studied what happens to civic life in towns after such papers shut down. Because residents may lose their main source of information about local government, Wierzbicki hypothesizes that when a town loses its only local newspaper, fewer residents run for local offices and fewer residents vote in local elections.\n\nWhich finding, if true, would most directly support Wierzbicki's hypothesis?",
+  "answer": "B",
+  "explanation": "Choice B is correct. Split the hypothesis into two parts. After a town loses its newspaper, (1) fewer residents run for local office and (2) fewer residents vote in local elections. Choice B matches both parts: fewer candidates and lower turnout after the papers closed.\n\nChoice A is incorrect. It matches only the first part. Unchanged turnout fails to support the claim about voting.\n\nChoice C is incorrect. It is on the right topic, but the relationship runs the wrong way. It says candidates lead to newspapers, not that losing a newspaper reduces candidates and voters.\n\nChoice D is incorrect. More candidates and higher turnout after a closure point the opposite way, so this finding would weaken the hypothesis.",
+  "distractor_notes": {
+   "A": "Matches only one part of the hypothesis (fewer candidates) and contradicts the other (turnout).",
+   "C": "Right topic, wrong relationship: reverses the direction of cause between newspapers and candidates.",
+   "D": "Points the opposite way: this finding would weaken the hypothesis, not support it."
+  },
+  "lesson": "RW-1.2",
+  "blueprint": "E12",
+  "desmos_technique": "",
+  "source": "original",
+  "status": "draft",
+  "sat_quality": 4,
+  "topic": "small-town newspaper closures and local elections",
+  "choice_a": "Towns that lost their newspapers saw fewer candidates but unchanged voter turnout.",
+  "choice_b": "After their newspapers closed, towns had fewer local candidates and lower local turnout.",
+  "choice_c": "Towns with more local candidates were more likely to start new newspapers.",
+  "choice_d": "After their newspapers closed, towns had more local candidates and higher local turnout."
+ },
+ {
+  "external_id": "GEN-E12-003",
+  "section": "rw",
+  "skill": "Command of evidence: textual",
   "difficulty": 2,
   "type": "mcq",
   "stem": "When a gas giant orbits very close to its star, the star's radiation can heat the planet's upper atmosphere so intensely that gas streams away into space, forming an extended cloud of hydrogen or helium that telescopes can detect around the planet. Astronomer Mariela Quispe and her colleagues have proposed that two factors govern how quickly this escape occurs. They hypothesize that escape is fastest for planets whose host stars emit unusually high levels of ultraviolet radiation and that, among planets receiving similar amounts of such radiation, escape is faster for less massive planets, whose weaker gravity holds their atmospheres less tightly.\n\nWhich finding, if true, would most directly support Quispe and her colleagues' hypothesis?",
@@ -5038,7 +6346,7 @@
   "choice_d": "Planets orbiting stars with high ultraviolet output had upper atmospheres that contained more helium than hydrogen, regardless of how massive the planets themselves were."
  },
  {
-  "external_id": "GEN-E12-003",
+  "external_id": "GEN-E12-004",
   "section": "rw",
   "skill": "Command of evidence: textual",
   "difficulty": 3,
@@ -5064,7 +6372,7 @@
   "choice_d": "Narrow, layered melanosomes are concentrated in the tail feathers of adult specimens, as in several living bird species whose iridescent tails help them blend into sunlit foliage."
  },
  {
-  "external_id": "GEN-E12-004",
+  "external_id": "GEN-E12-005",
   "section": "rw",
   "skill": "Command of evidence: textual",
   "difficulty": 3,
@@ -5090,7 +6398,7 @@
   "choice_d": "Dust from glacial-period ice shares a chemical signature with Patagonian outwash sediments, and its grains are, on average, no larger than those of dust from interglacial-period ice."
  },
  {
-  "external_id": "GEN-E12-005",
+  "external_id": "GEN-E12-006",
   "section": "rw",
   "skill": "Command of evidence: textual",
   "difficulty": 3,
@@ -5116,7 +6424,7 @@
   "choice_d": "Families who had lost relatives to smallpox accepted vaccination at higher rates than other families, both in parishes served by local practitioners and in those served by officials."
  },
  {
-  "external_id": "GEN-E12-006",
+  "external_id": "GEN-E12-007",
   "section": "rw",
   "skill": "Command of evidence: textual",
   "difficulty": 3,
@@ -5142,7 +6450,7 @@
   "choice_d": "“I began to wonder whether I had any right to the songs at all, since the families who sang them had never asked a stranger from the city to carry them off in a notebook.”"
  },
  {
-  "external_id": "GEN-E12-007",
+  "external_id": "GEN-E12-008",
   "section": "rw",
   "skill": "Command of evidence: textual",
   "difficulty": 3,
@@ -5168,7 +6476,7 @@
   "choice_d": "For many designs, *bokashi* disappeared only after monthly orders had fallen well below their earlier levels, and printers' fees per impression dropped at the point it disappeared."
  },
  {
-  "external_id": "GEN-E12-008",
+  "external_id": "GEN-E12-009",
   "section": "rw",
   "skill": "Command of evidence: textual",
   "difficulty": 3,
@@ -5194,7 +6502,7 @@
   "choice_d": "Renters who moved into cooperatives became more active in neighborhood associations within their first year of residence, before any of them had been asked to serve on a board."
  },
  {
-  "external_id": "GEN-E12-009",
+  "external_id": "GEN-E12-010",
   "section": "rw",
   "skill": "Command of evidence: textual",
   "difficulty": 3,
@@ -5405,6 +6713,32 @@
   "external_id": "GEN-E14-002",
   "section": "rw",
   "skill": "Inferences",
+  "difficulty": 1,
+  "type": "mcq",
+  "stem": "Although the name \"Silk Road\" suggests a single highway, the trade that linked China with the Mediterranean world for centuries actually moved along a shifting web of overland routes. Historian Farida Mansurova has examined surviving records, such as letters and tax documents, from caravan towns along these routes. She notes that the records rarely mention merchants who traveled the full distance between China and the Mediterranean. Instead, they mostly describe traders who carried goods between nearby markets and then sold those goods to other traders heading farther on. Yet Chinese silk was regularly sold in cities near the Mediterranean. Mansurova's findings therefore suggest that ______\n\nWhich choice most logically completes the text?",
+  "answer": "A",
+  "explanation": "Choice A is correct. Number the steps. (1) The records rarely mention merchants who made the whole journey. (2) They mostly describe traders who moved goods between nearby markets and then sold them to traders going farther. (3) Yet Chinese silk still reached cities near the Mediterranean. Combine the steps: if almost no one carried silk the whole way, the silk must have been handed from trader to trader along the routes. That is the smallest statement the text forces.\n\nChoice B is incorrect. It contradicts step 1: the records rarely mention merchants who traveled the full distance.\n\nChoice C is incorrect. It is too extreme. The text never compares silk with other Chinese goods, so nothing supports calling silk the only good traded across the network.\n\nChoice D is incorrect. It only repeats the opening point that the routes formed a shifting web. It does not draw a conclusion from Mansurova's findings about how goods traveled.",
+  "distractor_notes": {
+   "B": "Contradicts a step: the records rarely mention merchants who made the full journey.",
+   "C": "Too extreme: the text gives no basis for saying silk was the only good traded across the whole network.",
+   "D": "Repeats an earlier step (the shifting web of routes) instead of concluding from the records."
+  },
+  "lesson": "RW-1.4",
+  "blueprint": "E14",
+  "desmos_technique": "",
+  "source": "original",
+  "status": "draft",
+  "sat_quality": 4,
+  "topic": "Silk Road relay trade through caravan towns",
+  "choice_a": "Chinese silk probably reached distant markets by passing through the hands of many separate traders.",
+  "choice_b": "most merchants from China regularly traveled the full route to sell silk in Mediterranean cities.",
+  "choice_c": "silk was the only Chinese good valuable enough to be traded across the entire network.",
+  "choice_d": "the overland routes connecting China with the Mediterranean world changed course over the centuries."
+ },
+ {
+  "external_id": "GEN-E14-003",
+  "section": "rw",
+  "skill": "Inferences",
   "difficulty": 2,
   "type": "mcq",
   "stem": "Studies have linked the closure of small-town newspapers to a drop in the number of residents who run for local office. Some researchers attribute this drop to lost information: without a paper reporting on council meetings, would-be candidates know less about local issues and may hesitate to run. Media scholar Ines Varga-Holm notes, however, that in several towns she studied, a regional daily newspaper continued to report on council meetings in detail after the local weekly closed. Yet candidacies in those towns fell just as sharply as in towns that lost all coverage. Varga-Holm's observation therefore suggests that ______\n\nWhich choice most logically completes the text?",
@@ -5428,7 +6762,7 @@
   "choice_d": "would-be candidates in towns without a local paper know less about council issues than others do."
  },
  {
-  "external_id": "GEN-E14-003",
+  "external_id": "GEN-E14-004",
   "section": "rw",
   "skill": "Inferences",
   "difficulty": 3,
@@ -5454,7 +6788,7 @@
   "choice_d": "listeners in the community can tell apart words with identical tones using some property of the whistles other than pitch, even without context."
  },
  {
-  "external_id": "GEN-E14-004",
+  "external_id": "GEN-E14-005",
   "section": "rw",
   "skill": "Inferences",
   "difficulty": 3,
@@ -5480,7 +6814,7 @@
   "choice_d": "even visitors who never sit become fatigued over the course of a visit and so linger near benches increasingly as that visit proceeds."
  },
  {
-  "external_id": "GEN-E14-005",
+  "external_id": "GEN-E14-006",
   "section": "rw",
   "skill": "Inferences",
   "difficulty": 3,
@@ -5717,6 +7051,32 @@
   "external_id": "GEN-E16-002",
   "section": "rw",
   "skill": "Text structure and purpose",
+  "difficulty": 1,
+  "type": "mcq",
+  "stem": "Many ceramics produced during China's Song dynasty (960–1279) are admired today for the beauty of their glazes, but some of those glazes were developed with practical uses in mind. Tea bowls made at the Jian kilns in Fujian Province offer an example. These bowls were coated in a dark, iron-rich glaze that often formed fine brown streaks during firing. <u>Song tea drinkers whisked powdered tea into a pale froth, and the black glaze made that white foam easy to see.</u> Because the color and lasting quality of the froth were judged in popular tea contests, the bowls became highly prized.\n\nWhich choice best describes the function of the underlined sentence in the text as a whole?",
+  "answer": "D",
+  "explanation": "Choice D is correct. The text claims that some Song glazes were developed for practical uses and gives the Jian tea bowls as an example. The underlined sentence explains that practical use: the dark glaze made the pale tea froth easy to see.\n\nChoice A is incorrect. The streaks that form during firing are mentioned in the sentence before the underlined one, not in the underlined sentence.\n\nChoice B is incorrect. The underlined sentence does explain why the glaze was valued, but for a practical reason (showing the froth), not for decoration.\n\nChoice C is incorrect. The text never compares the Jian bowls with ceramics from other kilns.",
+  "distractor_notes": {
+   "A": "Job of a different sentence: the streaks forming during firing are described in the third sentence.",
+   "B": "Half right: the first verb fits, but the reason given (decoration) is the opposite of the practical purpose the sentence explains.",
+   "C": "Off-topic: no other kilns or ceramics are discussed."
+  },
+  "lesson": "RW-2.2",
+  "blueprint": "E16",
+  "desmos_technique": "",
+  "source": "original",
+  "status": "draft",
+  "sat_quality": 4,
+  "topic": "Jian ware tea bowls, Song dynasty",
+  "choice_a": "It describes the process by which the bowls' streaked patterns formed during firing.",
+  "choice_b": "It explains why the bowls' dark glaze was valued chiefly for its decorative streaks.",
+  "choice_c": "It compares the tea bowls from the Jian kilns with ceramics from other Song kilns.",
+  "choice_d": "It explains how the bowls' dark glaze served a practical purpose for tea drinkers."
+ },
+ {
+  "external_id": "GEN-E16-003",
+  "section": "rw",
+  "skill": "Text structure and purpose",
   "difficulty": 2,
   "type": "mcq",
   "stem": "Tea has often been described as a classic commodity: a product so uniform that buyers choose among suppliers on price alone. Under this view, small growers have little reason to invest in producing distinctive leaf, since any premium they might earn would quickly be competed away. Economist Priya Venkataraman's study of a decade of records from a tea auction house complicates that picture. <u>She found that lots from estates with steady reputations for careful plucking regularly sold above the average price, even when blind tasters could detect no difference in quality.</u> Reputation, Venkataraman suggests, functioned as a kind of insurance for buyers, who were willing to pay extra to reduce the risk of receiving an inconsistent shipment.\n\nWhich choice best describes the function of the underlined sentence in the text as a whole?",
@@ -5740,7 +7100,7 @@
   "choice_d": "It describes the blind tasting method Venkataraman used to measure quality differences among the estates' tea."
  },
  {
-  "external_id": "GEN-E16-003",
+  "external_id": "GEN-E16-004",
   "section": "rw",
   "skill": "Text structure and purpose",
   "difficulty": 3,
@@ -5766,7 +7126,7 @@
   "choice_d": "It provides the basis for the text's conclusion that humid cities should replace tree planting with other methods of reducing heat stress."
  },
  {
-  "external_id": "GEN-E16-004",
+  "external_id": "GEN-E16-005",
   "section": "rw",
   "skill": "Text structure and purpose",
   "difficulty": 3,
@@ -5792,7 +7152,7 @@
   "choice_d": "To present a researcher's explanation of how seemingly conflicting findings about remote work and productivity could each be valid"
  },
  {
-  "external_id": "GEN-E16-005",
+  "external_id": "GEN-E16-006",
   "section": "rw",
   "skill": "Text structure and purpose",
   "difficulty": 3,
@@ -5818,7 +7178,7 @@
   "choice_d": "It contrasts two approaches to studying the Mali Empire, evaluates the evidence each relies on, and then argues that one approach is superior."
  },
  {
-  "external_id": "GEN-E16-006",
+  "external_id": "GEN-E16-007",
   "section": "rw",
   "skill": "Text structure and purpose",
   "difficulty": 3,
@@ -5873,6 +7233,32 @@
   "external_id": "GEN-E17-002",
   "section": "rw",
   "skill": "Cross-text connections",
+  "difficulty": 1,
+  "type": "mcq",
+  "stem": "**Text 1**\n\nCompleted in 1869, the first transcontinental railroad in the United States linked the Central Pacific and Union Pacific lines at Promontory Summit, Utah. <u>The project succeeded mainly because of the engineers and financiers who directed it.</u> Their careful surveys of mountain passes and their success in securing federal support allowed workers to lay nearly 1,800 miles of track in roughly six years.\n\n**Text 2**\n\nPopular accounts of the transcontinental railroad tend to celebrate the men who planned it, but these accounts overlook the people who actually built it. Thousands of Chinese immigrants made up most of the Central Pacific's workforce, and they performed some of the most dangerous tasks, such as blasting tunnels through the solid granite of the Sierra Nevada. Without their labor, the planners' surveys and funding would have produced little more than maps.\n\nBased on the texts, how would the author of Text 2 most likely respond to the underlined claim in Text 1?",
+  "answer": "B",
+  "explanation": "Choice B is correct. Text 1 says the railroad succeeded mainly because of its engineers and financiers. Text 2 says such accounts \"overlook the people who actually built it,\" such as the Chinese immigrants who did the most dangerous work. So the author of Text 2 would say the claim gives too little credit to the workers. The two texts disagree.\n\nChoice A is incorrect. This is too extreme. Text 2 says the planners' work would have produced \"little more than maps\" without the workers, not that the planners contributed nothing.\n\nChoice C is incorrect. This is off-topic. Neither text discusses how long the planners expected construction to take.\n\nChoice D is incorrect. This is Text 1's view, not Text 2's. Text 2 argues that surveys alone were not enough and that the workers' labor was essential.",
+  "distractor_notes": {
+   "A": "Too extreme: Text 2 says planners' work needed the workers' labor, not that planners contributed nothing.",
+   "C": "Off-topic: neither text mentions the planners' expected timeline.",
+   "D": "Reverses the views: this agrees with Text 1, but Text 2 argues the planners get too much credit."
+  },
+  "lesson": "RW-2.3",
+  "blueprint": "E17",
+  "desmos_technique": "",
+  "source": "original",
+  "status": "draft",
+  "sat_quality": 4,
+  "topic": "transcontinental railroad: planners vs. Chinese laborers",
+  "choice_a": "By claiming that the engineers and financiers made no meaningful contribution to completing the railroad",
+  "choice_b": "By asserting that the claim gives too little credit to the workers who built the railroad",
+  "choice_c": "By pointing out that the railroad took far longer to complete than its planners had expected",
+  "choice_d": "By agreeing that the railroad's success depended mostly on careful surveys of mountain passes"
+ },
+ {
+  "external_id": "GEN-E17-003",
+  "section": "rw",
+  "skill": "Cross-text connections",
   "difficulty": 2,
   "type": "mcq",
   "stem": "**Text 1**\n\nHydrothermal vents, where mineral-rich fluids gush from the seafloor, support dense communities of tubeworms, mussels, and snails that depend on chemosynthetic bacteria rather than sunlight. Because individual vents can fall silent within decades and neighboring vent fields are often separated by hundreds of kilometers of cold, food-poor seafloor, many biologists have assumed that <u>each vent field's animal populations are effectively isolated, replenished almost entirely by offspring produced locally</u>.\n\n**Text 2**\n\nMarine ecologist Tavita Leaupepe and colleagues collected the drifting larvae of a common vent limpet along the East Pacific Rise and modeled the currents that carry them. The larvae rose several hundred meters above the seafloor, where faster currents could transport some of them more than 300 kilometers before they settled. Genetic comparisons supported this finding: limpets from widely separated vent fields were nearly indistinguishable, indicating frequent exchange of individuals between sites.\n\nBased on the texts, how would the author of Text 2 most likely respond to the underlined claim in Text 1?",
@@ -5896,7 +7282,7 @@
   "choice_d": "By noting that chemosynthetic bacteria, rather than the animals that depend on them, are the vent organisms most likely to disperse between sites"
  },
  {
-  "external_id": "GEN-E17-003",
+  "external_id": "GEN-E17-004",
   "section": "rw",
   "skill": "Cross-text connections",
   "difficulty": 3,
@@ -5922,7 +7308,7 @@
   "choice_d": "By agreeing that a technological mismatch decided the battle but suggesting that rivalries within Songhai's ruling family had kept it from acquiring firearms of its own"
  },
  {
-  "external_id": "GEN-E17-004",
+  "external_id": "GEN-E17-005",
   "section": "rw",
   "skill": "Cross-text connections",
   "difficulty": 3,

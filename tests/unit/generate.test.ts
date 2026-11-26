@@ -107,6 +107,9 @@ describe("a limited run", () => {
     expect(slots).toHaveLength(141);
     expect(new Set(slots.map((s) => s.blueprint)).size).toBe(47);
     expect(new Set(slots.map((s) => s.difficulty))).toEqual(new Set([1, 2, 3]));
+    // Even a run shorter than the number of blueprints mixes the difficulties.
+    const short = limitRequests(planRequests(blueprints), 30).flatMap((q) => q.slots);
+    for (const d of [1, 2, 3]) expect(short.filter((s) => s.difficulty === d).length).toBeGreaterThanOrEqual(9);
     expect(reqs.every((q) => q.slots.length <= 4 && q.slots.every((s) => s.blueprint === q.blueprint && s.difficulty === q.slots[0].difficulty))).toBe(true);
   });
 });
