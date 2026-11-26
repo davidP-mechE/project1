@@ -13,7 +13,8 @@
  *
  * Needs COURSEBOOK_ANTHROPIC_API_KEY (or ANTHROPIC_API_KEY). Working files: data/generated/ (not committed).
  * Output: data/questions/1600-generated-questions.json. Model: CLAUDE_MODEL_GENERATE (default claude-opus-5-5),
- * effort CLAUDE_EFFORT_GENERATE (default high), verify effort CLAUDE_EFFORT_VERIFY (default high).
+ * effort CLAUDE_EFFORT_GENERATE (default high; hard questions CLAUDE_EFFORT_GENERATE_HARD, default xhigh),
+ * verify effort CLAUDE_EFFORT_VERIFY (default high).
  */
 import { promises as fs } from "node:fs";
 import path from "node:path";
@@ -58,6 +59,7 @@ async function main() {
   const cfg: GenConfig = {
     model: process.env.CLAUDE_MODEL_GENERATE || "claude-opus-5-5",
     effort: (process.env.CLAUDE_EFFORT_GENERATE as Effort) || "high",
+    hardEffort: (process.env.CLAUDE_EFFORT_GENERATE_HARD as Effort) || "xhigh",
     verifyEffort: (process.env.CLAUDE_EFFORT_VERIFY as Effort) || "high",
   };
   const blueprints = await readBlueprints();
@@ -76,7 +78,7 @@ async function main() {
     const target = blueprints.filter((b) => !only || only.includes(b.id)).reduce((a, b) => a + b.count, 0);
     const e = estimate(todo.length, n, n + unverified().length, cfg);
     console.info(`${blueprints.length} blueprints, ${target} questions wanted (${n} to write, about 25% extra so failures can be dropped), ${todo.length} writing requests.`);
-    console.info(`Model ${cfg.model}, effort ${cfg.effort} (verify ${cfg.verifyEffort}), Message Batches API (half price).`);
+    console.info(`Model ${cfg.model}, effort ${cfg.effort} (hard ${cfg.hardEffort}, verify ${cfg.verifyEffort}), Message Batches API (half price).`);
     console.info(`Estimate: about ${(e.input / 1e6).toFixed(1)}M input tokens, ${(e.out.low / 1e6).toFixed(1)}–${(e.out.high / 1e6).toFixed(1)}M output tokens: $${e.usd.low.toFixed(0)}–$${e.usd.high.toFixed(0)}.`);
     return;
   }
@@ -92,7 +94,7 @@ async function main() {
     const math = blueprints.filter((b) => b.section === "math");
     const rw = blueprints.filter((b) => b.section === "rw");
     const order = math.flatMap((m, i) => [m, rw[i]]).filter(Boolean).filter((b) => !only || only.includes(b.id));
-    const spread = order.filter((_, i) => i % Math.max(1, Math.floor(order.length / n)) === 0).slice(0, n);
+    const spread = [...new Set(Array.from({ length: Math.min(n, order.length) }, (_, i) => order[Math.floor((i * order.length) / Math.min(n, order.length))]))];
     const reqs: GenRequest[] = spread.map((b, i) => {
       const s = [...slots.values()].find((x) => x.blueprint === b.id && x.difficulty === ((i % 3) + 1) && !itemsBySlot(r).has(x.slot)) ?? [...slots.values()].find((x) => x.blueprint === b.id && !itemsBySlot(r).has(x.slot))!;
       return { id: `gen-${s.slot}`, blueprint: b.id, slots: [s] };

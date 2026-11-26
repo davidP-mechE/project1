@@ -180,6 +180,9 @@ export function generateUserText(bp: Blueprint, slots: Slot[], spec: StyleSpec |
     (s) =>
       `- slot ${s.slot}: difficulty ${s.difficulty}, ${s.type === "grid-in" ? "grid-in (no choices)" : `multiple choice, correct answer at ${s.letter} (if the choices are numbers, order them ascending and let the letter fall where it falls)`}, subject or context: ${s.topic}`,
   );
+  const hard = slots.some((s) => s.difficulty === 3)
+    ? `\nFor each difficulty-3 slot, before writing it, decide: which 2–3 ideas it chains, what it asks for that is one step past the obvious target, and exactly where a strong but rushing student (a 700–750 scorer) would go wrong. A question a careful student answers in 30 seconds without doubt is NOT hard: rewrite it. A real hard question would make most well-prepared students hesitate.\n`
+    : "";
   return `Blueprint ${bp.id} · ${bp.title}
 Section: ${bp.section === "math" ? "Math" : "Reading and Writing"}
 Skill names (use one, exactly): ${bp.skills.join(" | ")}
@@ -188,7 +191,7 @@ How to build it: ${bp.build}
 Wrong answers come from: ${bp.wrong.join("; ")}
 Harder versions: ${bp.harder}
 ${bp.desmos ? `Desmos method for the explanation's check: ${bp.desmos}` : "No Desmos check needed (desmos_check empty)."}
-${styleText(spec, bp, slots)}
+${styleText(spec, bp, slots)}${hard}
 Write ${slots.length} question${slots.length === 1 ? "" : "s"}, one per slot below. Make them clearly different from one another: different contexts, numbers, sentence structures and question forms within the blueprint. Use the subject or context given as a starting point, not a script.
 ${lines.join("\n")}`;
 }

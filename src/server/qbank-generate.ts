@@ -42,7 +42,9 @@ export const REPORT_FILE = "qgen_report.json";
 export const OUTPUT_FILE = "data/questions/1600-generated-questions.json";
 const BATCH_BYTES = 150 * 1024 * 1024;
 
-export type GenConfig = { model: string; effort: "low" | "medium" | "high" | "xhigh" | "max"; verifyEffort: "low" | "medium" | "high" | "xhigh" | "max" };
+type Effort = "low" | "medium" | "high" | "xhigh" | "max";
+/** effort: easy and medium questions; hardEffort: requests for hard questions (they need more reasoning to be genuinely hard). */
+export type GenConfig = { model: string; effort: Effort; hardEffort: Effort; verifyEffort: Effort };
 type Cost = { costUsd: number; error: string | null };
 export type GenResult = Cost & { items: GeneratedItem[] | null };
 export type VerifyResult = Cost & { verdict: Verdict | null };
@@ -108,7 +110,7 @@ export function genParams(bp: Blueprint, req: GenRequest, cfg: GenConfig, style:
     max_tokens: 32_000,
     system: [{ type: "text", text: GENERATE_SYSTEM, cache_control: { type: "ephemeral" } }],
     messages: [{ role: "user", content: generateUserText(bp, req.slots, style) }],
-    output_config: { format: zodOutputFormat(GenerationSchema), effort: cfg.effort },
+    output_config: { format: zodOutputFormat(GenerationSchema), effort: req.slots.some((x) => x.difficulty === 3) ? cfg.hardEffort : cfg.effort },
   };
 }
 
@@ -151,6 +153,8 @@ export function readGen(m: Anthropic.Message, req: GenRequest | undefined, batch
   const { data, error } = parse(m, GenerationSchema);
   // Keep only items for slots this request asked for, one each.
   const wanted = new Set(req?.slots.map((s) => s.slot) ?? []);
+  // A one-question request whose answer carries the wrong slot id is still that slot's question.
+  if (data && req?.slots.length === 1 && data.items.length === 1) data.items[0].slot = req.slots[0].slot;
   const items = data ? data.items.filter((it, i, all) => wanted.has(it.slot) && all.findIndex((x) => x.slot === it.slot) === i) : null;
   return { items, error, costUsd: costOf(m, batch) };
 }
