@@ -129,6 +129,7 @@ The final review of Coursebook and The 1600 Project's setup on it, most serious 
 - **Live warm-ups:** they don't offer in-house sets, because the live screen can't show image questions yet.
 - **Weekly auto-practice and suggestions:** "Focus next" and "assign practice" suggestions use public questions and sets only, never in-house ones.
 - **Video thumbnails:** these load from i.ytimg.com when a lesson opens. The player itself loads from YouTube only on click.
+- **Transcribed text is checked, not proofread.** A text version is shown automatically when Claude's own answer matches the key and the math renders. That catches most misreadings, but not a wrong word that doesn't change the answer. Spot-check some in Course Studio → Transcriptions (Shown as text).
 - **Imported questions are read-only in the bank.** To change one, edit the bank file and import again.
 
 ## Checked and fine

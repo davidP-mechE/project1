@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
-import { reshuffleSetAction, setVideoStatusesAction } from "@/server/actions/studio";
+import { chooseTextVersionAction, reshuffleSetAction, setVideoStatusesAction } from "@/server/actions/studio";
 import { thumbnailUrl, videoRef, type VideoData } from "@/lib/studio/blocks";
 import { VideoStatusToggle } from "./studio-forms";
 
@@ -81,6 +81,31 @@ export function ReshuffleButton({ setId }: { setId: string }) {
         Reshuffle
       </Button>
       <span role="status" className="text-xs text-muted">{msg}</span>
+    </span>
+  );
+}
+
+/** Transcriptions: use the text version of a question, or keep its image. */
+export function ChooseVersionButtons({ questionId, status }: { questionId: string; status: string }) {
+  const router = useRouter();
+  const [pending, start] = useTransition();
+  const [msg, setMsg] = useState<string | null>(null);
+  const choose = (c: "text" | "image") =>
+    start(async () => {
+      const r = await chooseTextVersionAction(questionId, c);
+      setMsg(r.ok ? null : r.error);
+      router.refresh();
+    });
+  const showingText = status === "auto_text" || status === "approved_text";
+  return (
+    <span className="inline-flex flex-wrap items-center gap-2">
+      <Button size="sm" variant={showingText ? "primary" : "secondary"} aria-pressed={showingText} disabled={pending} onClick={() => choose("text")}>
+        Use text
+      </Button>
+      <Button size="sm" variant={!showingText ? "primary" : "secondary"} aria-pressed={!showingText} disabled={pending} onClick={() => choose("image")}>
+        Keep image
+      </Button>
+      {msg && <span role="status" className="text-xs text-danger">{msg}</span>}
     </span>
   );
 }

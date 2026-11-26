@@ -16,7 +16,8 @@ import type { SkillResolver } from "./import";
  */
 
 export const QBANK_ID = /^[0-9a-f]{8}$/;
-export const QBANK_IMAGE = /^[0-9a-f]{8}_[qr]\.webp$/;
+/** Question (_q), rationale (_r) and, cut out of a transcribed question, its figure (_fig). */
+export const QBANK_IMAGE = /^[0-9a-f]{8}_(q|r|fig)\.webp$/;
 export const qbankImageUrl = (name: string) => `/api/bank/qbank/${name}`;
 export const qbankExternalId = (questionId: string) => `CB-${questionId}`;
 

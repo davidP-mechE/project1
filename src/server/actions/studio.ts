@@ -5,6 +5,7 @@ import { z } from "zod";
 import { requireUser } from "../session";
 import { NotFoundError } from "../courses";
 import * as studio from "../studio";
+import { chooseVersion } from "../transcriptions";
 
 /** Server Actions for the Course Studio. Every function they call checks the caller is the owner (others get "not found"). */
 
@@ -120,4 +121,9 @@ export async function setVideoStatusesAction(blockIds: string[], status: string)
 
 export async function reshuffleSetAction(setId: string) {
   return run((u) => studio.reshuffleSet(u, id.parse(setId)));
+}
+
+export async function chooseTextVersionAction(questionId: string, choice: string) {
+  const c = z.enum(["text", "image"]).parse(choice);
+  return run(async (u) => void (await chooseVersion(u, id.parse(questionId), c)));
 }

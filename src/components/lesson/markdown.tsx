@@ -20,6 +20,15 @@ export function normalizeDisplayMath(text: string): string {
   return text.replace(/^[ \t]*\$\$([^\n$]+?)\$\$[ \t]*$/gm, (_m, tex: string) => `$$\n${tex.trim()}\n$$`);
 }
 
+/**
+ * Underlining (transcribed SAT questions refer to "the underlined portion"): <u>…</u> becomes a link to
+ * "#__u", which the renderer draws as <u>. No HTML is ever passed through.
+ */
+const UNDERLINE_HREF = "#__u";
+export function underlineMarks(text: string): string {
+  return text.replace(/<u>([\s\S]*?)<\/u>/g, (_m, inner: string) => `[${inner.replace(/([\[\]])/g, "\\$1")}](${UNDERLINE_HREF})`);
+}
+
 function rehypePlugins(bookId?: string): Options["rehypePlugins"] {
   const katex: [typeof rehypeKatex, { throwOnError: boolean; strict: "ignore" }] = [rehypeKatex, { throwOnError: false, strict: "ignore" }];
   return bookId ? [[rehypeCitePages, { bookId }], katex] : [katex];
@@ -37,6 +46,7 @@ export function Markdown({ children, className, bookId }: { children: string; cl
           h1: ({ children }) => <h3>{children}</h3>,
           h2: ({ children }) => <h3>{children}</h3>,
           a: ({ children, href, ...rest }) => {
+            if (href === UNDERLINE_HREF) return <u>{children}</u>;
             const page = (rest as Record<string, unknown>)["data-book-page"];
             if (typeof page === "string" && /^\d+$/.test(page)) {
               // A page citation added by rehypeCitePages (our own URL).
@@ -55,7 +65,7 @@ export function Markdown({ children, className, bookId }: { children: string; cl
           img: () => null, // lessons never embed outside images
         }}
       >
-        {normalizeDisplayMath(children)}
+        {normalizeDisplayMath(underlineMarks(children))}
       </ReactMarkdown>
     </div>
   );

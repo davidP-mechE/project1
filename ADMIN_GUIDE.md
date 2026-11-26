@@ -236,6 +236,13 @@ The SAT Math and Reading and Writing Master Courses use 4,125 official College B
    npm run import:courses
    ```
    Run them with the production `.env`, so the images go to production storage.
+   **Turning the images into text** (math as LaTeX). Do this before step 2, or run `npm run import:bank` again after it. It needs `ANTHROPIC_API_KEY`.
+   ```
+   npm run transcribe:bank -- --dry-run      # how many items, and a cost estimate
+   npm run transcribe:bank -- --sample 20    # 20 items now, to check the quality
+   npm run transcribe:bank                   # the rest, as a batch (half price; usually within a few hours)
+   ```
+   An item becomes text only if Claude's own answer matches the official key and its math renders. A graph or diagram is cut out and shown with the text. Everything else keeps its image and waits in **Course Studio → Transcriptions**: compare it with the image and choose **Use text** or **Keep image**. Re-importing keeps your choices. The results file (`qbank_transcriptions.json`) is never committed.
 3. Open **Course Studio → Video review** and approve the videos. Students only see approved ones.
 4. **Course Studio → Sets** shows each set's size and difficulty mix, with a Reshuffle button.
 5. Preview a lesson with **Preview as student**. When the course is ready, use **Publish → to in-house classes**.

@@ -284,3 +284,59 @@ describe("in-house College Board content", () => {
     await expect(studio.studioVideos(f.tutorIn.id)).rejects.toThrow(NotFoundError);
   });
 });
+
+describe("transcribed Question Bank items", () => {
+  it("shows passing transcriptions as text (with the figure cut out), sends the rest to review, and keeps your choice", async () => {
+    const { createCanvas } = await import("@napi-rs/canvas");
+    const { importQuestionBank: importBank } = await import("@/server/qbank-import");
+    const { chooseVersion, transcriptionCounts, transcriptionList } = await import("@/server/transcriptions");
+    const f = await fixture();
+    // A real (decodable) question image, so the figure can be cut out of it.
+    const c = createCanvas(400, 300);
+    c.getContext("2d").fillRect(0, 150, 400, 150);
+    const dir = mkdtempSync(path.join(os.tmpdir(), "qbank-t-"));
+    const images = path.join(dir, "qbank_images");
+    mkdirSync(images);
+    writeFileSync(path.join(images, `${MATH_ID}_q.webp`), await c.encode("webp"));
+    writeFileSync(path.join(images, `${MATH_ID}_r.webp`), WEBP);
+    writeFileSync(path.join(images, `${RW_ID}_q.webp`), WEBP);
+    const b = JSON.parse(bankFile().json);
+    b.items[1].question_image = `${RW_ID}_q.webp`;
+    const transcriptions = {
+      format: "coursebook-qbank-transcriptions" as const,
+      version: 1 as const,
+      model: "claude-opus-5-5",
+      items: {
+        [MATH_ID]: { model: "claude-opus-5-5", costUsd: 0.01, error: null, transcript: { legible: true, stem: "The graph shows $y = 2x + 3$. What is the value of $x$?", choices: [], figure: { needed: true, box: { x0: 0, y0: 0.5, x1: 1, y1: 1 }, description: "A line graph." }, explanation: "Since $17x = 3$, $x = \\frac{3}{17}$.", answer: "3/17", problems: "" } },
+        [RW_ID]: { model: "claude-opus-5-5", costUsd: 0.01, error: null, transcript: { legible: true, stem: "Baskets are ______ sweetgrass.", choices: ["indicated by", "handmade from", "represented by", "collected with"], figure: { needed: false, box: null, description: "" }, explanation: "", answer: "C", problems: "" } },
+      },
+    };
+    const r = await importBank({ json: JSON.stringify(b), imageDir: images, commit: true, transcriptions });
+    expect(r.text).toEqual({ asText: 1, review: 1, keptImage: 0, figures: 1 });
+
+    const math = await db.bankQuestion.findUniqueOrThrow({ where: { externalId: `CB-${MATH_ID}` } });
+    expect(math).toMatchObject({ textStatus: "auto_text", imageIsQuestion: false, stem: "The graph shows $y = 2x + 3$. What is the value of $x$?", imageUrl: `/api/bank/qbank/${MATH_ID}_fig.webp`, imageAlt: "A line graph.", rationaleImageUrl: null, transcriptIssues: [] });
+    // The cut-out figure is served through the checked route, to in-house people only.
+    as(f.studentIn.id);
+    const fig = await image(`${MATH_ID}_fig.webp`);
+    expect(fig.status).toBe(200);
+    expect(Buffer.from(await fig.arrayBuffer()).toString("ascii", 8, 12)).toBe("WEBP");
+    as(f.studentOut.id);
+    expect((await image(`${MATH_ID}_fig.webp`)).status).toBe(404);
+
+    // Claude's answer (C) didn't match the key (B): the image stays, waiting for review.
+    const rw = await db.bankQuestion.findUniqueOrThrow({ where: { externalId: `CB-${RW_ID}` } });
+    expect(rw).toMatchObject({ textStatus: "review", imageIsQuestion: true, transcriptIssues: ["Claude's answer (C) doesn't match the key (B)."] });
+    expect(await transcriptionCounts(f.owner.id)).toEqual({ review: 1, auto_text: 1, approved_text: 0, kept_image: 0 });
+    expect((await transcriptionList(f.owner.id, "review")).rows.map((x) => x.id)).toEqual([rw.id]);
+    await expect(chooseVersion(f.tutorIn.id, rw.id, "text")).rejects.toThrow(NotFoundError);
+
+    // You choose the text (after checking it); a re-import keeps that choice.
+    await chooseVersion(f.owner.id, rw.id, "text");
+    await importBank({ json: JSON.stringify(b), imageDir: images, commit: true, transcriptions });
+    expect(await db.bankQuestion.findUniqueOrThrow({ where: { id: rw.id } })).toMatchObject({ textStatus: "approved_text", imageIsQuestion: false, stem: "Baskets are ______ sweetgrass.", choices: ["indicated by", "handmade from", "represented by", "collected with"] });
+    // And can switch back to the image.
+    await chooseVersion(f.owner.id, math.id, "image");
+    expect(await db.bankQuestion.findUniqueOrThrow({ where: { id: math.id } })).toMatchObject({ textStatus: "kept_image", imageIsQuestion: true, imageUrl: `/api/bank/qbank/${MATH_ID}_q.webp` });
+  });
+});

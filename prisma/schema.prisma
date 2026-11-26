@@ -2218,6 +2218,13 @@ model BankQuestion {
   rationaleImageUrl String?          @map("rationale_image_url")
   /// Words for search only, never shown (math items whose equations were lost in text extraction).
   searchText        String?          @map("search_text")
+  /// Imported image items transcribed to text: none | auto_text (passed every check) | review (waiting for the owner)
+  /// | approved_text (owner chose text) | kept_image (owner chose the image). See src/lib/bank/transcribe.ts.
+  textStatus        String           @default("none") @map("text_status")
+  /// Both versions ({ text, image }: stem, choices, explanation, image fields), so the owner can switch.
+  transcript        Json?
+  /// Why a transcription needs review (answer mismatch, math that doesn't render...).
+  transcriptIssues  String[]         @default([]) @map("transcript_issues")
   status            PublishStatus    @default(draft)
   version           Int              @default(1)
   createdAt         DateTime         @default(now())

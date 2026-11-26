@@ -47,7 +47,12 @@ function ImportedQuestion({ q }: { q: Awaited<ReturnType<typeof getBankQuestion>
       ) : (
         <Markdown>{q.explanation}</Markdown>
       )}
-      {q.imageIsQuestion && <p className="text-xs text-muted">Imported from the Question Bank: to change it, edit the bank file and run npm run import:bank again.</p>}
+      {(q.imageIsQuestion || q.textStatus !== "none") && (
+        <p className="text-xs text-muted">
+          Imported from the Question Bank: to change it, edit the bank file and run npm run import:bank again.
+          {q.textStatus !== "none" && " Text or image: choose in Course Studio → Transcriptions."}
+        </p>
+      )}
     </Card>
   );
 }
@@ -74,7 +79,7 @@ export default async function EditQuestionPage({ params }: PageProps<"/bank/[que
         description={`${q.status === "published" ? "Published" : "Draft"} · version ${q.version} · ${q._count.attempts} answer${q._count.attempts === 1 ? "" : "s"} so far · by ${q.author?.name ?? "the 1600 Project"} · source: ${q.source === "college_board" ? "College Board" : "original"}`}
       />
       {stats && <QuestionStatsCard stats={stats} type={q.type} answer={q.answer} />}
-      {q.imageIsQuestion || q.rationaleImageUrl || !q.canEdit ? (
+      {q.imageIsQuestion || q.rationaleImageUrl || q.textStatus !== "none" || !q.canEdit ? (
         <ImportedQuestion q={q} />
       ) : (
       <QuestionEditor

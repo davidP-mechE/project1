@@ -10,6 +10,7 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { importQuestionBank } from "@/server/qbank-import";
+import { readResults } from "@/server/qbank-transcribe";
 import { db } from "@/server/db";
 
 async function main() {
@@ -17,7 +18,8 @@ async function main() {
   const dir = args.includes("--dir") ? args[args.indexOf("--dir") + 1] : "data/course-packets";
   const commit = !args.includes("--dry-run");
   const json = await readFile(path.join(dir, "coursebook_sat_question_bank.json"), "utf8");
-  const r = await importQuestionBank({ json, imageDir: path.join(dir, "qbank_images"), commit, onProgress: (m) => console.info(`  ${m}`) });
+  const transcriptions = await readResults(dir);
+  const r = await importQuestionBank({ json, imageDir: path.join(dir, "qbank_images"), commit, transcriptions, onProgress: (m) => console.info(`  ${m}`) });
   console.info(`\n${commit ? "Imported" : "Dry run (nothing changed)"}: ${r.items} items, ${r.created} new, ${r.updated} already in the bank (${commit ? "updated" : "would be updated"}), ${r.failed.length} failed.`);
   console.info("By section:", r.bySection);
   console.info("By difficulty:", r.byDifficulty);
@@ -28,6 +30,11 @@ async function main() {
     console.info("Failed rows:");
     for (const f of r.failed.slice(0, 100)) console.info(`  ${f.questionId}: ${f.errors.join(" ")}`);
   }
+  console.info(
+    transcriptions
+      ? `Text versions: ${r.text.asText} shown as text, ${r.text.review} waiting for your review (Course Studio → Transcriptions), ${r.text.keptImage} kept as images; ${r.text.figures} figures cut out.`
+      : "No transcriptions yet (npm run transcribe:bank): image-only items are shown as images.",
+  );
   if (r.notes.length) console.info(`${r.notes.length} answer keys were read from the rationale image (spot-check them): ${r.notes.map((n) => n.questionId).join(", ")}`);
   await db.$disconnect();
   if (r.failed.length) process.exitCode = 1;

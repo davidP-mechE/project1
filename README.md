@@ -399,7 +399,8 @@ Two Course Studio courses built from course packets (`data/course-packets/*_cour
 
 - **Access:** one rule, in [src/server/in-house.ts](src/server/in-house.ts). In-house questions, sets and courses are seen by the owner and by classes with `inHouseAccess` only. `ALLOW_COLLEGE_BOARD_CONTENT=false` hides all College Board content. Images are served only by `/api/bank/qbank/<name>`.
 - **Import:** run `npm run import:bank` ([src/lib/bank/qbank.ts](src/lib/bank/qbank.ts)), then `npm run import:courses` ([src/lib/studio/packet.ts](src/lib/studio/packet.ts)). Both are idempotent and report what they did.
-- **Display:** an item printed as an image is shown as the question, with A–D buttons or a grid-in box; the rationale image follows. Grid-in keys may list forms separated by commas. Misses go to the mistake log.
+- **Text, not pictures:** `npm run transcribe:bank` has Claude transcribe image-only items (math in LaTeX, underlining, tables) and solve each one. Items whose answer matches the key are shown as text, with any graph cut out as a figure; the rest wait in Course Studio → Transcriptions ([src/lib/bank/transcribe.ts](src/lib/bank/transcribe.ts)).
+- **Display:** an item printed as an image is shown as the question (until it has a checked text version), with A–D buttons or a grid-in box; the rationale image follows. Grid-in keys may list forms separated by commas. Misses go to the mistake log.
 - **New Studio blocks:** video (youtube-nocookie, loads on click, approved only for students), callout, checkpoint and "Try it in Desmos".
 - **New Studio pages:** Video review and Sets.
 

@@ -21,6 +21,7 @@ export default async function StudioPage() {
           <>
             <ButtonLink href="/studio/videos" variant="secondary" size="sm">Video review</ButtonLink>
             <ButtonLink href="/studio/sets" variant="secondary" size="sm">Sets</ButtonLink>
+            <ButtonLink href="/studio/transcriptions" variant="secondary" size="sm">Transcriptions</ButtonLink>
           </>
         }
       />
