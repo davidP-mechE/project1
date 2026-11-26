@@ -15,6 +15,7 @@ import {
   planRequests,
   similarity,
   SLOTS_PER_REQUEST,
+  slotsPerRequest,
   StyleSpecSchema,
   toImportRecord,
   VERIFY_SYSTEM,
@@ -119,7 +120,10 @@ export function limitRequests(reqs: GenRequest[], n: number): GenRequest[] {
   const groups = new Map<string, Slot[]>();
   for (const s of picked) groups.set(`${s.blueprint}-${s.difficulty}`, [...(groups.get(`${s.blueprint}-${s.difficulty}`) ?? []), s]);
   const out: GenRequest[] = [];
-  for (const slots of groups.values()) for (let i = 0; i < slots.length; i += SLOTS_PER_REQUEST) out.push({ id: `gen-${slots[i].slot}`, blueprint: slots[i].blueprint, slots: slots.slice(i, i + SLOTS_PER_REQUEST) });
+  for (const slots of groups.values()) {
+    const per = slotsPerRequest(slots[0].difficulty);
+    for (let i = 0; i < slots.length; i += per) out.push({ id: `gen-${slots[i].slot}`, blueprint: slots[i].blueprint, slots: slots.slice(i, i + per) });
+  }
   return out;
 }
 
@@ -132,7 +136,7 @@ export function allSlots(blueprints: Blueprint[]): Map<string, Slot> {
 export function genParams(bp: Blueprint, req: GenRequest, cfg: GenConfig, style: StyleSpec | null = spec ?? null): Anthropic.MessageCreateParamsNonStreaming {
   return {
     model: cfg.model,
-    max_tokens: 32_000,
+    max_tokens: 64_000,
     system: [{ type: "text", text: GENERATE_SYSTEM, cache_control: { type: "ephemeral" } }],
     messages: [{ role: "user", content: generateUserText(bp, req.slots, style) }],
     output_config: { format: zodOutputFormat(GenerationSchema), effort: req.slots.some((x) => x.difficulty === 3) ? cfg.hardEffort : cfg.effort },

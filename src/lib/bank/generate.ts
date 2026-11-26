@@ -106,6 +106,8 @@ export type GenRequest = { id: string; blueprint: string; slots: Slot[] };
 export const OVERGENERATE = 1.25;
 export const OVERGENERATE_HARD = 2;
 export const SLOTS_PER_REQUEST = 4;
+/** Hard questions think much longer: two per request, so a reply isn't cut off. */
+export const slotsPerRequest = (difficulty: number) => (difficulty === 3 ? 2 : SLOTS_PER_REQUEST);
 
 /** A small seeded random generator, so the plan is the same every run. */
 function rng(seed: string) {
@@ -139,7 +141,8 @@ export function planRequests(blueprints: Blueprint[]): GenRequest[] {
         const gridIn = bp.section === "math" && bp.grid_in && rand() < 0.3;
         slots.push({ slot: `${bp.id}-${d}-${String(++n).padStart(3, "0")}`, blueprint: bp.id, difficulty: d, type: gridIn ? "grid-in" : "mcq", letter: "ABCD"[Math.floor(rand() * 4)] as Slot["letter"], topic: pick() });
       }
-      for (let i = 0; i < slots.length; i += SLOTS_PER_REQUEST) out.push({ id: `gen-${slots[i].slot}`, blueprint: bp.id, slots: slots.slice(i, i + SLOTS_PER_REQUEST) });
+      const per = slotsPerRequest(d);
+      for (let i = 0; i < slots.length; i += per) out.push({ id: `gen-${slots[i].slot}`, blueprint: bp.id, slots: slots.slice(i, i + per) });
     }
   }
   return out;

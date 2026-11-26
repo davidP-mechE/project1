@@ -34,7 +34,7 @@ describe("blueprints", () => {
     expect(planRequests(blueprints)).toEqual(a);
     const n = a.reduce((s, q) => s + q.slots.length, 0);
     expect(n).toBeGreaterThan(1502 * 1.2);
-    expect(a.every((q) => q.slots.length <= 4)).toBe(true);
+    expect(a.every((q) => q.slots.length <= (q.slots[0].difficulty === 3 ? 2 : 4))).toBe(true);
     expect(new Set(a.flatMap((q) => q.slots.map((s) => s.slot))).size).toBe(n);
   });
   it("split difficulty 30/40/30", () => expect(difficultySplit(25)).toEqual({ 1: 8, 2: 9, 3: 8 }));
