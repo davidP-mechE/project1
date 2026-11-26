@@ -237,7 +237,7 @@
        {
         "type": "question_set",
         "set_id": "RW-1.1",
-        "title": "1.1 Practice Set (5 questions)",
+        "title": "1.1 Practice Set (6 questions)",
         "status": "ready",
         "skills": [
          "Central ideas and details"
@@ -252,13 +252,14 @@
          "GEN-E11-001",
          "GEN-E11-002",
          "ELA-E11-2",
-         "ELA-E11-3"
+         "ELA-E11-3",
+         "GEN-E11-003"
         ],
-        "count": 5,
+        "count": 6,
         "difficulty_counts": {
          "Easy": 3,
          "Medium": 1,
-         "Hard": 1
+         "Hard": 2
         },
         "source": "original",
         "visibility": "in_house"
@@ -332,7 +333,7 @@
        {
         "type": "question_set",
         "set_id": "RW-1.2",
-        "title": "1.2 Practice Set (7 questions)",
+        "title": "1.2 Practice Set (8 questions)",
         "status": "ready",
         "skills": [
          "Command of evidence: textual"
@@ -349,13 +350,14 @@
          "ORIG-E12-01",
          "ORIG-E12-02",
          "ORIG-E12-03",
+         "GEN-E12-003",
          "ORIG-E12-05"
         ],
-        "count": 7,
+        "count": 8,
         "difficulty_counts": {
          "Easy": 2,
          "Medium": 4,
-         "Hard": 1
+         "Hard": 2
         },
         "source": "original",
         "visibility": "in_house"
@@ -414,7 +416,7 @@
        {
         "type": "question_set",
         "set_id": "RW-1.3",
-        "title": "1.3 Practice Set (6 questions)",
+        "title": "1.3 Practice Set (8 questions)",
         "status": "ready",
         "skills": [
          "Command of evidence: quantitative"
@@ -430,13 +432,15 @@
          "GEN-E13-002",
          "ORIG-E13-01",
          "ORIG-E13-02",
+         "GEN-E13-003",
+         "GEN-E13-004",
          "ORIG-E13-04"
         ],
-        "count": 6,
+        "count": 8,
         "difficulty_counts": {
          "Easy": 2,
          "Medium": 3,
-         "Hard": 1
+         "Hard": 3
         },
         "source": "original",
         "visibility": "in_house"
@@ -495,7 +499,7 @@
        {
         "type": "question_set",
         "set_id": "RW-1.4",
-        "title": "1.4 Practice Set (7 questions)",
+        "title": "1.4 Practice Set (8 questions)",
         "status": "ready",
         "skills": [
          "Inferences"
@@ -512,13 +516,14 @@
          "ORIG-E14-01",
          "ORIG-E14-02",
          "ORIG-E14-04",
+         "GEN-E14-003",
          "ORIG-E14-05"
         ],
-        "count": 7,
+        "count": 8,
         "difficulty_counts": {
          "Easy": 2,
          "Medium": 4,
-         "Hard": 1
+         "Hard": 2
         },
         "source": "original",
         "visibility": "in_house"
@@ -530,91 +535,95 @@
      {
       "type": "question_set",
       "set_id": "RW-U1-review-1",
-      "title": "Unit 1 Review Set 1 (5 questions)",
+      "title": "Unit 1 Review Set 1 (6 questions)",
       "status": "ready",
       "mode": "practice",
       "source": "original",
       "visibility": "in_house",
-      "count": 5,
+      "count": 6,
       "question_ids": [
+       "GEN-E11-002",
        "ELA-E11-3",
-       "GEN-E12-001",
-       "GEN-E12-002",
-       "ORIG-E13-01",
-       "ORIG-E14-02"
+       "ORIG-E12-05",
+       "GEN-E13-001",
+       "ORIG-E13-04",
+       "ORIG-E14-01"
       ],
       "difficulty_counts": {
-       "Hard": 1,
-       "Easy": 1,
-       "Medium": 3
+       "Easy": 2,
+       "Hard": 3,
+       "Medium": 1
       },
       "note": "Original 1600 Project questions, written from our blueprints."
      },
      {
       "type": "question_set",
       "set_id": "RW-U1-review-2",
-      "title": "Unit 1 Review Set 2 (5 questions)",
+      "title": "Unit 1 Review Set 2 (6 questions)",
       "status": "ready",
       "mode": "practice",
       "source": "original",
       "visibility": "in_house",
-      "count": 5,
-      "question_ids": [
-       "GEN-E11-002",
-       "ORIG-E12-05",
-       "ORIG-E13-03",
-       "GEN-E13-002",
-       "ORIG-E14-01"
-      ],
-      "difficulty_counts": {
-       "Easy": 2,
-       "Hard": 1,
-       "Medium": 2
-      },
-      "note": "Original 1600 Project questions, written from our blueprints."
-     },
-     {
-      "type": "question_set",
-      "set_id": "RW-U1-review-3",
-      "title": "Unit 1 Review Set 3 (5 questions)",
-      "status": "ready",
-      "mode": "practice",
-      "source": "original",
-      "visibility": "in_house",
-      "count": 5,
+      "count": 6,
       "question_ids": [
        "GEN-E11-001",
        "ORIG-E12-03",
-       "ORIG-E13-04",
+       "GEN-E12-003",
+       "GEN-E13-004",
        "GEN-E14-001",
        "GEN-E14-002"
       ],
       "difficulty_counts": {
        "Easy": 2,
        "Medium": 2,
-       "Hard": 1
+       "Hard": 2
+      },
+      "note": "Original 1600 Project questions, written from our blueprints."
+     },
+     {
+      "type": "question_set",
+      "set_id": "RW-U1-review-3",
+      "title": "Unit 1 Review Set 3 (6 questions)",
+      "status": "ready",
+      "mode": "practice",
+      "source": "original",
+      "visibility": "in_house",
+      "count": 6,
+      "question_ids": [
+       "ELA-E11-1",
+       "ORIG-E12-04",
+       "ORIG-E12-02",
+       "ORIG-E13-02",
+       "GEN-E13-003",
+       "ORIG-E14-05"
+      ],
+      "difficulty_counts": {
+       "Easy": 2,
+       "Medium": 2,
+       "Hard": 2
       },
       "note": "Original 1600 Project questions, written from our blueprints."
      },
      {
       "type": "question_set",
       "set_id": "RW-U1-review-4",
-      "title": "Unit 1 Review Set 4 (5 questions)",
+      "title": "Unit 1 Review Set 4 (6 questions)",
       "status": "ready",
       "mode": "practice",
       "source": "original",
       "visibility": "in_house",
-      "count": 5,
+      "count": 6,
       "question_ids": [
-       "ELA-E11-1",
-       "ORIG-E12-04",
-       "ORIG-E12-02",
-       "GEN-E13-001",
-       "ORIG-E14-05"
+       "ELA-E11-2",
+       "ORIG-E12-01",
+       "ORIG-E13-03",
+       "ORIG-E13-01",
+       "ORIG-E14-04",
+       "GEN-E14-003"
       ],
       "difficulty_counts": {
-       "Easy": 3,
-       "Medium": 1,
+       "Medium": 4,
+       "Easy": 1,
        "Hard": 1
       },
       "note": "Original 1600 Project questions, written from our blueprints."
@@ -622,22 +631,24 @@
      {
       "type": "question_set",
       "set_id": "RW-U1-review-5",
-      "title": "Unit 1 Review Set 5 (5 questions)",
+      "title": "Unit 1 Review Set 5 (6 questions)",
       "status": "ready",
       "mode": "practice",
       "source": "original",
       "visibility": "in_house",
-      "count": 5,
+      "count": 6,
       "question_ids": [
-       "ELA-E11-2",
-       "ORIG-E12-01",
-       "ORIG-E13-02",
+       "GEN-E11-003",
+       "GEN-E12-001",
+       "GEN-E12-002",
+       "GEN-E13-002",
        "ORIG-E14-03",
-       "ORIG-E14-04"
+       "ORIG-E14-02"
       ],
       "difficulty_counts": {
-       "Medium": 4,
-       "Easy": 1
+       "Hard": 1,
+       "Easy": 2,
+       "Medium": 3
       },
       "note": "Original 1600 Project questions, written from our blueprints."
      }
@@ -701,7 +712,7 @@
        {
         "type": "question_set",
         "set_id": "RW-2.1",
-        "title": "2.1 Practice Set (5 questions)",
+        "title": "2.1 Practice Set (6 questions)",
         "status": "ready",
         "skills": [
          "Words in context"
@@ -716,13 +727,14 @@
          "GEN-E15-001",
          "ORIG-E15-02",
          "ORIG-E15-03",
+         "GEN-E15-002",
          "ORIG-E15-04"
         ],
-        "count": 5,
+        "count": 6,
         "difficulty_counts": {
          "Easy": 1,
          "Medium": 3,
-         "Hard": 1
+         "Hard": 2
         },
         "source": "original",
         "visibility": "in_house"
@@ -781,7 +793,7 @@
        {
         "type": "question_set",
         "set_id": "RW-2.2",
-        "title": "2.2 Practice Set (6 questions)",
+        "title": "2.2 Practice Set (7 questions)",
         "status": "ready",
         "skills": [
          "Text structure and purpose"
@@ -797,13 +809,14 @@
          "ORIG-E16-01",
          "ORIG-E16-02",
          "ORIG-E16-03",
+         "GEN-E16-003",
          "ORIG-E16-04"
         ],
-        "count": 6,
+        "count": 7,
         "difficulty_counts": {
          "Easy": 1,
          "Medium": 4,
-         "Hard": 1
+         "Hard": 2
         },
         "source": "original",
         "visibility": "in_house"
@@ -862,7 +875,7 @@
        {
         "type": "question_set",
         "set_id": "RW-2.3",
-        "title": "2.3 Practice Set (6 questions)",
+        "title": "2.3 Practice Set (7 questions)",
         "status": "ready",
         "skills": [
          "Cross-text connections"
@@ -878,13 +891,14 @@
          "GEN-E17-002",
          "ORIG-E17-01",
          "ORIG-E17-02",
+         "GEN-E17-003",
          "ORIG-E17-04"
         ],
-        "count": 6,
+        "count": 7,
         "difficulty_counts": {
          "Easy": 2,
          "Medium": 3,
-         "Hard": 1
+         "Hard": 2
         },
         "source": "original",
         "visibility": "in_house"
@@ -897,6 +911,71 @@
       "type": "question_set",
       "set_id": "RW-U2-review-1",
       "title": "Unit 2 Review Set 1 (4 questions)",
+      "status": "ready",
+      "mode": "practice",
+      "source": "original",
+      "visibility": "in_house",
+      "count": 4,
+      "question_ids": [
+       "ORIG-E15-01",
+       "GEN-E15-002",
+       "ORIG-E16-01",
+       "ORIG-E17-04"
+      ],
+      "difficulty_counts": {
+       "Easy": 1,
+       "Hard": 2,
+       "Medium": 1
+      },
+      "note": "Original 1600 Project questions, written from our blueprints."
+     },
+     {
+      "type": "question_set",
+      "set_id": "RW-U2-review-2",
+      "title": "Unit 2 Review Set 2 (4 questions)",
+      "status": "ready",
+      "mode": "practice",
+      "source": "original",
+      "visibility": "in_house",
+      "count": 4,
+      "question_ids": [
+       "GEN-E15-001",
+       "ORIG-E16-03",
+       "GEN-E16-003",
+       "ORIG-E17-01"
+      ],
+      "difficulty_counts": {
+       "Medium": 3,
+       "Hard": 1
+      },
+      "note": "Original 1600 Project questions, written from our blueprints."
+     },
+     {
+      "type": "question_set",
+      "set_id": "RW-U2-review-3",
+      "title": "Unit 2 Review Set 3 (4 questions)",
+      "status": "ready",
+      "mode": "practice",
+      "source": "original",
+      "visibility": "in_house",
+      "count": 4,
+      "question_ids": [
+       "ORIG-E15-03",
+       "GEN-E16-002",
+       "GEN-E17-001",
+       "GEN-E17-003"
+      ],
+      "difficulty_counts": {
+       "Medium": 2,
+       "Easy": 1,
+       "Hard": 1
+      },
+      "note": "Original 1600 Project questions, written from our blueprints."
+     },
+     {
+      "type": "question_set",
+      "set_id": "RW-U2-review-4",
+      "title": "Unit 2 Review Set 4 (4 questions)",
       "status": "ready",
       "mode": "practice",
       "source": "original",
@@ -917,8 +996,8 @@
      },
      {
       "type": "question_set",
-      "set_id": "RW-U2-review-2",
-      "title": "Unit 2 Review Set 2 (4 questions)",
+      "set_id": "RW-U2-review-5",
+      "title": "Unit 2 Review Set 5 (4 questions)",
       "status": "ready",
       "mode": "practice",
       "source": "original",
@@ -933,66 +1012,6 @@
       "difficulty_counts": {
        "Medium": 2,
        "Hard": 1,
-       "Easy": 1
-      },
-      "note": "Original 1600 Project questions, written from our blueprints."
-     },
-     {
-      "type": "question_set",
-      "set_id": "RW-U2-review-3",
-      "title": "Unit 2 Review Set 3 (3 questions)",
-      "status": "ready",
-      "mode": "practice",
-      "source": "original",
-      "visibility": "in_house",
-      "count": 3,
-      "question_ids": [
-       "ORIG-E15-01",
-       "ORIG-E16-01",
-       "ORIG-E17-04"
-      ],
-      "difficulty_counts": {
-       "Easy": 1,
-       "Medium": 1,
-       "Hard": 1
-      },
-      "note": "Original 1600 Project questions, written from our blueprints."
-     },
-     {
-      "type": "question_set",
-      "set_id": "RW-U2-review-4",
-      "title": "Unit 2 Review Set 4 (3 questions)",
-      "status": "ready",
-      "mode": "practice",
-      "source": "original",
-      "visibility": "in_house",
-      "count": 3,
-      "question_ids": [
-       "GEN-E15-001",
-       "ORIG-E16-03",
-       "ORIG-E17-01"
-      ],
-      "difficulty_counts": {
-       "Medium": 3
-      },
-      "note": "Original 1600 Project questions, written from our blueprints."
-     },
-     {
-      "type": "question_set",
-      "set_id": "RW-U2-review-5",
-      "title": "Unit 2 Review Set 5 (3 questions)",
-      "status": "ready",
-      "mode": "practice",
-      "source": "original",
-      "visibility": "in_house",
-      "count": 3,
-      "question_ids": [
-       "ORIG-E15-03",
-       "GEN-E16-002",
-       "GEN-E17-001"
-      ],
-      "difficulty_counts": {
-       "Medium": 2,
        "Easy": 1
       },
       "note": "Original 1600 Project questions, written from our blueprints."
@@ -1334,7 +1353,7 @@
        {
         "type": "question_set",
         "set_id": "RW-4.1",
-        "title": "4.1 Practice Set (5 questions)",
+        "title": "4.1 Practice Set (6 questions)",
         "status": "ready",
         "skills": [
          "Boundaries"
@@ -1349,13 +1368,14 @@
          "GEN-E1-001",
          "ELA-E1-2",
          "GEN-E1-002",
-         "ELA-E1-3"
+         "ELA-E1-3",
+         "GEN-E1-003"
         ],
-        "count": 5,
+        "count": 6,
         "difficulty_counts": {
          "Easy": 2,
          "Medium": 2,
-         "Hard": 1
+         "Hard": 2
         },
         "source": "original",
         "visibility": "in_house"
@@ -1430,7 +1450,7 @@
        {
         "type": "question_set",
         "set_id": "RW-4.2",
-        "title": "4.2 Practice Set (10 questions)",
+        "title": "4.2 Practice Set (12 questions)",
         "status": "ready",
         "skills": [
          "Boundaries"
@@ -1447,17 +1467,19 @@
          "ELA-E2-2",
          "GEN-E2-002",
          "ELA-E2-3",
+         "GEN-E2-003",
          "ELA-E3-1",
          "GEN-E3-001",
          "ELA-E3-2",
          "GEN-E3-002",
-         "ELA-E3-3"
+         "ELA-E3-3",
+         "GEN-E3-003"
         ],
-        "count": 10,
+        "count": 12,
         "difficulty_counts": {
          "Easy": 4,
          "Medium": 4,
-         "Hard": 2
+         "Hard": 4
         },
         "source": "original",
         "visibility": "in_house"
@@ -1530,7 +1552,7 @@
        {
         "type": "question_set",
         "set_id": "RW-4.3",
-        "title": "4.3 Practice Set (6 questions)",
+        "title": "4.3 Practice Set (7 questions)",
         "status": "ready",
         "skills": [
          "Form, Structure, and Sense"
@@ -1546,13 +1568,14 @@
          "GEN-E4-002",
          "ELA-E4-2",
          "GEN-E4-003",
-         "ELA-E4-3"
+         "ELA-E4-3",
+         "GEN-E4-004"
         ],
-        "count": 6,
+        "count": 7,
         "difficulty_counts": {
          "Easy": 3,
          "Medium": 2,
-         "Hard": 1
+         "Hard": 2
         },
         "source": "original",
         "visibility": "in_house"
@@ -1620,7 +1643,7 @@
        {
         "type": "question_set",
         "set_id": "RW-4.4",
-        "title": "4.4 Practice Set (11 questions)",
+        "title": "4.4 Practice Set (12 questions)",
         "status": "ready",
         "skills": [
          "Form, Structure, and Sense"
@@ -1642,13 +1665,14 @@
          "GEN-E7-001",
          "ELA-E7-2",
          "GEN-E7-002",
-         "ELA-E7-3"
+         "ELA-E7-3",
+         "GEN-E7-003"
         ],
-        "count": 11,
+        "count": 12,
         "difficulty_counts": {
          "Easy": 4,
          "Medium": 5,
-         "Hard": 2
+         "Hard": 3
         },
         "source": "original",
         "visibility": "in_house"
@@ -1709,7 +1733,7 @@
        {
         "type": "question_set",
         "set_id": "RW-4.5",
-        "title": "4.5 Practice Set (4 questions)",
+        "title": "4.5 Practice Set (5 questions)",
         "status": "ready",
         "skills": [
          "Form, Structure, and Sense"
@@ -1723,13 +1747,14 @@
          "ELA-E6-1",
          "GEN-E6-001",
          "ELA-E6-2",
-         "ELA-E6-3"
+         "ELA-E6-3",
+         "GEN-E6-002"
         ],
-        "count": 4,
+        "count": 5,
         "difficulty_counts": {
          "Easy": 2,
          "Medium": 1,
-         "Hard": 1
+         "Hard": 2
         },
         "source": "original",
         "visibility": "in_house"
@@ -1789,7 +1814,7 @@
        {
         "type": "question_set",
         "set_id": "RW-4.6",
-        "title": "4.6 Practice Set (5 questions)",
+        "title": "4.6 Practice Set (6 questions)",
         "status": "ready",
         "skills": [
          "Form, Structure, and Sense"
@@ -1804,13 +1829,14 @@
          "GEN-E8-001",
          "ELA-E8-2",
          "GEN-E8-002",
-         "ELA-E8-3"
+         "ELA-E8-3",
+         "GEN-E8-003"
         ],
-        "count": 5,
+        "count": 6,
         "difficulty_counts": {
          "Easy": 2,
          "Medium": 2,
-         "Hard": 1
+         "Hard": 2
         },
         "source": "original",
         "visibility": "in_house"
@@ -1822,23 +1848,25 @@
      {
       "type": "question_set",
       "set_id": "RW-U4-review-1",
-      "title": "Unit 4 Review Set 1 (21 questions)",
+      "title": "Unit 4 Review Set 1 (24 questions)",
       "status": "ready",
       "mode": "practice",
       "source": "original",
       "visibility": "in_house",
-      "count": 21,
+      "count": 24,
       "question_ids": [
        "ELA-E1-1",
        "GEN-E1-001",
        "ELA-E1-2",
        "GEN-E1-002",
        "ELA-E1-3",
+       "GEN-E1-003",
        "ELA-E3-1",
        "GEN-E3-001",
        "ELA-E3-2",
        "GEN-E3-002",
        "ELA-E3-3",
+       "GEN-E3-003",
        "ELA-E5-1",
        "GEN-E5-001",
        "ELA-E5-2",
@@ -1849,50 +1877,55 @@
        "GEN-E6-001",
        "ELA-E6-2",
        "ELA-E6-3",
+       "GEN-E6-002",
        "GEN-E8-001"
       ],
       "difficulty_counts": {
        "Easy": 9,
        "Medium": 8,
-       "Hard": 4
+       "Hard": 7
       },
       "note": "Original 1600 Project questions, written from our blueprints."
      },
      {
       "type": "question_set",
       "set_id": "RW-U4-review-2",
-      "title": "Unit 4 Review Set 2 (20 questions)",
+      "title": "Unit 4 Review Set 2 (24 questions)",
       "status": "ready",
       "mode": "practice",
       "source": "original",
       "visibility": "in_house",
-      "count": 20,
+      "count": 24,
       "question_ids": [
        "ELA-E2-1",
        "GEN-E2-001",
        "ELA-E2-2",
        "GEN-E2-002",
        "ELA-E2-3",
+       "GEN-E2-003",
        "ELA-E4-1",
        "GEN-E4-001",
        "GEN-E4-002",
        "ELA-E4-2",
        "GEN-E4-003",
        "ELA-E4-3",
+       "GEN-E4-004",
        "ELA-E7-1",
        "GEN-E7-001",
        "ELA-E7-2",
        "GEN-E7-002",
        "ELA-E7-3",
+       "GEN-E7-003",
        "ELA-E8-1",
        "ELA-E8-2",
        "GEN-E8-002",
-       "ELA-E8-3"
+       "ELA-E8-3",
+       "GEN-E8-003"
       ],
       "difficulty_counts": {
        "Easy": 8,
        "Medium": 8,
-       "Hard": 4
+       "Hard": 8
       },
       "note": "Original 1600 Project questions, written from our blueprints."
      }

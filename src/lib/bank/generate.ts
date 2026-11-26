@@ -260,6 +260,9 @@ export function answersMatch(item: GeneratedItem, verdict: Verdict): boolean {
   });
 }
 
+/** The checker's rating that matches an official hard Reading and Writing question (see checker-calibration.json). */
+export const HARD_BAR_RW = 2;
+
 const BLOCKING: readonly string[] = ["answer_key_wrong", "more_than_one_defensible", "no_defensible_answer", "math_error", "factual_doubt", "ambiguous_wording", "wrong_skill"];
 
 export type Decision = { keep: boolean; reasons: string[] };
@@ -272,8 +275,11 @@ export function decide(item: GeneratedItem, bp: Blueprint, slot: Slot, verdict: 
     if (!answersMatch(item, verdict)) reasons.push(`The cold solve got ${verdict.answer.trim()}, the key says ${item.answer}.`);
     for (const i of verdict.issues) if (BLOCKING.includes(i.kind)) reasons.push(`${i.kind.replace(/_/g, " ")}: ${i.detail}`);
     if (verdict.sat_quality < 4) reasons.push(`SAT quality ${verdict.sat_quality}/5.`);
-    // A hard question has to play hard; easy and medium may be off by one level.
-    if (slot.difficulty === 3 ? verdict.difficulty < 3 : Math.abs(verdict.difficulty - slot.difficulty) > 1) reasons.push(`Plays as difficulty ${verdict.difficulty}, asked for ${slot.difficulty}.`);
+    // A hard question has to play hard; easy and medium may be off by one level. The checker rates Reading and
+    // Writing about one level low (data/blueprints/checker-calibration.json: official hard questions mostly get 2,
+    // official medium ones 1), so there a 2 already means real-test hard.
+    const hardBar = bp.section === "rw" ? HARD_BAR_RW : 3;
+    if (slot.difficulty === 3 ? verdict.difficulty < hardBar : Math.abs(verdict.difficulty - slot.difficulty) > 1) reasons.push(`Plays as difficulty ${verdict.difficulty}, asked for ${slot.difficulty}.`);
   }
   return { keep: reasons.length === 0, reasons };
 }

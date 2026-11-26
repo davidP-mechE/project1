@@ -54,6 +54,12 @@ describe("keeping a question", () => {
     expect(decide(item, A1, hard, { ...verdict, difficulty: 3 }).keep).toBe(true);
     expect(decide(item, A1, { ...slot, difficulty: 1 }, { ...verdict, difficulty: 2 }).keep).toBe(true);
   });
+  it("uses the calibrated bar for hard Reading and Writing (the checker rates official hard questions 2)", () => {
+    const rwItem = { ...item, skill: "Words in context", stem: `${"The committee's report was praised for its rigor, but critics said its central claim rested on evidence that was surprisingly ______. ".repeat(2)}\n\nWhich choice completes the text with the most logical and precise word or phrase?`, choices: ["tenuous", "robust", "copious", "lucid"], answer: "A" };
+    const hard = { ...slot, blueprint: "E15", difficulty: 3 as const };
+    expect(decide(rwItem, E15, hard, { ...verdict, answer: "A", difficulty: 2 }).reasons).toEqual([]);
+    expect(decide(rwItem, E15, hard, { ...verdict, answer: "A", difficulty: 1 }).keep).toBe(false);
+  });
   it("catches duplicate choices, bad LaTeX and a wrong skill", () => {
     expect(localProblems({ ...item, choices: ["1", "1", "2", "3"] }, A1).join()).toMatch(/same/);
     expect(localProblems({ ...item, stem: "What is $\\frac{1}{$?" }, A1).join()).toMatch(/render/);

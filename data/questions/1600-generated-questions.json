@@ -2984,6 +2984,32 @@
   "choice_d": "legislature;"
  },
  {
+  "external_id": "GEN-E1-003",
+  "section": "rw",
+  "skill": "Boundaries",
+  "difficulty": 3,
+  "type": "mcq",
+  "stem": "Kenyan filmmaker Wanjiru Kamau spent three fishing seasons documenting cooperatives along Lake Victoria. She had initially envisioned an authoritative voice-over, one that would guide viewers through scenes of nets, markets, and quota ______ screening a rough cut for the fishers, however, she abandoned narration entirely, letting their unscripted exchanges carry the film.\n\nWhich choice completes the text so that it conforms to the conventions of Standard English?",
+  "answer": "D",
+  "explanation": "Choice D is correct. Use the Split Test. \"She had initially envisioned an authoritative voice-over, one that would guide viewers through scenes of nets, markets, and quota negotiations\" is a complete sentence. \"After screening a rough cut for the fishers, however, she abandoned narration entirely, letting their unscripted exchanges carry the film\" is also a complete sentence. A period correctly separates them. The \"however\" sits in the middle of the second sentence. It signals contrast but joins nothing, so it can't do the work at the blank. Trust the Split Test, not your ear.\n\nChoice A is incorrect. \"Then\" is an adverb, not a FANBOYS conjunction. A comma plus \"then\" still leaves a comma splice between two complete sentences.\n\nChoice B is incorrect. With no punctuation, the two complete sentences run together and form a run-on sentence.\n\nChoice C is incorrect. A comma alone can't join two complete sentences, so this is a comma splice. The comma looks right before the opening phrase \"after screening a rough cut,\" and the later \"however\" seems to handle the contrast. But neither one fixes the boundary at the blank.",
+  "distractor_notes": {
+   "A": "Comma plus fake joiner: treats the adverb \"then\" as if it could join two complete sentences, so the result is still a comma splice.",
+   "B": "No punctuation: the reader misses where the first sentence ends after the long list and appositive, so the result is a run-on.",
+   "C": "Comma alone: the student hears a natural pause before \"after screening\" and assumes the mid-clause \"however\" supplies the connection. The result is a comma splice."
+  },
+  "lesson": "RW-4.1",
+  "blueprint": "E1",
+  "desmos_technique": "",
+  "source": "original",
+  "status": "draft",
+  "sat_quality": 4,
+  "topic": "Documentary filmmaking: dropping narration in a Lake Victoria fishing film",
+  "choice_a": "negotiations, then after",
+  "choice_b": "negotiations after",
+  "choice_c": "negotiations, after",
+  "choice_d": "negotiations. After"
+ },
+ {
   "external_id": "GEN-E2-001",
   "section": "rw",
   "skill": "Boundaries",
@@ -3036,6 +3062,32 @@
   "choice_d": "counts"
  },
  {
+  "external_id": "GEN-E2-003",
+  "section": "rw",
+  "skill": "Boundaries",
+  "difficulty": 3,
+  "type": "mcq",
+  "stem": "Among the most ambitious works by Harlem Renaissance painter Aaron Douglas is *Aspects of Negro Life*. The series—four murals painted in 1934 for the 135th Street branch of the New York Public Library, now the Schomburg Center for Research in Black Culture______ traces African American history from Africa to the industrial North.\n\nWhich choice completes the text so that it conforms to the conventions of Standard English?",
+  "answer": "A",
+  "explanation": "Choice A is correct. The dash after \"series\" opens a nonessential element that runs all the way to \"Culture.\" A dash-opened element must close with a dash. Use the removal test: \"The series traces African American history from Africa to the industrial North\" is a complete sentence. Inside the element, a second element opens with a comma after \"Library\" (\"now the Schomburg Center for Research in Black Culture\"). Both elements end at the same word, so one closing dash finishes both. Don't let the nearby comma decide for you: close with the same mark that opened the outer element.\n\nChoice B is incorrect. The comma closes only the inner element that began after \"Library.\" The dash after \"series\" is never closed, so the marks don't match.\n\nChoice C is incorrect. A semicolon must join two independent clauses. \"The series—four murals…Culture\" has no main verb, and \"traces African American history…\" has no subject.\n\nChoice D is incorrect. With no mark, the dash after \"series\" is never closed, and the extra information runs straight into the main verb \"traces.\"",
+  "distractor_notes": {
+   "B": "Matches the nearest opening mark, the comma after \"Library,\" and forgets that the element opened by the dash after \"series\" also ends here. The dash is left unmatched.",
+   "C": "Uses a semicolon even though neither side is an independent clause. The first part has no main verb, and the second part has no subject.",
+   "D": "Leaves out the closing mark, so the dash-opened element never ends and runs into the verb \"traces.\""
+  },
+  "lesson": "RW-4.2",
+  "blueprint": "E2",
+  "desmos_technique": "",
+  "source": "original",
+  "status": "draft",
+  "sat_quality": 5,
+  "topic": "Aaron Douglas's mural series Aspects of Negro Life",
+  "choice_a": "Culture—",
+  "choice_b": "Culture,",
+  "choice_c": "Culture;",
+  "choice_d": "Culture"
+ },
+ {
   "external_id": "GEN-E3-001",
   "section": "rw",
   "skill": "Boundaries",
@@ -3086,6 +3138,32 @@
   "choice_b": "learning,",
   "choice_c": "learning;",
   "choice_d": "learning"
+ },
+ {
+  "external_id": "GEN-E3-003",
+  "section": "rw",
+  "skill": "Boundaries",
+  "difficulty": 3,
+  "type": "mcq",
+  "stem": "The Songhai Empire, which supplanted Mali as the dominant power of the western Sahel, reached its height under Askia Muhammad, who seized the throne in 1493. Chief among the reforms that historians attribute to him ______ a professional standing army, provincial governors appointed by the court at Gao, and standardized weights and measures.\n\nWhich choice completes the text so that it conforms to the conventions of Standard English?",
+  "answer": "C",
+  "explanation": "Choice C is correct. The second sentence is inverted. In normal order it reads: \"A professional standing army, provincial governors appointed by the court at Gao, and standardized weights and measures were chief among the reforms that historians attribute to him.\" The list is the subject of the verb \"were,\" so nothing should come between the verb and the list. A colon needs a complete sentence before it, and \"Chief among the reforms that historians attribute to him were\" is not one. Trust the Split Test, not your ear: the words before the blank cannot stand alone.\n\nChoice A is incorrect. It treats the list as something introduced by a complete clause, but the words before the colon are not a complete sentence. The colon cuts the verb off from its own subject.\n\nChoice B is incorrect. A semicolon joins two independent clauses, and neither the words before the blank nor the list after it is an independent clause.\n\nChoice D is incorrect. A comma has no job here. It puts a needless break between the verb \"were\" and its subject.",
+  "distractor_notes": {
+   "A": "Sees a list and reaches for a colon without checking that the words before it form a complete sentence; the inverted order hides that the list is the subject of \"were.\"",
+   "B": "Uses a semicolon to introduce a list, as if it worked like a colon; a semicolon must join two independent clauses.",
+   "D": "Adds a comma for a pause before a long list, wrongly separating the verb from its subject."
+  },
+  "lesson": "RW-4.2",
+  "blueprint": "E3",
+  "desmos_technique": "",
+  "source": "original",
+  "status": "draft",
+  "sat_quality": 5,
+  "topic": "Songhai Empire, Askia Muhammad's reforms",
+  "choice_a": "were:",
+  "choice_b": "were;",
+  "choice_c": "were",
+  "choice_d": "were,"
  },
  {
   "external_id": "GEN-E4-001",
@@ -3164,6 +3242,32 @@
   "choice_b": "consistently raising",
   "choice_c": "consistently raises",
   "choice_d": "have consistently raised"
+ },
+ {
+  "external_id": "GEN-E4-004",
+  "section": "rw",
+  "skill": "Form, structure, and sense",
+  "difficulty": 3,
+  "type": "mcq",
+  "stem": "Ewa Kowalczyk's memoir *A Mouth Full of Borrowed Sounds* traces her move from Warsaw to Busan at age thirty-four. Her candid account of the misheard idioms and botched honorifics of her first years there, along with the facsimile notebook pages that close the book's chapters, ______ that adult fluency is assembled largely from tolerated error.\n\nWhich choice completes the text so that it conforms to the conventions of Standard English?",
+  "answer": "A",
+  "explanation": "Choice A is correct. Cross out the middle. First drop the prepositional phrase \"of the misheard idioms and botched honorifics of her first years there.\" Then drop the \"along with\" phrase between the commas. What's left is \"Her candid account ... makes a persuasive case.\" The subject \"account\" is singular, so it takes the singular verb \"makes.\" A phrase beginning with \"along with\" adds information, but it does not turn the subject into a compound subject the way \"and\" would.\n\nChoice B is incorrect. The plural verb \"make\" matches the nearest nouns (\"pages,\" \"chapters\") or treats \"along with\" as if it were \"and.\" It does not agree with the singular subject \"account.\"\n\nChoice C is incorrect. \"Making\" is not a main verb. With it, the sentence has a subject (\"account\") but no main verb, so it is a fragment.\n\nChoice D is incorrect. This choice changes the tense but keeps the plural number. The helping verb \"have\" is plural, so it still does not agree with the singular subject \"account.\"",
+  "distractor_notes": {
+   "B": "Matches the nearest plural nouns (\"pages,\" \"chapters,\" or \"idioms and honorifics\"), or reads \"along with\" as \"and\" and treats the subject as compound.",
+   "C": "Uses an -ing form that cannot serve as a main verb, which leaves the sentence without one (a fragment).",
+   "D": "Shifts the tense but keeps a plural verb (\"have\"), so it still agrees with the nearby plural nouns instead of the singular subject \"account.\""
+  },
+  "lesson": "RW-4.3",
+  "blueprint": "E4",
+  "desmos_technique": "",
+  "source": "original",
+  "status": "draft",
+  "sat_quality": 5,
+  "topic": "memoir of an adult learning Korean in Busan",
+  "choice_a": "makes a persuasive case",
+  "choice_b": "make a persuasive case",
+  "choice_c": "making a persuasive case",
+  "choice_d": "have made a persuasive case"
  },
  {
   "external_id": "GEN-E5-001",
@@ -3270,6 +3374,32 @@
   "choice_d": "records"
  },
  {
+  "external_id": "GEN-E6-002",
+  "section": "rw",
+  "skill": "Form, structure, and sense",
+  "difficulty": 3,
+  "type": "mcq",
+  "stem": "When Edward Jenner published his account of cowpox inoculation in 1798, the principle behind it was far from novel. Practitioners in China, India, and the Ottoman Empire, seeking to induce a mild but protective case of smallpox in healthy individuals, ______ material from smallpox sores into cuts or the nostrils for generations, a technique known as variolation.\n\nWhich choice completes the text so that it conforms to the conventions of Standard English?",
+  "answer": "B",
+  "explanation": "Choice B is correct. The first sentence places the timeline in the past: in 1798, when Jenner published, the principle \"was far from novel.\" The practitioners' work explains why. It began long before that past moment and continued up to it, so the verb needs the past perfect progressive, \"had been introducing.\" The phrase \"for generations\" tells how long the practice lasted. It does not move the action into the present. The real anchor is the 1798 date in the previous sentence.\n\nChoice A is incorrect. The present perfect \"have been introducing\" means the practice continues up to now. That clashes with the passage's 1798 reference point, and variolation is no longer practiced. \"For generations\" makes this choice tempting.\n\nChoice C is incorrect. The future progressive places the practice after the present, but the passage says it came before Jenner's work.\n\nChoice D is incorrect. The present progressive shifts the tense for no reason and ignores the past time frame set by \"published\" and \"was.\"",
+  "distractor_notes": {
+   "A": "Present perfect: the student treats \"for generations\" as a since/for signal and misses that the reference point is the past year 1798, not the present.",
+   "C": "Future: places a practice that came before Jenner's 1798 work in the future.",
+   "D": "Random tense shift: uses the present tense, ignoring the past-tense frame set by \"published\" and \"was.\""
+  },
+  "lesson": "RW-4.5",
+  "blueprint": "E6",
+  "desmos_technique": "",
+  "source": "original",
+  "status": "draft",
+  "sat_quality": 5,
+  "topic": "Variolation before Jenner's smallpox vaccine",
+  "choice_a": "have been introducing",
+  "choice_b": "had been introducing",
+  "choice_c": "will be introducing",
+  "choice_d": "are introducing"
+ },
+ {
   "external_id": "GEN-E7-001",
   "section": "rw",
   "skill": "Form, structure, and sense",
@@ -3322,6 +3452,32 @@
   "choice_d": "its architects"
  },
  {
+  "external_id": "GEN-E7-003",
+  "section": "rw",
+  "skill": "Form, structure, and sense",
+  "difficulty": 3,
+  "type": "mcq",
+  "stem": "Composed by the Roman architect Vitruvius in the first century BCE and later copied by generations of medieval scribes, *De architectura* is the only comprehensive treatise on architecture to survive from classical antiquity. Researchers hoping to reproduce Roman marine concrete still turn to the work, consulting ______ for combining lime with volcanic ash.\n\nWhich choice completes the text so that it conforms to the conventions of Standard English?",
+  "answer": "C",
+  "explanation": "Choice C is correct. Three words each need a decision. First, the recipes belong to \"the work,\" so the possessive pronoun \"its\" is needed, with no apostrophe. Second, the text names one author, Vitruvius. The scribes only copied the work; they did not write it. One owner takes the singular possessive \"author's.\" Third, \"recipes\" is a plain plural that owns nothing, so it takes no apostrophe.\n\nChoice A is incorrect. \"It's\" means \"it is,\" and \"consulting it is author's recipes\" makes no sense. Possession needs \"its.\"\n\nChoice B is incorrect. \"Authors'\" signals more than one author, but the work has a single author, Vitruvius. The plural \"generations of medieval scribes\" is the trap: copiers are not authors.\n\nChoice D is incorrect. \"Recipe's\" is a possessive, but nothing follows that the recipe could own (\"for\" begins a phrase). A plain plural takes no apostrophe.",
+  "distractor_notes": {
+   "A": "Uses \"it's\" (it is) to show possession; the possessive pronoun is \"its.\"",
+   "B": "Swaps singular and plural possessive: treats the work as having several authors, likely misled by the plural \"scribes\" and \"Researchers,\" though Vitruvius is its sole author.",
+   "D": "Puts an apostrophe on the plain plural \"recipes,\" which owns nothing."
+  },
+  "lesson": "RW-4.4",
+  "blueprint": "E7",
+  "desmos_technique": "",
+  "source": "original",
+  "status": "draft",
+  "sat_quality": 5,
+  "topic": "Vitruvius's De architectura and Roman concrete recipes",
+  "choice_a": "it's author's recipes",
+  "choice_b": "its authors' recipes",
+  "choice_c": "its author's recipes",
+  "choice_d": "its author's recipe's"
+ },
+ {
   "external_id": "GEN-E8-001",
   "section": "rw",
   "skill": "Form, structure, and sense",
@@ -3372,6 +3528,32 @@
   "choice_b": "the glaze's iron formed fine brown streaks",
   "choice_c": "iron in the glaze formed fine brown streaks",
   "choice_d": "the glaze formed fine brown streaks"
+ },
+ {
+  "external_id": "GEN-E8-003",
+  "section": "rw",
+  "skill": "Form, structure, and sense",
+  "difficulty": 3,
+  "type": "mcq",
+  "stem": "In a study of habit formation, psychologist Mireille Achterberg asked volunteers to adopt one new daily behavior, such as stretching before breakfast. Having performed the chosen behavior in the same setting every day for twelve weeks and rated each evening how automatic it felt, ______ that the behavior had come to require little conscious deliberation.\n\nWhich choice completes the text so that it conforms to the conventions of Standard English?",
+  "answer": "C",
+  "explanation": "Choice C is correct. The opening phrase (\"Having performed the chosen behavior... and rated each evening how automatic it felt\") describes whoever did the behavior and rated it. The passage says the volunteers adopted the behavior, so the noun right after the comma must be the volunteers. Choice C puts \"most of the volunteers\" there, so the modifier attaches to the right people.\n\nChoice A is incorrect. This passive construction puts Achterberg first, so it says Achterberg performed the behavior and rated it. She only asked the volunteers to do so.\n\nChoice B is incorrect. The possessive makes \"ratings\" the subject, so it says the ratings performed the behavior and rated it. The volunteers are only part of the possessive \"the volunteers'.\"\n\nChoice D is incorrect. The placeholder \"it\" becomes the subject, so the modifier has no person to describe. The volunteers are buried at the end of the clause.",
+  "distractor_notes": {
+   "A": "Passive voice puts the researcher first. The first sentence makes Achterberg the natural subject, but she did not perform or rate the behavior.",
+   "B": "Possessive trap: the noun right after the comma is \"ratings,\" not the volunteers. The echo of \"rated\" in \"ratings\" makes it feel connected.",
+   "D": "Dummy subject \"it\" with passive voice. The real actors, the volunteers, are buried after \"by.\""
+  },
+  "lesson": "RW-4.6",
+  "blueprint": "E8",
+  "desmos_technique": "",
+  "source": "original",
+  "status": "draft",
+  "sat_quality": 5,
+  "topic": "psychology of habit: automaticity ratings in a twelve-week habit-formation study",
+  "choice_a": "Achterberg was told by most volunteers",
+  "choice_b": "the volunteers' ratings indicated to Achterberg",
+  "choice_c": "most of the volunteers told Achterberg",
+  "choice_d": "it was reported by most volunteers"
  },
  {
   "external_id": "GEN-E9-001",
@@ -3504,6 +3686,32 @@
   "choice_d": "Editing choices shape how viewers interpret documentaries, even when the footage itself is authentic."
  },
  {
+  "external_id": "GEN-E11-003",
+  "section": "rw",
+  "skill": "Central ideas and details",
+  "difficulty": 3,
+  "type": "mcq",
+  "stem": "Because a whistle carries only a single, shifting pitch, it cannot reproduce most of the acoustic detail of the voice, and whistled speech has often been characterized as a drastically reduced code, serviceable for calls across ravines but little else. Linguist Inés Aguado-Mbeki does not dispute that whistling discards much; she contends, however, that the discarding is far from indiscriminate. In Silbo Gomero, the whistled Spanish of the island of La Gomera, vowels are rendered as relative pitch heights and consonants as shifts or interruptions between them—precisely the cues, her perceptual experiments suggest, that listeners rely on most to tell words apart. What whistlers preserve, on her account, is thus less a remnant of speech than a distillation of its most informative contrasts.\n\nWhich choice best states the main idea of the text?",
+  "answer": "C",
+  "explanation": "Choice C is correct. The text first gives a common view (whistled speech is a crude, reduced code). Then it turns: Aguado-Mbeki \"does not dispute\" that whistling loses much, but she argues the loss is selective. What survives in Silbo Gomero is exactly the set of cues listeners rely on most to tell words apart. So the main idea is a concession followed by a claim: much is lost, but the most useful contrasts are kept. Choice C states both parts and keeps the text's scope.\n\nChoice A is incorrect. It is too extreme. The linguist calls whistled speech a \"distillation\" of speech's most informative contrasts. She never claims it can express anything spoken language can.\n\nChoice B is incorrect. It accurately restates the view in the first sentence, but that view is only the background the linguist responds to. It is not the main idea.\n\nChoice D is incorrect. It reverses the linguist's position. She \"does not dispute\" that whistling discards much. Her experiments concern which cues listeners rely on, not whether whistled and spoken words are perceived alike.",
+  "distractor_notes": {
+   "A": "Too extreme: turns the linguist's claim that whistling keeps the most informative contrasts into the unsupported claim that it can express anything speech can. This tempts readers who see only that she pushes back on the 'reduced code' label.",
+   "B": "True but not the main idea: an accurate paraphrase of the conventional view in the first sentence, which the rest of the text responds to and qualifies.",
+   "D": "Reversal and overreach: misreads 'does not dispute… however' as outright disagreement, and invents an experimental finding that the text never reports."
+  },
+  "lesson": "RW-1.1",
+  "blueprint": "E11",
+  "desmos_technique": "",
+  "source": "original",
+  "status": "draft",
+  "sat_quality": 5,
+  "topic": "whistled languages (Silbo Gomero)",
+  "choice_a": "A linguist challenges the characterization of whistled speech as a reduced code, contending that it can express anything spoken language can, not merely calls across ravines.",
+  "choice_b": "Because a whistle cannot reproduce most of the voice's acoustic detail, whistled speech has often been described as a code suited mainly to long-distance calls.",
+  "choice_c": "A linguist accepts that whistling sacrifices much acoustic detail but contends that it spares the contrasts listeners depend on most to distinguish words.",
+  "choice_d": "A linguist disputes the claim that whistling discards much of the voice's acoustic detail, citing experiments suggesting that listeners perceive whistled and spoken words alike."
+ },
+ {
   "external_id": "GEN-E12-001",
   "section": "rw",
   "skill": "Command of evidence: textual",
@@ -3554,6 +3762,32 @@
   "choice_b": "Planets around stars with high ultraviolet output lost gas faster than other planets did, but among similarly irradiated planets, mass showed no consistent relationship with how quickly gas escaped.",
   "choice_c": "Among planets receiving similar levels of ultraviolet radiation, the most massive planets were surrounded by the largest and densest clouds of escaping helium and hydrogen.",
   "choice_d": "Planets orbiting stars with high ultraviolet output had upper atmospheres that contained more helium than hydrogen, regardless of how massive the planets themselves were."
+ },
+ {
+  "external_id": "GEN-E12-003",
+  "section": "rw",
+  "skill": "Command of evidence: textual",
+  "difficulty": 3,
+  "type": "mcq",
+  "stem": "In living birds, the shape and arrangement of melanosomes—microscopic, pigment-bearing structures that can survive fossilization—correspond closely to feather color; narrow melanosomes stacked in orderly layers, for example, produce iridescence. Studying fossils of a small feathered theropod dinosaur from the Early Cretaceous period, paleontologist Hyun-woo Baek and colleagues hypothesize that the animal's iridescent plumage functioned as a signal of sexual maturity rather than as camouflage. If this hypothesis is correct, the team argues, iridescence-producing melanosomes should appear in the specimens identified as adults but not in those identified as juveniles, and within adult specimens they should be largely confined to the elongated tail feathers, which would have been conspicuous during courtship displays, rather than distributed across the body.\n\nWhich finding, if true, would most directly support the researchers' hypothesis?",
+  "answer": "C",
+  "explanation": "Choice C is correct. Split the claim into its parts. If the plumage signaled sexual maturity, the team predicts two things. First, iridescence-producing (narrow, layered) melanosomes appear in adults but not in juveniles. Second, in adults these melanosomes are largely confined to the tail feathers rather than spread across the body. Choice C matches both parts: the melanosomes are abundant in adult tail feathers, scarce in adult body feathers, and absent from juveniles.\n\nChoice A is incorrect. It matches the location part, but it says juveniles also have these melanosomes. The hypothesis predicts juveniles should lack them, so a mere difference in density does not support it.\n\nChoice B is incorrect. It matches the adult-versus-juvenile part, but it says adults have these melanosomes at similar densities in the tail and the body. That contradicts the prediction that they would be largely confined to the tail.\n\nChoice D is incorrect. It says nothing about juveniles, and it ties the tail pattern to living birds that use it to blend in. That points toward camouflage, the very function the researchers reject.",
+  "distractor_notes": {
+   "A": "Matches only one part (the tail location). The finding that juveniles also have the melanosomes contradicts the age prediction. The phrase \"more densely packed in adults\" makes it look like an age difference.",
+   "B": "Matches only one part (adults but not juveniles). The even spread across tail and body contradicts the prediction that the melanosomes are largely confined to the tail.",
+   "D": "Right topic, wrong relationship. It matches the adult tail pattern but leaves out juveniles. Its comparison to living birds supports camouflage, the alternative the researchers rule out, rather than display."
+  },
+  "lesson": "RW-1.2",
+  "blueprint": "E12",
+  "desmos_technique": "",
+  "source": "original",
+  "status": "draft",
+  "sat_quality": 4,
+  "topic": "dinosaur feather melanosomes: display vs. camouflage",
+  "choice_a": "Narrow, layered melanosomes occur in the tail feathers of both adult and juvenile specimens, though such melanosomes are more densely packed in the tail feathers of adults.",
+  "choice_b": "In adult specimens, narrow, layered melanosomes occur at similar densities in the tail feathers and the body feathers, whereas juvenile specimens lack such melanosomes entirely.",
+  "choice_c": "Narrow, layered melanosomes are abundant in the tail feathers of adult specimens but scarce in their body feathers and absent from juvenile specimens altogether.",
+  "choice_d": "Narrow, layered melanosomes are concentrated in the tail feathers of adult specimens, as in several living bird species whose iridescent tails help them blend into sunlit foliage."
  },
  {
   "external_id": "GEN-E13-001",
@@ -3608,6 +3842,58 @@
   "choice_d": "references to the lamp outnumber references to other people in each of the novel's three parts, climbing from 5.8 per 1,000 words in Part 1 to 9.4 in Part 3."
  },
  {
+  "external_id": "GEN-E13-003",
+  "section": "rw",
+  "skill": "Command of evidence: quantitative",
+  "difficulty": 3,
+  "type": "mcq",
+  "stem": "**Lines Spoken in *The Ovens of Calle Sarandí*, by Act**\n\n| Act | Rizzi | Ocampo | All other characters combined |\n|---|---|---|---|\n| 1 | 246 | 131 | 188 |\n| 2 | 179 | 134 | 152 |\n| 3 | 92 | 129 | 167 |\n\nCritics have long treated Ximena Labarthe's 1958 comedy *The Ovens of Calle Sarandí*, in which Amadeo Rizzi, a baker whose family has served the neighborhood for generations, contends with Pilar Ocampo, a newcomer who opens a rival shop across the street, as fundamentally Rizzi's play. Theater scholar Kwame Asante-Boateng does not dispute that Rizzi dominates the opening act, but he argues that Labarthe gradually shifts the comedy's center of gravity to Ocampo. Drawing on a count of the lines spoken in each of the play's three acts, Asante-Boateng further maintains that this shift owes nothing to any enlargement of Ocampo's role: Labarthe achieves it instead by curtailing Rizzi's dialogue while leaving the size of Ocampo's part essentially unchanged, so that by the final act the newcomer speaks more lines than the rival whose story the play seemed to tell.\n\nWhich choice most effectively uses data from the table to support Asante-Boateng's claim?",
+  "answer": "A",
+  "explanation": "Choice A is correct. Circle what the claim needs: Asante-Boateng says Ocampo's part stays about the same size, Rizzi's dialogue is cut, and by the final act Ocampo speaks more lines than Rizzi. The table shows all three. Ocampo goes from 131 lines in Act 1 to 129 in Act 3, so her part does not grow. Rizzi drops from 246 lines to 92, and 92 is fewer than Ocampo's 129.\n\nChoice B is incorrect. This is accurate, but it describes only Rizzi. It says nothing about whether Ocampo's part stayed the same size or whether she ends up speaking more lines than he does.\n\nChoice C is incorrect. This misreads the table. In Act 2, Rizzi speaks 179 lines, more than Ocampo's 134, so he does not speak fewer lines than she does in both Act 2 and Act 3.\n\nChoice D is incorrect. This is accurate, but the decline it reports belongs to the wrong group. The claim is about curtailing Rizzi's dialogue, not the dialogue of the other characters, and this choice never mentions Rizzi.",
+  "distractor_notes": {
+   "B": "True about the data but reports only one group's change. It shows Rizzi being quieted but not that Ocampo's part stayed the same size or that she outspeaks him in Act 3.",
+   "C": "Sounds supportive but misreads the data. In Act 2, Rizzi speaks 179 lines, more than Ocampo's 134.",
+   "D": "Wrong group from the distractor column. Ocampo's steady count is accurate, but the declining figures belong to the other characters, not Rizzi."
+  },
+  "lesson": "RW-1.3",
+  "blueprint": "E13",
+  "desmos_technique": "",
+  "source": "original",
+  "status": "draft",
+  "sat_quality": 4,
+  "topic": "Invented comedy about rival bakers; lines spoken by each character, by act",
+  "choice_a": "Ocampo speaks 131 lines in Act 1 and 129 in Act 3, whereas Rizzi, who speaks 246 lines in Act 1, speaks only 92 in Act 3.",
+  "choice_b": "Rizzi's lines fall steadily over the course of the play, from 246 in Act 1 to 179 in Act 2 and then to just 92 in Act 3.",
+  "choice_c": "Ocampo speaks 131, 134, and 129 lines in Acts 1, 2, and 3, respectively, and Rizzi speaks fewer lines than she does in both Act 2 and Act 3.",
+  "choice_d": "Ocampo speaks between 129 and 134 lines in each act, while the lines spoken by all other characters combined fall from 188 in Act 1 to 152 in Act 2."
+ },
+ {
+  "external_id": "GEN-E13-004",
+  "section": "rw",
+  "skill": "Command of evidence: quantitative",
+  "difficulty": 3,
+  "type": "mcq",
+  "stem": "**Imported Ceramics at Four Excavated Settlements**\n\n| Site | Location | Total sherds analyzed | Imported, 700–850 CE (%) | Imported, 950–1100 CE (%) |\n|---|---|---|---|---|\n| P | route junction | 1,240 | 24 | 22 |\n| Q | route junction | 860 | 17 | 20 |\n| R | single route | 1,510 | 21 | 9 |\n| S | single route | 690 | 15 | 6 |\n\nMany historians link the gradual contraction of overland Silk Road commerce after about 900 CE to the expansion of seaborne trade across the Indian Ocean, which offered merchants an alternative to long caravan journeys. Archaeologist Nodira Yusupova does not dispute that overland exchange diminished overall. She contends, though, that the decline was markedly uneven: settlements where several caravan routes converged largely retained their access to long-distance goods, whereas settlements dependent on a single route suffered steep losses. To evaluate this view, Yusupova's team classified ceramic sherds excavated at four Central Asian settlements as either locally made or imported and calculated the share of imports in two periods. These data support Yusupova's contention: ______\n\nWhich choice most effectively uses data from the table to complete the statement?",
+  "answer": "C",
+  "explanation": "Choice C is correct. Yusupova claims the decline was uneven. Junction settlements largely kept their imports, while single-route settlements lost them steeply. To show uneven change, you need the change over time for both kinds of settlement. Choice C gives exactly that, and its numbers match the table. At Site P, a junction, imports slipped only 2 percentage points (24% to 22%). At Site R, a single-route site, they fell 12 points (21% to 9%).\n\nChoice A is incorrect. It is accurate, but it relies on the sherd-count column, which the claim doesn't need. It also gives only the later period, so it shows no change at all. Site R might always have had fewer imports.\n\nChoice B is incorrect. It is accurate and shows one junction settlement holding its imports. But it says nothing about single-route settlements, so it can't show that the decline was uneven.\n\nChoice D is incorrect. It would support the claim if it were true, but it misreads the table. Site P's share fell from 24% to 22%; it did not rise from 22% to 24%.",
+  "distractor_notes": {
+   "A": "Accurate but uses the irrelevant sherd-count column and a single period, so it shows a difference between sites rather than an uneven decline over time.",
+   "B": "Accurate but covers only one group (a junction settlement); without the single-route comparison it cannot show that the decline was uneven.",
+   "D": "Has the right comparison structure but reverses Site P's figures: the table shows a drop from 24% to 22%, not a rise from 22% to 24%."
+  },
+  "lesson": "RW-1.3",
+  "blueprint": "E13",
+  "desmos_technique": "",
+  "source": "original",
+  "status": "draft",
+  "sat_quality": 5,
+  "topic": "Silk Road imported ceramics at junction vs. single-route settlements",
+  "choice_a": "Site R, a single-route settlement, yielded more sherds than any other site, yet its share of imports in 950–1100 CE was only 9%, compared with 22% at Site P.",
+  "choice_b": "at Site Q, one of the settlements located where caravan routes converged, the share of imported sherds rose from 17% in 700–850 CE to 20% in 950–1100 CE.",
+  "choice_c": "the share of imports dipped only from 24% to 22% at Site P, a junction settlement, but dropped from 21% to 9% at Site R, a single-route settlement.",
+  "choice_d": "the share of imports rose from 22% to 24% at Site P, a junction settlement, but fell from 15% to 6% at Site S, a single-route settlement."
+ },
+ {
   "external_id": "GEN-E14-001",
   "section": "rw",
   "skill": "Inferences",
@@ -3660,6 +3946,32 @@
   "choice_d": "would-be candidates in towns without a local paper know less about council issues than others do."
  },
  {
+  "external_id": "GEN-E14-003",
+  "section": "rw",
+  "skill": "Inferences",
+  "difficulty": 3,
+  "type": "mcq",
+  "stem": "Whistled languages largely reduce speech to a single melodic line. In whistled forms of nontonal languages, the line's pitch tracks vowel quality; in tonal languages, it usually tracks lexical tone instead, so words that share a tone pattern but differ in their vowels can sound nearly alike, and listeners must often rely on context to tell them apart. Linguist Ewurabena Asante-Lindqvist played members of one highland community, whose language is tonal, recordings of whistled word pairs that had identical tones and differed only in a vowel; each word was presented in isolation. Listeners chose the intended word at rates well above chance, yet acoustic analysis showed that the words in each pair did not differ in pitch. These results suggest that ______\n\nWhich choice most logically completes the text?",
+  "answer": "D",
+  "explanation": "Choice D is correct. Number the steps. (1) In whistled tonal languages, pitch usually carries tone, so words with the same tones but different vowels sound alike, and listeners lean on context. (2) The study ruled out context: each word was heard in isolation. (3) It also ruled out pitch: the words in each pair did not differ in pitch. (4) Even so, listeners picked the right word well above chance. What's left is the smallest statement the text forces: something in the whistles other than pitch must differ between the words, and listeners use it without context. Choice D says exactly that and nothing more.\n\nChoice A is incorrect. Duration is one possible cue, but the text never measures length. Loudness or consonant sounds could just as well be the cue, so this is possible but not forced.\n\nChoice B is incorrect. This contradicts step 3. The acoustic analysis found no pitch difference within the pairs, so pitch cannot be what carries the vowel distinction here.\n\nChoice C is incorrect. This is too extreme. One community's results cannot show what tonal whistled languages do in general, and the claim clashes with step 1, which says such words usually sound nearly alike.",
+  "distractor_notes": {
+   "A": "Possible but not forced: names one specific cue (duration) that the text never tests; other non-pitch cues would explain the results equally well.",
+   "B": "Contradicts a step: ignores the negation that the paired words did not differ in pitch, and assumes the community whistles like nontonal-language whistlers.",
+   "C": "Too extreme: generalizes from one community to all whistled tonal languages and conflicts with the opening claim that such words usually sound alike."
+  },
+  "lesson": "RW-1.4",
+  "blueprint": "E14",
+  "desmos_technique": "",
+  "source": "original",
+  "status": "draft",
+  "sat_quality": 4,
+  "topic": "whistled speech in a tonal-language community",
+  "choice_a": "the community's whistlers lengthen one word in each pair, giving listeners a durational cue that substitutes for the vowel distinctions that pitch cannot carry.",
+  "choice_b": "the community's whistlers, unlike those of most tonal languages, use pitch to represent vowel quality in the way that whistlers of nontonal languages do.",
+  "choice_c": "whistled forms of tonal languages generally preserve vowel distinctions, so listeners rarely need context to identify words that share a tone pattern.",
+  "choice_d": "listeners in the community can tell apart words with identical tones using some property of the whistles other than pitch, even without context."
+ },
+ {
   "external_id": "GEN-E15-001",
   "section": "rw",
   "skill": "Words in context",
@@ -3684,6 +3996,32 @@
   "choice_b": "dictate",
   "choice_c": "relinquish",
   "choice_d": "burnish"
+ },
+ {
+  "external_id": "GEN-E15-002",
+  "section": "rw",
+  "skill": "Words in context",
+  "difficulty": 3,
+  "type": "mcq",
+  "stem": "Because a delta forms only where a river delivers sediment faster than waves and tides can carry it away, many geomorphologists have treated sediment load as the decisive variable in delta growth. Hydrologist Ayesha Rahmani does not dispute that sediment matters, but her survey of 40 coastlines suggests that its role is ______: where tidal currents are vigorous, even heavily laden rivers build little or no delta.\n\nWhich choice completes the text with the most logical and precise word or phrase?",
+  "answer": "B",
+  "explanation": "Choice B is correct. Cover the choices and find the clue. Rahmani \"does not dispute that sediment matters,\" so she keeps sediment as a real factor. The text after the colon restates what she means: a large sediment load builds a delta only when tidal currents allow it. So sediment's role depends on other conditions. Predict \"conditional\" or \"dependent.\" \"Contingent\" means exactly that.\n\nChoice A is incorrect. \"Inconsequential\" means unimportant. Rahmani explicitly does not dispute that sediment matters. She limits its effect to certain conditions; she does not dismiss it.\n\nChoice C is incorrect. \"Cumulative\" means building up over time. Sediment does pile up in a delta, so the word fits the topic, but nothing in the colon's explanation is about gradual accumulation of influence.\n\nChoice D is incorrect. \"Equivocal\" means ambiguous or open to more than one interpretation. It has the right hedged tone, but the survey does not show an unclear role. It shows a clear dependence on tidal conditions.",
+  "distractor_notes": {
+   "A": "Overreads \"little or no delta\" as proof that sediment doesn't matter and ignores the concession \"does not dispute that sediment matters.\"",
+   "C": "Picks a word linked to the topic, since deltas accumulate sediment, but the word doesn't match the colon's explanation of dependence on tides.",
+   "D": "Right cautious tone but wrong meaning: \"equivocal\" means ambiguous, while the survey shows a clear dependence on tidal conditions, not an unclear role."
+  },
+  "lesson": "RW-2.1",
+  "blueprint": "E15",
+  "desmos_technique": "",
+  "source": "original",
+  "status": "draft",
+  "sat_quality": 5,
+  "topic": "River delta formation: tides limiting sediment's effect",
+  "choice_a": "inconsequential",
+  "choice_b": "contingent",
+  "choice_c": "cumulative",
+  "choice_d": "equivocal"
  },
  {
   "external_id": "GEN-E16-001",
@@ -3738,6 +4076,32 @@
   "choice_d": "It describes the blind tasting method Venkataraman used to measure quality differences among the estates' tea."
  },
  {
+  "external_id": "GEN-E16-003",
+  "section": "rw",
+  "skill": "Text structure and purpose",
+  "difficulty": 3,
+  "type": "mcq",
+  "stem": "Because asphalt and concrete absorb solar radiation by day and release it gradually after sunset, dense urban cores frequently remain several degrees warmer at night than the countryside around them, a phenomenon termed the urban heat island effect. Many municipalities have responded by expanding street-tree canopies, whose shade and evapotranspiration (the release of water vapor through leaves) can measurably lower air temperatures. <u>Climatologist Ana Ferreira-Okafor has observed, however, that in cities with already humid summers, the water vapor trees release can lower temperature while raising the humidity that makes heat feel oppressive.</u> Her analysis does not imply that urban forestry is misguided; rather, it suggests that planners should judge such programs by indices of human heat stress, not by thermometer readings alone.\n\nWhich choice best describes the function of the underlined sentence in the text as a whole?",
+  "answer": "C",
+  "explanation": "Choice C is correct. Ask why the underlined sentence is there. The sentence before it describes a response to urban heat islands: planting street trees, which lower air temperatures. The underlined sentence does not deny that cooling. It still says trees \"can lower temperature.\" Instead, it adds a catch: in humid cities, the same trees raise humidity, which makes heat feel worse. That partly cancels the relief the cooler air brings. So the sentence identifies a limitation of the tree-planting response that applies in some climates, as choice C says. The last sentence confirms this reading: forestry is not \"misguided,\" but its benefits should be measured by heat stress.\n\nChoice A is incorrect. It reverses the relationship. The underlined sentence says trees can still lower temperature in humid cities, so the cooling does not \"disappear entirely\"; the sentence complicates the claim rather than challenging it.\n\nChoice B is incorrect. \"Qualifies\" is close, but the second part is wrong. The sentence is about the effects of trees, not the cause of the heat island, and it never says humidity rather than pavement causes nighttime warmth.\n\nChoice D is incorrect. The sentence does lead into the conclusion, but the conclusion is described wrongly. The text says urban forestry is not misguided and recommends judging programs by heat-stress indices, not replacing tree planting.",
+  "distractor_notes": {
+   "A": "Reversed relationship: reads \"however\" as a full rejection and misses that the sentence grants that trees still lower temperature.",
+   "B": "Half right: the first verb fits, but it attaches the qualification to the first sentence's explanation of the heat island's cause instead of to the tree-planting response.",
+   "D": "Right that the sentence supports the conclusion, but it misstates that conclusion as replacing tree planting, which contradicts the statement that urban forestry is not misguided."
+  },
+  "lesson": "RW-2.2",
+  "blueprint": "E16",
+  "desmos_technique": "",
+  "source": "original",
+  "status": "draft",
+  "sat_quality": 4,
+  "topic": "urban heat islands; street trees and humidity",
+  "choice_a": "It challenges the claim that street-tree canopies lower air temperatures by indicating that this cooling effect disappears entirely in humid cities.",
+  "choice_b": "It qualifies the text's initial explanation of the urban heat island effect by proposing that humidity, rather than pavement, drives nighttime warmth.",
+  "choice_c": "It identifies a limitation of the response described in the previous sentence, suggesting its benefits may be partly offset in some climates.",
+  "choice_d": "It provides the basis for the text's conclusion that humid cities should replace tree planting with other methods of reducing heat stress."
+ },
+ {
   "external_id": "GEN-E17-001",
   "section": "rw",
   "skill": "Cross-text connections",
@@ -3788,5 +4152,31 @@
   "choice_b": "By suggesting that the assumption is not warranted for at least some vent species, since their larvae can travel long distances between vent fields",
   "choice_c": "By claiming that since vent populations are so well connected, the loss of any single vent field poses no threat to the species living there",
   "choice_d": "By noting that chemosynthetic bacteria, rather than the animals that depend on them, are the vent organisms most likely to disperse between sites"
+ },
+ {
+  "external_id": "GEN-E17-003",
+  "section": "rw",
+  "skill": "Cross-text connections",
+  "difficulty": 3,
+  "type": "mcq",
+  "stem": "**Text 1**\n\nIn 1591 a Moroccan force of a few thousand soldiers, many of them armed with arquebuses, crossed the Sahara and routed a considerably larger Songhai army at Tondibi, near the imperial capital of Gao. Historian Leonie Achterberg treats the episode as an unambiguous instance of military technology overriding sheer numbers: <u>Songhai, one of the most extensive states in West African history, collapsed because its cavalry and archers could not withstand concentrated gunfire.</u>\n\n**Text 2**\n\nThat Moroccan firearms carried the day at Tondibi is hardly in dispute; what they cannot explain is the aftermath. A state of Songhai's extent might have absorbed one lost battle, yet it splintered, partly because a recent succession struggle had divided the ruling family and left provincial commanders disinclined to rally behind the askia. The invaders, meanwhile, never governed much beyond the Niger River towns. Songhai fragmented at least as much as it was conquered.\n\nBased on the texts, how would the author of Text 2 most likely respond to the underlined claim in Text 1?",
+  "answer": "A",
+  "explanation": "Choice A is correct. Summarize each text first. Text 1 (Achterberg): Songhai collapsed because its army could not withstand gunfire. Text 2: the guns won the battle (\"hardly in dispute\"), but they \"cannot explain\" the aftermath; Songhai splintered because a succession struggle had divided the ruling family and left provincial commanders unwilling to rally, and the invaders controlled little beyond the river towns. So Text 2 does not reject the claim; it qualifies it. Firearms explain the defeat, not the collapse.\n\nChoice B is incorrect. It is too extreme. Text 2 explicitly concedes that Moroccan firearms \"carried the day at Tondibi,\" so the author would not say internal divisions decided the battle.\n\nChoice C is incorrect. It contradicts Text 2's own evidence: the invaders \"never governed much beyond the Niger River towns,\" so they did not impose lasting control over Songhai's provinces.\n\nChoice D is incorrect. Its first half matches Text 2's concession, but Text 2 never links the family rivalries to acquiring weapons. In Text 2, the divisions matter because they kept commanders from rallying after the defeat, not because they cost Songhai firearms.",
+  "distractor_notes": {
+   "B": "Too extreme: reads Text 2 as a flat disagreement and misses its concession that the guns won the battle; the trap is 'rejects' where the text only 'complicates.'",
+   "C": "Contradicts Text 2's evidence that the invaders never governed much beyond the Niger River towns; chosen by students who see agreement about firearms and stop reading.",
+   "D": "Near-miss: correct concession plus a real detail (divisions in the ruling family), but attached to an invented causal link (failing to acquire firearms) that Text 2 never makes."
+  },
+  "lesson": "RW-2.3",
+  "blueprint": "E17",
+  "desmos_technique": "",
+  "source": "original",
+  "status": "draft",
+  "sat_quality": 5,
+  "topic": "Songhai's fall after the Battle of Tondibi (1591)",
+  "choice_a": "By granting that firearms decided the battle at Tondibi but arguing that the claim neglects internal divisions that kept Songhai from recovering from the defeat",
+  "choice_b": "By rejecting the claim, contending that divisions within Songhai's ruling family, rather than the Moroccans' firearms, determined the outcome of the battle at Tondibi",
+  "choice_c": "By accepting the claim and adding that the invaders' firearms also allowed them to impose lasting control over the provinces that Songhai had once governed",
+  "choice_d": "By agreeing that a technological mismatch decided the battle but suggesting that rivalries within Songhai's ruling family had kept it from acquiring firearms of its own"
  }
 ]

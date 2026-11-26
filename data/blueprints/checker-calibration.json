@@ -1,0 +1,13 @@
+{
+ "format": "coursebook-checker-calibration",
+ "version": 1,
+ "date": "2026-11-26",
+ "what": "The question writer's cold-solve checker (claude-opus-5-5, effort high) rated Reading and Writing questions whose official difficulty is known. Counts only; no question text.",
+ "results": {
+  "official_hard": { "n": 30, "rated": { "1": 4, "2": 25, "3": 1 }, "solved_correctly": 30, "note": "3 per skill, all 10 R&W skills" },
+  "official_medium": { "n": 10, "rated": { "1": 9, "2": 1 }, "solved_correctly": 10 },
+  "1600_handwritten_hard": { "n": 6, "rated": { "2": 6 }, "solved_correctly": 6 }
+ },
+ "conclusion": "The checker rates about one level low. For Reading and Writing, a 2 matches an official hard question and a 1 matches medium or easy, so hard R&W questions need a rating of 2 or higher (HARD_BAR_RW). Math is not calibrated yet and keeps a bar of 3.",
+ "cost_usd": 0.67
+}
