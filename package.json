@@ -31,7 +31,8 @@
     "perf:check": "tsx --env-file-if-exists=.env --conditions=react-server scripts/perf-check.ts",
     "import:bank": "tsx --env-file-if-exists=.env --conditions=react-server scripts/import-question-bank.ts",
     "import:courses": "tsx --env-file-if-exists=.env --conditions=react-server scripts/import-course-packets.ts",
-    "transcribe:bank": "tsx --env-file-if-exists=.env --conditions=react-server scripts/transcribe-question-bank.ts"
+    "transcribe:bank": "tsx --env-file-if-exists=.env --conditions=react-server scripts/transcribe-question-bank.ts",
+    "generate:bank": "tsx --env-file-if-exists=.env --conditions=react-server scripts/generate-question-bank.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.6.0",

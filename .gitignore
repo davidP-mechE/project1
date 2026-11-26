@@ -69,3 +69,4 @@ dump.rdb
 /data/course-packets/coursebook_sat_question_bank.json
 /data/course-packets/qbank_transcriptions.json
 /data/course-packets/qbank_transcribe_state.json
+/data/generated/

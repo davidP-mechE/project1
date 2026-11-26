@@ -250,6 +250,26 @@ The SAT Math and Reading and Writing Master Courses use 4,125 official College B
 
 **Kill switch:** set `ALLOW_COLLEGE_BOARD_CONTENT=false` to hide every College Board question and set from everyone, you included. Do this before any public release.
 
+### Writing original questions from the blueprints
+
+`data/blueprints/sat-blueprints.json` holds the 1600 Project's question recipes ("blueprints"): the technique each question tests, how to build it, the mistake behind each wrong answer, and how many questions to write. `npm run generate:bank` has Claude write original questions from them only, never from College Board items. A second, separate request then solves each question cold and grades it, and only questions that pass are kept.
+
+1. `npm run generate:bank -- --dry-run`: how many requests, and a cost estimate. It makes no API calls.
+2. `npm run generate:bank -- --sample 20`: writes 20 questions right away, across many blueprints, so you can check quality. It shows why each one was kept or dropped.
+3. `npm run generate:bank`: writes the rest as half-price batches, then verifies them. It waits until both are done; if it's stopped, run it again with `-- --collect`. Add `-- --only E12,E13` to write questions for just those blueprints.
+
+It needs an API key in `COURSEBOOK_ANTHROPIC_API_KEY` (or `ANTHROPIC_API_KEY`).
+
+**What gets kept.** A question is kept only if all of these are true:
+- The cold solve gets the same answer.
+- No serious problem was found: two defensible answers, a math error, a doubtful fact or ambiguous wording.
+- It rates at least 4/5 for SAT quality.
+- Its difficulty is within one level of the level asked for.
+
+**Where the output goes.**
+- Kept questions go to `data/questions/1600-generated-questions.json` as drafts, in the bank's import format.
+- Working files and the reasons each question was dropped go to `data/generated/`, which is never committed.
+
 ### Demo mode
 
 Demo mode fills the site with an invented class so you can see and try the class features without real students. Turn it on or off from **Admin → Demo data** (Load demo data / Clear demo data), or with `npm run demo:load` and `npm run demo:clear`.
