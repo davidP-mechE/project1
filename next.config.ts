@@ -16,7 +16,7 @@ const nextConfig: NextConfig = {
   // logged-in student, so there is little to prerender. See PLAN.md.
   cacheComponents: false,
   // Packages that must run as plain Node modules on the server (not bundled).
-  serverExternalPackages: ["pg", "@prisma/adapter-pg", "bullmq", "ioredis", "sql.js"],
+  serverExternalPackages: ["pg", "@prisma/adapter-pg", "bullmq", "ioredis", "sql.js", "@napi-rs/canvas"],
   turbopack: {
     rules: {
       "*.css": {
