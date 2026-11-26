@@ -303,13 +303,13 @@
          "GEN-A1-001",
          "GEN-A1-002",
          "GEN-A1-003",
-         "W3-25",
+         "GEN-A1-004",
          "GEN-A3-001",
          "GEN-A3-002",
-         "W3-43",
+         "GEN-A3-003",
          "GEN-A5-001",
          "GEN-A5-002",
-         "W4-01",
+         "GEN-A5-003",
          "GEN-A7-001",
          "GEN-A7-002",
          "GEN-A7-003",
@@ -343,9 +343,8 @@
         ],
         "count": 40,
         "difficulty_counts": {
-         "Easy": 27,
-         "Medium": 9,
-         "Hard": 4
+         "Easy": 35,
+         "Medium": 5
         },
         "source": "original",
         "visibility": "in_house"
@@ -457,7 +456,7 @@
        {
         "type": "question_set",
         "set_id": "M-1.1",
-        "title": "1.1 Practice Set (28 questions)",
+        "title": "1.1 Practice Set (31 questions)",
         "status": "ready",
         "skills": [
          "Linear equations in one variable"
@@ -474,6 +473,9 @@
          "GEN-A8-002",
          "GEN-A8-003",
          "GEN-A8-004",
+         "GEN-A8-005",
+         "GEN-A8-006",
+         "GEN-A8-007",
          "W3-55",
          "W3-56",
          "W3-57",
@@ -499,10 +501,10 @@
          "W3-17",
          "W3-18"
         ],
-        "count": 28,
+        "count": 31,
         "difficulty_counts": {
-         "Easy": 8,
-         "Medium": 12,
+         "Easy": 9,
+         "Medium": 14,
          "Hard": 8
         },
         "source": "original",
@@ -602,7 +604,7 @@
        {
         "type": "question_set",
         "set_id": "M-1.2",
-        "title": "1.2 Practice Set (38 questions)",
+        "title": "1.2 Practice Set (43 questions)",
         "status": "ready",
         "skills": [
          "Linear equations in two variables"
@@ -619,11 +621,13 @@
          "GEN-A1-001",
          "GEN-A1-002",
          "GEN-A1-003",
+         "GEN-A1-004",
+         "GEN-A1-005",
          "W3-25",
          "W3-26",
          "W3-27",
          "W3-28",
-         "GEN-A1-004",
+         "GEN-A1-006",
          "W3-29",
          "W3-30",
          "W3-31",
@@ -631,11 +635,14 @@
          "W3-33",
          "GEN-A2-001",
          "GEN-A2-002",
+         "GEN-A2-003",
          "W3-34",
          "W3-35",
-         "GEN-A2-003",
          "GEN-A2-004",
          "GEN-A2-005",
+         "GEN-A2-006",
+         "GEN-A2-007",
+         "GEN-A2-008",
          "W3-36",
          "W3-37",
          "W3-38",
@@ -655,10 +662,10 @@
          "W3-23",
          "W3-24"
         ],
-        "count": 38,
+        "count": 43,
         "difficulty_counts": {
-         "Easy": 18,
-         "Medium": 15,
+         "Easy": 21,
+         "Medium": 17,
          "Hard": 5
         },
         "source": "original",
@@ -766,7 +773,7 @@
        {
         "type": "question_set",
         "set_id": "M-1.3",
-        "title": "1.3 Practice Set (22 questions)",
+        "title": "1.3 Practice Set (26 questions)",
         "status": "ready",
         "skills": [
          "Linear functions"
@@ -780,9 +787,11 @@
         "question_ids": [
          "GEN-A3-001",
          "GEN-A3-002",
+         "GEN-A3-003",
          "W3-43",
          "W3-44",
-         "GEN-A3-003",
+         "GEN-A3-004",
+         "GEN-A3-005",
          "W3-45",
          "W3-46",
          "W3-47",
@@ -790,21 +799,23 @@
          "W3-49",
          "GEN-A6-001",
          "GEN-A6-002",
+         "GEN-A6-003",
          "W4-40",
          "W4-41",
          "W4-42",
-         "GEN-A6-003",
+         "GEN-A6-004",
+         "GEN-A6-005",
          "W4-43",
          "W4-44",
          "W4-45",
-         "GEN-A6-004",
+         "GEN-A6-006",
          "W4-46",
          "W4-47"
         ],
-        "count": 22,
+        "count": 26,
         "difficulty_counts": {
-         "Easy": 9,
-         "Medium": 8,
+         "Easy": 11,
+         "Medium": 10,
          "Hard": 5
         },
         "source": "original",
@@ -908,7 +919,7 @@
        {
         "type": "question_set",
         "set_id": "M-1.4",
-        "title": "1.4 Practice Set (27 questions)",
+        "title": "1.4 Practice Set (30 questions)",
         "status": "ready",
         "skills": [
          "Systems of two linear equations"
@@ -923,11 +934,14 @@
         "question_ids": [
          "GEN-A5-001",
          "GEN-A5-002",
+         "GEN-A5-003",
          "W4-01",
          "W4-02",
          "W4-03",
-         "GEN-A5-003",
          "GEN-A5-004",
+         "GEN-A5-005",
+         "GEN-A5-006",
+         "GEN-A5-007",
          "W4-04",
          "W4-05",
          "W4-06",
@@ -949,10 +963,10 @@
          "W4-22",
          "W4-23"
         ],
-        "count": 27,
+        "count": 30,
         "difficulty_counts": {
-         "Easy": 8,
-         "Medium": 12,
+         "Easy": 9,
+         "Medium": 14,
          "Hard": 7
         },
         "source": "original",
@@ -1054,7 +1068,7 @@
        {
         "type": "question_set",
         "set_id": "M-1.5",
-        "title": "1.5 Practice Set (37 questions)",
+        "title": "1.5 Practice Set (43 questions)",
         "status": "ready",
         "skills": [
          "Linear inequalities"
@@ -1071,10 +1085,13 @@
          "GEN-A4-001",
          "GEN-A4-002",
          "GEN-A4-003",
+         "GEN-A4-004",
+         "GEN-A4-005",
          "W4-24",
          "W4-25",
          "W4-26",
-         "GEN-A4-004",
+         "GEN-A4-006",
+         "GEN-A4-007",
          "W4-27",
          "W4-28",
          "W4-29",
@@ -1083,10 +1100,13 @@
          "GEN-A7-001",
          "GEN-A7-002",
          "GEN-A7-003",
+         "GEN-A7-004",
+         "GEN-A7-005",
          "W4-32",
          "W4-33",
          "W4-34",
-         "GEN-A7-004",
+         "GEN-A7-006",
+         "GEN-A7-007",
          "W4-35",
          "W4-36",
          "W4-37",
@@ -1106,10 +1126,10 @@
          "W4-59",
          "W4-60"
         ],
-        "count": 37,
+        "count": 43,
         "difficulty_counts": {
-         "Easy": 18,
-         "Medium": 13,
+         "Easy": 22,
+         "Medium": 15,
          "Hard": 6
         },
         "source": "original",
@@ -1129,18 +1149,18 @@
       "visibility": "in_house",
       "count": 30,
       "question_ids": [
-       "GEN-A2-003",
+       "GEN-A2-004",
        "W3-40",
        "W3-41",
        "W3-42",
-       "GEN-A4-004",
+       "GEN-A4-006",
        "W4-30",
        "W4-31",
-       "GEN-A6-003",
        "GEN-A6-004",
+       "GEN-A6-006",
        "W4-46",
        "W4-47",
-       "GEN-A8-003",
+       "GEN-A8-004",
        "W3-58",
        "W3-59",
        "W3-60",
@@ -1177,19 +1197,19 @@
       "visibility": "in_house",
       "count": 30,
       "question_ids": [
-       "GEN-A1-004",
+       "GEN-A1-006",
        "W3-29",
        "W3-32",
        "W3-33",
-       "GEN-A3-003",
-       "W3-45",
+       "GEN-A3-004",
+       "GEN-A3-005",
        "W3-48",
        "W3-49",
-       "GEN-A5-003",
        "GEN-A5-004",
+       "GEN-A5-005",
        "W4-08",
        "W4-09",
-       "GEN-A7-004",
+       "GEN-A7-006",
        "W4-38",
        "W4-39",
        "W3-07",
@@ -1318,7 +1338,7 @@
        {
         "type": "question_set",
         "set_id": "M-2.1",
-        "title": "2.1 Practice Set (9 questions)",
+        "title": "2.1 Practice Set (14 questions)",
         "status": "ready",
         "skills": [
          "Equivalent expressions"
@@ -1334,17 +1354,22 @@
          "GEN-M1-002",
          "GEN-M1-003",
          "GEN-M1-004",
+         "GEN-M1-005",
+         "GEN-M1-006",
+         "GEN-M1-007",
          "GEN-M2-001",
          "GEN-M2-002",
          "GEN-M2-003",
          "GEN-M2-004",
+         "GEN-M2-005",
+         "GEN-M2-006",
          "ORIG-M2-01"
         ],
-        "count": 9,
+        "count": 14,
         "difficulty_counts": {
-         "Easy": 3,
-         "Medium": 3,
-         "Hard": 3
+         "Easy": 5,
+         "Medium": 5,
+         "Hard": 4
         },
         "source": "original",
         "visibility": "in_house"
@@ -1449,7 +1474,7 @@
        {
         "type": "question_set",
         "set_id": "M-2.2",
-        "title": "2.2 Practice Set (8 questions)",
+        "title": "2.2 Practice Set (13 questions)",
         "status": "ready",
         "skills": [
          "Nonlinear functions",
@@ -1465,17 +1490,22 @@
          "GEN-M3-001",
          "GEN-M3-002",
          "GEN-M3-003",
+         "GEN-M3-004",
+         "GEN-M3-005",
          "ORIG-M3-01",
          "GEN-M4-001",
          "GEN-M4-002",
          "GEN-M4-003",
-         "GEN-M4-004"
+         "GEN-M4-004",
+         "GEN-M4-005",
+         "GEN-M4-006",
+         "GEN-M4-007"
         ],
-        "count": 8,
+        "count": 13,
         "difficulty_counts": {
-         "Easy": 3,
-         "Medium": 3,
-         "Hard": 2
+         "Easy": 5,
+         "Medium": 5,
+         "Hard": 3
         },
         "source": "original",
         "visibility": "in_house"
@@ -1587,7 +1617,7 @@
        {
         "type": "question_set",
         "set_id": "M-2.3",
-        "title": "2.3 Practice Set (5 questions)",
+        "title": "2.3 Practice Set (7 questions)",
         "status": "ready",
         "skills": [
          "Equivalent expressions",
@@ -1603,12 +1633,14 @@
          "GEN-M6-002",
          "GEN-M6-003",
          "GEN-M6-004",
+         "GEN-M6-005",
+         "GEN-M6-006",
          "ORIG-M6-01"
         ],
-        "count": 5,
+        "count": 7,
         "difficulty_counts": {
-         "Easy": 2,
-         "Medium": 2,
+         "Easy": 3,
+         "Medium": 3,
          "Hard": 1
         },
         "source": "original",
@@ -1716,7 +1748,7 @@
        {
         "type": "question_set",
         "set_id": "M-2.4",
-        "title": "2.4 Practice Set (4 questions)",
+        "title": "2.4 Practice Set (7 questions)",
         "status": "ready",
         "skills": [
          "Nonlinear functions"
@@ -1730,11 +1762,15 @@
          "GEN-M5-001",
          "GEN-M5-002",
          "GEN-M5-003",
+         "GEN-M5-004",
+         "GEN-M5-005",
+         "GEN-M5-006",
          "ORIG-M5-01"
         ],
-        "count": 4,
+        "count": 7,
         "difficulty_counts": {
-         "Easy": 3,
+         "Easy": 5,
+         "Medium": 1,
          "Hard": 1
         },
         "source": "original",
@@ -1865,45 +1901,48 @@
      {
       "type": "question_set",
       "set_id": "M-U2-review-1",
-      "title": "Unit 2 Review Set 1 (27 questions)",
+      "title": "Unit 2 Review Set 1 (30 questions)",
       "status": "ready",
       "mode": "practice",
       "source": "original",
       "visibility": "in_house",
-      "count": 27,
+      "count": 30,
       "question_ids": [
        "GEN-M1-001",
-       "GEN-M1-002",
-       "GEN-M1-003",
        "GEN-M1-004",
-       "GEN-M2-001",
-       "GEN-M2-002",
+       "GEN-M1-005",
+       "GEN-M1-006",
+       "GEN-M1-007",
        "GEN-M2-003",
        "GEN-M2-004",
+       "GEN-M2-005",
+       "GEN-M2-006",
        "ORIG-M2-01",
        "GEN-M3-001",
-       "GEN-M3-002",
        "GEN-M3-003",
+       "GEN-M3-004",
+       "GEN-M3-005",
        "ORIG-M3-01",
-       "GEN-M4-001",
-       "GEN-M4-002",
-       "GEN-M4-003",
        "GEN-M4-004",
+       "GEN-M4-005",
+       "GEN-M4-006",
+       "GEN-M4-007",
        "ORIG-M4-01",
        "GEN-M5-001",
        "GEN-M5-002",
        "GEN-M5-003",
+       "GEN-M5-006",
        "ORIG-M5-01",
        "GEN-M6-001",
-       "GEN-M6-002",
-       "GEN-M6-003",
        "GEN-M6-004",
+       "GEN-M6-005",
+       "GEN-M6-006",
        "ORIG-M6-01"
       ],
       "difficulty_counts": {
-       "Easy": 11,
-       "Medium": 8,
-       "Hard": 8
+       "Easy": 6,
+       "Medium": 14,
+       "Hard": 10
       },
       "note": "Original 1600 Project questions, written from our blueprints."
      }
@@ -1986,7 +2025,7 @@
        {
         "type": "question_set",
         "set_id": "M-3.1",
-        "title": "3.1 Practice Set (62 questions)",
+        "title": "3.1 Practice Set (64 questions)",
         "status": "ready",
         "skills": [
          "Ratios, rates, proportional relationships, and units"
@@ -2006,6 +2045,8 @@
         "question_ids": [
          "GEN-U1-001",
          "GEN-U1-002",
+         "GEN-U1-003",
+         "GEN-U1-004",
          "W5-01",
          "W5-02",
          "W5-03",
@@ -2067,9 +2108,9 @@
          "W5-59",
          "W5-60"
         ],
-        "count": 62,
+        "count": 64,
         "difficulty_counts": {
-         "Easy": 22,
+         "Easy": 24,
          "Medium": 25,
          "Hard": 15
         },
@@ -2166,7 +2207,7 @@
        {
         "type": "question_set",
         "set_id": "M-3.2",
-        "title": "3.2 Practice Set (64 questions)",
+        "title": "3.2 Practice Set (66 questions)",
         "status": "ready",
         "skills": [
          "Percentages"
@@ -2188,6 +2229,8 @@
          "GEN-U2-002",
          "GEN-U2-003",
          "GEN-U2-004",
+         "GEN-U2-005",
+         "GEN-U2-006",
          "W6-01",
          "W6-02",
          "W6-03",
@@ -2249,10 +2292,10 @@
          "W6-59",
          "W6-60"
         ],
-        "count": 64,
+        "count": 66,
         "difficulty_counts": {
-         "Easy": 23,
-         "Medium": 25,
+         "Easy": 24,
+         "Medium": 26,
          "Hard": 16
         },
         "source": "original",
@@ -2368,7 +2411,7 @@
        {
         "type": "question_set",
         "set_id": "M-3.3",
-        "title": "3.3 Practice Set (5 questions)",
+        "title": "3.3 Practice Set (6 questions)",
         "status": "ready",
         "skills": [
          "One-variable data: distributions and measures of center and spread"
@@ -2383,11 +2426,12 @@
          "GEN-D1-002",
          "GEN-D1-003",
          "GEN-D1-004",
+         "GEN-D1-005",
          "ORIG-D1-01"
         ],
-        "count": 5,
+        "count": 6,
         "difficulty_counts": {
-         "Easy": 3,
+         "Easy": 4,
          "Medium": 1,
          "Hard": 1
         },
@@ -2483,7 +2527,7 @@
        {
         "type": "question_set",
         "set_id": "M-3.4",
-        "title": "3.4 Practice Set (6 questions)",
+        "title": "3.4 Practice Set (8 questions)",
         "status": "ready",
         "skills": [
          "Two-variable data: models and scatterplots"
@@ -2499,12 +2543,14 @@
          "GEN-D3-003",
          "GEN-D3-004",
          "GEN-D3-005",
+         "GEN-D3-006",
+         "GEN-D3-007",
          "ORIG-D3-01"
         ],
-        "count": 6,
+        "count": 8,
         "difficulty_counts": {
-         "Easy": 2,
-         "Medium": 2,
+         "Easy": 3,
+         "Medium": 3,
          "Hard": 2
         },
         "source": "original",
@@ -2578,7 +2624,7 @@
        {
         "type": "question_set",
         "set_id": "M-3.5",
-        "title": "3.5 Practice Set (7 questions)",
+        "title": "3.5 Practice Set (8 questions)",
         "status": "ready",
         "skills": [
          "Probability and conditional probability"
@@ -2595,11 +2641,12 @@
          "GEN-D2-004",
          "GEN-D2-005",
          "GEN-D2-006",
+         "GEN-D2-007",
          "ORIG-D2-01"
         ],
-        "count": 7,
+        "count": 8,
         "difficulty_counts": {
-         "Easy": 3,
+         "Easy": 4,
          "Medium": 2,
          "Hard": 2
         },
@@ -2674,7 +2721,7 @@
        {
         "type": "question_set",
         "set_id": "M-3.6",
-        "title": "3.6 Practice Set (4 questions)",
+        "title": "3.6 Practice Set (6 questions)",
         "status": "ready",
         "skills": [
          "Inference from sample statistics and margin of error",
@@ -2689,13 +2736,15 @@
          "GEN-D4-001",
          "GEN-D4-002",
          "GEN-D4-003",
+         "GEN-D4-004",
+         "GEN-D4-005",
          "ORIG-D4-01"
         ],
-        "count": 4,
+        "count": 6,
         "difficulty_counts": {
-         "Easy": 2,
+         "Easy": 3,
          "Medium": 1,
-         "Hard": 1
+         "Hard": 2
         },
         "source": "original",
         "visibility": "in_house"
@@ -2715,13 +2764,13 @@
       "count": 30,
       "question_ids": [
        "ORIG-D1-01",
-       "GEN-D2-006",
-       "GEN-D3-005",
-       "ORIG-D4-01",
+       "GEN-D2-007",
+       "GEN-D3-007",
+       "GEN-D4-005",
        "GEN-U1-001",
-       "GEN-U1-002",
-       "GEN-U2-003",
+       "GEN-U1-004",
        "GEN-U2-004",
+       "GEN-U2-006",
        "W6-06",
        "W6-07",
        "W6-17",
@@ -2828,7 +2877,7 @@
        {
         "type": "question_set",
         "set_id": "M-4.1",
-        "title": "4.1 Practice Set (7 questions)",
+        "title": "4.1 Practice Set (11 questions)",
         "status": "ready",
         "skills": [
          "Lines, angles, and triangles"
@@ -2843,16 +2892,20 @@
          "GEN-G2-001",
          "GEN-G2-002",
          "GEN-G2-003",
+         "GEN-G2-004",
+         "GEN-G2-005",
          "GEN-G6-001",
          "GEN-G6-002",
          "GEN-G6-003",
+         "GEN-G6-004",
+         "GEN-G6-005",
          "ORIG-G6-01"
         ],
-        "count": 7,
+        "count": 11,
         "difficulty_counts": {
-         "Easy": 3,
-         "Medium": 2,
-         "Hard": 2
+         "Easy": 5,
+         "Medium": 3,
+         "Hard": 3
         },
         "source": "original",
         "visibility": "in_house"
@@ -2954,7 +3007,7 @@
        {
         "type": "question_set",
         "set_id": "M-4.2",
-        "title": "4.2 Practice Set (8 questions)",
+        "title": "4.2 Practice Set (11 questions)",
         "status": "ready",
         "skills": [
          "Right triangles and trigonometry"
@@ -2970,14 +3023,17 @@
          "GEN-G1-002",
          "GEN-G1-003",
          "GEN-G1-004",
+         "GEN-G1-005",
+         "GEN-G1-006",
          "GEN-G3-001",
          "GEN-G3-002",
          "GEN-G3-003",
+         "GEN-G3-004",
          "ORIG-G3-01"
         ],
-        "count": 8,
+        "count": 11,
         "difficulty_counts": {
-         "Easy": 4,
+         "Easy": 7,
          "Medium": 3,
          "Hard": 1
         },
@@ -3078,7 +3134,7 @@
        {
         "type": "question_set",
         "set_id": "M-4.3",
-        "title": "4.3 Practice Set (9 questions)",
+        "title": "4.3 Practice Set (12 questions)",
         "status": "ready",
         "skills": [
          "Circles"
@@ -3094,16 +3150,19 @@
          "GEN-G4-002",
          "GEN-G4-003",
          "GEN-G4-004",
+         "GEN-G4-005",
+         "GEN-G4-006",
          "ORIG-G4-01",
          "GEN-G5-001",
          "GEN-G5-002",
          "GEN-G5-003",
-         "GEN-G5-004"
+         "GEN-G5-004",
+         "GEN-G5-005"
         ],
-        "count": 9,
+        "count": 12,
         "difficulty_counts": {
-         "Easy": 2,
-         "Medium": 3,
+         "Easy": 4,
+         "Medium": 4,
          "Hard": 4
         },
         "source": "original",
@@ -3211,43 +3270,48 @@
      {
       "type": "question_set",
       "set_id": "M-U4-review-1",
-      "title": "Unit 4 Review Set 1 (25 questions)",
+      "title": "Unit 4 Review Set 1 (30 questions)",
       "status": "ready",
       "mode": "practice",
       "source": "original",
       "visibility": "in_house",
-      "count": 25,
+      "count": 30,
       "question_ids": [
        "GEN-G1-001",
        "GEN-G1-002",
        "GEN-G1-003",
        "GEN-G1-004",
+       "GEN-G1-006",
        "GEN-G2-001",
        "GEN-G2-002",
        "GEN-G2-003",
+       "GEN-G2-004",
+       "GEN-G2-005",
        "GEN-G3-001",
        "GEN-G3-002",
        "GEN-G3-003",
+       "GEN-G3-004",
        "ORIG-G3-01",
        "GEN-G4-001",
-       "GEN-G4-002",
-       "GEN-G4-003",
        "GEN-G4-004",
+       "GEN-G4-005",
+       "GEN-G4-006",
        "ORIG-G4-01",
        "GEN-G5-001",
        "GEN-G5-002",
        "GEN-G5-003",
        "GEN-G5-004",
-       "GEN-G6-001",
-       "GEN-G6-002",
+       "GEN-G5-005",
        "GEN-G6-003",
+       "GEN-G6-004",
+       "GEN-G6-005",
        "ORIG-G6-01",
        "ORIG-G6-02"
       ],
       "difficulty_counts": {
-       "Easy": 9,
-       "Medium": 8,
-       "Hard": 8
+       "Easy": 11,
+       "Medium": 10,
+       "Hard": 9
       },
       "note": "Original 1600 Project questions, written from our blueprints."
      }
@@ -3394,7 +3458,7 @@
        {
         "type": "question_set",
         "set_id": "M-5.1",
-        "title": "5.1 Practice Set (18 questions)",
+        "title": "5.1 Practice Set (24 questions)",
         "status": "ready",
         "skills": [
          "Desmos: intersections"
@@ -3408,11 +3472,14 @@
         "question_ids": [
          "GEN-A5-001",
          "GEN-A5-002",
+         "GEN-A5-003",
          "W4-01",
          "W4-02",
          "W4-03",
-         "GEN-A5-003",
          "GEN-A5-004",
+         "GEN-A5-005",
+         "GEN-A5-006",
+         "GEN-A5-007",
          "W4-04",
          "W4-05",
          "W4-06",
@@ -3423,13 +3490,16 @@
          "GEN-M4-002",
          "GEN-M4-003",
          "GEN-M4-004",
+         "GEN-M4-005",
+         "GEN-M4-006",
+         "GEN-M4-007",
          "ORIG-M4-01"
         ],
-        "count": 18,
+        "count": 24,
         "difficulty_counts": {
-         "Easy": 7,
-         "Medium": 7,
-         "Hard": 4
+         "Easy": 9,
+         "Medium": 10,
+         "Hard": 5
         },
         "source": "original",
         "visibility": "in_house"
@@ -3585,7 +3655,7 @@
        {
         "type": "question_set",
         "set_id": "M-5.2",
-        "title": "5.2 Practice Set (33 questions)",
+        "title": "5.2 Practice Set (41 questions)",
         "status": "ready",
         "skills": [
          "Desmos: regression"
@@ -3603,11 +3673,13 @@
          "GEN-A1-001",
          "GEN-A1-002",
          "GEN-A1-003",
+         "GEN-A1-004",
+         "GEN-A1-005",
          "W3-25",
          "W3-26",
          "W3-27",
          "W3-28",
-         "GEN-A1-004",
+         "GEN-A1-006",
          "W3-29",
          "W3-30",
          "W3-31",
@@ -3615,9 +3687,11 @@
          "W3-33",
          "GEN-A3-001",
          "GEN-A3-002",
+         "GEN-A3-003",
          "W3-43",
          "W3-44",
-         "GEN-A3-003",
+         "GEN-A3-004",
+         "GEN-A3-005",
          "W3-45",
          "W3-46",
          "W3-47",
@@ -3627,17 +3701,21 @@
          "GEN-DR1-002",
          "GEN-DR1-003",
          "GEN-DR1-004",
+         "GEN-DR1-005",
+         "GEN-DR1-006",
          "GEN-DR2-001",
          "GEN-DR2-002",
          "GEN-DR2-003",
+         "GEN-DR2-004",
          "GEN-DR3-001",
          "GEN-DR3-002",
-         "GEN-DR3-003"
+         "GEN-DR3-003",
+         "GEN-DR3-004"
         ],
-        "count": 33,
+        "count": 41,
         "difficulty_counts": {
-         "Easy": 14,
-         "Medium": 12,
+         "Easy": 20,
+         "Medium": 14,
          "Hard": 7
         },
         "source": "original",
@@ -3753,7 +3831,7 @@
        {
         "type": "question_set",
         "set_id": "M-5.3",
-        "title": "5.3 Practice Set (9 questions)",
+        "title": "5.3 Practice Set (12 questions)",
         "status": "ready",
         "skills": [
          "Desmos: lists"
@@ -3769,17 +3847,20 @@
          "GEN-D1-002",
          "GEN-D1-003",
          "GEN-D1-004",
+         "GEN-D1-005",
          "ORIG-D1-01",
          "GEN-S1-001",
          "GEN-S1-002",
          "GEN-S1-003",
+         "GEN-S1-004",
+         "GEN-S1-005",
          "ORIG-S1-01"
         ],
-        "count": 9,
+        "count": 12,
         "difficulty_counts": {
-         "Easy": 4,
+         "Easy": 6,
          "Medium": 2,
-         "Hard": 3
+         "Hard": 4
         },
         "source": "original",
         "visibility": "in_house"
@@ -3890,7 +3971,7 @@
        {
         "type": "question_set",
         "set_id": "M-5.4",
-        "title": "5.4 Practice Set (17 questions)",
+        "title": "5.4 Practice Set (23 questions)",
         "status": "ready",
         "skills": [
          "Desmos: strategy"
@@ -3905,10 +3986,13 @@
          "GEN-A7-001",
          "GEN-A7-002",
          "GEN-A7-003",
+         "GEN-A7-004",
+         "GEN-A7-005",
          "W4-32",
          "W4-33",
          "W4-34",
-         "GEN-A7-004",
+         "GEN-A7-006",
+         "GEN-A7-007",
          "W4-35",
          "W4-36",
          "W4-37",
@@ -3918,13 +4002,16 @@
          "GEN-M4-002",
          "GEN-M4-003",
          "GEN-M4-004",
+         "GEN-M4-005",
+         "GEN-M4-006",
+         "GEN-M4-007",
          "ORIG-M4-01"
         ],
-        "count": 17,
+        "count": 23,
         "difficulty_counts": {
-         "Easy": 8,
-         "Medium": 5,
-         "Hard": 4
+         "Easy": 11,
+         "Medium": 7,
+         "Hard": 5
         },
         "source": "original",
         "visibility": "in_house"
@@ -4025,6 +4112,7 @@
          "G4",
          "G5",
          "G6",
+         "U1",
          "U2",
          "DR1",
          "DR2",
@@ -4048,29 +4136,29 @@
          "W3-25",
          "W3-43",
          "GEN-A4-001",
-         "GEN-A4-002",
+         "GEN-A5-003",
          "W4-02",
-         "GEN-A5-004",
          "W4-42",
          "GEN-A8-003",
          "GEN-A8-004",
          "GEN-M1-001",
-         "ORIG-M2-01",
+         "GEN-M2-004",
          "GEN-M3-001",
          "GEN-M4-002",
          "GEN-M5-001",
          "GEN-M6-001",
          "ORIG-D1-01",
          "GEN-D2-002",
-         "ORIG-D3-01",
+         "GEN-D3-003",
          "GEN-G1-001",
          "ORIG-G3-01",
-         "ORIG-G4-01",
+         "GEN-G4-002",
          "GEN-G5-001",
          "ORIG-G6-01",
+         "GEN-U1-003",
          "GEN-U2-001",
          "GEN-DR1-001",
-         "GEN-DR2-003",
+         "GEN-DR2-004",
          "GEN-DR3-001",
          "W4-10",
          "W4-12",
@@ -4087,9 +4175,9 @@
         ],
         "count": 40,
         "difficulty_counts": {
-         "Easy": 26,
-         "Medium": 4,
-         "Hard": 10
+         "Easy": 30,
+         "Medium": 3,
+         "Hard": 7
         },
         "source": "original",
         "visibility": "in_house"
