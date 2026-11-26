@@ -77,7 +77,7 @@ async function main() {
     const n = todo.reduce((a, q) => a + q.slots.length, 0);
     const target = blueprints.filter((b) => !only || only.includes(b.id)).reduce((a, b) => a + b.count, 0);
     const e = estimate(todo.length, n, n + unverified().length, cfg);
-    console.info(`${blueprints.length} blueprints, ${target} questions wanted (${n} to write, about 25% extra so failures can be dropped), ${todo.length} writing requests.`);
+    console.info(`${blueprints.length} blueprints, ${target} questions wanted (${n} to write: extra, especially for hard ones, so failures can be dropped), ${todo.length} writing requests.`);
     console.info(`Model ${cfg.model}, effort ${cfg.effort} (hard ${cfg.hardEffort}, verify ${cfg.verifyEffort}), Message Batches API (half price).`);
     console.info(`Estimate: about ${(e.input / 1e6).toFixed(1)}M input tokens, ${(e.out.low / 1e6).toFixed(1)}–${(e.out.high / 1e6).toFixed(1)}M output tokens: $${e.usd.low.toFixed(0)}–$${e.usd.high.toFixed(0)}.`);
     return;

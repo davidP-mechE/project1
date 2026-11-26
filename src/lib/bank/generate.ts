@@ -102,8 +102,9 @@ export type Verdict = z.infer<typeof VerdictSchema>;
 export type Slot = { slot: string; blueprint: string; difficulty: 1 | 2 | 3; type: "mcq" | "grid-in"; letter: "A" | "B" | "C" | "D"; topic: string };
 export type GenRequest = { id: string; blueprint: string; slots: Slot[] };
 
-/** Ask for a few more than needed: some won't pass the checks. */
+/** Ask for more than needed: some won't pass the checks. Hard questions pass about half the time. */
 export const OVERGENERATE = 1.25;
+export const OVERGENERATE_HARD = 2;
 export const SLOTS_PER_REQUEST = 4;
 
 /** A small seeded random generator, so the plan is the same every run. */
@@ -132,7 +133,7 @@ export function planRequests(blueprints: Blueprint[]): GenRequest[] {
     const split = difficultySplit(bp.count);
     let n = 0;
     for (const d of [1, 2, 3] as const) {
-      const want = Math.ceil(split[d] * OVERGENERATE);
+      const want = Math.ceil(split[d] * (d === 3 ? OVERGENERATE_HARD : OVERGENERATE));
       const slots: Slot[] = [];
       for (let i = 0; i < want; i++) {
         const gridIn = bp.section === "math" && bp.grid_in && rand() < 0.3;
