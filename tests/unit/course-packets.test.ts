@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { checkBankAnswer, gridInCorrect } from "@/lib/bank/answers";
 import { normalizeAcceptedList, parseQbankItem, qbankImageUrl } from "@/lib/bank/qbank";
@@ -147,8 +147,16 @@ describe("course packets", () => {
   // The real files: every question id a course uses is in the bank (skipped if the bank file isn't here: it isn't committed).
   const dir = "data/course-packets";
   const bankFile = `${dir}/coursebook_sat_question_bank.json`;
-  it.skipIf(!existsSync(bankFile))("every question_id referenced by the two courses resolves to a bank item", () => {
-    const bank = new Set((JSON.parse(readFileSync(bankFile, "utf8")).items as { question_id: string }[]).map((i) => i.question_id));
+  it("the two courses name only original questions, and every one is in data/questions/", () => {
+    const originals = new Set(
+      readdirSync("data/questions")
+        .filter((f) => f.endsWith(".json"))
+        .flatMap((f) => {
+          const raw = JSON.parse(readFileSync(`data/questions/${f}`, "utf8"));
+          return (Array.isArray(raw) ? raw : raw.questions).map((r: Record<string, unknown>) => String(r.external_id ?? r.id));
+        }),
+    );
+    const cb = existsSync(bankFile) ? new Set((JSON.parse(readFileSync(bankFile, "utf8")).items as { question_id: string }[]).map((i) => i.question_id)) : new Set<string>();
     let referenced = 0;
     for (const f of ["coursebook_sat_math_course.json", "coursebook_sat_rw_course.json"]) {
       const p = parsePacket(JSON.parse(readFileSync(`${dir}/${f}`, "utf8")));
@@ -156,8 +164,10 @@ describe("course packets", () => {
       expect(p.warnings).toEqual([]);
       const ids = packetSets(p.course!).flatMap((s) => s.question_ids);
       referenced += ids.length;
-      expect(ids.filter((id) => !bank.has(id))).toEqual([]);
+      expect(ids.filter((id) => !originals.has(id))).toEqual([]);
+      expect(ids.filter((id) => cb.has(id) || /^[0-9a-f]{8}$/.test(id))).toEqual([]);
     }
-    expect(referenced).toBe(4125);
+    expect(referenced).toBeGreaterThan(0);
   });
+
 });

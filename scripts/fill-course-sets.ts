@@ -57,7 +57,7 @@ function spread(qs: Q[], n: number, hardFirst: boolean): Q[] {
   return out;
 }
 
-type Q = { id: string; blueprint: string; difficulty: 1 | 2 | 3; skill: string; type: string; desmos: boolean };
+type Q = { id: string; blueprint: string; difficulty: 1 | 2 | 3; skill: string; type: string; desmos: boolean; lesson: string };
 type Json = Record<string, unknown>;
 
 async function main() {
@@ -73,16 +73,18 @@ async function main() {
       if (r.source && r.source !== "original") continue;
       const id = String(r.external_id ?? r.id ?? "");
       const bp = String(r.blueprint ?? "");
-      if (id) questions.push({ id, blueprint: bp, difficulty: Number(r.difficulty) as Q["difficulty"], skill: String(r.skill ?? ""), type: String(r.type ?? "mcq").toLowerCase(), desmos: Boolean(r.desmos_technique || bps.find((b) => b.id === bp)?.desmos) });
+      if (id) questions.push({ id, blueprint: bp, difficulty: Number(r.difficulty) as Q["difficulty"], skill: String(r.skill ?? ""), type: String(r.type ?? "mcq").toLowerCase(), lesson: String(r.lesson ?? ""), desmos: Boolean(r.desmos_technique || bps.find((b) => b.id === bp)?.desmos) });
     }
   }
 
-  // Each question's lessons: its blueprint's home lesson, plus any Desmos lesson the blueprint lists.
+  // Each question's lessons: the course lesson it names (if it's one of the blueprint's), else the blueprint's home lesson,
+  // plus any Desmos lesson the blueprint lists.
   const byLesson = new Map<string, Q[]>();
   const unplaced: string[] = [];
   for (const q of questions) {
     const listed = bpLessons.get(q.blueprint);
-    const lessons = listed ? [listed[0], ...listed.slice(1).filter((l) => l.startsWith("M-5."))] : BY_SKILL[q.skill.toLowerCase()] ? [BY_SKILL[q.skill.toLowerCase()]] : [];
+    const home = listed && listed.includes(q.lesson) ? q.lesson : listed?.[0];
+    const lessons = listed ? [...new Set([home!, ...listed.filter((l) => l.startsWith("M-5."))])] : BY_SKILL[q.skill.toLowerCase()] ? [BY_SKILL[q.skill.toLowerCase()]] : [];
     if (!lessons.length) unplaced.push(q.id);
     for (const l of lessons) byLesson.set(l, [...(byLesson.get(l) ?? []), q]);
   }

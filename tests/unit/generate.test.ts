@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import { describe, expect, it } from "vitest";
-import { answersMatch, BlueprintFileSchema, decide, difficultySplit, localProblems, planRequests, similarity, toImportRecord, type GeneratedItem, type Slot, type Verdict } from "@/lib/bank/generate";
+import { answersMatch, BlueprintFileSchema, decide, difficultySplit, generateUserText, localProblems, planRequests, similarity, StyleSpecSchema, toImportRecord, type GeneratedItem, type Slot, type Verdict } from "@/lib/bank/generate";
 
 const blueprints = BlueprintFileSchema.parse(JSON.parse(fs.readFileSync("data/blueprints/sat-blueprints.json", "utf8"))).blueprints;
 const A1 = blueprints.find((b) => b.id === "A1")!;
@@ -76,5 +76,19 @@ describe("keeping a question", () => {
   it("writes the bank's import format, as an original draft", () => {
     const rec = toImportRecord("GEN-A1-001", item, A1, slot, verdict);
     expect(rec).toMatchObject({ external_id: "GEN-A1-001", section: "math", type: "mcq", answer: "B", choice_b: "$1$", source: "original", status: "draft", blueprint: "A1", lesson: "M-1.2" });
+  });
+});
+
+describe("style spec", () => {
+  const spec = StyleSpecSchema.parse(JSON.parse(fs.readFileSync("data/blueprints/rw-style-spec.json", "utf8")));
+  it("covers every Reading and Writing blueprint exactly once", () => {
+    const rw = blueprints.filter((b) => b.section === "rw").map((b) => b.id).sort();
+    expect(Object.values(spec.types).flatMap((t) => t.blueprints).sort()).toEqual(rw);
+  });
+  it("adds the targets for the requested difficulty to the request", () => {
+    const text = generateUserText(E15, [{ slot: "E15-3-001", blueprint: "E15", difficulty: 3, type: "mcq", letter: "A", topic: "x" }], spec);
+    expect(text).toMatch(/difficulty 3: passage 45–67 words/);
+    expect(text).not.toMatch(/difficulty 1:/);
+    expect(generateUserText(A1, [slot], spec)).not.toMatch(/Style targets/);
   });
 });

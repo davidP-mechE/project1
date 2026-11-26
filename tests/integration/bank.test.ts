@@ -49,10 +49,14 @@ describe("question bank", () => {
 
   it("imports all 240 questions from the 1600 Project file as drafts, with the four week sets", async () => {
     const { owner } = await people();
-    const { report, elaReport, sets } = await seedQuestionFile(root);
+    const { report, elaReport, moreReports, sets } = await seedQuestionFile(root);
     expect(report.failed).toBe(0);
     expect(report.imported).toBe(240);
-    expect(await db.bankQuestion.count({ where: { status: "draft", source: "original", authorId: owner.id } })).toBe(240 + 33);
+    // Every other file in data/questions/ comes in too.
+    expect(moreReports.every((m) => m.report.failed === 0)).toBe(true);
+    const more = moreReports.reduce((n, m) => n + m.report.imported, 0);
+    expect(more).toBeGreaterThan(0);
+    expect(await db.bankQuestion.count({ where: { status: "draft", source: "original", authorId: owner.id } })).toBe(240 + 33 + more);
     const q = await db.bankQuestion.findUniqueOrThrow({ where: { externalId: "W3-01" }, include: { skill: true } });
     expect(q).toMatchObject({ week: 3, lesson: "1.1", blueprint: "L1", answer: "D", answerText: "3", type: "mcq" });
     expect(q.skill?.name).toBe("Linear equations in one variable");

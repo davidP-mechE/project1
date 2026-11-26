@@ -29,6 +29,7 @@ import {
   readBlueprints,
   readGen,
   readResults,
+  readSpec,
   readVerify,
   REPORT_FILE,
   requestsToDo,
@@ -60,6 +61,7 @@ async function main() {
     verifyEffort: (process.env.CLAUDE_EFFORT_VERIFY as Effort) || "high",
   };
   const blueprints = await readBlueprints();
+  await readSpec();
   const bps = new Map(blueprints.map((b) => [b.id, b]));
   const only = arg("--only")?.split(",").map((s) => s.trim());
   const r = await readResults();

@@ -1,0 +1,89 @@
+{
+ "format": "coursebook-rw-style-spec",
+ "version": 1,
+ "note": "Measured from the official Reading and Writing questions (2,030 items, by official difficulty) for structure only: lengths, question forms, what changes with difficulty. No question text. Ranges are passage words (not counting the question line) and average words per answer choice. 1 easy, 2 medium, 3 hard.",
+ "global": [
+  "Hard passages are longer and denser than easy ones: longer sentences (about 25–33 words on average in hard grammar and evidence passages, against 18–23 in easy ones) and more long academic words.",
+  "In hard questions with sentence-length choices, the correct answer is usually NOT the longest choice (it is the longest in only about 1 hard question in 4). Make the wrong choices as long, specific and detailed as the right one.",
+  "Use the official question line for each type, word for word (listed under each type)."
+ ],
+ "types": {
+  "Boundaries": {
+   "blueprints": ["E1", "E2", "E3"],
+   "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
+   "passage": { "1": [30, 50], "2": [40, 60], "3": [40, 55] },
+   "choice_words": { "1": [1, 4], "2": [1, 4], "3": [1, 4] },
+   "patterns": ["Easy questions are mostly about commas or no punctuation; hard ones mostly test semicolons, periods and colons between full clauses, inside long sentences with harmless inner commas and modifiers."]
+  },
+  "Form, structure, and sense": {
+   "blueprints": ["E4", "E5", "E6", "E7", "E8"],
+   "question": "Which choice completes the text so that it conforms to the conventions of Standard English?",
+   "passage": { "1": [35, 50], "2": [38, 55], "3": [40, 57] },
+   "choice_words": { "1": [1, 3], "2": [2, 5], "3": [3, 6] },
+   "patterns": ["Hard choices are longer (several words, e.g. whole verb phrases or modifier-plus-subject) and the subject is far from the verb or the antecedent far from the pronoun."]
+  },
+  "Transitions": {
+   "blueprints": ["E9"],
+   "question": "Which choice completes the text with the most logical transition?",
+   "passage": { "1": [40, 60], "2": [45, 62], "3": [50, 67] },
+   "choice_words": { "1": [1, 3], "2": [1, 3], "3": [1, 3] },
+   "patterns": ["Easy answers are common transitions (however, as a result, for example, next).", "Hard answers are mostly less common ones: as such, to that end, that said, granted, alternatively, of course, accordingly, hence, what's more, that is, in fact, indeed, likewise, specifically. The relationship turns on a subtle point, often a concession or a restatement rather than a plain contrast."]
+  },
+  "Rhetorical synthesis": {
+   "blueprints": ["E10"],
+   "question": "Which choice most effectively uses relevant information from the notes to accomplish this goal?",
+   "passage": { "1": [60, 90], "2": [75, 110], "3": [85, 116] },
+   "choice_words": { "1": [12, 18], "2": [16, 24], "3": [18, 26] },
+   "patterns": ["Notes are short bullet sentences. About a quarter of goals ask to contrast or compare; others ask to introduce, emphasize, explain or present to a specific audience.", "In hard questions every choice is accurate to the notes; only one meets every part of the goal."]
+  },
+  "Central ideas and details": {
+   "blueprints": ["E11"],
+   "question": "Which choice best states the main idea of the text?  (easy and medium only, sometimes: According to the text, what is true about ___?)",
+   "passage": { "1": [70, 115], "2": [75, 105], "3": [80, 125] },
+   "choice_words": { "1": [10, 14], "2": [13, 19], "3": [18, 26] },
+   "patterns": ["About 1 in 4 passages is literary (an excerpt from a novel, story or poem, introduced as 'The following text is from…').", "Detail ('According to the text') questions are common at easy (about 40%) and nearly absent at hard: hard questions ask for the main idea.", "In hard questions the correct choice is the longest only about 1 time in 6."]
+  },
+  "Command of evidence: textual": {
+   "blueprints": ["E12"],
+   "question": "Which finding, if true, would most directly support the researchers' hypothesis?  |  Which quotation from the poem most effectively illustrates the claim?  |  …would most directly weaken the underlined claim?",
+   "passage": { "1": [60, 115], "2": [70, 125], "3": [90, 145] },
+   "choice_words": { "1": [9, 14], "2": [17, 25], "3": [20, 28] },
+   "patterns": ["Weaken questions are rare (none at easy, under 10% at hard).", "Quotation questions give the claim plus a short introduction; the choices are lines or sentences from an original work, about 20–35 words at medium and hard.", "Hard claims have several parts or a condition; the correct choice is the longest only about 1 time in 4."]
+  },
+  "Command of evidence: quantitative": {
+   "blueprints": ["E13"],
+   "question": "Which choice most effectively uses data from the table to complete the statement?  (also: …to support the researchers' conclusion? / …to complete the example? / …to complete the text?)",
+   "passage": { "1": [45, 100], "2": [85, 125], "3": [105, 140] },
+   "choice_words": { "1": [7, 11], "2": [17, 24], "3": [21, 29] },
+   "patterns": ["Hard choices are long, data-heavy sentences; at least two are accurate to the table. The correct choice is the longest only about 1 time in 3.", "Tables have a title line and 2–4 data columns; hard tables include a column or row the claim doesn't need."]
+  },
+  "Inferences": {
+   "blueprints": ["E14"],
+   "question": "Which choice most logically completes the text?",
+   "passage": { "1": [80, 115], "2": [80, 120], "3": [95, 125] },
+   "choice_words": { "1": [10, 16], "2": [12, 17], "3": [16, 24] },
+   "patterns": ["Every question ends the passage with a blank: the choices complete its last sentence.", "Hard passages chain several qualified steps; the correct choice is the longest only about 1 time in 4."]
+  },
+  "Words in context": {
+   "blueprints": ["E15"],
+   "question": "Which choice completes the text with the most logical and precise word or phrase?  (sometimes, mostly at easy: As used in the text, what does the word \"___\" most nearly mean?)",
+   "passage": { "1": [40, 70], "2": [40, 63], "3": [45, 67] },
+   "choice_words": { "1": [1, 2], "2": [1, 3], "3": [1, 3] },
+   "patterns": ["Choice words get longer and rarer with difficulty: about 9–10 letters on average at easy, 11+ at hard (e.g. untenable, idiosyncratic, circumscribed).", "About 1 in 4 medium and hard questions uses short phrases as choices.", "Hard passages have long sentences (about 30 words) and the clue is often a restatement or a concession, not a plain contrast word."]
+  },
+  "Text structure and purpose": {
+   "blueprints": ["E16"],
+   "question": "Which choice best states the main purpose of the text?  |  Which choice best describes the overall structure of the text?  |  Which choice best describes the function of the underlined sentence (or portion) in the text as a whole?",
+   "passage": { "1": [70, 113], "2": [75, 121], "3": [75, 124] },
+   "choice_words": { "1": [10, 15], "2": [13, 19], "3": [16, 22] },
+   "patterns": ["About 30% of passages are literary.", "About 40–50% are underlined-function questions; the rest split between main purpose and overall structure."]
+  },
+  "Cross-text connections": {
+   "blueprints": ["E17"],
+   "question": "Based on the texts, how would the author of Text 2 most likely respond to the underlined claim in Text 1?  |  Based on the texts, both authors would most likely agree with which statement?",
+   "passage": { "1": [120, 148], "2": [120, 148], "3": [120, 148] },
+   "choice_words": { "1": [11, 17], "2": [16, 23], "3": [19, 26] },
+   "patterns": ["Both texts together run about 120–150 words, at every difficulty.", "Some questions ask what both authors would agree with. At hard, about 1 in 10 asks how Text 1's author would respond to Text 2."]
+  }
+ }
+}

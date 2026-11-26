@@ -24,6 +24,10 @@ async function main() {
   const ela = q.elaReport;
   console.log(`${ELA_QUESTION_FILE}: ${ela.rows.length} rows, ${ela.imported} imported as drafts, ${ela.skipped.length} already in the bank, ${ela.failed} failed.`);
   for (const r of ela.rows.filter((x) => !x.ok)) console.log(`  row ${r.row} (${r.externalId ?? "no id"}): ${r.errors.join(" ")}`);
+  for (const { file, report: r } of q.moreReports) {
+    console.log(`${file}: ${r.rows.length} rows, ${r.imported} imported as drafts, ${r.skipped.length} already in the bank, ${r.failed} failed.`);
+    for (const x of r.rows.filter((y) => !y.ok)) console.log(`  row ${x.row} (${x.externalId ?? "no id"}): ${x.errors.join(" ")}`);
+  }
   for (const s of q.sets) console.log(`  Set "${s.title}": ${s.count} questions${s.created ? " (created, draft)" : " (already there)"}`);
   if (!q.authorFound) console.log("  No owner account yet: the questions have no author until the OWNER_EMAIL account exists and you run this again.");
   console.log(process.env.OWNER_EMAIL ? `Owner role: ${roles.promoted ? "given to OWNER_EMAIL" : "already set (or that account doesn't exist yet)"}.` : "OWNER_EMAIL isn't set: no owner.");

@@ -97,6 +97,16 @@
          "A6",
          "A7",
          "A8",
+         "M2",
+         "M3",
+         "M4",
+         "M5",
+         "M6",
+         "D1",
+         "D2",
+         "D3",
+         "D4",
+         "G6",
          "L1",
          "L2",
          "L3",
@@ -124,27 +134,27 @@
         "note": "Original 1600 Project questions, written from our blueprints.",
         "question_ids": [
          "W3-25",
-         "W3-26",
          "W3-34",
-         "W3-35",
          "W3-43",
-         "W3-44",
          "W4-24",
          "W4-01",
-         "W4-02",
          "W4-40",
-         "W4-41",
          "W4-32",
          "W3-55",
-         "W3-56",
+         "ORIG-M2-01",
+         "ORIG-M3-01",
+         "ORIG-M4-01",
+         "ORIG-M5-01",
+         "ORIG-M6-01",
+         "ORIG-D1-01",
+         "ORIG-D2-01",
+         "ORIG-D3-01",
+         "ORIG-D4-01",
+         "ORIG-G6-01",
          "W3-01",
-         "W3-02",
          "W3-13",
-         "W3-14",
          "W3-50",
-         "W3-51",
          "W3-19",
-         "W3-20",
          "W4-10",
          "W4-18",
          "W4-48",
@@ -166,8 +176,9 @@
         ],
         "count": 40,
         "difficulty_counts": {
-         "Easy": 33,
-         "Medium": 7
+         "Easy": 25,
+         "Medium": 5,
+         "Hard": 10
         },
         "source": "original",
         "visibility": "in_house"
@@ -267,7 +278,7 @@
        {
         "type": "question_set",
         "set_id": "M-0.2",
-        "title": "0.2 Practice Set (33 questions)",
+        "title": "0.2 Practice Set (39 questions)",
         "status": "ready",
         "skills": [
          "Desmos basics"
@@ -276,7 +287,13 @@
          "A1",
          "A3",
          "A5",
-         "A7"
+         "A7",
+         "M2",
+         "M4",
+         "M6",
+         "D1",
+         "D3",
+         "S1"
         ],
         "mode": "practice",
         "note": "Original 1600 Project questions, written from our blueprints.",
@@ -313,13 +330,19 @@
          "W4-36",
          "W4-37",
          "W4-38",
-         "W4-39"
+         "W4-39",
+         "ORIG-M2-01",
+         "ORIG-M4-01",
+         "ORIG-M6-01",
+         "ORIG-D1-01",
+         "ORIG-D3-01",
+         "ORIG-S1-01"
         ],
-        "count": 33,
+        "count": 39,
         "difficulty_counts": {
          "Easy": 12,
          "Medium": 13,
-         "Hard": 8
+         "Hard": 14
         },
         "source": "original",
         "visibility": "in_house"
@@ -1260,17 +1283,23 @@
        {
         "type": "question_set",
         "set_id": "M-2.1",
-        "title": "2.1 Practice Set (0 questions)",
-        "status": "draft",
+        "title": "2.1 Practice Set (1 question)",
+        "status": "ready",
         "skills": [
          "Equivalent expressions"
         ],
-        "blueprints": [],
+        "blueprints": [
+         "M2"
+        ],
         "mode": "practice",
-        "note": "No questions yet: filled as original questions are written (npm run generate:bank, then npm run courses:fill-sets).",
-        "question_ids": [],
-        "count": 0,
-        "difficulty_counts": {},
+        "note": "Original 1600 Project questions, written from our blueprints.",
+        "question_ids": [
+         "ORIG-M2-01"
+        ],
+        "count": 1,
+        "difficulty_counts": {
+         "Hard": 1
+        },
         "source": "original",
         "visibility": "in_house"
        }
@@ -1374,18 +1403,24 @@
        {
         "type": "question_set",
         "set_id": "M-2.2",
-        "title": "2.2 Practice Set (0 questions)",
-        "status": "draft",
+        "title": "2.2 Practice Set (1 question)",
+        "status": "ready",
         "skills": [
          "Nonlinear functions",
          "Nonlinear equations and systems"
         ],
-        "blueprints": [],
+        "blueprints": [
+         "M3"
+        ],
         "mode": "practice",
-        "note": "No questions yet: filled as original questions are written (npm run generate:bank, then npm run courses:fill-sets).",
-        "question_ids": [],
-        "count": 0,
-        "difficulty_counts": {},
+        "note": "Original 1600 Project questions, written from our blueprints.",
+        "question_ids": [
+         "ORIG-M3-01"
+        ],
+        "count": 1,
+        "difficulty_counts": {
+         "Hard": 1
+        },
         "source": "original",
         "visibility": "in_house"
        }
@@ -1496,18 +1531,24 @@
        {
         "type": "question_set",
         "set_id": "M-2.3",
-        "title": "2.3 Practice Set (0 questions)",
-        "status": "draft",
+        "title": "2.3 Practice Set (1 question)",
+        "status": "ready",
         "skills": [
          "Equivalent expressions",
          "Nonlinear functions"
         ],
-        "blueprints": [],
+        "blueprints": [
+         "M6"
+        ],
         "mode": "practice",
-        "note": "No questions yet: filled as original questions are written (npm run generate:bank, then npm run courses:fill-sets).",
-        "question_ids": [],
-        "count": 0,
-        "difficulty_counts": {},
+        "note": "Original 1600 Project questions, written from our blueprints.",
+        "question_ids": [
+         "ORIG-M6-01"
+        ],
+        "count": 1,
+        "difficulty_counts": {
+         "Hard": 1
+        },
         "source": "original",
         "visibility": "in_house"
        }
@@ -1613,17 +1654,23 @@
        {
         "type": "question_set",
         "set_id": "M-2.4",
-        "title": "2.4 Practice Set (0 questions)",
-        "status": "draft",
+        "title": "2.4 Practice Set (1 question)",
+        "status": "ready",
         "skills": [
          "Nonlinear functions"
         ],
-        "blueprints": [],
+        "blueprints": [
+         "M5"
+        ],
         "mode": "practice",
-        "note": "No questions yet: filled as original questions are written (npm run generate:bank, then npm run courses:fill-sets).",
-        "question_ids": [],
-        "count": 0,
-        "difficulty_counts": {},
+        "note": "Original 1600 Project questions, written from our blueprints.",
+        "question_ids": [
+         "ORIG-M5-01"
+        ],
+        "count": 1,
+        "difficulty_counts": {
+         "Hard": 1
+        },
         "source": "original",
         "visibility": "in_house"
        }
@@ -1725,17 +1772,23 @@
        {
         "type": "question_set",
         "set_id": "M-2.5",
-        "title": "2.5 Practice Set (0 questions)",
-        "status": "draft",
+        "title": "2.5 Practice Set (1 question)",
+        "status": "ready",
         "skills": [
          "Nonlinear equations and systems"
         ],
-        "blueprints": [],
+        "blueprints": [
+         "M4"
+        ],
         "mode": "practice",
-        "note": "No questions yet: filled as original questions are written (npm run generate:bank, then npm run courses:fill-sets).",
-        "question_ids": [],
-        "count": 0,
-        "difficulty_counts": {},
+        "note": "Original 1600 Project questions, written from our blueprints.",
+        "question_ids": [
+         "ORIG-M4-01"
+        ],
+        "count": 1,
+        "difficulty_counts": {
+         "Hard": 1
+        },
         "source": "original",
         "visibility": "in_house"
        }
@@ -1746,15 +1799,23 @@
      {
       "type": "question_set",
       "set_id": "M-U2-review-1",
-      "title": "Unit 2 Review Set 1 (0 questions)",
-      "status": "draft",
+      "title": "Unit 2 Review Set 1 (5 questions)",
+      "status": "ready",
       "mode": "practice",
       "source": "original",
       "visibility": "in_house",
-      "count": 0,
-      "question_ids": [],
-      "difficulty_counts": {},
-      "note": "No questions yet: filled as original questions are written (npm run generate:bank, then npm run courses:fill-sets)."
+      "count": 5,
+      "question_ids": [
+       "ORIG-M2-01",
+       "ORIG-M3-01",
+       "ORIG-M4-01",
+       "ORIG-M5-01",
+       "ORIG-M6-01"
+      ],
+      "difficulty_counts": {
+       "Hard": 5
+      },
+      "note": "Original 1600 Project questions, written from our blueprints."
      }
     ]
    },
@@ -2209,17 +2270,23 @@
        {
         "type": "question_set",
         "set_id": "M-3.3",
-        "title": "3.3 Practice Set (0 questions)",
-        "status": "draft",
+        "title": "3.3 Practice Set (1 question)",
+        "status": "ready",
         "skills": [
          "One-variable data: distributions and measures of center and spread"
         ],
-        "blueprints": [],
+        "blueprints": [
+         "D1"
+        ],
         "mode": "practice",
-        "note": "No questions yet: filled as original questions are written (npm run generate:bank, then npm run courses:fill-sets).",
-        "question_ids": [],
-        "count": 0,
-        "difficulty_counts": {},
+        "note": "Original 1600 Project questions, written from our blueprints.",
+        "question_ids": [
+         "ORIG-D1-01"
+        ],
+        "count": 1,
+        "difficulty_counts": {
+         "Hard": 1
+        },
         "source": "original",
         "visibility": "in_house"
        }
@@ -2312,17 +2379,23 @@
        {
         "type": "question_set",
         "set_id": "M-3.4",
-        "title": "3.4 Practice Set (0 questions)",
-        "status": "draft",
+        "title": "3.4 Practice Set (1 question)",
+        "status": "ready",
         "skills": [
          "Two-variable data: models and scatterplots"
         ],
-        "blueprints": [],
+        "blueprints": [
+         "D3"
+        ],
         "mode": "practice",
-        "note": "No questions yet: filled as original questions are written (npm run generate:bank, then npm run courses:fill-sets).",
-        "question_ids": [],
-        "count": 0,
-        "difficulty_counts": {},
+        "note": "Original 1600 Project questions, written from our blueprints.",
+        "question_ids": [
+         "ORIG-D3-01"
+        ],
+        "count": 1,
+        "difficulty_counts": {
+         "Hard": 1
+        },
         "source": "original",
         "visibility": "in_house"
        }
@@ -2394,17 +2467,23 @@
        {
         "type": "question_set",
         "set_id": "M-3.5",
-        "title": "3.5 Practice Set (0 questions)",
-        "status": "draft",
+        "title": "3.5 Practice Set (1 question)",
+        "status": "ready",
         "skills": [
          "Probability and conditional probability"
         ],
-        "blueprints": [],
+        "blueprints": [
+         "D2"
+        ],
         "mode": "practice",
-        "note": "No questions yet: filled as original questions are written (npm run generate:bank, then npm run courses:fill-sets).",
-        "question_ids": [],
-        "count": 0,
-        "difficulty_counts": {},
+        "note": "Original 1600 Project questions, written from our blueprints.",
+        "question_ids": [
+         "ORIG-D2-01"
+        ],
+        "count": 1,
+        "difficulty_counts": {
+         "Hard": 1
+        },
         "source": "original",
         "visibility": "in_house"
        }
@@ -2476,18 +2555,24 @@
        {
         "type": "question_set",
         "set_id": "M-3.6",
-        "title": "3.6 Practice Set (0 questions)",
-        "status": "draft",
+        "title": "3.6 Practice Set (1 question)",
+        "status": "ready",
         "skills": [
          "Inference from sample statistics and margin of error",
          "Evaluating statistical claims"
         ],
-        "blueprints": [],
+        "blueprints": [
+         "D4"
+        ],
         "mode": "practice",
-        "note": "No questions yet: filled as original questions are written (npm run generate:bank, then npm run courses:fill-sets).",
-        "question_ids": [],
-        "count": 0,
-        "difficulty_counts": {},
+        "note": "Original 1600 Project questions, written from our blueprints.",
+        "question_ids": [
+         "ORIG-D4-01"
+        ],
+        "count": 1,
+        "difficulty_counts": {
+         "Hard": 1
+        },
         "source": "original",
         "visibility": "in_house"
        }
@@ -2505,6 +2590,10 @@
       "visibility": "in_house",
       "count": 30,
       "question_ids": [
+       "ORIG-D1-01",
+       "ORIG-D2-01",
+       "ORIG-D3-01",
+       "ORIG-D4-01",
        "W6-06",
        "W6-07",
        "W6-17",
@@ -2516,13 +2605,9 @@
        "W6-39",
        "W6-42",
        "W6-50",
-       "W6-51",
        "W6-58",
-       "W6-59",
-       "W5-05",
        "W5-08",
        "W5-09",
-       "W5-13",
        "W5-16",
        "W5-17",
        "W5-22",
@@ -2537,8 +2622,8 @@
        "W5-60"
       ],
       "difficulty_counts": {
-       "Medium": 6,
-       "Hard": 24
+       "Hard": 26,
+       "Medium": 4
       },
       "note": "Original 1600 Project questions, written from our blueprints."
      }
@@ -2618,17 +2703,23 @@
        {
         "type": "question_set",
         "set_id": "M-4.1",
-        "title": "4.1 Practice Set (0 questions)",
-        "status": "draft",
+        "title": "4.1 Practice Set (1 question)",
+        "status": "ready",
         "skills": [
          "Lines, angles, and triangles"
         ],
-        "blueprints": [],
+        "blueprints": [
+         "G6"
+        ],
         "mode": "practice",
-        "note": "No questions yet: filled as original questions are written (npm run generate:bank, then npm run courses:fill-sets).",
-        "question_ids": [],
-        "count": 0,
-        "difficulty_counts": {},
+        "note": "Original 1600 Project questions, written from our blueprints.",
+        "question_ids": [
+         "ORIG-G6-01"
+        ],
+        "count": 1,
+        "difficulty_counts": {
+         "Hard": 1
+        },
         "source": "original",
         "visibility": "in_house"
        }
@@ -2729,17 +2820,23 @@
        {
         "type": "question_set",
         "set_id": "M-4.2",
-        "title": "4.2 Practice Set (0 questions)",
-        "status": "draft",
+        "title": "4.2 Practice Set (1 question)",
+        "status": "ready",
         "skills": [
          "Right triangles and trigonometry"
         ],
-        "blueprints": [],
+        "blueprints": [
+         "G3"
+        ],
         "mode": "practice",
-        "note": "No questions yet: filled as original questions are written (npm run generate:bank, then npm run courses:fill-sets).",
-        "question_ids": [],
-        "count": 0,
-        "difficulty_counts": {},
+        "note": "Original 1600 Project questions, written from our blueprints.",
+        "question_ids": [
+         "ORIG-G3-01"
+        ],
+        "count": 1,
+        "difficulty_counts": {
+         "Hard": 1
+        },
         "source": "original",
         "visibility": "in_house"
        }
@@ -2837,17 +2934,23 @@
        {
         "type": "question_set",
         "set_id": "M-4.3",
-        "title": "4.3 Practice Set (0 questions)",
-        "status": "draft",
+        "title": "4.3 Practice Set (1 question)",
+        "status": "ready",
         "skills": [
          "Circles"
         ],
-        "blueprints": [],
+        "blueprints": [
+         "G4"
+        ],
         "mode": "practice",
-        "note": "No questions yet: filled as original questions are written (npm run generate:bank, then npm run courses:fill-sets).",
-        "question_ids": [],
-        "count": 0,
-        "difficulty_counts": {},
+        "note": "Original 1600 Project questions, written from our blueprints.",
+        "question_ids": [
+         "ORIG-G4-01"
+        ],
+        "count": 1,
+        "difficulty_counts": {
+         "Hard": 1
+        },
         "source": "original",
         "visibility": "in_house"
        }
@@ -2926,17 +3029,23 @@
        {
         "type": "question_set",
         "set_id": "M-4.4",
-        "title": "4.4 Practice Set (0 questions)",
-        "status": "draft",
+        "title": "4.4 Practice Set (1 question)",
+        "status": "ready",
         "skills": [
          "Area and volume"
         ],
-        "blueprints": [],
+        "blueprints": [
+         "G6"
+        ],
         "mode": "practice",
-        "note": "No questions yet: filled as original questions are written (npm run generate:bank, then npm run courses:fill-sets).",
-        "question_ids": [],
-        "count": 0,
-        "difficulty_counts": {},
+        "note": "Original 1600 Project questions, written from our blueprints.",
+        "question_ids": [
+         "ORIG-G6-02"
+        ],
+        "count": 1,
+        "difficulty_counts": {
+         "Hard": 1
+        },
         "source": "original",
         "visibility": "in_house"
        }
@@ -2947,15 +3056,22 @@
      {
       "type": "question_set",
       "set_id": "M-U4-review-1",
-      "title": "Unit 4 Review Set 1 (0 questions)",
-      "status": "draft",
+      "title": "Unit 4 Review Set 1 (4 questions)",
+      "status": "ready",
       "mode": "practice",
       "source": "original",
       "visibility": "in_house",
-      "count": 0,
-      "question_ids": [],
-      "difficulty_counts": {},
-      "note": "No questions yet: filled as original questions are written (npm run generate:bank, then npm run courses:fill-sets)."
+      "count": 4,
+      "question_ids": [
+       "ORIG-G3-01",
+       "ORIG-G4-01",
+       "ORIG-G6-01",
+       "ORIG-G6-02"
+      ],
+      "difficulty_counts": {
+       "Hard": 4
+      },
+      "note": "Original 1600 Project questions, written from our blueprints."
      }
     ]
    },
@@ -3100,13 +3216,14 @@
        {
         "type": "question_set",
         "set_id": "M-5.1",
-        "title": "5.1 Practice Set (9 questions)",
+        "title": "5.1 Practice Set (10 questions)",
         "status": "ready",
         "skills": [
          "Desmos: intersections"
         ],
         "blueprints": [
-         "A5"
+         "A5",
+         "M4"
         ],
         "mode": "practice",
         "note": "Original 1600 Project questions, written from our blueprints.",
@@ -3119,13 +3236,14 @@
          "W4-06",
          "W4-07",
          "W4-08",
-         "W4-09"
+         "W4-09",
+         "ORIG-M4-01"
         ],
-        "count": 9,
+        "count": 10,
         "difficulty_counts": {
          "Easy": 3,
          "Medium": 4,
-         "Hard": 2
+         "Hard": 3
         },
         "source": "original",
         "visibility": "in_house"
@@ -3429,17 +3547,25 @@
        {
         "type": "question_set",
         "set_id": "M-5.3",
-        "title": "5.3 Practice Set (0 questions)",
-        "status": "draft",
+        "title": "5.3 Practice Set (2 questions)",
+        "status": "ready",
         "skills": [
          "Desmos: lists"
         ],
-        "blueprints": [],
+        "blueprints": [
+         "D1",
+         "S1"
+        ],
         "mode": "practice",
-        "note": "No questions yet: filled as original questions are written (npm run generate:bank, then npm run courses:fill-sets).",
-        "question_ids": [],
-        "count": 0,
-        "difficulty_counts": {},
+        "note": "Original 1600 Project questions, written from our blueprints.",
+        "question_ids": [
+         "ORIG-D1-01",
+         "ORIG-S1-01"
+        ],
+        "count": 2,
+        "difficulty_counts": {
+         "Hard": 2
+        },
         "source": "original",
         "visibility": "in_house"
        }
@@ -3549,13 +3675,14 @@
        {
         "type": "question_set",
         "set_id": "M-5.4",
-        "title": "5.4 Practice Set (8 questions)",
+        "title": "5.4 Practice Set (9 questions)",
         "status": "ready",
         "skills": [
          "Desmos: strategy"
         ],
         "blueprints": [
-         "A7"
+         "A7",
+         "M4"
         ],
         "mode": "practice",
         "note": "Original 1600 Project questions, written from our blueprints.",
@@ -3567,13 +3694,14 @@
          "W4-36",
          "W4-37",
          "W4-38",
-         "W4-39"
+         "W4-39",
+         "ORIG-M4-01"
         ],
-        "count": 8,
+        "count": 9,
         "difficulty_counts": {
          "Easy": 3,
          "Medium": 3,
-         "Hard": 2
+         "Hard": 3
         },
         "source": "original",
         "visibility": "in_house"
@@ -3660,6 +3788,17 @@
          "A5",
          "A6",
          "A8",
+         "M2",
+         "M3",
+         "M4",
+         "M5",
+         "M6",
+         "D1",
+         "D2",
+         "D3",
+         "G3",
+         "G4",
+         "G6",
          "L5",
          "L6",
          "P1",
@@ -3677,27 +3816,32 @@
         "question_ids": [
          "W3-25",
          "W3-26",
-         "W3-27",
-         "W3-29",
          "W3-43",
          "W4-26",
          "W4-31",
          "W4-02",
          "W4-06",
-         "W4-09",
          "W4-42",
          "W3-57",
+         "ORIG-M2-01",
+         "ORIG-M3-01",
+         "ORIG-M4-01",
+         "ORIG-M5-01",
+         "ORIG-M6-01",
+         "ORIG-D1-01",
+         "ORIG-D2-01",
+         "ORIG-D3-01",
+         "ORIG-G3-01",
+         "ORIG-G4-01",
+         "ORIG-G6-01",
+         "ORIG-G6-02",
          "W4-10",
          "W4-12",
-         "W4-14",
-         "W4-16",
          "W4-21",
          "W6-06",
          "W6-07",
          "W6-52",
          "W6-53",
-         "W6-59",
-         "W6-60",
          "W5-02",
          "W5-04",
          "W5-16",
@@ -3705,22 +3849,17 @@
          "W5-25",
          "W5-28",
          "W5-33",
-         "W5-35",
          "W5-36",
          "W5-40",
-         "W5-42",
-         "W5-43",
          "W5-47",
          "W5-50",
-         "W5-52",
-         "W5-54",
-         "W5-55"
+         "W5-52"
         ],
         "count": 40,
         "difficulty_counts": {
-         "Easy": 18,
-         "Medium": 9,
-         "Hard": 13
+         "Easy": 17,
+         "Hard": 18,
+         "Medium": 5
         },
         "source": "original",
         "visibility": "in_house"
@@ -3793,6 +3932,16 @@
          "A6",
          "A7",
          "A8",
+         "M2",
+         "M3",
+         "M4",
+         "M5",
+         "M6",
+         "D1",
+         "D2",
+         "D3",
+         "D4",
+         "G6",
          "L1",
          "L2",
          "L3",
@@ -3820,27 +3969,27 @@
         "note": "Original 1600 Project questions, written from our blueprints.",
         "question_ids": [
          "W3-25",
-         "W3-26",
          "W3-34",
-         "W3-35",
          "W3-43",
-         "W3-44",
          "W4-24",
          "W4-01",
-         "W4-02",
          "W4-40",
-         "W4-41",
          "W4-32",
          "W3-55",
-         "W3-56",
+         "ORIG-M2-01",
+         "ORIG-M3-01",
+         "ORIG-M4-01",
+         "ORIG-M5-01",
+         "ORIG-M6-01",
+         "ORIG-D1-01",
+         "ORIG-D2-01",
+         "ORIG-D3-01",
+         "ORIG-D4-01",
+         "ORIG-G6-01",
          "W3-01",
-         "W3-02",
          "W3-13",
-         "W3-14",
          "W3-50",
-         "W3-51",
          "W3-19",
-         "W3-20",
          "W4-10",
          "W4-18",
          "W4-48",
@@ -3862,8 +4011,9 @@
         ],
         "count": 40,
         "difficulty_counts": {
-         "Easy": 33,
-         "Medium": 7
+         "Easy": 25,
+         "Medium": 5,
+         "Hard": 10
         },
         "source": "original",
         "visibility": "in_house"

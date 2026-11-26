@@ -30,6 +30,34 @@ export const BlueprintSchema = z.object({
 export type Blueprint = z.infer<typeof BlueprintSchema>;
 export const BlueprintFileSchema = z.object({ format: z.literal(BLUEPRINT_FORMAT), version: z.literal(1), blueprints: z.array(BlueprintSchema) });
 
+/** Lengths and patterns by question type and difficulty, measured from official questions (no question text). */
+export const StyleSpecSchema = z.object({
+  format: z.literal("coursebook-rw-style-spec"),
+  version: z.literal(1),
+  global: z.array(z.string()),
+  types: z.record(
+    z.string(),
+    z.object({
+      blueprints: z.array(z.string()),
+      question: z.string(),
+      passage: z.record(z.string(), z.tuple([z.number(), z.number()])),
+      choice_words: z.record(z.string(), z.tuple([z.number(), z.number()])),
+      patterns: z.array(z.string()),
+    }),
+  ),
+});
+export type StyleSpec = z.infer<typeof StyleSpecSchema>;
+
+/** The style targets for one blueprint's slots, or "" if the spec has none for it. */
+export function styleText(spec: StyleSpec | null, bp: Blueprint, slots: Slot[]): string {
+  const t = spec && Object.entries(spec.types).find(([, v]) => v.blueprints.includes(bp.id));
+  if (!spec || !t) return "";
+  const [name, v] = t;
+  const levels = [...new Set(slots.map((s) => s.difficulty))].sort();
+  const lines = levels.map((d) => `- difficulty ${d}: passage ${v.passage[d][0]}–${v.passage[d][1]} words; answer choices about ${v.choice_words[d][0]}–${v.choice_words[d][1]} words each`);
+  return `\nStyle targets for ${name}, measured from real SAT questions (follow them):\nQuestion line: ${v.question}\n${lines.join("\n")}\n${[...v.patterns, ...spec.global].map((p) => `- ${p}`).join("\n")}\n`;
+}
+
 // ─── What Claude returns ──────────────────────────────────────────────────
 
 export const GeneratedItemSchema = z.object({
@@ -147,7 +175,7 @@ Format
 
 Before you answer, solve every question yourself from scratch by a second route (plug the answer back in, or use the Desmos method), and check that no wrong choice is also right and no two choices are equal. If anything fails, rewrite the question.`;
 
-export function generateUserText(bp: Blueprint, slots: Slot[]): string {
+export function generateUserText(bp: Blueprint, slots: Slot[], spec: StyleSpec | null = null): string {
   const lines = slots.map(
     (s) =>
       `- slot ${s.slot}: difficulty ${s.difficulty}, ${s.type === "grid-in" ? "grid-in (no choices)" : `multiple choice, correct answer at ${s.letter} (if the choices are numbers, order them ascending and let the letter fall where it falls)`}, subject or context: ${s.topic}`,
@@ -160,7 +188,7 @@ How to build it: ${bp.build}
 Wrong answers come from: ${bp.wrong.join("; ")}
 Harder versions: ${bp.harder}
 ${bp.desmos ? `Desmos method for the explanation's check: ${bp.desmos}` : "No Desmos check needed (desmos_check empty)."}
-
+${styleText(spec, bp, slots)}
 Write ${slots.length} question${slots.length === 1 ? "" : "s"}, one per slot below. Make them clearly different from one another: different contexts, numbers, sentence structures and question forms within the blueprint. Use the subject or context given as a starting point, not a script.
 ${lines.join("\n")}`;
 }

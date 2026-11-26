@@ -15,6 +15,7 @@ import {
   planRequests,
   similarity,
   SLOTS_PER_REQUEST,
+  StyleSpecSchema,
   toImportRecord,
   VERIFY_SYSTEM,
   verifyUserText,
@@ -23,6 +24,7 @@ import {
   type GeneratedItem,
   type GenRequest,
   type Slot,
+  type StyleSpec,
   type Verdict,
 } from "@/lib/bank/generate";
 
@@ -48,6 +50,18 @@ export type ResultsFile = { format: typeof GENERATED_FORMAT; version: 1; model: 
 
 export async function readBlueprints(file = "data/blueprints/sat-blueprints.json"): Promise<Blueprint[]> {
   return BlueprintFileSchema.parse(JSON.parse(await fs.readFile(file, "utf8"))).blueprints;
+}
+
+let spec: StyleSpec | null | undefined;
+/** The measured style targets (data/blueprints/rw-style-spec.json), if the file is there. */
+export async function readSpec(file = "data/blueprints/rw-style-spec.json"): Promise<StyleSpec | null> {
+  if (spec !== undefined) return spec;
+  try {
+    spec = StyleSpecSchema.parse(JSON.parse(await fs.readFile(file, "utf8")));
+  } catch {
+    spec = null;
+  }
+  return spec;
 }
 
 export async function readResults(): Promise<ResultsFile> {
@@ -88,12 +102,12 @@ export function allSlots(blueprints: Blueprint[]): Map<string, Slot> {
 
 // ─── Requests ─────────────────────────────────────────────────────────────
 
-export function genParams(bp: Blueprint, req: GenRequest, cfg: GenConfig): Anthropic.MessageCreateParamsNonStreaming {
+export function genParams(bp: Blueprint, req: GenRequest, cfg: GenConfig, style: StyleSpec | null = spec ?? null): Anthropic.MessageCreateParamsNonStreaming {
   return {
     model: cfg.model,
     max_tokens: 32_000,
     system: [{ type: "text", text: GENERATE_SYSTEM, cache_control: { type: "ephemeral" } }],
-    messages: [{ role: "user", content: generateUserText(bp, req.slots) }],
+    messages: [{ role: "user", content: generateUserText(bp, req.slots, style) }],
     output_config: { format: zodOutputFormat(GenerationSchema), effort: cfg.effort },
   };
 }
@@ -245,7 +259,10 @@ export function assemble(blueprints: Blueprint[], r: ResultsFile): Assembly {
         const it = items.get(s.slot);
         if (!it) continue;
         const dec = decide(it, bp, s, r.verdicts[s.slot]?.verdict ?? null);
-        if (dec.keep && keptStems.some((k) => similarity(k, it.stem) > 0.5)) dec.reasons.push("Too close to another kept question."), (dec.keep = false);
+        if (dec.keep && keptStems.some((k) => similarity(k, it.stem) > 0.5)) {
+          dec.reasons.push("Too close to another kept question.");
+          dec.keep = false;
+        }
         if (!dec.keep) {
           stat.rejected++;
           out.rejected.push({ slot: s.slot, reasons: dec.reasons });

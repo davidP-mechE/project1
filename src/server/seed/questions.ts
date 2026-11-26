@@ -13,6 +13,9 @@ export const QUESTION_FILE = "data/questions/1600-weeks3-6-questions.json";
 /** The 1600 Project's Reading and Writing questions (original, by lesson ELA-W1 to ELA-W4), with one draft set per lesson. */
 export const ELA_QUESTION_FILE = "data/questions/1600-ela-questions.json";
 
+/** Other question files here are imported too, in name order. */
+export const QUESTION_DIR = "data/questions";
+
 export const ELA_SETS = [
   { lesson: "ELA-W1", title: "R&W Lesson 1 · Central ideas and details" },
   { lesson: "ELA-W2", title: "R&W Lesson 2 · Boundaries" },
@@ -33,8 +36,15 @@ export async function seedQuestionFile(root = process.cwd()) {
   const text = fs.readFileSync(path.join(root, QUESTION_FILE), "utf8");
   const report = await runImport(text, "json", { commit: true, authorId: author?.id ?? null });
   const elaReport = await runImport(fs.readFileSync(path.join(root, ELA_QUESTION_FILE), "utf8"), "json", { commit: true, authorId: author?.id ?? null });
+  // Every other question file in data/questions/ (newer originals, and the question writer's output).
+  const dir = path.join(root, QUESTION_DIR);
+  const known = new Set([QUESTION_FILE, ELA_QUESTION_FILE].map((f) => path.basename(f)));
+  const moreReports: { file: string; report: Awaited<ReturnType<typeof runImport>> }[] = [];
+  for (const f of fs.readdirSync(dir).filter((n) => n.endsWith(".json") && !known.has(n)).sort()) {
+    moreReports.push({ file: `${QUESTION_DIR}/${f}`, report: await runImport(fs.readFileSync(path.join(dir, f), "utf8"), "json", { commit: true, authorId: author?.id ?? null }) });
+  }
   // Questions imported before the owner had an account get them as author.
-  if (author) await db.bankQuestion.updateMany({ where: { authorId: null, OR: [{ externalId: { startsWith: "W" } }, { externalId: { startsWith: "ELA-" } }] }, data: { authorId: author.id } });
+  if (author) await db.bankQuestion.updateMany({ where: { authorId: null, OR: ["W", "ELA-", "ORIG-", "GEN-"].map((p) => ({ externalId: { startsWith: p } })) }, data: { authorId: author.id } });
 
   const sets: { title: string; created: boolean; count: number }[] = [];
   for (const w of WEEK_SETS) {
@@ -59,5 +69,5 @@ export async function seedQuestionFile(root = process.cwd()) {
     } else if (existing && author) await db.questionSet.updateMany({ where: { id: existing.id, authorId: null }, data: { authorId: author.id } });
     sets.push({ title: l.title, created: !existing && qs.length > 0, count: qs.length });
   }
-  return { report, elaReport, sets, authorFound: Boolean(author) };
+  return { report, elaReport, moreReports, sets, authorFound: Boolean(author) };
 }
