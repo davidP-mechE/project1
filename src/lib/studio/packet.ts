@@ -166,7 +166,9 @@ export function parsePacket(json: unknown): PacketParse {
     const counts = new Map<string, number>();
     const reviews = u.data.review_sets.map((s) => readBlock({ type: "question_set", ...(s as object) }, `${u.data.id} review`, counts, warn)).filter((b): b is BlockSpec => Boolean(b));
     if (reviews.length) {
-      lessons.push({ key: `${u.data.id}-review`, number: null, title: `${u.data.title}: review`, estimatedMinutes: null, objectives: ["Mixed practice on everything in this unit."], skills: [], blueprints: [], blocks: reviews });
+      // Numbered after the unit's last lesson (Unit 1 with five lessons → 1.6).
+      const reviewNumber = u.data.number === undefined || u.data.number === null ? null : `${u.data.number}.${lessons.length + 1}`;
+      lessons.push({ key: `${u.data.id}-review`, number: reviewNumber, title: `${u.data.title}: review`, estimatedMinutes: null, objectives: ["Mixed practice on everything in this unit."], skills: [], blueprints: [], blocks: reviews });
     }
     const num = u.data.number === undefined || u.data.number === null ? "" : `Unit ${u.data.number}: `;
     units.push({ key: u.data.id, title: `${num}${u.data.title}`.slice(0, 160), summary: u.data.summary ?? "", lessons });

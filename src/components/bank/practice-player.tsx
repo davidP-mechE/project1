@@ -247,12 +247,9 @@ export function PracticePlayer({ state, desmosKey }: { state: PlayerState; desmo
         {error && <Alert tone="error">{error}</Alert>}
         {fb ? (
           <div className={cn("flex flex-col gap-2 rounded-lg border-[1.5px] p-3", fb.correct ? "border-success bg-success-bg" : "border-danger bg-danger-bg")} role="status">
-            <p className={cn("font-semibold", fb.correct ? "text-success" : "text-danger")}>{fb.correct ? "Correct" : `Not quite. The answer is ${fb.correctAnswer}.`}</p>
-            {fb.likelyMistake && (
-              <p className="text-sm text-text">
-                <span className="font-semibold">Likely mistake:</span> {fb.likelyMistake}
-              </p>
-            )}
+            {/* The answer and the likely mistake can hold math and italics, like the explanation. */}
+            <Markdown className={cn("font-semibold", fb.correct ? "text-success" : "text-danger")}>{fb.correct ? "Correct" : `Not quite. The answer is ${fb.correctAnswer}.`}</Markdown>
+            {fb.likelyMistake && <Markdown className="text-sm text-text">{`**Likely mistake:** ${fb.likelyMistake}`}</Markdown>}
             {fb.rationaleImageUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={fb.rationaleImageUrl} alt="Explanation of the answer" className="h-auto max-w-full rounded border border-border bg-white" />
