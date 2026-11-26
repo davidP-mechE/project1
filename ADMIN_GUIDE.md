@@ -225,6 +225,24 @@ To change a lesson, edit the slide artifact, download the decks, and rebuild:
 2. Hide or delete the old Hub course.
 3. Run `npm run hub:sat` again.
 
+### SAT Master Courses and the in-house Question Bank
+
+The SAT Math and Reading and Writing Master Courses use 4,125 official College Board Question Bank items. They're **in-house only**: you, plus the students and staff of classes you tick under **Admin → In-house content**. Everyone else, other tutors included, gets "not found" for the questions, their images, their sets and the courses.
+
+1. Put `coursebook_sat_question_bank.json` and the `qbank_images/` folder in `data/course-packets/`. They're never committed to git.
+2. Import the bank, then the courses. Add `-- --dry-run` first to check. Both are safe to run again.
+   ```
+   npm run import:bank
+   npm run import:courses
+   ```
+   Run them with the production `.env`, so the images go to production storage.
+3. Open **Course Studio → Video review** and approve the videos. Students only see approved ones.
+4. **Course Studio → Sets** shows each set's size and difficulty mix, with a Reshuffle button.
+5. Preview a lesson with **Preview as student**. When the course is ready, use **Publish → to in-house classes**.
+6. Tick the 1600 Project classes under **Admin → In-house content**.
+
+**Kill switch:** set `ALLOW_COLLEGE_BOARD_CONTENT=false` to hide every College Board question and set from everyone, you included. Do this before any public release.
+
 ### Demo mode
 
 Demo mode fills the site with an invented class so you can see and try the class features without real students. Turn it on or off from **Admin → Demo data** (Load demo data / Clear demo data), or with `npm run demo:load` and `npm run demo:clear`.

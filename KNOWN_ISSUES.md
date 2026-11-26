@@ -124,6 +124,13 @@ The final review of Coursebook and The 1600 Project's setup on it, most serious 
 - **Scoring runs in the request.** Grading waits for Claude in the web request (up to 5 minutes allowed). If that's too slow on the host, move essay grading to the worker queue.
 - **Upload limit wording.** "Up to 5 files per session" is enforced as at most 5 files waiting for review at a time.
 
+20. **SAT Master Courses: limits to know.**
+- **Answer keys to check:** 48 grid-in keys were read from rationale images. `npm run import:bank` lists them, so spot-check those questions.
+- **Live warm-ups:** they don't offer in-house sets, because the live screen can't show image questions yet.
+- **Weekly auto-practice and suggestions:** "Focus next" and "assign practice" suggestions use public questions and sets only, never in-house ones.
+- **Video thumbnails:** these load from i.ytimg.com when a lesson opens. The player itself loads from YouTube only on click.
+- **Imported questions are read-only in the bank.** To change one, edit the bank file and import again.
+
 ## Checked and fine
 
 - **Performance with 30 students and a year of data** (`npm run perf:check`): every staff and student page's server work takes under 40 ms warm. The hourly staff-notice job takes about 0.4 s for the whole program.

@@ -393,6 +393,16 @@ The sidebar now has a **Practice** section: Review, Spaced repetition, Error log
 
 **Deployment:** [DEPLOY.md](DEPLOY.md) walks through Vercel (web), Railway (worker, from `Dockerfile.worker`), Neon, Cloudflare R2, Resend and Redis, with every environment variable, the R2 CORS policy, RAM sizing for the worker, the first-admin step, usage limits and a security checklist.
 
+### SAT Master Courses and in-house content
+
+Two Course Studio courses built from course packets (`data/course-packets/*_course.json`), with practice sets drawn from 4,125 in-house College Board Question Bank items. The bank file and images are not in git.
+
+- **Access:** one rule, in [src/server/in-house.ts](src/server/in-house.ts). In-house questions, sets and courses are seen by the owner and by classes with `inHouseAccess` only. `ALLOW_COLLEGE_BOARD_CONTENT=false` hides all College Board content. Images are served only by `/api/bank/qbank/<name>`.
+- **Import:** run `npm run import:bank` ([src/lib/bank/qbank.ts](src/lib/bank/qbank.ts)), then `npm run import:courses` ([src/lib/studio/packet.ts](src/lib/studio/packet.ts)). Both are idempotent and report what they did.
+- **Display:** an item printed as an image is shown as the question, with A–D buttons or a grid-in box; the rationale image follows. Grid-in keys may list forms separated by commas. Misses go to the mistake log.
+- **New Studio blocks:** video (youtube-nocookie, loads on click, approved only for students), callout, checkpoint and "Try it in Desmos".
+- **New Studio pages:** Video review and Sets.
+
 ### Academic Index
 
 One application strength score from 0 to 230 (test 70, GPA 70, rigor 35, activities 30, essays 25), with a tier, a breakdown, essay feedback and the biggest-lever tip. Formula version `v1`.
