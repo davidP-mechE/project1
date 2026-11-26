@@ -10,6 +10,7 @@
  *   npm run generate:bank -- --collect       pick up batches sent earlier (if the command was stopped)
  *   npm run generate:bank -- --only A1,E12   just these blueprints
  *   npm run generate:bank -- --limit 180     at most 180 questions this run, spread over every blueprint (to cap the cost)
+ *   npm run generate:bank -- --difficulty 3  only hard questions (combine with --only and --limit)
  *   npm run generate:bank -- --assemble      rebuild the output file from saved results (no API calls)
  *
  * Needs COURSEBOOK_ANTHROPIC_API_KEY (or ANTHROPIC_API_KEY). Working files: data/generated/ (not committed).
@@ -55,7 +56,15 @@ const arg = (name: string) => {
 };
 const has = (name: string) => process.argv.includes(name);
 /** --limit N: write at most N questions this run, spread over every blueprint and difficulty (to keep a run small). */
-const limit = (reqs: Parameters<typeof limitRequests>[0]) => (arg("--limit") ? limitRequests(reqs, Math.max(1, Number(arg("--limit")) || 0)) : reqs);
+/** --difficulty 3: only that difficulty (1 easy, 2 medium, 3 hard). Applied before --limit. */
+const levelOnly = (reqs: Parameters<typeof limitRequests>[0]) => {
+  const d = Number(arg("--difficulty"));
+  return [1, 2, 3].includes(d) ? reqs.filter((q) => q.slots[0].difficulty === d) : reqs;
+};
+const limit = (reqs: Parameters<typeof limitRequests>[0]) => {
+  const r = levelOnly(reqs);
+  return arg("--limit") ? limitRequests(r, Math.max(1, Number(arg("--limit")) || 0)) : r;
+};
 const log = (m: string) => console.info(`  ${m}`);
 type Effort = GenConfig["effort"];
 
