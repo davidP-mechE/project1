@@ -42,7 +42,7 @@ async function main() {
     return;
   }
 
-  // Claude Code cloud sessions don't pass ANTHROPIC_API_KEY through to commands, so the key can also
+  // Claude Code cloud sessions may not pass ANTHROPIC_API_KEY through to commands, so the key can also
   // be saved under COURSEBOOK_ANTHROPIC_API_KEY (the environment's settings → environment variables).
   const apiKey = process.env.COURSEBOOK_ANTHROPIC_API_KEY || process.env.ANTHROPIC_API_KEY;
   if (!apiKey) throw new Error("No API key: set COURSEBOOK_ANTHROPIC_API_KEY (or ANTHROPIC_API_KEY).");
