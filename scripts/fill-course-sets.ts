@@ -4,9 +4,11 @@
  * data/course-packets/: every lesson set gets the original questions whose
  * blueprint lives in that lesson (from data/questions/*.json), easiest first,
  * in blueprint order. College Board question ids are removed. Desmos lessons
- * (M-5.x) also get questions whose blueprint lists them. Unit review sets and
- * lessons with no questions yet are left empty, as drafts. No database or API
- * calls: run npm run import:courses afterwards.
+ * (M-5.x) also get questions whose blueprint lists them. Strategy lessons
+ * (0.x, 6.x, R&W 5.x) get a course-wide mix (0.2: Desmos questions; 6.1:
+ * grid-ins), and unit review sets a spread over the unit's lessons, hardest
+ * first. Sets with nothing to hold yet are left empty, as drafts. No database
+ * or API calls: run npm run import:courses afterwards.
  *
  *   npm run courses:fill-sets -- --dry-run   show the counts, change nothing
  */
@@ -32,8 +34,30 @@ const BY_SKILL: Record<string, string> = {
   percentages: "M-3.2",
 };
 const DIFF = { 1: "Easy", 2: "Medium", 3: "Hard" } as const;
+/** Lessons that teach strategy, not one skill: a mix from the whole course (with a filter for a few). */
+const MIXED: Record<string, ((q: Q) => boolean) | null> = {
+  "M-0.1": null,
+  "M-0.2": (q) => q.desmos,
+  "M-6.1": (q) => q.type === "grid-in" || q.type === "grid_in" || q.type === "spr",
+  "M-6.2": null,
+  "RW-0.1": null,
+  "RW-5.1": null,
+  "RW-5.2": null,
+};
+const MIX_SIZE = 40;
+const REVIEW_SIZE = 30;
 
-type Q = { id: string; blueprint: string; difficulty: 1 | 2 | 3; skill: string };
+/** Up to n questions, taking them in turn from each blueprint so the mix is even. */
+function spread(qs: Q[], n: number, hardFirst: boolean): Q[] {
+  const groups = new Map<string, Q[]>();
+  for (const q of qs) groups.set(q.blueprint, [...(groups.get(q.blueprint) ?? []), q]);
+  for (const g of groups.values()) g.sort((a, b) => (hardFirst ? b.difficulty - a.difficulty : a.difficulty - b.difficulty) || a.id.localeCompare(b.id, "en", { numeric: true }));
+  const out: Q[] = [];
+  for (let i = 0; out.length < n && [...groups.values()].some((g) => g.length > i); i++) for (const g of groups.values()) if (g[i] && out.length < n) out.push(g[i]);
+  return out;
+}
+
+type Q = { id: string; blueprint: string; difficulty: 1 | 2 | 3; skill: string; type: string; desmos: boolean };
 type Json = Record<string, unknown>;
 
 async function main() {
@@ -48,7 +72,8 @@ async function main() {
     for (const r of (Array.isArray(raw) ? raw : raw.questions) as Json[]) {
       if (r.source && r.source !== "original") continue;
       const id = String(r.external_id ?? r.id ?? "");
-      if (id) questions.push({ id, blueprint: String(r.blueprint ?? ""), difficulty: Number(r.difficulty) as Q["difficulty"], skill: String(r.skill ?? "") });
+      const bp = String(r.blueprint ?? "");
+      if (id) questions.push({ id, blueprint: bp, difficulty: Number(r.difficulty) as Q["difficulty"], skill: String(r.skill ?? ""), type: String(r.type ?? "mcq").toLowerCase(), desmos: Boolean(r.desmos_technique || bps.find((b) => b.id === bp)?.desmos) });
     }
   }
 
@@ -78,22 +103,31 @@ async function main() {
   };
 
   let placed = 0;
+  const unique = (qs: Q[]) => [...new Map(qs.map((q) => [q.id, q])).values()];
   for (const file of PACKETS) {
     const packet = JSON.parse(await fs.readFile(file, "utf8")) as { course: Json & { units: Json[] } };
     const c = packet.course;
     c.description = String(c.description).replace(/practice sets of real SAT Question Bank items/, "practice sets of original 1600 Project questions");
     console.info(`\n${c.title}`);
+    const lessonIds = c.units.flatMap((u) => (u.lessons as Json[]).map((l) => String(l.id)));
+    const course = unique(lessonIds.flatMap((id) => byLesson.get(id) ?? []));
     for (const u of c.units) {
+      const unitQs = unique((u.lessons as Json[]).flatMap((l) => byLesson.get(String(l.id)) ?? []));
       for (const l of u.lessons as Json[]) {
         for (const b of l.blocks as Json[]) {
           if (b.type !== "question_set") continue;
-          const qs = byLesson.get(String(l.id)) ?? [];
+          const id = String(l.id);
+          const qs = id in MIXED ? spread(course.filter(MIXED[id] ?? (() => true)), MIX_SIZE, false) : (byLesson.get(id) ?? []);
           fill(b, qs);
           placed += qs.length;
-          console.info(`  ${String(l.number).padEnd(4)} ${String(l.title).slice(0, 52).padEnd(52)} ${qs.length}`);
+          console.info(`  ${String(l.number).padEnd(4)} ${String(l.title).slice(0, 52).padEnd(52)} ${qs.length}${id in MIXED ? " (mix)" : ""}`);
         }
       }
-      for (const s of (u.review_sets as Json[]) ?? []) fill(s, []);
+      // Review sets split the unit's questions between them, hardest first, without repeats across sets.
+      const reviews = (u.review_sets as Json[]) ?? [];
+      const pool = spread(unitQs, REVIEW_SIZE * reviews.length, true);
+      reviews.forEach((s, i) => fill(s, pool.filter((_, j) => j % reviews.length === i)));
+      if (reviews.length) console.info(`       ${String(u.title).slice(0, 40)} review sets: ${reviews.map((_, i) => pool.filter((__, j) => j % reviews.length === i).length).join(", ")}`);
     }
     if (!dry) await fs.writeFile(file, `${JSON.stringify(packet, null, 1)}\n`);
   }

@@ -83,17 +83,67 @@
        {
         "type": "question_set",
         "set_id": "RW-0.1",
-        "title": "0.1 Practice Set (0 questions)",
-        "status": "draft",
+        "title": "0.1 Practice Set (33 questions)",
+        "status": "ready",
         "skills": [
          "Test format"
         ],
-        "blueprints": [],
+        "blueprints": [
+         "E1",
+         "E2",
+         "E3",
+         "E4",
+         "E5",
+         "E6",
+         "E7",
+         "E8",
+         "E9",
+         "E10",
+         "E11"
+        ],
         "mode": "practice",
-        "note": "No questions yet: filled as original questions are written (npm run generate:bank, then npm run courses:fill-sets).",
-        "question_ids": [],
-        "count": 0,
-        "difficulty_counts": {},
+        "note": "Original 1600 Project questions, written from our blueprints.",
+        "question_ids": [
+         "ELA-E1-1",
+         "ELA-E1-2",
+         "ELA-E1-3",
+         "ELA-E2-1",
+         "ELA-E2-2",
+         "ELA-E2-3",
+         "ELA-E3-1",
+         "ELA-E3-2",
+         "ELA-E3-3",
+         "ELA-E4-1",
+         "ELA-E4-2",
+         "ELA-E4-3",
+         "ELA-E5-1",
+         "ELA-E5-2",
+         "ELA-E5-3",
+         "ELA-E6-1",
+         "ELA-E6-2",
+         "ELA-E6-3",
+         "ELA-E7-1",
+         "ELA-E7-2",
+         "ELA-E7-3",
+         "ELA-E8-1",
+         "ELA-E8-2",
+         "ELA-E8-3",
+         "ELA-E9-1",
+         "ELA-E9-2",
+         "ELA-E9-3",
+         "ELA-E10-1",
+         "ELA-E10-2",
+         "ELA-E10-3",
+         "ELA-E11-1",
+         "ELA-E11-2",
+         "ELA-E11-3"
+        ],
+        "count": 33,
+        "difficulty_counts": {
+         "Easy": 11,
+         "Medium": 11,
+         "Hard": 11
+        },
         "source": "original",
         "visibility": "in_house"
        }
@@ -425,41 +475,53 @@
      {
       "type": "question_set",
       "set_id": "RW-U1-review-1",
-      "title": "Unit 1 Review Set 1 (0 questions)",
-      "status": "draft",
+      "title": "Unit 1 Review Set 1 (1 question)",
+      "status": "ready",
       "mode": "practice",
       "source": "original",
       "visibility": "in_house",
-      "count": 0,
-      "question_ids": [],
-      "difficulty_counts": {},
-      "note": "No questions yet: filled as original questions are written (npm run generate:bank, then npm run courses:fill-sets)."
+      "count": 1,
+      "question_ids": [
+       "ELA-E11-3"
+      ],
+      "difficulty_counts": {
+       "Hard": 1
+      },
+      "note": "Original 1600 Project questions, written from our blueprints."
      },
      {
       "type": "question_set",
       "set_id": "RW-U1-review-2",
-      "title": "Unit 1 Review Set 2 (0 questions)",
-      "status": "draft",
+      "title": "Unit 1 Review Set 2 (1 question)",
+      "status": "ready",
       "mode": "practice",
       "source": "original",
       "visibility": "in_house",
-      "count": 0,
-      "question_ids": [],
-      "difficulty_counts": {},
-      "note": "No questions yet: filled as original questions are written (npm run generate:bank, then npm run courses:fill-sets)."
+      "count": 1,
+      "question_ids": [
+       "ELA-E11-2"
+      ],
+      "difficulty_counts": {
+       "Medium": 1
+      },
+      "note": "Original 1600 Project questions, written from our blueprints."
      },
      {
       "type": "question_set",
       "set_id": "RW-U1-review-3",
-      "title": "Unit 1 Review Set 3 (0 questions)",
-      "status": "draft",
+      "title": "Unit 1 Review Set 3 (1 question)",
+      "status": "ready",
       "mode": "practice",
       "source": "original",
       "visibility": "in_house",
-      "count": 0,
-      "question_ids": [],
-      "difficulty_counts": {},
-      "note": "No questions yet: filled as original questions are written (npm run generate:bank, then npm run courses:fill-sets)."
+      "count": 1,
+      "question_ids": [
+       "ELA-E11-1"
+      ],
+      "difficulty_counts": {
+       "Easy": 1
+      },
+      "note": "Original 1600 Project questions, written from our blueprints."
      },
      {
       "type": "question_set",
@@ -951,54 +1013,74 @@
      {
       "type": "question_set",
       "set_id": "RW-U3-review-1",
-      "title": "Unit 3 Review Set 1 (0 questions)",
-      "status": "draft",
+      "title": "Unit 3 Review Set 1 (2 questions)",
+      "status": "ready",
       "mode": "practice",
       "source": "original",
       "visibility": "in_house",
-      "count": 0,
-      "question_ids": [],
-      "difficulty_counts": {},
-      "note": "No questions yet: filled as original questions are written (npm run generate:bank, then npm run courses:fill-sets)."
+      "count": 2,
+      "question_ids": [
+       "ELA-E9-1",
+       "ELA-E9-3"
+      ],
+      "difficulty_counts": {
+       "Easy": 1,
+       "Hard": 1
+      },
+      "note": "Original 1600 Project questions, written from our blueprints."
      },
      {
       "type": "question_set",
       "set_id": "RW-U3-review-2",
-      "title": "Unit 3 Review Set 2 (0 questions)",
-      "status": "draft",
+      "title": "Unit 3 Review Set 2 (2 questions)",
+      "status": "ready",
       "mode": "practice",
       "source": "original",
       "visibility": "in_house",
-      "count": 0,
-      "question_ids": [],
-      "difficulty_counts": {},
-      "note": "No questions yet: filled as original questions are written (npm run generate:bank, then npm run courses:fill-sets)."
+      "count": 2,
+      "question_ids": [
+       "ELA-E10-1",
+       "ELA-E10-3"
+      ],
+      "difficulty_counts": {
+       "Easy": 1,
+       "Hard": 1
+      },
+      "note": "Original 1600 Project questions, written from our blueprints."
      },
      {
       "type": "question_set",
       "set_id": "RW-U3-review-3",
-      "title": "Unit 3 Review Set 3 (0 questions)",
-      "status": "draft",
+      "title": "Unit 3 Review Set 3 (1 question)",
+      "status": "ready",
       "mode": "practice",
       "source": "original",
       "visibility": "in_house",
-      "count": 0,
-      "question_ids": [],
-      "difficulty_counts": {},
-      "note": "No questions yet: filled as original questions are written (npm run generate:bank, then npm run courses:fill-sets)."
+      "count": 1,
+      "question_ids": [
+       "ELA-E9-2"
+      ],
+      "difficulty_counts": {
+       "Medium": 1
+      },
+      "note": "Original 1600 Project questions, written from our blueprints."
      },
      {
       "type": "question_set",
       "set_id": "RW-U3-review-4",
-      "title": "Unit 3 Review Set 4 (0 questions)",
-      "status": "draft",
+      "title": "Unit 3 Review Set 4 (1 question)",
+      "status": "ready",
       "mode": "practice",
       "source": "original",
       "visibility": "in_house",
-      "count": 0,
-      "question_ids": [],
-      "difficulty_counts": {},
-      "note": "No questions yet: filled as original questions are written (npm run generate:bank, then npm run courses:fill-sets)."
+      "count": 1,
+      "question_ids": [
+       "ELA-E10-2"
+      ],
+      "difficulty_counts": {
+       "Medium": 1
+      },
+      "note": "Original 1600 Project questions, written from our blueprints."
      }
     ]
    },
@@ -1545,28 +1627,62 @@
      {
       "type": "question_set",
       "set_id": "RW-U4-review-1",
-      "title": "Unit 4 Review Set 1 (0 questions)",
-      "status": "draft",
+      "title": "Unit 4 Review Set 1 (12 questions)",
+      "status": "ready",
       "mode": "practice",
       "source": "original",
       "visibility": "in_house",
-      "count": 0,
-      "question_ids": [],
-      "difficulty_counts": {},
-      "note": "No questions yet: filled as original questions are written (npm run generate:bank, then npm run courses:fill-sets)."
+      "count": 12,
+      "question_ids": [
+       "ELA-E1-1",
+       "ELA-E1-2",
+       "ELA-E1-3",
+       "ELA-E3-1",
+       "ELA-E3-2",
+       "ELA-E3-3",
+       "ELA-E5-1",
+       "ELA-E5-2",
+       "ELA-E5-3",
+       "ELA-E6-1",
+       "ELA-E6-2",
+       "ELA-E6-3"
+      ],
+      "difficulty_counts": {
+       "Easy": 4,
+       "Medium": 4,
+       "Hard": 4
+      },
+      "note": "Original 1600 Project questions, written from our blueprints."
      },
      {
       "type": "question_set",
       "set_id": "RW-U4-review-2",
-      "title": "Unit 4 Review Set 2 (0 questions)",
-      "status": "draft",
+      "title": "Unit 4 Review Set 2 (12 questions)",
+      "status": "ready",
       "mode": "practice",
       "source": "original",
       "visibility": "in_house",
-      "count": 0,
-      "question_ids": [],
-      "difficulty_counts": {},
-      "note": "No questions yet: filled as original questions are written (npm run generate:bank, then npm run courses:fill-sets)."
+      "count": 12,
+      "question_ids": [
+       "ELA-E2-1",
+       "ELA-E2-2",
+       "ELA-E2-3",
+       "ELA-E4-1",
+       "ELA-E4-2",
+       "ELA-E4-3",
+       "ELA-E7-1",
+       "ELA-E7-2",
+       "ELA-E7-3",
+       "ELA-E8-1",
+       "ELA-E8-2",
+       "ELA-E8-3"
+      ],
+      "difficulty_counts": {
+       "Easy": 4,
+       "Medium": 4,
+       "Hard": 4
+      },
+      "note": "Original 1600 Project questions, written from our blueprints."
      }
     ]
    },
@@ -1628,17 +1744,67 @@
        {
         "type": "question_set",
         "set_id": "RW-5.1",
-        "title": "5.1 Practice Set (0 questions)",
-        "status": "draft",
+        "title": "5.1 Practice Set (33 questions)",
+        "status": "ready",
         "skills": [
          "Test strategy"
         ],
-        "blueprints": [],
+        "blueprints": [
+         "E1",
+         "E2",
+         "E3",
+         "E4",
+         "E5",
+         "E6",
+         "E7",
+         "E8",
+         "E9",
+         "E10",
+         "E11"
+        ],
         "mode": "practice",
-        "note": "No questions yet: filled as original questions are written (npm run generate:bank, then npm run courses:fill-sets).",
-        "question_ids": [],
-        "count": 0,
-        "difficulty_counts": {},
+        "note": "Original 1600 Project questions, written from our blueprints.",
+        "question_ids": [
+         "ELA-E1-1",
+         "ELA-E1-2",
+         "ELA-E1-3",
+         "ELA-E2-1",
+         "ELA-E2-2",
+         "ELA-E2-3",
+         "ELA-E3-1",
+         "ELA-E3-2",
+         "ELA-E3-3",
+         "ELA-E4-1",
+         "ELA-E4-2",
+         "ELA-E4-3",
+         "ELA-E5-1",
+         "ELA-E5-2",
+         "ELA-E5-3",
+         "ELA-E6-1",
+         "ELA-E6-2",
+         "ELA-E6-3",
+         "ELA-E7-1",
+         "ELA-E7-2",
+         "ELA-E7-3",
+         "ELA-E8-1",
+         "ELA-E8-2",
+         "ELA-E8-3",
+         "ELA-E9-1",
+         "ELA-E9-2",
+         "ELA-E9-3",
+         "ELA-E10-1",
+         "ELA-E10-2",
+         "ELA-E10-3",
+         "ELA-E11-1",
+         "ELA-E11-2",
+         "ELA-E11-3"
+        ],
+        "count": 33,
+        "difficulty_counts": {
+         "Easy": 11,
+         "Medium": 11,
+         "Hard": 11
+        },
         "source": "original",
         "visibility": "in_house"
        }
@@ -1696,17 +1862,67 @@
        {
         "type": "question_set",
         "set_id": "RW-5.2",
-        "title": "5.2 Practice Set (0 questions)",
-        "status": "draft",
+        "title": "5.2 Practice Set (33 questions)",
+        "status": "ready",
         "skills": [
          "Test strategy"
         ],
-        "blueprints": [],
+        "blueprints": [
+         "E1",
+         "E2",
+         "E3",
+         "E4",
+         "E5",
+         "E6",
+         "E7",
+         "E8",
+         "E9",
+         "E10",
+         "E11"
+        ],
         "mode": "practice",
-        "note": "No questions yet: filled as original questions are written (npm run generate:bank, then npm run courses:fill-sets).",
-        "question_ids": [],
-        "count": 0,
-        "difficulty_counts": {},
+        "note": "Original 1600 Project questions, written from our blueprints.",
+        "question_ids": [
+         "ELA-E1-1",
+         "ELA-E1-2",
+         "ELA-E1-3",
+         "ELA-E2-1",
+         "ELA-E2-2",
+         "ELA-E2-3",
+         "ELA-E3-1",
+         "ELA-E3-2",
+         "ELA-E3-3",
+         "ELA-E4-1",
+         "ELA-E4-2",
+         "ELA-E4-3",
+         "ELA-E5-1",
+         "ELA-E5-2",
+         "ELA-E5-3",
+         "ELA-E6-1",
+         "ELA-E6-2",
+         "ELA-E6-3",
+         "ELA-E7-1",
+         "ELA-E7-2",
+         "ELA-E7-3",
+         "ELA-E8-1",
+         "ELA-E8-2",
+         "ELA-E8-3",
+         "ELA-E9-1",
+         "ELA-E9-2",
+         "ELA-E9-3",
+         "ELA-E10-1",
+         "ELA-E10-2",
+         "ELA-E10-3",
+         "ELA-E11-1",
+         "ELA-E11-2",
+         "ELA-E11-3"
+        ],
+        "count": 33,
+        "difficulty_counts": {
+         "Easy": 11,
+         "Medium": 11,
+         "Hard": 11
+        },
         "source": "original",
         "visibility": "in_house"
        }

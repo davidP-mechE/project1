@@ -48,6 +48,12 @@ describe("keeping a question", () => {
     expect(decide(item, A1, slot, { ...verdict, sat_quality: 3 }).keep).toBe(false);
     expect(decide(item, A1, slot, null).keep).toBe(false);
   });
+  it("keeps a hard question only if it plays hard", () => {
+    const hard = { ...slot, difficulty: 3 as const };
+    expect(decide(item, A1, hard, { ...verdict, difficulty: 2 }).keep).toBe(false);
+    expect(decide(item, A1, hard, { ...verdict, difficulty: 3 }).keep).toBe(true);
+    expect(decide(item, A1, { ...slot, difficulty: 1 }, { ...verdict, difficulty: 2 }).keep).toBe(true);
+  });
   it("catches duplicate choices, bad LaTeX and a wrong skill", () => {
     expect(localProblems({ ...item, choices: ["1", "1", "2", "3"] }, A1).join()).toMatch(/same/);
     expect(localProblems({ ...item, stem: "What is $\\frac{1}{$?" }, A1).join()).toMatch(/render/);

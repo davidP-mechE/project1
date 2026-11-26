@@ -136,7 +136,10 @@ What real SAT questions look like
 Difficulty (it must genuinely play at this level on the real test)
 - 1 Easy: one step or a direct application; the trap is mild.
 - 2 Medium: two steps, or a trap a careful student still sees.
-- 3 Hard: several steps, abstract or unusual framing, a subtle trap, denser passage or sophisticated vocabulary. Hard must be hard because of reasoning, not because of messy arithmetic or confusing wording.
+- 3 Hard: as hard as the hardest questions in a real second module, the ones that separate 750 from 800. Hard must come from reasoning, never from messy arithmetic or confusing wording. A good hard question:
+  - Math: chains 3 or more ideas (e.g. symmetry of a parabola, then expanding, then reading a constant), asks for something one step past the obvious target (a + k, the sum of all possible values, the area of the leftover region), and hides the trap where strong students go wrong (an extraneous root, a second case such as m = 0, a two-year rate when the question asks for one year). Constants and parameters instead of numbers; abstract or unfamiliar framing of a familiar idea. A student who knows the topic but rushes should land on one of the wrong choices.
+  - Reading and Writing: dense academic or literary prose with qualified claims ("does not dispute… argues, though…"), several choices that are TRUE or partly supported, and a right answer that wins only on precision: it matches the exact scope, hedge or relationship the question asks for. Wrong choices include the near-miss that is right except for one word ("rejects" vs. "complicates"), the true-but-not-responsive choice, and the reversal. Vocabulary at the level of reticent, untenable, equivocal, tacit, circumscribed. In evidence and data questions, at least two choices should be accurate to the text or table.
+  If a careful strong student could answer it in under 30 seconds without a moment's doubt, it is not hard: make it harder.
 
 Format
 - Markdown. Math in LaTeX between $...$ (e.g. $\\frac{3}{4}$, $x^2$, $\\sqrt{5}$). Write dollar amounts as \\$12.50 so they aren't read as math. Tables as Markdown tables. Underlined words as <u>...</u>. Paired texts labeled **Text 1** and **Text 2**.
@@ -177,7 +180,7 @@ Report as issues anything real:
 Don't report nitpicks that wouldn't change how a student experiences the question.
 
 sat_quality: 5 = could appear on the real test unchanged; 4 = minor polish only; 3 = clearly practice-book; 1–2 = flawed.
-difficulty: how it would actually play on the real test (1 easy, 2 medium, 3 hard).`;
+difficulty: how it would actually play on the real test (1 easy, 2 medium, 3 hard). Rate 3 only if it matches the hardest questions of a real second module: a strong student who rushes would likely miss it. A question that is merely careful or wordy is 2.`;
 
 export function verifyUserText(skill: string, section: "math" | "rw", item: Pick<GeneratedItem, "type" | "stem" | "choices">): string {
   const body = item.type === "grid-in" ? `${item.stem}\n\n(Student-produced response: enter a number.)` : `${item.stem}\n\n${item.choices.map((c, i) => `${"ABCD"[i]}. ${c}`).join("\n")}`;
@@ -237,7 +240,8 @@ export function decide(item: GeneratedItem, bp: Blueprint, slot: Slot, verdict: 
     if (!answersMatch(item, verdict)) reasons.push(`The cold solve got ${verdict.answer.trim()}, the key says ${item.answer}.`);
     for (const i of verdict.issues) if (BLOCKING.includes(i.kind)) reasons.push(`${i.kind.replace(/_/g, " ")}: ${i.detail}`);
     if (verdict.sat_quality < 4) reasons.push(`SAT quality ${verdict.sat_quality}/5.`);
-    if (Math.abs(verdict.difficulty - slot.difficulty) > 1) reasons.push(`Plays as difficulty ${verdict.difficulty}, asked for ${slot.difficulty}.`);
+    // A hard question has to play hard; easy and medium may be off by one level.
+    if (slot.difficulty === 3 ? verdict.difficulty < 3 : Math.abs(verdict.difficulty - slot.difficulty) > 1) reasons.push(`Plays as difficulty ${verdict.difficulty}, asked for ${slot.difficulty}.`);
   }
   return { keep: reasons.length === 0, reasons };
 }
