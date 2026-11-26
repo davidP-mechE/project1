@@ -97,16 +97,16 @@
          "A6",
          "A7",
          "A8",
+         "M1",
          "M2",
          "M3",
          "M4",
          "M5",
          "M6",
          "D1",
-         "D2",
          "D3",
-         "D4",
-         "G6",
+         "U1",
+         "U2",
          "L1",
          "L2",
          "L3",
@@ -133,24 +133,24 @@
         "mode": "practice",
         "note": "Original 1600 Project questions, written from our blueprints.",
         "question_ids": [
-         "W3-25",
-         "W3-34",
-         "W3-43",
-         "W4-24",
-         "W4-01",
-         "W4-40",
-         "W4-32",
-         "W3-55",
-         "ORIG-M2-01",
-         "ORIG-M3-01",
-         "ORIG-M4-01",
-         "ORIG-M5-01",
-         "ORIG-M6-01",
-         "ORIG-D1-01",
-         "ORIG-D2-01",
-         "ORIG-D3-01",
-         "ORIG-D4-01",
-         "ORIG-G6-01",
+         "GEN-A1-001",
+         "GEN-A2-001",
+         "GEN-A3-001",
+         "GEN-A4-001",
+         "GEN-A5-001",
+         "GEN-A6-001",
+         "GEN-A7-001",
+         "GEN-A8-001",
+         "GEN-M1-001",
+         "GEN-M2-001",
+         "GEN-M3-001",
+         "GEN-M4-001",
+         "GEN-M5-001",
+         "GEN-M6-001",
+         "GEN-D1-001",
+         "GEN-D3-001",
+         "GEN-U1-001",
+         "GEN-U2-001",
          "W3-01",
          "W3-13",
          "W3-50",
@@ -176,9 +176,8 @@
         ],
         "count": 40,
         "difficulty_counts": {
-         "Easy": 25,
-         "Medium": 5,
-         "Hard": 10
+         "Easy": 36,
+         "Medium": 4
         },
         "source": "original",
         "visibility": "in_house"
@@ -278,7 +277,7 @@
        {
         "type": "question_set",
         "set_id": "M-0.2",
-        "title": "0.2 Practice Set (39 questions)",
+        "title": "0.2 Practice Set (40 questions)",
         "status": "ready",
         "skills": [
          "Desmos basics"
@@ -293,56 +292,60 @@
          "M6",
          "D1",
          "D3",
-         "S1"
+         "S1",
+         "DR1",
+         "DR2",
+         "DR3"
         ],
         "mode": "practice",
         "note": "Original 1600 Project questions, written from our blueprints.",
         "question_ids": [
+         "GEN-A1-001",
+         "GEN-A1-002",
+         "GEN-A1-003",
          "W3-25",
-         "W3-26",
-         "W3-27",
-         "W3-28",
-         "W3-29",
-         "W3-30",
-         "W3-31",
-         "W3-32",
-         "W3-33",
+         "GEN-A3-001",
+         "GEN-A3-002",
          "W3-43",
-         "W3-44",
-         "W3-45",
-         "W3-46",
-         "W3-47",
-         "W3-48",
-         "W3-49",
+         "GEN-A5-001",
+         "GEN-A5-002",
          "W4-01",
-         "W4-02",
-         "W4-03",
-         "W4-04",
-         "W4-05",
-         "W4-06",
-         "W4-07",
-         "W4-08",
-         "W4-09",
-         "W4-32",
-         "W4-33",
-         "W4-34",
-         "W4-35",
-         "W4-36",
-         "W4-37",
-         "W4-38",
-         "W4-39",
-         "ORIG-M2-01",
-         "ORIG-M4-01",
-         "ORIG-M6-01",
-         "ORIG-D1-01",
-         "ORIG-D3-01",
-         "ORIG-S1-01"
+         "GEN-A7-001",
+         "GEN-A7-002",
+         "GEN-A7-003",
+         "GEN-M2-001",
+         "GEN-M2-002",
+         "GEN-M2-003",
+         "GEN-M4-001",
+         "GEN-M4-002",
+         "GEN-M4-003",
+         "GEN-M6-001",
+         "GEN-M6-002",
+         "GEN-M6-003",
+         "GEN-D1-001",
+         "GEN-D1-002",
+         "GEN-D1-003",
+         "GEN-D3-001",
+         "GEN-D3-002",
+         "GEN-D3-003",
+         "GEN-S1-001",
+         "GEN-S1-002",
+         "GEN-S1-003",
+         "GEN-DR1-001",
+         "GEN-DR1-002",
+         "GEN-DR1-003",
+         "GEN-DR2-001",
+         "GEN-DR2-002",
+         "GEN-DR2-003",
+         "GEN-DR3-001",
+         "GEN-DR3-002",
+         "GEN-DR3-003"
         ],
-        "count": 39,
+        "count": 40,
         "difficulty_counts": {
-         "Easy": 12,
-         "Medium": 13,
-         "Hard": 14
+         "Easy": 27,
+         "Medium": 9,
+         "Hard": 4
         },
         "source": "original",
         "visibility": "in_house"
@@ -454,7 +457,7 @@
        {
         "type": "question_set",
         "set_id": "M-1.1",
-        "title": "1.1 Practice Set (24 questions)",
+        "title": "1.1 Practice Set (28 questions)",
         "status": "ready",
         "skills": [
          "Linear equations in one variable"
@@ -467,6 +470,10 @@
         "mode": "practice",
         "note": "Original 1600 Project questions, written from our blueprints.",
         "question_ids": [
+         "GEN-A8-001",
+         "GEN-A8-002",
+         "GEN-A8-003",
+         "GEN-A8-004",
          "W3-55",
          "W3-56",
          "W3-57",
@@ -492,11 +499,11 @@
          "W3-17",
          "W3-18"
         ],
-        "count": 24,
+        "count": 28,
         "difficulty_counts": {
-         "Medium": 10,
-         "Hard": 8,
-         "Easy": 6
+         "Easy": 8,
+         "Medium": 12,
+         "Hard": 8
         },
         "source": "original",
         "visibility": "in_house"
@@ -595,7 +602,7 @@
        {
         "type": "question_set",
         "set_id": "M-1.2",
-        "title": "1.2 Practice Set (29 questions)",
+        "title": "1.2 Practice Set (38 questions)",
         "status": "ready",
         "skills": [
          "Linear equations in two variables"
@@ -609,17 +616,26 @@
         "mode": "practice",
         "note": "Original 1600 Project questions, written from our blueprints.",
         "question_ids": [
+         "GEN-A1-001",
+         "GEN-A1-002",
+         "GEN-A1-003",
          "W3-25",
          "W3-26",
          "W3-27",
          "W3-28",
+         "GEN-A1-004",
          "W3-29",
          "W3-30",
          "W3-31",
          "W3-32",
          "W3-33",
+         "GEN-A2-001",
+         "GEN-A2-002",
          "W3-34",
          "W3-35",
+         "GEN-A2-003",
+         "GEN-A2-004",
+         "GEN-A2-005",
          "W3-36",
          "W3-37",
          "W3-38",
@@ -639,10 +655,10 @@
          "W3-23",
          "W3-24"
         ],
-        "count": 29,
+        "count": 38,
         "difficulty_counts": {
-         "Easy": 13,
-         "Medium": 11,
+         "Easy": 18,
+         "Medium": 15,
          "Hard": 5
         },
         "source": "original",
@@ -750,7 +766,7 @@
        {
         "type": "question_set",
         "set_id": "M-1.3",
-        "title": "1.3 Practice Set (15 questions)",
+        "title": "1.3 Practice Set (22 questions)",
         "status": "ready",
         "skills": [
          "Linear functions"
@@ -762,27 +778,34 @@
         "mode": "practice",
         "note": "Original 1600 Project questions, written from our blueprints.",
         "question_ids": [
+         "GEN-A3-001",
+         "GEN-A3-002",
          "W3-43",
          "W3-44",
+         "GEN-A3-003",
          "W3-45",
          "W3-46",
          "W3-47",
          "W3-48",
          "W3-49",
+         "GEN-A6-001",
+         "GEN-A6-002",
          "W4-40",
          "W4-41",
          "W4-42",
+         "GEN-A6-003",
          "W4-43",
          "W4-44",
          "W4-45",
+         "GEN-A6-004",
          "W4-46",
          "W4-47"
         ],
-        "count": 15,
+        "count": 22,
         "difficulty_counts": {
-         "Easy": 5,
-         "Medium": 6,
-         "Hard": 4
+         "Easy": 9,
+         "Medium": 8,
+         "Hard": 5
         },
         "source": "original",
         "visibility": "in_house"
@@ -885,7 +908,7 @@
        {
         "type": "question_set",
         "set_id": "M-1.4",
-        "title": "1.4 Practice Set (23 questions)",
+        "title": "1.4 Practice Set (27 questions)",
         "status": "ready",
         "skills": [
          "Systems of two linear equations"
@@ -898,9 +921,13 @@
         "mode": "practice",
         "note": "Original 1600 Project questions, written from our blueprints.",
         "question_ids": [
+         "GEN-A5-001",
+         "GEN-A5-002",
          "W4-01",
          "W4-02",
          "W4-03",
+         "GEN-A5-003",
+         "GEN-A5-004",
          "W4-04",
          "W4-05",
          "W4-06",
@@ -922,10 +949,10 @@
          "W4-22",
          "W4-23"
         ],
-        "count": 23,
+        "count": 27,
         "difficulty_counts": {
-         "Easy": 6,
-         "Medium": 10,
+         "Easy": 8,
+         "Medium": 12,
          "Hard": 7
         },
         "source": "original",
@@ -1027,7 +1054,7 @@
        {
         "type": "question_set",
         "set_id": "M-1.5",
-        "title": "1.5 Practice Set (29 questions)",
+        "title": "1.5 Practice Set (37 questions)",
         "status": "ready",
         "skills": [
          "Linear inequalities"
@@ -1041,17 +1068,25 @@
         "mode": "practice",
         "note": "Original 1600 Project questions, written from our blueprints.",
         "question_ids": [
+         "GEN-A4-001",
+         "GEN-A4-002",
+         "GEN-A4-003",
          "W4-24",
          "W4-25",
          "W4-26",
+         "GEN-A4-004",
          "W4-27",
          "W4-28",
          "W4-29",
          "W4-30",
          "W4-31",
+         "GEN-A7-001",
+         "GEN-A7-002",
+         "GEN-A7-003",
          "W4-32",
          "W4-33",
          "W4-34",
+         "GEN-A7-004",
          "W4-35",
          "W4-36",
          "W4-37",
@@ -1071,10 +1106,10 @@
          "W4-59",
          "W4-60"
         ],
-        "count": 29,
+        "count": 37,
         "difficulty_counts": {
-         "Easy": 12,
-         "Medium": 11,
+         "Easy": 18,
+         "Medium": 13,
          "Hard": 6
         },
         "source": "original",
@@ -1094,25 +1129,25 @@
       "visibility": "in_house",
       "count": 30,
       "question_ids": [
-       "W3-29",
-       "W3-30",
-       "W3-32",
-       "W3-33",
-       "W4-27",
+       "GEN-A2-003",
+       "W3-40",
+       "W3-41",
+       "W3-42",
+       "GEN-A4-004",
        "W4-30",
        "W4-31",
-       "W4-43",
-       "W4-44",
+       "GEN-A6-003",
+       "GEN-A6-004",
        "W4-46",
        "W4-47",
-       "W3-55",
+       "GEN-A8-003",
        "W3-58",
        "W3-59",
        "W3-60",
-       "W3-07",
-       "W3-08",
-       "W3-11",
-       "W3-12",
+       "W3-13",
+       "W3-16",
+       "W3-17",
+       "W3-18",
        "W3-50",
        "W3-51",
        "W3-53",
@@ -1126,8 +1161,8 @@
        "W4-55"
       ],
       "difficulty_counts": {
-       "Medium": 13,
-       "Hard": 15,
+       "Medium": 10,
+       "Hard": 18,
        "Easy": 2
       },
       "note": "Original 1600 Project questions, written from our blueprints."
@@ -1142,25 +1177,25 @@
       "visibility": "in_house",
       "count": 30,
       "question_ids": [
-       "W3-36",
-       "W3-40",
-       "W3-41",
-       "W3-42",
+       "GEN-A1-004",
+       "W3-29",
+       "W3-32",
+       "W3-33",
+       "GEN-A3-003",
        "W3-45",
-       "W3-46",
        "W3-48",
        "W3-49",
-       "W4-04",
-       "W4-05",
+       "GEN-A5-003",
+       "GEN-A5-004",
        "W4-08",
        "W4-09",
-       "W4-35",
+       "GEN-A7-004",
        "W4-38",
        "W4-39",
-       "W3-13",
-       "W3-16",
-       "W3-17",
-       "W3-18",
+       "W3-07",
+       "W3-08",
+       "W3-11",
+       "W3-12",
        "W3-19",
        "W3-20",
        "W3-23",
@@ -1174,8 +1209,8 @@
        "W4-60"
       ],
       "difficulty_counts": {
-       "Medium": 12,
-       "Hard": 15,
+       "Medium": 14,
+       "Hard": 13,
        "Easy": 3
       },
       "note": "Original 1600 Project questions, written from our blueprints."
@@ -1283,22 +1318,33 @@
        {
         "type": "question_set",
         "set_id": "M-2.1",
-        "title": "2.1 Practice Set (1 question)",
+        "title": "2.1 Practice Set (9 questions)",
         "status": "ready",
         "skills": [
          "Equivalent expressions"
         ],
         "blueprints": [
+         "M1",
          "M2"
         ],
         "mode": "practice",
         "note": "Original 1600 Project questions, written from our blueprints.",
         "question_ids": [
+         "GEN-M1-001",
+         "GEN-M1-002",
+         "GEN-M1-003",
+         "GEN-M1-004",
+         "GEN-M2-001",
+         "GEN-M2-002",
+         "GEN-M2-003",
+         "GEN-M2-004",
          "ORIG-M2-01"
         ],
-        "count": 1,
+        "count": 9,
         "difficulty_counts": {
-         "Hard": 1
+         "Easy": 3,
+         "Medium": 3,
+         "Hard": 3
         },
         "source": "original",
         "visibility": "in_house"
@@ -1403,23 +1449,33 @@
        {
         "type": "question_set",
         "set_id": "M-2.2",
-        "title": "2.2 Practice Set (1 question)",
+        "title": "2.2 Practice Set (8 questions)",
         "status": "ready",
         "skills": [
          "Nonlinear functions",
          "Nonlinear equations and systems"
         ],
         "blueprints": [
-         "M3"
+         "M3",
+         "M4"
         ],
         "mode": "practice",
         "note": "Original 1600 Project questions, written from our blueprints.",
         "question_ids": [
-         "ORIG-M3-01"
+         "GEN-M3-001",
+         "GEN-M3-002",
+         "GEN-M3-003",
+         "ORIG-M3-01",
+         "GEN-M4-001",
+         "GEN-M4-002",
+         "GEN-M4-003",
+         "GEN-M4-004"
         ],
-        "count": 1,
+        "count": 8,
         "difficulty_counts": {
-         "Hard": 1
+         "Easy": 3,
+         "Medium": 3,
+         "Hard": 2
         },
         "source": "original",
         "visibility": "in_house"
@@ -1531,7 +1587,7 @@
        {
         "type": "question_set",
         "set_id": "M-2.3",
-        "title": "2.3 Practice Set (1 question)",
+        "title": "2.3 Practice Set (5 questions)",
         "status": "ready",
         "skills": [
          "Equivalent expressions",
@@ -1543,10 +1599,16 @@
         "mode": "practice",
         "note": "Original 1600 Project questions, written from our blueprints.",
         "question_ids": [
+         "GEN-M6-001",
+         "GEN-M6-002",
+         "GEN-M6-003",
+         "GEN-M6-004",
          "ORIG-M6-01"
         ],
-        "count": 1,
+        "count": 5,
         "difficulty_counts": {
+         "Easy": 2,
+         "Medium": 2,
          "Hard": 1
         },
         "source": "original",
@@ -1654,7 +1716,7 @@
        {
         "type": "question_set",
         "set_id": "M-2.4",
-        "title": "2.4 Practice Set (1 question)",
+        "title": "2.4 Practice Set (4 questions)",
         "status": "ready",
         "skills": [
          "Nonlinear functions"
@@ -1665,10 +1727,14 @@
         "mode": "practice",
         "note": "Original 1600 Project questions, written from our blueprints.",
         "question_ids": [
+         "GEN-M5-001",
+         "GEN-M5-002",
+         "GEN-M5-003",
          "ORIG-M5-01"
         ],
-        "count": 1,
+        "count": 4,
         "difficulty_counts": {
+         "Easy": 3,
          "Hard": 1
         },
         "source": "original",
@@ -1799,21 +1865,45 @@
      {
       "type": "question_set",
       "set_id": "M-U2-review-1",
-      "title": "Unit 2 Review Set 1 (5 questions)",
+      "title": "Unit 2 Review Set 1 (27 questions)",
       "status": "ready",
       "mode": "practice",
       "source": "original",
       "visibility": "in_house",
-      "count": 5,
+      "count": 27,
       "question_ids": [
+       "GEN-M1-001",
+       "GEN-M1-002",
+       "GEN-M1-003",
+       "GEN-M1-004",
+       "GEN-M2-001",
+       "GEN-M2-002",
+       "GEN-M2-003",
+       "GEN-M2-004",
        "ORIG-M2-01",
+       "GEN-M3-001",
+       "GEN-M3-002",
+       "GEN-M3-003",
        "ORIG-M3-01",
+       "GEN-M4-001",
+       "GEN-M4-002",
+       "GEN-M4-003",
+       "GEN-M4-004",
        "ORIG-M4-01",
+       "GEN-M5-001",
+       "GEN-M5-002",
+       "GEN-M5-003",
        "ORIG-M5-01",
+       "GEN-M6-001",
+       "GEN-M6-002",
+       "GEN-M6-003",
+       "GEN-M6-004",
        "ORIG-M6-01"
       ],
       "difficulty_counts": {
-       "Hard": 5
+       "Easy": 11,
+       "Medium": 8,
+       "Hard": 8
       },
       "note": "Original 1600 Project questions, written from our blueprints."
      }
@@ -1896,12 +1986,13 @@
        {
         "type": "question_set",
         "set_id": "M-3.1",
-        "title": "3.1 Practice Set (60 questions)",
+        "title": "3.1 Practice Set (62 questions)",
         "status": "ready",
         "skills": [
          "Ratios, rates, proportional relationships, and units"
         ],
         "blueprints": [
+         "U1",
          "R1",
          "R2",
          "R3",
@@ -1913,6 +2004,8 @@
         "mode": "practice",
         "note": "Original 1600 Project questions, written from our blueprints.",
         "question_ids": [
+         "GEN-U1-001",
+         "GEN-U1-002",
          "W5-01",
          "W5-02",
          "W5-03",
@@ -1974,10 +2067,10 @@
          "W5-59",
          "W5-60"
         ],
-        "count": 60,
+        "count": 62,
         "difficulty_counts": {
-         "Easy": 21,
-         "Medium": 24,
+         "Easy": 22,
+         "Medium": 25,
          "Hard": 15
         },
         "source": "original",
@@ -2073,12 +2166,13 @@
        {
         "type": "question_set",
         "set_id": "M-3.2",
-        "title": "3.2 Practice Set (60 questions)",
+        "title": "3.2 Practice Set (64 questions)",
         "status": "ready",
         "skills": [
          "Percentages"
         ],
         "blueprints": [
+         "U2",
          "P1",
          "P2",
          "P3",
@@ -2090,6 +2184,10 @@
         "mode": "practice",
         "note": "Original 1600 Project questions, written from our blueprints.",
         "question_ids": [
+         "GEN-U2-001",
+         "GEN-U2-002",
+         "GEN-U2-003",
+         "GEN-U2-004",
          "W6-01",
          "W6-02",
          "W6-03",
@@ -2151,11 +2249,11 @@
          "W6-59",
          "W6-60"
         ],
-        "count": 60,
+        "count": 64,
         "difficulty_counts": {
-         "Easy": 21,
-         "Medium": 24,
-         "Hard": 15
+         "Easy": 23,
+         "Medium": 25,
+         "Hard": 16
         },
         "source": "original",
         "visibility": "in_house"
@@ -2270,7 +2368,7 @@
        {
         "type": "question_set",
         "set_id": "M-3.3",
-        "title": "3.3 Practice Set (1 question)",
+        "title": "3.3 Practice Set (5 questions)",
         "status": "ready",
         "skills": [
          "One-variable data: distributions and measures of center and spread"
@@ -2281,10 +2379,16 @@
         "mode": "practice",
         "note": "Original 1600 Project questions, written from our blueprints.",
         "question_ids": [
+         "GEN-D1-001",
+         "GEN-D1-002",
+         "GEN-D1-003",
+         "GEN-D1-004",
          "ORIG-D1-01"
         ],
-        "count": 1,
+        "count": 5,
         "difficulty_counts": {
+         "Easy": 3,
+         "Medium": 1,
          "Hard": 1
         },
         "source": "original",
@@ -2379,7 +2483,7 @@
        {
         "type": "question_set",
         "set_id": "M-3.4",
-        "title": "3.4 Practice Set (1 question)",
+        "title": "3.4 Practice Set (6 questions)",
         "status": "ready",
         "skills": [
          "Two-variable data: models and scatterplots"
@@ -2390,11 +2494,18 @@
         "mode": "practice",
         "note": "Original 1600 Project questions, written from our blueprints.",
         "question_ids": [
+         "GEN-D3-001",
+         "GEN-D3-002",
+         "GEN-D3-003",
+         "GEN-D3-004",
+         "GEN-D3-005",
          "ORIG-D3-01"
         ],
-        "count": 1,
+        "count": 6,
         "difficulty_counts": {
-         "Hard": 1
+         "Easy": 2,
+         "Medium": 2,
+         "Hard": 2
         },
         "source": "original",
         "visibility": "in_house"
@@ -2467,7 +2578,7 @@
        {
         "type": "question_set",
         "set_id": "M-3.5",
-        "title": "3.5 Practice Set (1 question)",
+        "title": "3.5 Practice Set (7 questions)",
         "status": "ready",
         "skills": [
          "Probability and conditional probability"
@@ -2478,11 +2589,19 @@
         "mode": "practice",
         "note": "Original 1600 Project questions, written from our blueprints.",
         "question_ids": [
+         "GEN-D2-001",
+         "GEN-D2-002",
+         "GEN-D2-003",
+         "GEN-D2-004",
+         "GEN-D2-005",
+         "GEN-D2-006",
          "ORIG-D2-01"
         ],
-        "count": 1,
+        "count": 7,
         "difficulty_counts": {
-         "Hard": 1
+         "Easy": 3,
+         "Medium": 2,
+         "Hard": 2
         },
         "source": "original",
         "visibility": "in_house"
@@ -2555,7 +2674,7 @@
        {
         "type": "question_set",
         "set_id": "M-3.6",
-        "title": "3.6 Practice Set (1 question)",
+        "title": "3.6 Practice Set (4 questions)",
         "status": "ready",
         "skills": [
          "Inference from sample statistics and margin of error",
@@ -2567,10 +2686,15 @@
         "mode": "practice",
         "note": "Original 1600 Project questions, written from our blueprints.",
         "question_ids": [
+         "GEN-D4-001",
+         "GEN-D4-002",
+         "GEN-D4-003",
          "ORIG-D4-01"
         ],
-        "count": 1,
+        "count": 4,
         "difficulty_counts": {
+         "Easy": 2,
+         "Medium": 1,
          "Hard": 1
         },
         "source": "original",
@@ -2591,18 +2715,18 @@
       "count": 30,
       "question_ids": [
        "ORIG-D1-01",
-       "ORIG-D2-01",
-       "ORIG-D3-01",
+       "GEN-D2-006",
+       "GEN-D3-005",
        "ORIG-D4-01",
+       "GEN-U1-001",
+       "GEN-U1-002",
+       "GEN-U2-003",
+       "GEN-U2-004",
        "W6-06",
        "W6-07",
        "W6-17",
-       "W6-18",
        "W6-22",
-       "W6-23",
        "W6-32",
-       "W6-33",
-       "W6-39",
        "W6-42",
        "W6-50",
        "W6-58",
@@ -2622,8 +2746,9 @@
        "W5-60"
       ],
       "difficulty_counts": {
-       "Hard": 26,
-       "Medium": 4
+       "Hard": 24,
+       "Easy": 1,
+       "Medium": 5
       },
       "note": "Original 1600 Project questions, written from our blueprints."
      }
@@ -2703,22 +2828,31 @@
        {
         "type": "question_set",
         "set_id": "M-4.1",
-        "title": "4.1 Practice Set (1 question)",
+        "title": "4.1 Practice Set (7 questions)",
         "status": "ready",
         "skills": [
          "Lines, angles, and triangles"
         ],
         "blueprints": [
+         "G2",
          "G6"
         ],
         "mode": "practice",
         "note": "Original 1600 Project questions, written from our blueprints.",
         "question_ids": [
+         "GEN-G2-001",
+         "GEN-G2-002",
+         "GEN-G2-003",
+         "GEN-G6-001",
+         "GEN-G6-002",
+         "GEN-G6-003",
          "ORIG-G6-01"
         ],
-        "count": 1,
+        "count": 7,
         "difficulty_counts": {
-         "Hard": 1
+         "Easy": 3,
+         "Medium": 2,
+         "Hard": 2
         },
         "source": "original",
         "visibility": "in_house"
@@ -2820,21 +2954,31 @@
        {
         "type": "question_set",
         "set_id": "M-4.2",
-        "title": "4.2 Practice Set (1 question)",
+        "title": "4.2 Practice Set (8 questions)",
         "status": "ready",
         "skills": [
          "Right triangles and trigonometry"
         ],
         "blueprints": [
+         "G1",
          "G3"
         ],
         "mode": "practice",
         "note": "Original 1600 Project questions, written from our blueprints.",
         "question_ids": [
+         "GEN-G1-001",
+         "GEN-G1-002",
+         "GEN-G1-003",
+         "GEN-G1-004",
+         "GEN-G3-001",
+         "GEN-G3-002",
+         "GEN-G3-003",
          "ORIG-G3-01"
         ],
-        "count": 1,
+        "count": 8,
         "difficulty_counts": {
+         "Easy": 4,
+         "Medium": 3,
          "Hard": 1
         },
         "source": "original",
@@ -2934,22 +3078,33 @@
        {
         "type": "question_set",
         "set_id": "M-4.3",
-        "title": "4.3 Practice Set (1 question)",
+        "title": "4.3 Practice Set (9 questions)",
         "status": "ready",
         "skills": [
          "Circles"
         ],
         "blueprints": [
-         "G4"
+         "G4",
+         "G5"
         ],
         "mode": "practice",
         "note": "Original 1600 Project questions, written from our blueprints.",
         "question_ids": [
-         "ORIG-G4-01"
+         "GEN-G4-001",
+         "GEN-G4-002",
+         "GEN-G4-003",
+         "GEN-G4-004",
+         "ORIG-G4-01",
+         "GEN-G5-001",
+         "GEN-G5-002",
+         "GEN-G5-003",
+         "GEN-G5-004"
         ],
-        "count": 1,
+        "count": 9,
         "difficulty_counts": {
-         "Hard": 1
+         "Easy": 2,
+         "Medium": 3,
+         "Hard": 4
         },
         "source": "original",
         "visibility": "in_house"
@@ -3056,20 +3211,43 @@
      {
       "type": "question_set",
       "set_id": "M-U4-review-1",
-      "title": "Unit 4 Review Set 1 (4 questions)",
+      "title": "Unit 4 Review Set 1 (25 questions)",
       "status": "ready",
       "mode": "practice",
       "source": "original",
       "visibility": "in_house",
-      "count": 4,
+      "count": 25,
       "question_ids": [
+       "GEN-G1-001",
+       "GEN-G1-002",
+       "GEN-G1-003",
+       "GEN-G1-004",
+       "GEN-G2-001",
+       "GEN-G2-002",
+       "GEN-G2-003",
+       "GEN-G3-001",
+       "GEN-G3-002",
+       "GEN-G3-003",
        "ORIG-G3-01",
+       "GEN-G4-001",
+       "GEN-G4-002",
+       "GEN-G4-003",
+       "GEN-G4-004",
        "ORIG-G4-01",
+       "GEN-G5-001",
+       "GEN-G5-002",
+       "GEN-G5-003",
+       "GEN-G5-004",
+       "GEN-G6-001",
+       "GEN-G6-002",
+       "GEN-G6-003",
        "ORIG-G6-01",
        "ORIG-G6-02"
       ],
       "difficulty_counts": {
-       "Hard": 4
+       "Easy": 9,
+       "Medium": 8,
+       "Hard": 8
       },
       "note": "Original 1600 Project questions, written from our blueprints."
      }
@@ -3216,7 +3394,7 @@
        {
         "type": "question_set",
         "set_id": "M-5.1",
-        "title": "5.1 Practice Set (10 questions)",
+        "title": "5.1 Practice Set (18 questions)",
         "status": "ready",
         "skills": [
          "Desmos: intersections"
@@ -3228,22 +3406,30 @@
         "mode": "practice",
         "note": "Original 1600 Project questions, written from our blueprints.",
         "question_ids": [
+         "GEN-A5-001",
+         "GEN-A5-002",
          "W4-01",
          "W4-02",
          "W4-03",
+         "GEN-A5-003",
+         "GEN-A5-004",
          "W4-04",
          "W4-05",
          "W4-06",
          "W4-07",
          "W4-08",
          "W4-09",
+         "GEN-M4-001",
+         "GEN-M4-002",
+         "GEN-M4-003",
+         "GEN-M4-004",
          "ORIG-M4-01"
         ],
-        "count": 10,
+        "count": 18,
         "difficulty_counts": {
-         "Easy": 3,
-         "Medium": 4,
-         "Hard": 3
+         "Easy": 7,
+         "Medium": 7,
+         "Hard": 4
         },
         "source": "original",
         "visibility": "in_house"
@@ -3399,40 +3585,60 @@
        {
         "type": "question_set",
         "set_id": "M-5.2",
-        "title": "5.2 Practice Set (16 questions)",
+        "title": "5.2 Practice Set (33 questions)",
         "status": "ready",
         "skills": [
          "Desmos: regression"
         ],
         "blueprints": [
          "A1",
-         "A3"
+         "A3",
+         "DR1",
+         "DR2",
+         "DR3"
         ],
         "mode": "practice",
         "note": "Original 1600 Project questions, written from our blueprints.",
         "question_ids": [
+         "GEN-A1-001",
+         "GEN-A1-002",
+         "GEN-A1-003",
          "W3-25",
          "W3-26",
          "W3-27",
          "W3-28",
+         "GEN-A1-004",
          "W3-29",
          "W3-30",
          "W3-31",
          "W3-32",
          "W3-33",
+         "GEN-A3-001",
+         "GEN-A3-002",
          "W3-43",
          "W3-44",
+         "GEN-A3-003",
          "W3-45",
          "W3-46",
          "W3-47",
          "W3-48",
-         "W3-49"
+         "W3-49",
+         "GEN-DR1-001",
+         "GEN-DR1-002",
+         "GEN-DR1-003",
+         "GEN-DR1-004",
+         "GEN-DR2-001",
+         "GEN-DR2-002",
+         "GEN-DR2-003",
+         "GEN-DR3-001",
+         "GEN-DR3-002",
+         "GEN-DR3-003"
         ],
-        "count": 16,
+        "count": 33,
         "difficulty_counts": {
-         "Easy": 6,
-         "Medium": 6,
-         "Hard": 4
+         "Easy": 14,
+         "Medium": 12,
+         "Hard": 7
         },
         "source": "original",
         "visibility": "in_house"
@@ -3547,7 +3753,7 @@
        {
         "type": "question_set",
         "set_id": "M-5.3",
-        "title": "5.3 Practice Set (2 questions)",
+        "title": "5.3 Practice Set (9 questions)",
         "status": "ready",
         "skills": [
          "Desmos: lists"
@@ -3559,12 +3765,21 @@
         "mode": "practice",
         "note": "Original 1600 Project questions, written from our blueprints.",
         "question_ids": [
+         "GEN-D1-001",
+         "GEN-D1-002",
+         "GEN-D1-003",
+         "GEN-D1-004",
          "ORIG-D1-01",
+         "GEN-S1-001",
+         "GEN-S1-002",
+         "GEN-S1-003",
          "ORIG-S1-01"
         ],
-        "count": 2,
+        "count": 9,
         "difficulty_counts": {
-         "Hard": 2
+         "Easy": 4,
+         "Medium": 2,
+         "Hard": 3
         },
         "source": "original",
         "visibility": "in_house"
@@ -3675,7 +3890,7 @@
        {
         "type": "question_set",
         "set_id": "M-5.4",
-        "title": "5.4 Practice Set (9 questions)",
+        "title": "5.4 Practice Set (17 questions)",
         "status": "ready",
         "skills": [
          "Desmos: strategy"
@@ -3687,21 +3902,29 @@
         "mode": "practice",
         "note": "Original 1600 Project questions, written from our blueprints.",
         "question_ids": [
+         "GEN-A7-001",
+         "GEN-A7-002",
+         "GEN-A7-003",
          "W4-32",
          "W4-33",
          "W4-34",
+         "GEN-A7-004",
          "W4-35",
          "W4-36",
          "W4-37",
          "W4-38",
          "W4-39",
+         "GEN-M4-001",
+         "GEN-M4-002",
+         "GEN-M4-003",
+         "GEN-M4-004",
          "ORIG-M4-01"
         ],
-        "count": 9,
+        "count": 17,
         "difficulty_counts": {
-         "Easy": 3,
-         "Medium": 3,
-         "Hard": 3
+         "Easy": 8,
+         "Medium": 5,
+         "Hard": 4
         },
         "source": "original",
         "visibility": "in_house"
@@ -3788,6 +4011,7 @@
          "A5",
          "A6",
          "A8",
+         "M1",
          "M2",
          "M3",
          "M4",
@@ -3796,9 +4020,15 @@
          "D1",
          "D2",
          "D3",
+         "G1",
          "G3",
          "G4",
+         "G5",
          "G6",
+         "U2",
+         "DR1",
+         "DR2",
+         "DR3",
          "L5",
          "L6",
          "P1",
@@ -3814,52 +4044,52 @@
         "mode": "practice",
         "note": "Original 1600 Project questions, written from our blueprints.",
         "question_ids": [
+         "GEN-A1-002",
          "W3-25",
-         "W3-26",
          "W3-43",
-         "W4-26",
-         "W4-31",
+         "GEN-A4-001",
+         "GEN-A4-002",
          "W4-02",
-         "W4-06",
+         "GEN-A5-004",
          "W4-42",
-         "W3-57",
+         "GEN-A8-003",
+         "GEN-A8-004",
+         "GEN-M1-001",
          "ORIG-M2-01",
-         "ORIG-M3-01",
-         "ORIG-M4-01",
-         "ORIG-M5-01",
-         "ORIG-M6-01",
+         "GEN-M3-001",
+         "GEN-M4-002",
+         "GEN-M5-001",
+         "GEN-M6-001",
          "ORIG-D1-01",
-         "ORIG-D2-01",
+         "GEN-D2-002",
          "ORIG-D3-01",
+         "GEN-G1-001",
          "ORIG-G3-01",
          "ORIG-G4-01",
+         "GEN-G5-001",
          "ORIG-G6-01",
-         "ORIG-G6-02",
+         "GEN-U2-001",
+         "GEN-DR1-001",
+         "GEN-DR2-003",
+         "GEN-DR3-001",
          "W4-10",
          "W4-12",
          "W4-21",
          "W6-06",
-         "W6-07",
          "W6-52",
-         "W6-53",
          "W5-02",
-         "W5-04",
          "W5-16",
          "W5-19",
-         "W5-25",
          "W5-28",
-         "W5-33",
          "W5-36",
-         "W5-40",
          "W5-47",
-         "W5-50",
-         "W5-52"
+         "W5-50"
         ],
         "count": 40,
         "difficulty_counts": {
-         "Easy": 17,
-         "Hard": 18,
-         "Medium": 5
+         "Easy": 26,
+         "Medium": 4,
+         "Hard": 10
         },
         "source": "original",
         "visibility": "in_house"
@@ -3932,16 +4162,16 @@
          "A6",
          "A7",
          "A8",
+         "M1",
          "M2",
          "M3",
          "M4",
          "M5",
          "M6",
          "D1",
-         "D2",
          "D3",
-         "D4",
-         "G6",
+         "U1",
+         "U2",
          "L1",
          "L2",
          "L3",
@@ -3968,24 +4198,24 @@
         "mode": "practice",
         "note": "Original 1600 Project questions, written from our blueprints.",
         "question_ids": [
-         "W3-25",
-         "W3-34",
-         "W3-43",
-         "W4-24",
-         "W4-01",
-         "W4-40",
-         "W4-32",
-         "W3-55",
-         "ORIG-M2-01",
-         "ORIG-M3-01",
-         "ORIG-M4-01",
-         "ORIG-M5-01",
-         "ORIG-M6-01",
-         "ORIG-D1-01",
-         "ORIG-D2-01",
-         "ORIG-D3-01",
-         "ORIG-D4-01",
-         "ORIG-G6-01",
+         "GEN-A1-001",
+         "GEN-A2-001",
+         "GEN-A3-001",
+         "GEN-A4-001",
+         "GEN-A5-001",
+         "GEN-A6-001",
+         "GEN-A7-001",
+         "GEN-A8-001",
+         "GEN-M1-001",
+         "GEN-M2-001",
+         "GEN-M3-001",
+         "GEN-M4-001",
+         "GEN-M5-001",
+         "GEN-M6-001",
+         "GEN-D1-001",
+         "GEN-D3-001",
+         "GEN-U1-001",
+         "GEN-U2-001",
          "W3-01",
          "W3-13",
          "W3-50",
@@ -4011,9 +4241,8 @@
         ],
         "count": 40,
         "difficulty_counts": {
-         "Easy": 25,
-         "Medium": 5,
-         "Hard": 10
+         "Easy": 36,
+         "Medium": 4
         },
         "source": "original",
         "visibility": "in_house"
