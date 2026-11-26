@@ -227,7 +227,14 @@ To change a lesson, edit the slide artifact, download the decks, and rebuild:
 
 ### SAT Master Courses and the in-house Question Bank
 
-The SAT Math and Reading and Writing Master Courses use 4,125 official College Board Question Bank items. They're **in-house only**: you, plus the students and staff of classes you tick under **Admin → In-house content**. Everyone else, other tutors included, gets "not found" for the questions, their images, their sets and the courses.
+The SAT Math and Reading and Writing Master Courses' practice sets hold **original 1600 Project questions only**: the questions in `data/questions/` (yours, and any written by `npm run generate:bank`). The packets name no College Board questions. To refill the sets after new questions are written:
+```
+npm run courses:fill-sets
+npm run import:courses
+```
+Each question goes to the lesson its blueprint belongs to (Desmos lessons 5.1–5.4 also get the blueprints that list them). Unit review sets, and lessons with no questions yet, stay empty drafts. The courses themselves are still **in-house only** until you publish them.
+
+The optional College Board Question Bank below (4,125 items) is separate and stays **in-house only**: you, plus the students and staff of classes you tick under **Admin → In-house content**. Everyone else, other tutors included, gets "not found" for those questions, their images and their sets. You can't put these on a public website.
 
 1. Put `coursebook_sat_question_bank.json` and the `qbank_images/` folder in `data/course-packets/`. They're never committed to git.
 2. Import the bank, then the courses. Add `-- --dry-run` first to check. Both are safe to run again.

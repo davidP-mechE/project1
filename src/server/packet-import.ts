@@ -58,8 +58,9 @@ export async function importCoursePacket(opts: { json: string; commit: boolean; 
   const c = p.course;
   const sets = packetSets(c);
   const referenced = [...new Set(sets.flatMap((s) => s.question_ids))];
-  const bank = await db.bankQuestion.findMany({ where: { externalId: { in: referenced.map(qbankExternalId) } }, select: { id: true, externalId: true, skillId: true, source: true } });
-  const byCbId = new Map(bank.map((q) => [q.externalId!.replace(/^CB-/, ""), q]));
+  // A packet names College Board items by their bare id (stored as CB-<id>) and original questions by their own external id.
+  const bank = await db.bankQuestion.findMany({ where: { externalId: { in: [...referenced.map(qbankExternalId), ...referenced] } }, select: { id: true, externalId: true, skillId: true, source: true } });
+  const byCbId = new Map(bank.map((q) => [q.source === "college_board" ? q.externalId!.replace(/^CB-/, "") : q.externalId!, q]));
   const missing = referenced.filter((id) => !byCbId.has(id));
   const blocksByType: Record<string, number> = {};
   for (const u of c.units) for (const l of u.lessons) for (const b of l.blocks) blocksByType[b.kind] = (blocksByType[b.kind] ?? 0) + 1;
