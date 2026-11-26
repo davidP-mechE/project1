@@ -7,7 +7,7 @@
  *   npm run transcribe:bank -- --collect      pick up a batch sent earlier (if the command was stopped)
  *   npm run transcribe:bank -- --only id,id   just these question ids (with --sample)
  *
- * Needs ANTHROPIC_API_KEY. Results go to data/course-packets/qbank_transcriptions.json (never committed);
+ * Needs COURSEBOOK_ANTHROPIC_API_KEY (or ANTHROPIC_API_KEY). Results go to data/course-packets/qbank_transcriptions.json (never committed);
  * then run npm run import:bank to use them. Model: CLAUDE_MODEL_TRANSCRIBE (default claude-opus-5-5),
  * effort: CLAUDE_EFFORT_TRANSCRIBE (default medium).
  */
@@ -42,8 +42,11 @@ async function main() {
     return;
   }
 
-  if (!process.env.ANTHROPIC_API_KEY) throw new Error("ANTHROPIC_API_KEY isn't set.");
-  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY, maxRetries: 4 });
+  // Claude Code cloud sessions don't pass ANTHROPIC_API_KEY through to commands, so the key can also
+  // be saved under COURSEBOOK_ANTHROPIC_API_KEY (the environment's settings → environment variables).
+  const apiKey = process.env.COURSEBOOK_ANTHROPIC_API_KEY || process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) throw new Error("No API key: set COURSEBOOK_ANTHROPIC_API_KEY (or ANTHROPIC_API_KEY).");
+  const client = new Anthropic({ apiKey, maxRetries: 4 });
   const save = async (got: Record<string, ItemResult>) => {
     Object.assign(results.items, got);
     results.model = cfg.model;

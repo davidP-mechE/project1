@@ -236,7 +236,7 @@ The SAT Math and Reading and Writing Master Courses use 4,125 official College B
    npm run import:courses
    ```
    Run them with the production `.env`, so the images go to production storage.
-   **Turning the images into text** (math as LaTeX). Do this before step 2, or run `npm run import:bank` again after it. It needs `ANTHROPIC_API_KEY`.
+   **Turning the images into text** (math as LaTeX). Do this before step 2, or run `npm run import:bank` again after it. It needs an Anthropic API key in `COURSEBOOK_ANTHROPIC_API_KEY` (or `ANTHROPIC_API_KEY`; in Claude Code cloud sessions only the first one reaches commands).
    ```
    npm run transcribe:bank -- --dry-run      # how many items, and a cost estimate
    npm run transcribe:bank -- --sample 20    # 20 items now, to check the quality
