@@ -1,0 +1,27 @@
+{
+  "id": "boss_decided_without_me",
+  "domain": "work",
+  "status": "draft_pending_advisor_review",
+  "opening": "I'm frustrated at work and I can't shake it.",
+  "answers": {
+    "event": "My boss decided to change our project plan without asking me, and I'm the lead on it.",
+    "feeling": "Frustrated and a bit disrespected.",
+    "interpretation": "It's like my opinion doesn't count.",
+    "action": "I said okay in the meeting but I've been short with everyone since."
+  },
+  "truth": {
+    "cause_key": "considered",
+    "cause": "needed to feel considered",
+    "feelings": [
+      "frustrated",
+      "disrespected"
+    ]
+  },
+  "behaviour": "confirm",
+  "acceptable_next_questions": [
+    "what happened",
+    "what did you take it to mean",
+    "what did you do next",
+    "a question that separates the leading explanations"
+  ]
+}

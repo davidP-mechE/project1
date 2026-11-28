@@ -1,0 +1,16 @@
+{
+  "id": "no_confrontation",
+  "principle": "Confrontation backfires; tell the truth from the user's own evidence, with permission, without lecturing",
+  "evidence": "Miller, Benefield & Tonigan 1993: the more a counsellor confronted, the more clients drank a year later (r = .65)",
+  "strength": "moderate",
+  "when_to_use": "Whenever an observation might sting",
+  "bot_behavior": "Use their words and history; name the gap between values and actions; let them draw the conclusion",
+  "do_example": "You said honesty matters most to you. You also didn't tell her. What do you make of that?",
+  "dont_example": "You're clearly avoiding the real issue.",
+  "contraindications": "",
+  "source_url": "https://doi.org/10.1037/0022-006X.61.3.455",
+  "stages": [
+    "discriminate",
+    "confirm"
+  ]
+}

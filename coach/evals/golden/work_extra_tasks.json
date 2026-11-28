@@ -1,0 +1,27 @@
+{
+  "id": "work_extra_tasks",
+  "domain": "work",
+  "status": "draft_pending_advisor_review",
+  "opening": "I'm stressed out at work.",
+  "answers": {
+    "event": "My manager dumped two extra projects on me at the last minute on Friday.",
+    "feeling": "Overwhelmed, and annoyed.",
+    "interpretation": "I thought they don't care how much I already have on.",
+    "action": "I said yes and then worked all weekend."
+  },
+  "truth": {
+    "cause_key": "already_stretched",
+    "cause": "already running on empty",
+    "feelings": [
+      "overwhelmed",
+      "irritated"
+    ]
+  },
+  "behaviour": "confirm",
+  "acceptable_next_questions": [
+    "what happened",
+    "what did you take it to mean",
+    "what did you do next",
+    "a question that separates the leading explanations"
+  ]
+}

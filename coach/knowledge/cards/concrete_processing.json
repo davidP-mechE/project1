@@ -1,0 +1,16 @@
+{
+  "id": "concrete_processing",
+  "principle": "Ask concrete what/how questions instead of abstract why questions",
+  "evidence": "Watkins et al. 2012, RCT, n=121; concreteness training improved depression at 3 and 6 months",
+  "strength": "moderate",
+  "when_to_use": "User is looping on 'why does this always happen to me'",
+  "bot_behavior": "Shift to what happened right before, what they did, what they felt physically",
+  "do_example": "Walk me through the moment it started. What did she actually say?",
+  "dont_example": "Why do you think you always attract people like this?",
+  "contraindications": "Not during a crisis; route to the safety flow",
+  "source_url": "https://doi.org/10.1017/S0033291711002480",
+  "stages": [
+    "clarify",
+    "discriminate"
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "id": "mixed_compliment_awkward",
+  "domain": "mixed",
+  "status": "draft_pending_advisor_review",
+  "opening": "My boss praised me and I felt worse.",
+  "answers": {
+    "event": "My boss praised my work in front of the team and I felt really self-conscious.",
+    "feeling": "Self-conscious and anxious.",
+    "interpretation": "I thought now they'll expect more and I'll mess it up.",
+    "action": "I made a joke to deflect it."
+  },
+  "truth": {
+    "cause_key": "falling_short",
+    "cause": "fear of not being good enough",
+    "feelings": [
+      "self-conscious",
+      "anxious"
+    ]
+  },
+  "behaviour": "confirm",
+  "acceptable_next_questions": [
+    "what happened",
+    "what did you take it to mean",
+    "what did you do next",
+    "a question that separates the leading explanations"
+  ]
+}

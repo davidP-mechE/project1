@@ -1,0 +1,27 @@
+{
+  "id": "work_client_yelled",
+  "domain": "work",
+  "status": "draft_pending_advisor_review",
+  "opening": "A client yelled at me and I can't stop thinking about it.",
+  "answers": {
+    "event": "A client yelled at me on a call because the delivery was late, which wasn't my fault.",
+    "feeling": "Shocked and then angry.",
+    "interpretation": "I thought it was so unfair that I got blamed.",
+    "action": "I apologised a lot and then cried in the bathroom."
+  },
+  "truth": {
+    "cause_key": "unfair",
+    "cause": "it felt unfair",
+    "feelings": [
+      "shocked",
+      "angry"
+    ]
+  },
+  "behaviour": "confirm",
+  "acceptable_next_questions": [
+    "what happened",
+    "what did you take it to mean",
+    "what did you do next",
+    "a question that separates the leading explanations"
+  ]
+}

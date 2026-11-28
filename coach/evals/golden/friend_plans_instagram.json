@@ -1,0 +1,27 @@
+{
+  "id": "friend_plans_instagram",
+  "domain": "friendship",
+  "status": "draft_pending_advisor_review",
+  "opening": "I'm irritated with my friend and I don't know why.",
+  "answers": {
+    "event": "My friend Jordan made weekend plans with the group without inviting me. I saw it on Instagram.",
+    "feeling": "Disappointed mostly, and a bit embarrassed.",
+    "interpretation": "I thought she didn't think about me at all.",
+    "action": "I just stopped replying in the group chat."
+  },
+  "truth": {
+    "cause_key": "considered",
+    "cause": "needed to feel considered",
+    "feelings": [
+      "disappointed",
+      "embarrassed"
+    ]
+  },
+  "behaviour": "confirm",
+  "acceptable_next_questions": [
+    "what happened",
+    "what did you take it to mean",
+    "what did you do next",
+    "a question that separates the leading explanations"
+  ]
+}

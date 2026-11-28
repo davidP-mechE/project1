@@ -1,0 +1,27 @@
+{
+  "id": "partner_phone_dinner",
+  "domain": "romance",
+  "status": "draft_pending_advisor_review",
+  "opening": "My partner annoyed me last night and I overreacted.",
+  "answers": {
+    "event": "My partner was on his phone the whole dinner on our anniversary.",
+    "feeling": "Hurt and lonely.",
+    "interpretation": "It felt like I wasn't important to him.",
+    "action": "I snapped at him and we had a fight."
+  },
+  "truth": {
+    "cause_key": "standing",
+    "cause": "worry about where you stand",
+    "feelings": [
+      "hurt",
+      "lonely"
+    ]
+  },
+  "behaviour": "confirm",
+  "acceptable_next_questions": [
+    "what happened",
+    "what did you take it to mean",
+    "what did you do next",
+    "a question that separates the leading explanations"
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "id": "stress_snapped_kids",
+  "domain": "stress",
+  "status": "draft_pending_advisor_review",
+  "opening": "I lost my temper with my kids.",
+  "answers": {
+    "event": "I yelled at my kids for being loud at bedtime after a really long week.",
+    "feeling": "Guilty, and exhausted.",
+    "interpretation": "I thought I'm a terrible parent.",
+    "action": "I apologised to them in the morning."
+  },
+  "truth": {
+    "cause_key": "already_stretched",
+    "cause": "already running on empty",
+    "feelings": [
+      "guilty"
+    ]
+  },
+  "behaviour": "confirm",
+  "acceptable_next_questions": [
+    "what happened",
+    "what did you take it to mean",
+    "what did you do next",
+    "a question that separates the leading explanations"
+  ]
+}

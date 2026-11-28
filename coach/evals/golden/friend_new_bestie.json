@@ -1,0 +1,27 @@
+{
+  "id": "friend_new_bestie",
+  "domain": "friendship",
+  "status": "draft_pending_advisor_review",
+  "opening": "I'm jealous and I hate it.",
+  "answers": {
+    "event": "My friend Alex has been hanging out with a new friend every weekend and posting about it.",
+    "feeling": "Jealous, and kind of lonely.",
+    "interpretation": "It's like she's replacing me.",
+    "action": "I've been replying to her texts with one word."
+  },
+  "truth": {
+    "cause_key": "standing",
+    "cause": "worry about where you stand",
+    "feelings": [
+      "jealous",
+      "lonely"
+    ]
+  },
+  "behaviour": "confirm",
+  "acceptable_next_questions": [
+    "what happened",
+    "what did you take it to mean",
+    "what did you do next",
+    "a question that separates the leading explanations"
+  ]
+}

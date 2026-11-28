@@ -1,0 +1,27 @@
+{
+  "id": "friend_cancelled_again",
+  "domain": "friendship",
+  "status": "draft_pending_advisor_review",
+  "opening": "My friend cancelled on me again and I'm weirdly upset.",
+  "answers": {
+    "event": "My friend Sam cancelled dinner an hour before, for the third time this month.",
+    "feeling": "Disappointed, and honestly kind of hurt.",
+    "interpretation": "It's like I'm the backup plan for her.",
+    "action": "I said no worries and then went quiet for the night."
+  },
+  "truth": {
+    "cause_key": "standing",
+    "cause": "worry about where you stand",
+    "feelings": [
+      "disappointed",
+      "hurt"
+    ]
+  },
+  "behaviour": "confirm",
+  "acceptable_next_questions": [
+    "what happened",
+    "what did you take it to mean",
+    "what did you do next",
+    "a question that separates the leading explanations"
+  ]
+}

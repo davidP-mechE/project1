@@ -1,0 +1,27 @@
+{
+  "id": "date_ghosted",
+  "domain": "romance",
+  "status": "draft_pending_advisor_review",
+  "opening": "I got ghosted and I'm more upset than I should be.",
+  "answers": {
+    "event": "A guy I'd been on four dates with just stopped replying.",
+    "feeling": "Rejected and embarrassed.",
+    "interpretation": "I thought there must be something wrong with me.",
+    "action": "I reread our messages over and over."
+  },
+  "truth": {
+    "cause_key": "falling_short",
+    "cause": "fear of not being good enough",
+    "feelings": [
+      "rejected",
+      "embarrassed"
+    ]
+  },
+  "behaviour": "confirm",
+  "acceptable_next_questions": [
+    "what happened",
+    "what did you take it to mean",
+    "what did you do next",
+    "a question that separates the leading explanations"
+  ]
+}

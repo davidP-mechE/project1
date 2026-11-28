@@ -1,0 +1,27 @@
+{
+  "id": "mixed_party_left",
+  "domain": "mixed",
+  "status": "draft_pending_advisor_review",
+  "opening": "I left a party early and I keep thinking about it.",
+  "answers": {
+    "event": "At a party everyone was laughing about an inside joke I wasn't part of.",
+    "feeling": "Left out and awkward.",
+    "interpretation": "I thought they don't really want me there.",
+    "action": "I made an excuse and left early."
+  },
+  "truth": {
+    "cause_key": "standing",
+    "cause": "worry about where you stand",
+    "feelings": [
+      "left out",
+      "embarrassed"
+    ]
+  },
+  "behaviour": "confirm",
+  "acceptable_next_questions": [
+    "what happened",
+    "what did you take it to mean",
+    "what did you do next",
+    "a question that separates the leading explanations"
+  ]
+}

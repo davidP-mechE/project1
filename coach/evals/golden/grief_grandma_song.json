@@ -1,0 +1,27 @@
+{
+  "id": "grief_grandma_song",
+  "domain": "grief",
+  "status": "draft_pending_advisor_review",
+  "opening": "I cried in the supermarket today.",
+  "answers": {
+    "event": "A song my grandma used to sing came on in the supermarket. She died last year.",
+    "feeling": "Grieving. And kind of embarrassed I cried.",
+    "interpretation": "I thought I should be over it by now.",
+    "action": "I left my cart and went to sit in the car."
+  },
+  "truth": {
+    "cause_key": "loss",
+    "cause": "missing someone you've lost",
+    "feelings": [
+      "grieving",
+      "embarrassed"
+    ]
+  },
+  "behaviour": "confirm",
+  "acceptable_next_questions": [
+    "what happened",
+    "what did you take it to mean",
+    "what did you do next",
+    "a question that separates the leading explanations"
+  ]
+}

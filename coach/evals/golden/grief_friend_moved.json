@@ -1,0 +1,26 @@
+{
+  "id": "grief_friend_moved",
+  "domain": "grief",
+  "status": "draft_pending_advisor_review",
+  "opening": "I feel lonely since my friend moved away.",
+  "answers": {
+    "event": "My closest friend moved across the country last month and the weekends feel empty.",
+    "feeling": "Lonely and sad.",
+    "interpretation": "I think I won't find a friend like that again.",
+    "action": "I've been staying in every weekend."
+  },
+  "truth": {
+    "cause_key": "loss",
+    "cause": "missing someone you've lost",
+    "feelings": [
+      "lonely"
+    ]
+  },
+  "behaviour": "confirm",
+  "acceptable_next_questions": [
+    "what happened",
+    "what did you take it to mean",
+    "what did you do next",
+    "a question that separates the leading explanations"
+  ]
+}

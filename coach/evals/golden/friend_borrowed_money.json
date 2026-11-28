@@ -1,0 +1,26 @@
+{
+  "id": "friend_borrowed_money",
+  "domain": "friendship",
+  "status": "draft_pending_advisor_review",
+  "opening": "I'm annoyed with a friend about money.",
+  "answers": {
+    "event": "My friend Chris borrowed 200 dollars two months ago and hasn't mentioned it since.",
+    "feeling": "Resentful mostly.",
+    "interpretation": "I think he's taking advantage of me because I never say anything.",
+    "action": "I've been avoiding him."
+  },
+  "truth": {
+    "cause_key": "unfair",
+    "cause": "it felt unfair",
+    "feelings": [
+      "resentful"
+    ]
+  },
+  "behaviour": "pushback",
+  "acceptable_next_questions": [
+    "what happened",
+    "what did you take it to mean",
+    "what did you do next",
+    "a question that separates the leading explanations"
+  ]
+}

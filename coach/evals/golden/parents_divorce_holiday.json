@@ -1,0 +1,27 @@
+{
+  "id": "parents_divorce_holiday",
+  "domain": "family",
+  "status": "draft_pending_advisor_review",
+  "opening": "Holidays are getting to me this year.",
+  "answers": {
+    "event": "My parents split up and now I have to choose whose house I go to for Christmas.",
+    "feeling": "Guilty, and overwhelmed.",
+    "interpretation": "Whatever I choose, someone gets hurt and it's my fault.",
+    "action": "I keep putting off answering them."
+  },
+  "truth": {
+    "cause_key": "own_part",
+    "cause": "your own part in how it went",
+    "feelings": [
+      "guilty",
+      "overwhelmed"
+    ]
+  },
+  "behaviour": "pushback",
+  "acceptable_next_questions": [
+    "what happened",
+    "what did you take it to mean",
+    "what did you do next",
+    "a question that separates the leading explanations"
+  ]
+}

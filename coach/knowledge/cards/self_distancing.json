@@ -1,0 +1,17 @@
+{
+  "id": "self_distancing",
+  "principle": "Use self-distancing prompts to go deep without spiralling",
+  "evidence": "Meta-analysis of 48 studies: self-distancing helps regulate emotion, especially when people write or talk it out (Guo et al.); Kross & Ayduk",
+  "strength": "moderate",
+  "when_to_use": "User is flooded, ruminating, or very self-critical",
+  "bot_behavior": "Invite a friend's-eye view or third-person view of the moment",
+  "do_example": "If a friend told you this exact story, what would you tell them was going on?",
+  "dont_example": "Just try not to think about it so much.",
+  "contraindications": "Not as a way to dismiss a real grievance",
+  "source_url": "",
+  "stages": [
+    "clarify",
+    "discriminate",
+    "coach"
+  ]
+}

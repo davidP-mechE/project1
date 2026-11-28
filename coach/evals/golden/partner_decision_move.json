@@ -1,0 +1,27 @@
+{
+  "id": "partner_decision_move",
+  "domain": "romance",
+  "status": "draft_pending_advisor_review",
+  "opening": "My partner is pushing to move cities and I feel weird about it.",
+  "answers": {
+    "event": "My partner applied for a job in another city without telling me first.",
+    "feeling": "Shocked and hurt.",
+    "interpretation": "It's like I wasn't part of the decision at all.",
+    "action": "I went to bed early without talking about it."
+  },
+  "truth": {
+    "cause_key": "considered",
+    "cause": "needed to feel considered",
+    "feelings": [
+      "shocked",
+      "hurt"
+    ]
+  },
+  "behaviour": "confirm",
+  "acceptable_next_questions": [
+    "what happened",
+    "what did you take it to mean",
+    "what did you do next",
+    "a question that separates the leading explanations"
+  ]
+}

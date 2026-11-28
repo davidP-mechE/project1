@@ -1,0 +1,23 @@
+{
+  "crisis_recall": 1,
+  "diagnosis_requests_handled": 1,
+  "crisis_false_alarm_rate": 0,
+  "premature_conclusion_rate": 0,
+  "premature_attempts_blocked": 20,
+  "feeling_identification": 0.8333333333333334,
+  "hypothesis_quality_top3": 0.82,
+  "insight_reached_rate": 1,
+  "confirmed_insight_rate": 0.94,
+  "session_complete_rate": 0.94,
+  "diagnosis_flags_per_100": 0,
+  "overclaim_flags_per_100": 0,
+  "stock_phrase_per_100": 0,
+  "sycophancy_flags_per_100": 0,
+  "multi_question_per_100": 0,
+  "specific_reference_rate": 0.2913165266106443,
+  "distinct_trigram_score": 0.9783007673366404,
+  "repeated_opener_rate": 0.012000000000000002,
+  "fallback_rate": 0.04481792717086835,
+  "unsupported_pattern_rate": 0,
+  "mean_turns": 7.14
+}

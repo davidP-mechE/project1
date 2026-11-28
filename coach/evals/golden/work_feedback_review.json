@@ -1,0 +1,27 @@
+{
+  "id": "work_feedback_review",
+  "domain": "work",
+  "status": "draft_pending_advisor_review",
+  "opening": "My performance review is bugging me.",
+  "answers": {
+    "event": "My review said I need to communicate more, after a year where I worked really hard.",
+    "feeling": "Hurt, and defensive.",
+    "interpretation": "It felt like they didn't see anything I did.",
+    "action": "I nodded along and then vented to my friend."
+  },
+  "truth": {
+    "cause_key": "unappreciated",
+    "cause": "needed your effort to be seen",
+    "feelings": [
+      "hurt",
+      "defensive"
+    ]
+  },
+  "behaviour": "reject_then_confirm",
+  "acceptable_next_questions": [
+    "what happened",
+    "what did you take it to mean",
+    "what did you do next",
+    "a question that separates the leading explanations"
+  ]
+}

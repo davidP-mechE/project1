@@ -1,0 +1,17 @@
+{
+  "id": "motivational_questions",
+  "principle": "Open, non-judgemental questions that keep people talking",
+  "evidence": "Motivational interviewing; AnnoMI annotated sessions",
+  "strength": "moderate",
+  "when_to_use": "Every turn",
+  "bot_behavior": "One open question per turn, in plain words",
+  "do_example": "What happened right after that?",
+  "dont_example": "Did you feel sad, angry, hurt, or something else, and why, and how long?",
+  "contraindications": "",
+  "source_url": "",
+  "stages": [
+    "intake",
+    "clarify",
+    "discriminate"
+  ]
+}

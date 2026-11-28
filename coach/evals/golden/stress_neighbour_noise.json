@@ -1,0 +1,27 @@
+{
+  "id": "stress_neighbour_noise",
+  "domain": "stress",
+  "status": "draft_pending_advisor_review",
+  "opening": "My neighbour's noise is ruining my life.",
+  "answers": {
+    "event": "My neighbour played loud music until 2am again on a work night.",
+    "feeling": "Furious. And helpless.",
+    "interpretation": "There's nothing I can do about it, I have no control.",
+    "action": "I banged on the wall."
+  },
+  "truth": {
+    "cause_key": "control",
+    "cause": "no say or control",
+    "feelings": [
+      "angry",
+      "helpless"
+    ]
+  },
+  "behaviour": "confirm",
+  "acceptable_next_questions": [
+    "what happened",
+    "what did you take it to mean",
+    "what did you do next",
+    "a question that separates the leading explanations"
+  ]
+}

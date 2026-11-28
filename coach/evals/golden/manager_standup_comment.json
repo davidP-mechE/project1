@@ -1,0 +1,26 @@
+{
+  "id": "manager_standup_comment",
+  "domain": "work",
+  "status": "draft_pending_advisor_review",
+  "opening": "just feel bad",
+  "answers": {
+    "event": "My manager said in standup that my part was behind schedule, in front of everyone.",
+    "feeling": "Embarrassed. Really embarrassed.",
+    "interpretation": "I felt like everyone thinks I'm useless now.",
+    "action": "I went quiet for the rest of the meeting."
+  },
+  "truth": {
+    "cause_key": "judged",
+    "cause": "felt judged in front of others",
+    "feelings": [
+      "embarrassed"
+    ]
+  },
+  "behaviour": "confirm",
+  "acceptable_next_questions": [
+    "what happened",
+    "what did you take it to mean",
+    "what did you do next",
+    "a question that separates the leading explanations"
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "id": "work_layoff_rumours",
+  "domain": "stress",
+  "status": "draft_pending_advisor_review",
+  "opening": "I can't concentrate at work.",
+  "answers": {
+    "event": "There are rumours of layoffs and my manager cancelled our one-to-one without saying why.",
+    "feeling": "Anxious and worried.",
+    "interpretation": "I think I'm going to get fired.",
+    "action": "I updated my CV at midnight."
+  },
+  "truth": {
+    "cause_key": "control",
+    "cause": "no say or control",
+    "feelings": [
+      "anxious",
+      "worried"
+    ]
+  },
+  "behaviour": "confirm",
+  "acceptable_next_questions": [
+    "what happened",
+    "what did you take it to mean",
+    "what did you do next",
+    "a question that separates the leading explanations"
+  ]
+}

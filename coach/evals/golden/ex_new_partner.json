@@ -1,0 +1,27 @@
+{
+  "id": "ex_new_partner",
+  "domain": "romance",
+  "status": "draft_pending_advisor_review",
+  "opening": "I'm totally over my ex. It's fine.",
+  "answers": {
+    "event": "I saw on Instagram that my ex is dating someone new already.",
+    "feeling": "Jealous. And sad if I'm honest.",
+    "interpretation": "I thought he moved on so fast, like I didn't matter.",
+    "action": "I looked through her whole profile."
+  },
+  "truth": {
+    "cause_key": "standing",
+    "cause": "worry about where you stand",
+    "feelings": [
+      "jealous",
+      "melancholy"
+    ]
+  },
+  "behaviour": "pushback",
+  "acceptable_next_questions": [
+    "what happened",
+    "what did you take it to mean",
+    "what did you do next",
+    "a question that separates the leading explanations"
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "id": "romance_partner_jokes",
+  "domain": "romance",
+  "status": "draft_pending_advisor_review",
+  "opening": "My partner made a joke about me and I can't let it go.",
+  "answers": {
+    "event": "My partner joked about my driving in front of our friends.",
+    "feeling": "Embarrassed and a bit humiliated.",
+    "interpretation": "It felt like they were laughing at me.",
+    "action": "I laughed along and then was quiet all night."
+  },
+  "truth": {
+    "cause_key": "judged",
+    "cause": "felt judged in front of others",
+    "feelings": [
+      "embarrassed",
+      "humiliated"
+    ]
+  },
+  "behaviour": "confirm",
+  "acceptable_next_questions": [
+    "what happened",
+    "what did you take it to mean",
+    "what did you do next",
+    "a question that separates the leading explanations"
+  ]
+}

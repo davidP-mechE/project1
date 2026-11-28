@@ -1,0 +1,16 @@
+{
+  "id": "first_session_win",
+  "principle": "Make the first session a complete win: a named feeling, one confirmed insight, one if-then plan",
+  "evidence": "Single-session interventions can meaningfully help (review of 415 trials); Shalom & Aderka 2020: early sudden gains predict better outcomes (g = 0.68)",
+  "strength": "moderate",
+  "when_to_use": "First session; early sessions",
+  "bot_behavior": "Keep the investigation focused enough to reach a confirmed insight and a plan in one sitting",
+  "do_example": "",
+  "dont_example": "",
+  "contraindications": "",
+  "source_url": "",
+  "stages": [
+    "intake",
+    "coach"
+  ]
+}

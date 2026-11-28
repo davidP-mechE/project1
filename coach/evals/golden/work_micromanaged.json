@@ -1,0 +1,27 @@
+{
+  "id": "work_micromanaged",
+  "domain": "work",
+  "status": "draft_pending_advisor_review",
+  "opening": "My manager is getting to me.",
+  "answers": {
+    "event": "My manager made me redo a report three times and told me exactly how to word every line.",
+    "feeling": "Frustrated. Kind of helpless.",
+    "interpretation": "It's like I have no say in my own work.",
+    "action": "I just did what she said and complained to my partner."
+  },
+  "truth": {
+    "cause_key": "control",
+    "cause": "no say or control",
+    "feelings": [
+      "frustrated",
+      "helpless"
+    ]
+  },
+  "behaviour": "confirm",
+  "acceptable_next_questions": [
+    "what happened",
+    "what did you take it to mean",
+    "what did you do next",
+    "a question that separates the leading explanations"
+  ]
+}

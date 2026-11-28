@@ -1,0 +1,16 @@
+{
+  "id": "appraisal_hypotheses",
+  "principle": "Generate root-cause hypotheses from how the situation was judged: goal blocked, who's to blame, how much control",
+  "evidence": "Appraisal theory of emotion (Lazarus; Scherer)",
+  "strength": "strong",
+  "when_to_use": "Hypothesise stage",
+  "bot_behavior": "Hold 2-4 competing explanations, each saying what would support or rule it out",
+  "do_example": "It could be about not being asked, or about what being left out might mean for the friendship. Which part stings when you picture it?",
+  "dont_example": "You're upset because you're insecure.",
+  "contraindications": "",
+  "source_url": "",
+  "stages": [
+    "hypothesise",
+    "discriminate"
+  ]
+}

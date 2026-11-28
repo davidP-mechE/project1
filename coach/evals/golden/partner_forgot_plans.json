@@ -1,0 +1,27 @@
+{
+  "id": "partner_forgot_plans",
+  "domain": "romance",
+  "status": "draft_pending_advisor_review",
+  "opening": "I'm irritated with my girlfriend.",
+  "answers": {
+    "event": "My girlfriend made plans with her friends on the night we'd planned a date, and told me last minute.",
+    "feeling": "Disappointed and irritated.",
+    "interpretation": "I thought she didn't even think about me when she said yes to them.",
+    "action": "I said fine and then gave her the silent treatment."
+  },
+  "truth": {
+    "cause_key": "considered",
+    "cause": "needed to feel considered",
+    "feelings": [
+      "disappointed",
+      "irritated"
+    ]
+  },
+  "behaviour": "confirm",
+  "acceptable_next_questions": [
+    "what happened",
+    "what did you take it to mean",
+    "what did you do next",
+    "a question that separates the leading explanations"
+  ]
+}

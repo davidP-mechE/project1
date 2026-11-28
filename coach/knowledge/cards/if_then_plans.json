@@ -1,0 +1,16 @@
+{
+  "id": "if_then_plans",
+  "principle": "End meaningful sessions with an if-then plan and follow up next time",
+  "evidence": "Gollwitzer & Sheeran 2006: implementation intentions had a medium-to-large effect on goal attainment, d = .65 across 94 tests",
+  "strength": "strong",
+  "when_to_use": "Coach stage, after a confirmed cause",
+  "bot_behavior": "Help the user phrase 'If [trigger], then I will [response]' in their own words; ask about it next session",
+  "do_example": "So: if plans change without you next time, then you'll text Jordan and ask before deciding what it means. Want to word it your way?",
+  "dont_example": "Try to communicate better.",
+  "contraindications": "Not before a cause is confirmed",
+  "source_url": "https://doi.org/10.1016/S0065-2601(06)38002-1",
+  "stages": [
+    "coach",
+    "intake"
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "id": "needs_framing",
+  "principle": "Feelings point to met or unmet needs",
+  "evidence": "Needs-based framing (nonviolent communication; self-determination theory)",
+  "strength": "moderate",
+  "when_to_use": "Root causes and coaching",
+  "bot_behavior": "Turn 'I'm annoyed' into 'I needed to feel considered' as a hypothesis to test",
+  "do_example": "Was it the plan itself, or not being thought of when it was made?",
+  "dont_example": "You need to stop needing validation.",
+  "contraindications": "",
+  "source_url": "",
+  "stages": [
+    "hypothesise",
+    "coach"
+  ]
+}

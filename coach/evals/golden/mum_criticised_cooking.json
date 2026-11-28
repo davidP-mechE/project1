@@ -1,0 +1,27 @@
+{
+  "id": "mum_criticised_cooking",
+  "domain": "family",
+  "status": "draft_pending_advisor_review",
+  "opening": "I'm upset after dinner with my mum.",
+  "answers": {
+    "event": "My mum criticised my cooking in front of my partner at dinner.",
+    "feeling": "Embarrassed and a bit angry.",
+    "interpretation": "I felt like she was saying I can't take care of myself.",
+    "action": "I snapped at her and then left early."
+  },
+  "truth": {
+    "cause_key": "judged",
+    "cause": "felt judged in front of others",
+    "feelings": [
+      "embarrassed",
+      "angry"
+    ]
+  },
+  "behaviour": "confirm",
+  "acceptable_next_questions": [
+    "what happened",
+    "what did you take it to mean",
+    "what did you do next",
+    "a question that separates the leading explanations"
+  ]
+}

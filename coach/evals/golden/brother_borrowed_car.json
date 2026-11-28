@@ -1,0 +1,27 @@
+{
+  "id": "brother_borrowed_car",
+  "domain": "family",
+  "status": "draft_pending_advisor_review",
+  "opening": "My brother did something and I'm still angry.",
+  "answers": {
+    "event": "My brother borrowed my car and brought it back with an empty tank and a scratch.",
+    "feeling": "Angry and disrespected.",
+    "interpretation": "He doesn't respect my stuff, he never has.",
+    "action": "I yelled at him over the phone."
+  },
+  "truth": {
+    "cause_key": "unfair",
+    "cause": "it felt unfair",
+    "feelings": [
+      "angry",
+      "disrespected"
+    ]
+  },
+  "behaviour": "confirm",
+  "acceptable_next_questions": [
+    "what happened",
+    "what did you take it to mean",
+    "what did you do next",
+    "a question that separates the leading explanations"
+  ]
+}

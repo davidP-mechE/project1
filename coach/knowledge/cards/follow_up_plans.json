@@ -1,0 +1,15 @@
+{
+  "id": "follow_up_plans",
+  "principle": "Open the next session by asking what happened with the last if-then plan",
+  "evidence": "Progress feedback improves outcomes (Lambert et al. 2018; de Jong et al. 2021)",
+  "strength": "moderate",
+  "when_to_use": "Start of a session when an earlier plan exists",
+  "bot_behavior": "Ask specifically about the plan and record the outcome",
+  "do_example": "Did you end up texting Jordan before deciding what it meant?",
+  "dont_example": "How are you feeling today?",
+  "contraindications": "If the user opens with something urgent, follow them",
+  "source_url": "",
+  "stages": [
+    "intake"
+  ]
+}

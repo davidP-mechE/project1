@@ -1,0 +1,27 @@
+{
+  "id": "family_holiday_plans_changed",
+  "domain": "family",
+  "status": "draft_pending_advisor_review",
+  "opening": "I'm annoyed about the holidays.",
+  "answers": {
+    "event": "My in-laws changed the holiday plans so everyone goes to theirs, without asking us.",
+    "feeling": "Irritated, and resentful.",
+    "interpretation": "It felt like what we want doesn't matter.",
+    "action": "I told my husband I wasn't going and we argued."
+  },
+  "truth": {
+    "cause_key": "considered",
+    "cause": "needed to feel considered",
+    "feelings": [
+      "irritated",
+      "resentful"
+    ]
+  },
+  "behaviour": "confirm",
+  "acceptable_next_questions": [
+    "what happened",
+    "what did you take it to mean",
+    "what did you do next",
+    "a question that separates the leading explanations"
+  ]
+}

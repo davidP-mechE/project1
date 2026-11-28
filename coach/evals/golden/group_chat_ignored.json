@@ -1,0 +1,27 @@
+{
+  "id": "group_chat_ignored",
+  "domain": "friendship",
+  "status": "draft_pending_advisor_review",
+  "opening": "Nobody replied to my message in the group chat and now I feel off.",
+  "answers": {
+    "event": "I sent a long message to the group chat about my new job and nobody replied for a whole day.",
+    "feeling": "Embarrassed and a bit rejected.",
+    "interpretation": "I thought they must find me annoying.",
+    "action": "I deleted the message after a few hours."
+  },
+  "truth": {
+    "cause_key": "standing",
+    "cause": "worry about where you stand",
+    "feelings": [
+      "embarrassed",
+      "rejected"
+    ]
+  },
+  "behaviour": "confirm",
+  "acceptable_next_questions": [
+    "what happened",
+    "what did you take it to mean",
+    "what did you do next",
+    "a question that separates the leading explanations"
+  ]
+}

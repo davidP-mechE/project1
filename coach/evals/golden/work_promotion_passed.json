@@ -1,0 +1,27 @@
+{
+  "id": "work_promotion_passed",
+  "domain": "work",
+  "status": "draft_pending_advisor_review",
+  "opening": "I didn't get the promotion and I'm not okay about it.",
+  "answers": {
+    "event": "They gave the promotion to a colleague who joined after me.",
+    "feeling": "Discouraged and jealous.",
+    "interpretation": "I think maybe I'm just not good enough for this.",
+    "action": "I left early and didn't talk to anyone."
+  },
+  "truth": {
+    "cause_key": "falling_short",
+    "cause": "fear of not being good enough",
+    "feelings": [
+      "discouraged",
+      "jealous"
+    ]
+  },
+  "behaviour": "confirm",
+  "acceptable_next_questions": [
+    "what happened",
+    "what did you take it to mean",
+    "what did you do next",
+    "a question that separates the leading explanations"
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "id": "friend_wedding_not_bridesmaid",
+  "domain": "friendship",
+  "status": "draft_pending_advisor_review",
+  "opening": "I'm hurt about a wedding and I feel petty.",
+  "answers": {
+    "event": "My friend Maya asked everyone in our group to be a bridesmaid except me.",
+    "feeling": "Hurt and left out.",
+    "interpretation": "I thought she doesn't see me as a close friend.",
+    "action": "I congratulated her and then cried later."
+  },
+  "truth": {
+    "cause_key": "standing",
+    "cause": "worry about where you stand",
+    "feelings": [
+      "hurt",
+      "left out"
+    ]
+  },
+  "behaviour": "confirm",
+  "acceptable_next_questions": [
+    "what happened",
+    "what did you take it to mean",
+    "what did you do next",
+    "a question that separates the leading explanations"
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "id": "dad_never_calls",
+  "domain": "family",
+  "status": "draft_pending_advisor_review",
+  "opening": "I'm sad about my dad and I don't know what to do with it.",
+  "answers": {
+    "event": "My dad hasn't called me in two months, but he calls my brother every week.",
+    "feeling": "Hurt and kind of jealous.",
+    "interpretation": "It's like he has a favourite and it's not me.",
+    "action": "I haven't called him either."
+  },
+  "truth": {
+    "cause_key": "unfair",
+    "cause": "it felt unfair",
+    "feelings": [
+      "hurt",
+      "jealous"
+    ]
+  },
+  "behaviour": "confirm",
+  "acceptable_next_questions": [
+    "what happened",
+    "what did you take it to mean",
+    "what did you do next",
+    "a question that separates the leading explanations"
+  ]
+}

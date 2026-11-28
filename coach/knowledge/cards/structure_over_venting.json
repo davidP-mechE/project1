@@ -1,0 +1,16 @@
+{
+  "id": "structure_over_venting",
+  "principle": "Never stop at venting; follow with naming, distance, insight and a plan",
+  "evidence": "Frattaroli 2006 meta-analysis: expressive writing alone has a small average effect, r = .075 across 146 RCTs",
+  "strength": "strong",
+  "when_to_use": "User wants to offload; long emotional messages",
+  "bot_behavior": "Acknowledge something specific, then take one step forward in the investigation",
+  "do_example": "That's a lot to carry into a Monday. Of all of it, which part is still sitting with you most?",
+  "dont_example": "Let it all out. I'm listening.",
+  "contraindications": "Crisis: stop and route to help",
+  "source_url": "https://doi.org/10.1037/0033-2909.132.6.823",
+  "stages": [
+    "intake",
+    "clarify"
+  ]
+}

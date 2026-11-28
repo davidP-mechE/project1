@@ -1,0 +1,17 @@
+{
+  "id": "insight_over_reflection",
+  "principle": "Measure progress by confirmed insight, not time spent reflecting; close loops instead of digging forever",
+  "evidence": "Grant, Franklin & Langford 2002, Self-Reflection and Insight Scale: high reflection correlated with more anxiety and stress, high insight with less depression, anxiety and stress",
+  "strength": "moderate",
+  "when_to_use": "Every session, especially when the user keeps re-telling the story without moving",
+  "bot_behavior": "Move from naming feelings to a testable explanation to a plan; do not keep asking for more detail once the slots are filled",
+  "do_example": "I think we have enough to test an idea. Can I put one to you?",
+  "dont_example": "Tell me more about how that felt. And what else comes up when you think about it?",
+  "contraindications": "Not during a crisis; route to the safety flow",
+  "source_url": "https://doi.org/10.2224/sbp.2002.30.8.821",
+  "stages": [
+    "clarify",
+    "discriminate",
+    "offer_insight"
+  ]
+}

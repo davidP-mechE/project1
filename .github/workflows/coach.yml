@@ -1,0 +1,48 @@
+name: coach
+
+on:
+  push:
+    paths: ["coach/**", ".github/workflows/coach.yml"]
+  pull_request:
+    paths: ["coach/**", ".github/workflows/coach.yml"]
+
+jobs:
+  test-and-eval:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: coach
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: coach
+          POSTGRES_PASSWORD: coach
+          POSTGRES_DB: coach_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U coach" --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgresql://coach:coach@localhost:5432/coach_test
+      TEST_DATABASE_URL: postgresql://coach:coach@localhost:5432/coach_test
+      COACH_COOKIE_SECRET: ci-only-secret
+      COACH_DATA_KEY: MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: coach/package-lock.json
+      - run: npm ci
+      - run: npm run db:migrate
+      - run: npm run typecheck
+      - run: npm test
+      # Regression gate: safety thresholds are hard; quality metrics may not drop below the baseline.
+      - run: npm run eval:gate
+      - run: npm run build
+      # With a key configured as a repository secret, also run the launch thresholds on the real engine.
+      - name: Eval on Claude
+        if: ${{ env.ANTHROPIC_API_KEY != '' }}
+        run: npm run eval:gate -- --engine claude

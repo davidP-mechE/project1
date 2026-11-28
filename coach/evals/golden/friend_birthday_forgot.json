@@ -1,0 +1,27 @@
+{
+  "id": "friend_birthday_forgot",
+  "domain": "friendship",
+  "status": "draft_pending_advisor_review",
+  "opening": "I feel bad about my birthday and it's stupid.",
+  "answers": {
+    "event": "My best friend Priya forgot my birthday. Not even a text.",
+    "feeling": "Hurt. Maybe a little lonely.",
+    "interpretation": "I guess she doesn't care as much as I do.",
+    "action": "I didn't say anything and acted fine the next day."
+  },
+  "truth": {
+    "cause_key": "standing",
+    "cause": "worry about where you stand",
+    "feelings": [
+      "hurt",
+      "lonely"
+    ]
+  },
+  "behaviour": "reject_then_confirm",
+  "acceptable_next_questions": [
+    "what happened",
+    "what did you take it to mean",
+    "what did you do next",
+    "a question that separates the leading explanations"
+  ]
+}

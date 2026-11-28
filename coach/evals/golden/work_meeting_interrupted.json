@@ -1,0 +1,27 @@
+{
+  "id": "work_meeting_interrupted",
+  "domain": "work",
+  "status": "draft_pending_advisor_review",
+  "opening": "I keep getting interrupted at work.",
+  "answers": {
+    "event": "In the meeting my colleague Mark interrupted me three times and repeated my point as his own.",
+    "feeling": "Frustrated and disrespected.",
+    "interpretation": "It's like nobody takes me seriously.",
+    "action": "I stopped talking for the rest of the meeting."
+  },
+  "truth": {
+    "cause_key": "unappreciated",
+    "cause": "needed your effort to be seen",
+    "feelings": [
+      "frustrated",
+      "disrespected"
+    ]
+  },
+  "behaviour": "confirm",
+  "acceptable_next_questions": [
+    "what happened",
+    "what did you take it to mean",
+    "what did you do next",
+    "a question that separates the leading explanations"
+  ]
+}

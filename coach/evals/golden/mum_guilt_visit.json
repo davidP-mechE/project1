@@ -1,0 +1,27 @@
+{
+  "id": "mum_guilt_visit",
+  "domain": "family",
+  "status": "draft_pending_advisor_review",
+  "opening": "I feel guilty all the time about my mum.",
+  "answers": {
+    "event": "My mum told me I don't visit enough, and I visited last weekend.",
+    "feeling": "Guilty and kind of frustrated.",
+    "interpretation": "I thought I'm a bad daughter.",
+    "action": "I said sorry and promised to come more."
+  },
+  "truth": {
+    "cause_key": "falling_short",
+    "cause": "fear of not being good enough",
+    "feelings": [
+      "guilty",
+      "frustrated"
+    ]
+  },
+  "behaviour": "confirm",
+  "acceptable_next_questions": [
+    "what happened",
+    "what did you take it to mean",
+    "what did you do next",
+    "a question that separates the leading explanations"
+  ]
+}

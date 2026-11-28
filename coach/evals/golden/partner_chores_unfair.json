@@ -1,0 +1,27 @@
+{
+  "id": "partner_chores_unfair",
+  "domain": "romance",
+  "status": "draft_pending_advisor_review",
+  "opening": "Living together is harder than I thought.",
+  "answers": {
+    "event": "I do almost all the cooking and cleaning and my husband doesn't notice.",
+    "feeling": "Resentful and unappreciated.",
+    "interpretation": "It's always me, and he just expects it.",
+    "action": "I've been doing it angrily and saying nothing."
+  },
+  "truth": {
+    "cause_key": "unappreciated",
+    "cause": "needed your effort to be seen",
+    "feelings": [
+      "resentful",
+      "unappreciated"
+    ]
+  },
+  "behaviour": "confirm",
+  "acceptable_next_questions": [
+    "what happened",
+    "what did you take it to mean",
+    "what did you do next",
+    "a question that separates the leading explanations"
+  ]
+}

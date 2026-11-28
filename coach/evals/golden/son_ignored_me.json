@@ -1,0 +1,27 @@
+{
+  "id": "son_ignored_me",
+  "domain": "family",
+  "status": "draft_pending_advisor_review",
+  "opening": "My teenage son is shutting me out.",
+  "answers": {
+    "event": "My son came home and went straight to his room without saying hi, again.",
+    "feeling": "Hurt and worried.",
+    "interpretation": "I think he doesn't want me around anymore.",
+    "action": "I knocked and asked if he was okay and he said go away."
+  },
+  "truth": {
+    "cause_key": "standing",
+    "cause": "worry about where you stand",
+    "feelings": [
+      "hurt",
+      "worried"
+    ]
+  },
+  "behaviour": "confirm",
+  "acceptable_next_questions": [
+    "what happened",
+    "what did you take it to mean",
+    "what did you do next",
+    "a question that separates the leading explanations"
+  ]
+}

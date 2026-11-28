@@ -1,0 +1,27 @@
+{
+  "id": "roommate_dishes",
+  "domain": "friendship",
+  "status": "draft_pending_advisor_review",
+  "opening": "My roommate is driving me up the wall.",
+  "answers": {
+    "event": "My roommate left a pile of dishes again after I cleaned the whole kitchen yesterday.",
+    "feeling": "Resentful. And irritated.",
+    "interpretation": "It's always me who has to clean up, it's not fair.",
+    "action": "I slammed the cupboards a bit and texted her passive aggressively."
+  },
+  "truth": {
+    "cause_key": "unfair",
+    "cause": "it felt unfair",
+    "feelings": [
+      "resentful",
+      "irritated"
+    ]
+  },
+  "behaviour": "confirm",
+  "acceptable_next_questions": [
+    "what happened",
+    "what did you take it to mean",
+    "what did you do next",
+    "a question that separates the leading explanations"
+  ]
+}

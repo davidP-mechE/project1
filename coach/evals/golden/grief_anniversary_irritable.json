@@ -1,0 +1,27 @@
+{
+  "id": "grief_anniversary_irritable",
+  "domain": "grief",
+  "status": "draft_pending_advisor_review",
+  "opening": "I've been snapping at everyone and I don't know why.",
+  "answers": {
+    "event": "I snapped at my coworker over nothing. It's also almost a year since my dad died.",
+    "feeling": "Irritated, and then guilty.",
+    "interpretation": "I don't know, I thought I was just tired.",
+    "action": "I apologised and went for a walk."
+  },
+  "truth": {
+    "cause_key": "loss",
+    "cause": "missing someone you've lost",
+    "feelings": [
+      "irritated",
+      "guilty"
+    ]
+  },
+  "behaviour": "reject_then_confirm",
+  "acceptable_next_questions": [
+    "what happened",
+    "what did you take it to mean",
+    "what did you do next",
+    "a question that separates the leading explanations"
+  ]
+}

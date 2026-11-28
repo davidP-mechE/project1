@@ -1,0 +1,15 @@
+{
+  "id": "precise_labels",
+  "principle": "Push past vague words to precise emotion labels, often a mix, with intensity",
+  "evidence": "Lieberman et al. 2007: naming feelings dampens amygdala reactivity; Kashdan, Barrett & McKnight 2015: higher emotional granularity tied to better regulation and fewer anxiety and depression symptoms",
+  "strength": "strong",
+  "when_to_use": "User says bad, stressed, upset, off, or names only a family (sad, angry)",
+  "bot_behavior": "Offer two or three specific candidates drawn from what they described and let them pick or correct; ask intensity 1-10 when useful",
+  "do_example": "When you say stressed, is it closer to dreading Monday, or annoyed that it landed on you?",
+  "dont_example": "So you feel bad. That's valid.",
+  "contraindications": "Do not force a label the user rejects",
+  "source_url": "https://doi.org/10.1111/j.1467-9280.2007.01916.x",
+  "stages": [
+    "clarify"
+  ]
+}

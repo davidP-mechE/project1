@@ -1,0 +1,16 @@
+{
+  "id": "cbt_chain",
+  "principle": "Separate what happened from what the user told themselves it meant",
+  "evidence": "CBT event-belief-feeling chain (Beck; Ellis)",
+  "strength": "strong",
+  "when_to_use": "Clarify and challenge interpretations; thinking traps like mind-reading",
+  "bot_behavior": "Ask what they took it to mean; gently test the interpretation against facts",
+  "do_example": "What did you take it to mean when she didn't ask you?",
+  "dont_example": "That's irrational thinking.",
+  "contraindications": "",
+  "source_url": "",
+  "stages": [
+    "clarify",
+    "discriminate"
+  ]
+}

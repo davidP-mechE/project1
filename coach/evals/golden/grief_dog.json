@@ -1,0 +1,27 @@
+{
+  "id": "grief_dog",
+  "domain": "grief",
+  "status": "draft_pending_advisor_review",
+  "opening": "I'm a mess this week.",
+  "answers": {
+    "event": "Our dog died on Monday and I keep expecting him at the door.",
+    "feeling": "Grieving, and guilty.",
+    "interpretation": "I keep thinking I should have noticed he was sick sooner.",
+    "action": "I haven't told anyone at work."
+  },
+  "truth": {
+    "cause_key": "loss",
+    "cause": "missing someone you've lost",
+    "feelings": [
+      "grieving",
+      "guilty"
+    ]
+  },
+  "behaviour": "confirm",
+  "acceptable_next_questions": [
+    "what happened",
+    "what did you take it to mean",
+    "what did you do next",
+    "a question that separates the leading explanations"
+  ]
+}

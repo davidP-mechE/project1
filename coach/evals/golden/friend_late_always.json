@@ -1,0 +1,27 @@
+{
+  "id": "friend_late_always",
+  "domain": "friendship",
+  "status": "draft_pending_advisor_review",
+  "opening": "My friend is always late and today it got to me.",
+  "answers": {
+    "event": "My friend Leo was 45 minutes late to lunch again and didn't apologise.",
+    "feeling": "Irritated and disrespected.",
+    "interpretation": "I thought he doesn't respect my time.",
+    "action": "I said it's fine and was cold the whole lunch."
+  },
+  "truth": {
+    "cause_key": "unfair",
+    "cause": "it felt unfair",
+    "feelings": [
+      "irritated",
+      "disrespected"
+    ]
+  },
+  "behaviour": "confirm",
+  "acceptable_next_questions": [
+    "what happened",
+    "what did you take it to mean",
+    "what did you do next",
+    "a question that separates the leading explanations"
+  ]
+}

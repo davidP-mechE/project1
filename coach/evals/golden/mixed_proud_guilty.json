@@ -1,0 +1,27 @@
+{
+  "id": "mixed_proud_guilty",
+  "domain": "mixed",
+  "status": "draft_pending_advisor_review",
+  "opening": "I feel weird about good news.",
+  "answers": {
+    "event": "I got into the master's program but my best friend didn't.",
+    "feeling": "Proud but also guilty.",
+    "interpretation": "I thought it's not fair to her.",
+    "action": "I didn't post about it."
+  },
+  "truth": {
+    "cause_key": "own_part",
+    "cause": "your own part in how it went",
+    "feelings": [
+      "proud",
+      "guilty"
+    ]
+  },
+  "behaviour": "confirm",
+  "acceptable_next_questions": [
+    "what happened",
+    "what did you take it to mean",
+    "what did you do next",
+    "a question that separates the leading explanations"
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "id": "stress_money",
+  "domain": "stress",
+  "status": "draft_pending_advisor_review",
+  "opening": "I can't stop worrying about money.",
+  "answers": {
+    "event": "My rent went up and I got a surprise bill for my car in the same week.",
+    "feeling": "Worried and kind of helpless.",
+    "interpretation": "There's nothing I can do, it's out of my hands.",
+    "action": "I just avoided opening my banking app."
+  },
+  "truth": {
+    "cause_key": "control",
+    "cause": "no say or control",
+    "feelings": [
+      "worried",
+      "helpless"
+    ]
+  },
+  "behaviour": "confirm",
+  "acceptable_next_questions": [
+    "what happened",
+    "what did you take it to mean",
+    "what did you do next",
+    "a question that separates the leading explanations"
+  ]
+}

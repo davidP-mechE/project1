@@ -1,0 +1,27 @@
+{
+  "id": "partner_snapped_back",
+  "domain": "romance",
+  "status": "draft_pending_advisor_review",
+  "opening": "I snapped at my wife and now I feel terrible.",
+  "answers": {
+    "event": "My wife asked if I'd paid the bill and I snapped at her in front of the kids.",
+    "feeling": "Guilty and ashamed.",
+    "interpretation": "I shouldn't have done that, she didn't deserve it.",
+    "action": "I walked out of the room."
+  },
+  "truth": {
+    "cause_key": "own_part",
+    "cause": "your own part in how it went",
+    "feelings": [
+      "guilty",
+      "ashamed"
+    ]
+  },
+  "behaviour": "confirm",
+  "acceptable_next_questions": [
+    "what happened",
+    "what did you take it to mean",
+    "what did you do next",
+    "a question that separates the leading explanations"
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "id": "mixed_relief_sad",
+  "domain": "mixed",
+  "status": "draft_pending_advisor_review",
+  "opening": "I'm relieved and sad at the same time.",
+  "answers": {
+    "event": "I finally broke up with my boyfriend after months of thinking about it.",
+    "feeling": "Relieved, and also lonely.",
+    "interpretation": "I thought I should feel happier than this.",
+    "action": "I spent the night at my sister's."
+  },
+  "truth": {
+    "cause_key": "loss",
+    "cause": "missing someone you've lost",
+    "feelings": [
+      "relieved",
+      "lonely"
+    ]
+  },
+  "behaviour": "confirm",
+  "acceptable_next_questions": [
+    "what happened",
+    "what did you take it to mean",
+    "what did you do next",
+    "a question that separates the leading explanations"
+  ]
+}

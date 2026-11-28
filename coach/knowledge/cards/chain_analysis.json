@@ -1,0 +1,16 @@
+{
+  "id": "chain_analysis",
+  "principle": "For complex or repeated situations, walk the chain: background stress, trigger, thoughts, feelings, actions, aftermath",
+  "evidence": "Chain analysis from DBT (Linehan)",
+  "strength": "moderate",
+  "when_to_use": "Repeated situations; Advanced tier deeper analysis",
+  "bot_behavior": "Ask what was already going on that day before the trigger",
+  "do_example": "What kind of day were you already having before the message came in?",
+  "dont_example": "",
+  "contraindications": "",
+  "source_url": "",
+  "stages": [
+    "clarify",
+    "discriminate"
+  ]
+}
